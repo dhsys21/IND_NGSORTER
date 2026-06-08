@@ -101,18 +101,6 @@ void __fastcall TBaseForm::ClockTimerTimer(TObject *Sender)
 	setColor(pbcr1, MainForm->comBcr[0]->Comm->Connected);
 	setColor(pbcr2, MainForm->comBcr[1]->Comm->Connected);
 
-    if(EcsMod->ecsSock->Active){
-		pecs->Fill->Color = pon->Color;
-		pecs->Fill->ColorMirror = pon->Color;
-		pecs->Fill->ColorMirrorTo = pon->Color;
-		pecs->Fill->ColorTo = pon->Color;
-	}else{
-		pecs->Fill->Color = poff->Color;
-		pecs->Fill->ColorMirror = poff->Color;
-		pecs->Fill->ColorMirrorTo = poff->Color;
-		pecs->Fill->ColorTo = poff->Color;
-	}
-
 	if(dt.FormatString("hhnn") == "0700") {
 		DeleteDay = 90;	// 12시가 되면 DeleteDay를 90으로 초기화
 	}

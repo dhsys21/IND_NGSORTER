@@ -57,7 +57,6 @@ __published:	// IDE-managed Components
 	TTimer *ClockTimer;
 	TTimer *FileDeleteTimer;
 	TImage *Image12;
-	TAdvSmoothPanel *pecs;
 	TAdvSmoothPanel *pims;
 	TPanel *pon;
 	TPanel *poff;

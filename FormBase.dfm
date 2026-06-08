@@ -478,45 +478,6 @@ object BaseForm: TBaseForm
     Height = 13
     Caption = 'Ver. 2026 08 25'
   end
-  object pecs: TAdvSmoothPanel
-    Left = 1522
-    Top = 6
-    Width = 100
-    Height = 25
-    Cursor = crDefault
-    Caption.Text = 'ECS'
-    Caption.Location = plBottomCenter
-    Caption.HTMLFont.Charset = DEFAULT_CHARSET
-    Caption.HTMLFont.Color = clWindowText
-    Caption.HTMLFont.Height = -11
-    Caption.HTMLFont.Name = 'Tahoma'
-    Caption.HTMLFont.Style = []
-    Caption.HTMLURLColor = clBlack
-    Caption.Font.Charset = DEFAULT_CHARSET
-    Caption.Font.Color = clWindowText
-    Caption.Font.Height = -17
-    Caption.Font.Name = 'Tahoma'
-    Caption.Font.Style = [fsBold]
-    Caption.ColorStart = clWhite
-    Caption.ColorEnd = clWhite
-    Caption.LineColor = clBlack
-    Caption.Line = False
-    Caption.TextAlignment = taCenter
-    Fill.Color = clRed
-    Fill.ColorTo = clRed
-    Fill.ColorMirror = clRed
-    Fill.ColorMirrorTo = clRed
-    Fill.GradientType = gtVertical
-    Fill.GradientMirrorType = gtVertical
-    Fill.BorderColor = 14922381
-    Fill.Rounding = 5
-    Fill.ShadowOffset = 0
-    Fill.Glow = gmNone
-    Version = '1.5.2.1'
-    OnClick = pecsClick
-    TabOrder = 0
-    TMSStyle = 0
-  end
   object pims: TAdvSmoothPanel
     Left = 1522
     Top = 37
@@ -551,7 +512,7 @@ object BaseForm: TBaseForm
     Fill.ShadowOffset = 0
     Fill.Glow = gmNone
     Version = '1.5.2.1'
-    TabOrder = 1
+    TabOrder = 0
     TMSStyle = 0
   end
   object pon: TPanel
@@ -562,7 +523,7 @@ object BaseForm: TBaseForm
     Caption = 'pon'
     Color = 1365955
     ParentBackground = False
-    TabOrder = 2
+    TabOrder = 1
     Visible = False
   end
   object poff: TPanel
@@ -573,7 +534,7 @@ object BaseForm: TBaseForm
     Caption = 'poff'
     Color = clRed
     ParentBackground = False
-    TabOrder = 3
+    TabOrder = 2
     Visible = False
   end
   object Button1: TAdvSmoothButton
@@ -608,7 +569,7 @@ object BaseForm: TBaseForm
     Caption = 'CONFIGURATION'
     Color = clWhite
     ParentFont = False
-    TabOrder = 4
+    TabOrder = 3
     Version = '2.1.1.5'
     OnClick = Button1Click
     TMSStyle = 8
@@ -649,7 +610,7 @@ object BaseForm: TBaseForm
     Fill.Glow = gmNone
     Version = '1.5.2.1'
     OnClick = pplcClick
-    TabOrder = 5
+    TabOrder = 4
     TMSStyle = 0
   end
   object pcclink: TAdvSmoothPanel
@@ -687,7 +648,7 @@ object BaseForm: TBaseForm
     Fill.ShadowOffset = 0
     Fill.Glow = gmNone
     Version = '1.5.2.1'
-    TabOrder = 6
+    TabOrder = 5
     TMSStyle = 0
   end
   object pbcr1: TAdvSmoothPanel
@@ -726,7 +687,7 @@ object BaseForm: TBaseForm
     Fill.ShadowOffset = 0
     Fill.Glow = gmNone
     Version = '1.5.2.1'
-    TabOrder = 7
+    TabOrder = 6
     TMSStyle = 0
   end
   object pbcr2: TAdvSmoothPanel
@@ -765,7 +726,7 @@ object BaseForm: TBaseForm
     Fill.ShadowOffset = 0
     Fill.Glow = gmNone
     Version = '1.5.2.1'
-    TabOrder = 8
+    TabOrder = 7
     TMSStyle = 0
   end
   object Panel1: TPanel
@@ -776,7 +737,7 @@ object BaseForm: TBaseForm
     Caption = 'pon'
     Color = 16744448
     ParentBackground = False
-    TabOrder = 9
+    TabOrder = 8
     Visible = False
   end
   object AdvSmoothButton2: TAdvSmoothButton
@@ -811,7 +772,7 @@ object BaseForm: TBaseForm
     Caption = '-'
     Color = clWhite
     ParentFont = False
-    TabOrder = 10
+    TabOrder = 9
     Version = '2.1.1.5'
     OnClick = AdvSmoothButton2Click
     TMSStyle = 8
@@ -848,7 +809,7 @@ object BaseForm: TBaseForm
     Caption = 'X'
     Color = clWhite
     ParentFont = False
-    TabOrder = 11
+    TabOrder = 10
     Version = '2.1.1.5'
     OnClick = AdvSmoothButton1Click
     TMSStyle = 8
@@ -869,7 +830,7 @@ object BaseForm: TBaseForm
     Font.Style = [fsBold]
     ParentBackground = False
     ParentFont = False
-    TabOrder = 12
+    TabOrder = 11
   end
   object pstepInfo1: TPanel
     Left = 317
@@ -886,7 +847,7 @@ object BaseForm: TBaseForm
     Font.Style = []
     ParentBackground = False
     ParentFont = False
-    TabOrder = 13
+    TabOrder = 12
     object RadioButton1: TRadioButton
       Left = 7
       Top = 4
@@ -968,7 +929,7 @@ object BaseForm: TBaseForm
     Caption = 'SERVO Alarm List'
     Color = clWhite
     ParentFont = False
-    TabOrder = 14
+    TabOrder = 13
     Version = '2.1.1.5'
     OnClick = AdvSmoothButton3Click
     TMSStyle = 8
@@ -1007,7 +968,7 @@ object BaseForm: TBaseForm
     Caption = #53412#46973' '#49444#51221
     Color = clWhite
     ParentFont = False
-    TabOrder = 15
+    TabOrder = 14
     Version = '2.1.1.5'
     OnClick = btnKeyLockClick
     TMSStyle = 8
@@ -1046,7 +1007,7 @@ object BaseForm: TBaseForm
     Caption = #53412#46973' '#54644#51228
     Color = clWhite
     ParentFont = False
-    TabOrder = 16
+    TabOrder = 15
     Version = '2.1.1.5'
     OnClick = btnKeyUnLockClick
     TMSStyle = 8
