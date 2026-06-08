@@ -1,0 +1,156 @@
+//---------------------------------------------------------------------------
+
+#ifndef FormError_insertH
+#define FormError_insertH
+//---------------------------------------------------------------------------
+#include <Classes.hpp>
+#include <Controls.hpp>
+#include <StdCtrls.hpp>
+#include <Forms.hpp>
+#include <ExtCtrls.hpp>
+#include <jpeg.hpp>
+
+#include "AdvSmoothButton.hpp"
+#include "AdvSmoothPanel.hpp"
+//---------------------------------------------------------------------------
+class TErrorForm_insert : public TForm
+{
+__published:	// IDE-managed Components
+	TAdvSmoothPanel *AdvSmoothPanel1;
+	TLabel *errMsg1;
+	TLabel *errMsg2;
+	TAdvSmoothButton *ignoreBtn;
+	TAdvSmoothButton *retryBtn;
+	TAdvSmoothButton *AdvSmoothButton1;
+	TAdvSmoothPanel *AdvSmoothPanel5;
+	TPanel *Panel30;
+	TImage *Image1;
+	TLabel *CLR1;
+	TLabel *Label12;
+	TLabel *Label13;
+	TPanel *pdn1;
+	TPanel *pup1;
+	TPanel *pflow1;
+	TPanel *pclose1;
+	TPanel *pcell1;
+	TPanel *popen1;
+	TAdvSmoothButton *AdvSmoothButton12;
+	TAdvSmoothButton *AdvSmoothButton11;
+	TAdvSmoothButton *AdvSmoothButton13;
+	TAdvSmoothButton *AdvSmoothButton14;
+	TPanel *Panel40;
+	TImage *Image2;
+	TLabel *Label14;
+	TLabel *Label15;
+	TLabel *Label16;
+	TPanel *pdn2;
+	TPanel *pup2;
+	TPanel *pflow2;
+	TPanel *pclose2;
+	TPanel *pcell2;
+	TPanel *popen2;
+	TAdvSmoothButton *AdvSmoothButton15;
+	TAdvSmoothButton *AdvSmoothButton16;
+	TAdvSmoothButton *AdvSmoothButton17;
+	TAdvSmoothButton *AdvSmoothButton18;
+	TPanel *Panel47;
+	TImage *Image3;
+	TLabel *Label17;
+	TLabel *Label18;
+	TLabel *Label19;
+	TPanel *pdn3;
+	TPanel *pup3;
+	TPanel *pflow3;
+	TPanel *pclose3;
+	TPanel *pcell3;
+	TPanel *popen3;
+	TAdvSmoothButton *AdvSmoothButton19;
+	TAdvSmoothButton *AdvSmoothButton20;
+	TAdvSmoothButton *AdvSmoothButton21;
+	TAdvSmoothButton *AdvSmoothButton22;
+	TPanel *Panel54;
+	TImage *Image4;
+	TLabel *Label20;
+	TLabel *Label21;
+	TLabel *Label22;
+	TPanel *pdn4;
+	TPanel *pup4;
+	TPanel *pflow4;
+	TPanel *pclose4;
+	TPanel *pcell4;
+	TPanel *popen4;
+	TAdvSmoothButton *AdvSmoothButton23;
+	TAdvSmoothButton *AdvSmoothButton24;
+	TAdvSmoothButton *AdvSmoothButton25;
+	TAdvSmoothButton *AdvSmoothButton26;
+	TPanel *Panel61;
+	TImage *Image5;
+	TLabel *Label23;
+	TLabel *Label24;
+	TLabel *Label25;
+	TPanel *pdn5;
+	TPanel *pup5;
+	TPanel *pflow5;
+	TPanel *pclose5;
+	TPanel *pcell5;
+	TPanel *popen5;
+	TAdvSmoothButton *AdvSmoothButton27;
+	TAdvSmoothButton *AdvSmoothButton28;
+	TAdvSmoothButton *AdvSmoothButton29;
+	TAdvSmoothButton *AdvSmoothButton30;
+	TPanel *Panel68;
+	TImage *Image6;
+	TLabel *Label26;
+	TLabel *Label27;
+	TLabel *Label28;
+	TPanel *pdn6;
+	TPanel *pup6;
+	TPanel *pflow6;
+	TPanel *pclose6;
+	TPanel *pcell6;
+	TPanel *popen6;
+	TAdvSmoothButton *AdvSmoothButton31;
+	TAdvSmoothButton *AdvSmoothButton32;
+	TAdvSmoothButton *AdvSmoothButton33;
+	TAdvSmoothButton *AdvSmoothButton34;
+	TPanel *Panel16;
+	TLabel *Label1;
+	TPanel *pcode1;
+	TPanel *Panel25;
+	TPanel *Panel26;
+	TPanel *ptarget_ch1;
+	TPanel *Panel29;
+	TPanel *psource_ch1;
+	TPanel *ptoolNum;
+	TPanel *Panel2;
+	TAdvSmoothButton *AdvSmoothButton2;
+	TAdvSmoothButton *AdvSmoothButton3;
+	TAdvSmoothButton *AdvSmoothButton5;
+	TMemo *Memo_Ko;
+	TMemo *Memo_Hu;
+	TMemo *Memo_En;
+	void __fastcall AdvSmoothButton1Click(TObject *Sender);
+	void __fastcall retryBtnClick(TObject *Sender);
+	void __fastcall ignoreBtnClick(TObject *Sender);
+	void __fastcall AdvSmoothButton5Click(TObject *Sender);
+	void __fastcall AdvSmoothButton2Click(TObject *Sender);
+	void __fastcall AdvSmoothButton3Click(TObject *Sender);
+	void __fastcall AdvSmoothButton13Click(TObject *Sender);
+	void __fastcall AdvSmoothButton14Click(TObject *Sender);
+	void __fastcall AdvSmoothButton12Click(TObject *Sender);
+	void __fastcall AdvSmoothButton11Click(TObject *Sender);
+	void __fastcall FormHide(TObject *Sender);
+private:	// User declarations
+public:		// User declarations
+
+	int toolNum;
+	void __fastcall ShowError(AnsiString str1, AnsiString str2, int toolNo, int mesCode);
+
+    void __fastcall LanguageChange(int index);
+
+	__fastcall TErrorForm_insert(TComponent* Owner);
+};
+//---------------------------------------------------------------------------
+extern PACKAGE TErrorForm_insert *ErrorForm_insert;
+//---------------------------------------------------------------------------
+#endif

@@ -1,0 +1,523 @@
+//---------------------------------------------------------------------------
+
+#ifndef FormMainH
+#define FormMainH
+//---------------------------------------------------------------------------
+#include <Classes.hpp>
+#include <Controls.hpp>
+#include <StdCtrls.hpp>
+#include <Forms.hpp>
+#include <IniFiles.hpp>
+#include <ComCtrls.hpp>
+#include <ExtCtrls.hpp>
+#include <jpeg.hpp>
+#include <Menus.hpp>
+#include <Graphics.hpp>
+#include <Dialogs.hpp>
+#include <Grids.hpp>
+#include <System.Win.ScktComp.hpp>
+#include "AdvSmoothButton.hpp"
+#include "AdvSmoothPanel.hpp"
+#include "AdvSmoothToggleButton.hpp"
+
+//---------------------------------------------------------------------------
+#include "DEFINE.h"
+#include "Barcode_comm.h"
+
+
+typedef enum Mode
+{
+	modeInit,
+	modeAuto,
+	modeAutoStop,
+	modeManual,
+	modeEmergency,
+	modeReset,
+    modAlarm
+}SorterMode;
+
+typedef enum
+{
+	LampAuto,
+	LampManual,
+	LampEmergency,
+	LampAlarm,
+    LampStop
+}LampMode;
+
+
+typedef struct
+{
+	AnsiString LOT_ID;
+	int SLOT_COUNT;
+	AnsiString SLOT_POSITION[96];
+	AnsiString SLOT_ID[96];
+	AnsiString PICK[96];
+}SAVE_TRAY_INFO;
+
+
+
+class TMainForm : public TForm
+{
+__published:	// IDE-managed Components
+	TClientSocket *Client;
+	TLabel *Label6;
+	TAdvSmoothPanel *pback;
+	TLabel *lblTitle;
+	TAdvSmoothPanel *AdvSmoothPanel2;
+	TLabel *Label9;
+	TPanel *Panel59;
+	TPanel *pTrayid_source2;
+	TPanel *pPROCESS;
+	TPanel *pKIND;
+	TPanel *pDATE;
+	TPanel *psample;
+	TPanel *Panel15;
+	TPanel *Panel36;
+	TPanel *pSLOT_COUNT;
+	TPanel *Panel21;
+	TPanel *Panel46;
+	TAdvSmoothPanel *AdvSmoothPanel3;
+	TPanel *popen;
+	TAdvSmoothPanel *AdvSmoothPanel4;
+	TAdvSmoothPanel *grp_process;
+	TAdvSmoothPanel *AdvSmoothPanel6;
+	TPanel *pBase;
+	TAdvSmoothPanel *AdvSmoothPanel9;
+	TPanel *Panel27;
+	TSaveDialog *SaveDialog;
+	TPanel *pOPER;
+	TPanel *Panel4;
+	TOpenDialog *OpenDialog;
+	TAdvSmoothToggleButton *manualBtn;
+	TAdvSmoothToggleButton *autoBtn;
+	TAdvSmoothToggleButton *homeBtn;
+	TAdvSmoothToggleButton *stopBtn;
+	TAdvSmoothToggleButton *playBtn;
+	TAdvSmoothToggleButton *pause_stopBtn;
+	TAdvSmoothToggleButton *buzzerBtn;
+	TCheckBox *chkBypass;
+	TLabel *Label7;
+	TPanel *Panel11;
+	TPanel *perr;
+	TAdvSmoothPanel *AdvSmoothPanel1;
+	TLabel *Label5;
+	TPanel *Panel6;
+	TPanel *pbad_sum;
+	TPanel *Panel13;
+	TAdvSmoothButton *trayout_targetBtn;
+	TAdvSmoothButton *teachingBtn;
+	TLabel *Label11;
+	TAdvSmoothPanel *AdvSmoothPanel5;
+	TPanel *Panel14;
+	TPanel *Panel16;
+	TImage *Image1;
+	TPanel *pdn1;
+	TPanel *pup1;
+	TPanel *pflow1;
+	TPanel *pclose1;
+	TPanel *pcell1;
+	TPanel *popen1;
+	TLabel *CLR1;
+	TPanel *pcode1;
+	TPanel *Panel25;
+	TPanel *Panel26;
+	TPanel *ptarget_ch1;
+	TPanel *Panel29;
+	TPanel *psource_ch1;
+	TPanel *Panel32;
+	TImage *Image4;
+	TLabel *CLR2;
+	TPanel *pdn2;
+	TPanel *pup2;
+	TPanel *pflow2;
+	TPanel *pclose2;
+	TPanel *pcell2;
+	TPanel *popen2;
+	TPanel *pcode2;
+	TPanel *Panel42;
+	TPanel *Panel43;
+	TPanel *ptarget_ch2;
+	TPanel *Panel45;
+	TPanel *psource_ch2;
+	TStringGrid *targetGrid;
+	TPanel *Panel2;
+	TPanel *Panel3;
+	TPanel *Panel67;
+	TPanel *Panel70;
+	TPanel *pTrayid_target;
+	TPanel *Panel20;
+	TPanel *pTrayid_source;
+	TPanel *Panel10;
+	TLabel *Label1;
+	TPanel *pTrayid_target2;
+	TPanel *pPROCESS_target;
+	TPanel *pKIND_target;
+	TPanel *pDATE_target;
+	TPanel *Panel30;
+	TPanel *Panel37;
+	TPanel *pSLOT_COUNT_target;
+	TPanel *Panel39;
+	TPanel *Panel40;
+	TPanel *Panel50;
+	TPanel *pBYPASS;
+	TPanel *Panel19;
+	TAdvSmoothPanel *pt1;
+	TAdvSmoothPanel *pt2;
+	TAdvSmoothPanel *pt3;
+	TAdvSmoothPanel *pt20;
+	TAdvSmoothPanel *pt17;
+	TAdvSmoothPanel *pt18;
+	TAdvSmoothPanel *pt19;
+	TAdvSmoothPanel *pt16;
+	TAdvSmoothPanel *pt13;
+	TAdvSmoothPanel *pt14;
+	TAdvSmoothPanel *pt15;
+	TAdvSmoothPanel *pt12;
+	TAdvSmoothPanel *pt9;
+	TAdvSmoothPanel *pt10;
+	TAdvSmoothPanel *pt11;
+	TAdvSmoothPanel *pt8;
+	TAdvSmoothPanel *pt5;
+	TAdvSmoothPanel *pt6;
+	TAdvSmoothPanel *pt7;
+	TAdvSmoothPanel *pt4;
+	TAdvSmoothPanel *pt21;
+	TAdvSmoothPanel *pt22;
+	TAdvSmoothPanel *pt23;
+	TAdvSmoothPanel *pt24;
+	TListView *badList;
+	TLabel *puse1;
+	TLabel *puse2;
+	TPanel *pinsertremainCnt;
+	TPanel *Panel18;
+	TPanel *px1;
+	TPanel *py;
+	TPanel *pz;
+	TPanel *pspeed;
+	TLabel *Label10;
+	TLabel *Label2;
+	TLabel *Label8;
+	TLabel *Label3;
+	TTimer *stepTimer;
+	TAdvSmoothToggleButton *AdvSmoothToggleButton15;
+	TAdvSmoothToggleButton *AdvSmoothToggleButton1;
+	TTimer *senTimer;
+	TTimer *mesTimer;
+	TEdit *target_idEdit;
+	TEdit *src_idEdit;
+	TPanel *psrcReady;
+	TPanel *psrcArrive;
+	TPanel *ptargetReady;
+	TPanel *pdoor_left;
+	TPanel *pdoor_right;
+	TPanel *pemergency;
+	TPanel *psrcOut;
+	TPanel *ptargetOut;
+	TPanel *ppause;
+	TAdvSmoothToggleButton *resetBtn;
+	TPanel *pwork1;
+	TPanel *pwork2;
+	TMemo *badCode;
+	TEdit *limitEdit;
+	TPanel *Panel8;
+	TAdvSmoothToggleButton *AdvSmoothToggleButton4;
+	TMemo *zoneCode;
+	TAdvSmoothButton *zone1;
+	TAdvSmoothButton *zone2;
+	TAdvSmoothButton *zone3;
+	TAdvSmoothButton *zone4;
+	TPanel *pmainMsg;
+	TPanel *Panel5;
+	TPanel *Panel7;
+	TPanel *pgripperMsg;
+	TPanel *probostarMsg;
+	TPanel *Panel17;
+	TPanel *Panel1;
+	TPanel *Panel9;
+	TPanel *Panel12;
+	TPanel *Panel22;
+	TAdvSmoothButton *trayout_srcBtn;
+	TPanel *Panel23;
+	TPanel *pejectremainCnt;
+	TPanel *Panel24;
+	TPanel *pLspX1;
+	TPanel *pLspY;
+	TPanel *pLspZ;
+	TPanel *Panel34;
+	TPanel *pLsnX1;
+	TPanel *pLsnY;
+	TPanel *pLsnZ;
+	TPanel *pOnX1;
+	TPanel *pOnY;
+	TPanel *pOnZ;
+	TPanel *pOrgX1;
+	TPanel *pOrgY;
+	TPanel *pOrgZ;
+	TPanel *pErrorX1;
+	TPanel *pErrorY;
+	TPanel *pErrorZ;
+	TAdvSmoothButton *openBtn;
+	TLabel *Label4;
+	TPanel *px2;
+	TPanel *pOnX2;
+	TPanel *pErrorX2;
+	TPanel *pOrgX2;
+	TPanel *pLsnX2;
+	TPanel *pLspX2;
+	TButton *Button1;
+	TButton *Button2;
+	TMemo *Memo_Ko;
+	TMemo *Memo_En;
+	TMemo *Memo_Hu;
+	TMemo *Memo1;
+	TAdvSmoothToggleButton *AdvSmoothToggleButton_InitWork;
+	TAdvSmoothToggleButton *pause_startBtn;
+	TPanel *pOnG1;
+	TPanel *pOnG2;
+	TPanel *pOrgG1;
+	TPanel *pOrgG2;
+	TPanel *pErrorG1;
+	TPanel *pErrorG2;
+	TPanel *pLspG1;
+	TPanel *pLspG2;
+	TPanel *pLsnG1;
+	TPanel *pLsnG2;
+	TLabel *Label12;
+	TPanel *pg1;
+	TLabel *Label13;
+	TPanel *pg2;
+	TGroupBox *GroupBox1;
+	TRadioButton *rdo482;
+	TRadioButton *rdo48;
+	TRadioButton *rdo96;
+	TAdvSmoothPanel *pnlPLCTEST;
+	TPanel *Panel28;
+	TLabel *Label14;
+	TAdvSmoothToggleButton *AdvSmoothToggleButton2;
+	TAdvSmoothToggleButton *AdvSmoothToggleButton3;
+	TAdvSmoothToggleButton *AdvSmoothToggleButton5;
+	TAdvSmoothToggleButton *AdvSmoothToggleButton6;
+	TAdvSmoothToggleButton *AdvSmoothToggleButton7;
+	TAdvSmoothToggleButton *AdvSmoothToggleButton8;
+	TAdvSmoothToggleButton *AdvSmoothToggleButton9;
+	TAdvSmoothToggleButton *AdvSmoothToggleButton10;
+	TAdvSmoothToggleButton *AdvSmoothToggleButton11;
+	TAdvSmoothToggleButton *AdvSmoothToggleButton12;
+	TAdvSmoothToggleButton *AdvSmoothToggleButton13;
+	TAdvSmoothToggleButton *AdvSmoothToggleButton14;
+	TAdvSmoothToggleButton *AdvSmoothToggleButton16;
+	TAdvSmoothToggleButton *AdvSmoothToggleButton17;
+	TAdvSmoothPanel *pTargetBase;
+	TPanel *Panel31;
+	TPanel *pflow3;
+	TPanel *pflow4;
+	TMemo *Memo2;
+	TAdvSmoothPanel *pdiff2;
+	TLabel *Label56;
+	TLabel *Label15;
+	TPanel *Panel33;
+	TAdvSmoothToggleButton *AdvSmoothToggleButton18;
+	TAdvSmoothButton *AdvSmoothButton3;
+	TRadioButton *RadioButton1;
+	TCheckBox *CheckBox1;
+	TPanel *pRun;
+	void __fastcall FormShow(TObject *Sender);
+	void __fastcall targetGridDrawCell(TObject *Sender, int ACol, int ARow,
+		  TRect &Rect, TGridDrawState State);
+	void __fastcall pause_startBtnClick(TObject *Sender);
+	void __fastcall pause_stopBtnClick(TObject *Sender);
+	void __fastcall teachingBtnClick(TObject *Sender);
+	void __fastcall AdvSmoothToggleButton1Click(TObject *Sender);
+	void __fastcall AdvSmoothToggleButton15Click(TObject *Sender);
+	void __fastcall senTimerTimer(TObject *Sender);
+	void __fastcall mesTimerTimer(TObject *Sender);
+	void __fastcall autoBtnClick(TObject *Sender);
+	void __fastcall manualBtnClick(TObject *Sender);
+	void __fastcall playBtnClick(TObject *Sender);
+	void __fastcall stopBtnClick(TObject *Sender);
+	void __fastcall target_idEditKeyDown(TObject *Sender, WORD &Key,
+          TShiftState Shift);
+	void __fastcall src_idEditKeyDown(TObject *Sender, WORD &Key,
+          TShiftState Shift);
+	void __fastcall pTrayid_targetDblClick(TObject *Sender);
+	void __fastcall buzzerBtnClick(TObject *Sender);
+	void __fastcall pTrayid_sourceDblClick(TObject *Sender);
+	void __fastcall trayout_srcBtnClick(TObject *Sender);
+	void __fastcall trayout_targetBtnClick(TObject *Sender);
+	void __fastcall stepTimerTimer(TObject *Sender);
+	void __fastcall chkBypassClick(TObject *Sender);
+	void __fastcall resetBtnClick(TObject *Sender);
+	void __fastcall homeBtnClick(TObject *Sender);
+	void __fastcall AdvSmoothToggleButton4Click(TObject *Sender);
+	void __fastcall zone1Click(TObject *Sender);
+	void __fastcall openBtnClick(TObject *Sender);
+	void __fastcall AdvSmoothToggleButton_InitWorkClick(TObject *Sender);
+	void __fastcall rdo96Click(TObject *Sender);
+	void __fastcall rdo48Click(TObject *Sender);
+	void __fastcall rdo482Click(TObject *Sender);
+	void __fastcall Panel2Click(TObject *Sender);
+	void __fastcall AdvSmoothToggleButton2Click(TObject *Sender);
+	void __fastcall AdvSmoothToggleButton3Click(TObject *Sender);
+	void __fastcall AdvSmoothToggleButton6Click(TObject *Sender);
+	void __fastcall AdvSmoothToggleButton5Click(TObject *Sender);
+	void __fastcall AdvSmoothToggleButton7Click(TObject *Sender);
+	void __fastcall AdvSmoothToggleButton8Click(TObject *Sender);
+	void __fastcall AdvSmoothToggleButton9Click(TObject *Sender);
+	void __fastcall AdvSmoothToggleButton17Click(TObject *Sender);
+	void __fastcall AdvSmoothToggleButton10Click(TObject *Sender);
+	void __fastcall AdvSmoothToggleButton16Click(TObject *Sender);
+	void __fastcall AdvSmoothToggleButton11Click(TObject *Sender);
+	void __fastcall AdvSmoothToggleButton14Click(TObject *Sender);
+	void __fastcall AdvSmoothToggleButton12Click(TObject *Sender);
+	void __fastcall AdvSmoothToggleButton13Click(TObject *Sender);
+	void __fastcall Panel70Click(TObject *Sender);
+	void __fastcall AdvSmoothButton3Click(TObject *Sender);
+	void __fastcall AdvSmoothToggleButton18Click(TObject *Sender);
+    void __fastcall rdoChangeTrayMap(TObject *Sender);
+	void __fastcall lblTitleClick(TObject *Sender);
+private:	// User declarations
+//------------ Æû °ü·Ã -------------------//
+
+
+	void __fastcall InitMode();
+	void __fastcall AutoMode();
+	void __fastcall ManualMode();
+	void __fastcall EmergencyMode();
+	void __fastcall ResetMode();
+
+
+	TListItem	*ITEM;
+	TIniFile *ini;
+
+	typedef struct{
+		int step;
+		int cnt;
+		int timeout;
+	}STEP;
+	STEP step[2];
+	void __fastcall InitStep(STEP *data);
+
+	void __fastcall MakePanel();
+	void __fastcall MakePanel_TargetTray();
+	void __fastcall SetOption(TPanel *pnl, int nx, int ny, int nw, int nh, TColor clr, int tagValue);
+    void __fastcall SetOption_TargetTray(TPanel *pnl, int nx, int ny, int nw, int nh, TColor clr, int tagValue);
+	void __fastcall ChangeTrayMap(int channel);
+	void __fastcall ChangeTrayMap_TargetTray(int channel);
+
+	void __fastcall setMapping();
+
+	void __fastcall DisplayStatus(int status);
+	void __fastcall DisplaySensorInfo();
+	void __fastcall sensorColor(TPanel *pnl, bool bon);
+
+	int __fastcall FindList(AnsiString strType);
+	void __fastcall AddList(AnsiString strType);
+
+	void __fastcall EnableButton_auto(bool benable);
+	void __fastcall setLamp();
+
+	AnsiString __fastcall getCodeName(AnsiString code);
+
+	TAdvSmoothButton *zoneBtn[4];
+	void __fastcall WriteZoneList();
+	void __fastcall ReadZoneList();
+
+
+	TPanel *status_on[7], *status_org[7], *status_error[7], *status_lsp[7], *status_lsn[7], *status_pos[7];
+
+public:		// User declarations
+
+	TBarcode *comBcr[2];
+	void __fastcall setBarcode(int pos, AnsiString strBcr);
+
+	SorterMode equipMode;
+	LampMode nowLampMode, beforeLampMode;
+
+
+	long	path;				/*	CCLINK variable to save path		*/
+
+	TX_DATA *tx;
+
+	TPanel *psort_ch[96];
+	TPanel *psort_ing[96];
+	TPanel *psort_bad[96];
+	TPanel *psort_rank[96];
+
+	TPanel *pTarget_ch[24];
+	TPanel *pTarget_bad[24];
+
+	TColor color_target[4][6];
+    TColor color_target2[24];
+	int mapSort[2][96];		// 96Ã¤³Î 48Ã¤³Î ¸ÊÇÎ
+
+	TAdvSmoothPanel *pt_ch[24];
+	
+
+	STAGE_INFO stage;
+
+	TRAY_INFO tray_source;
+	TRAY_INFO tray_target;
+	TRAY_INFO *tray;
+
+	int __fastcall GetZoneCount(int zone);
+	bool __fastcall GetZoneChannel(int zone, int ch);
+
+	void __fastcall InitTrayInfo(int pos);
+	void __fastcall DisplayTrayInfo();
+	void __fastcall DisplayTranserIn(AnsiString trayid);
+	void __fastcall DisplayRecipeInfo();
+
+	void __fastcall DisplaySourceCell(int toolNum, int ch);
+	void __fastcall DisplayTargetCell(int toolNum, int ch);
+	void __fastcall DisplayTargetCellInfo(int toolNum, int ch);
+
+	void __fastcall NotifyTrayInfo(AnsiString strTray, bool bsrc);
+	void __fastcall NotifyTransferIn(AnsiString strTray);
+	void __fastcall NotifyTransferOut(AnsiString strTray);
+	void __fastcall NotifyIdMatching_source();
+	void __fastcall NotifyIdMatching_target(AnsiString matchingStep);
+	void __fastcall NotifyEquipStatus(AnsiString process);
+
+	PLC_INPUT	plcInput;
+	PLC_OUTPUT	plcOutput;
+
+	void __fastcall ReceivePLC(TMessage &Msg);
+	void __fastcall plcReadData(AnsiString str, int addr);
+	BEGIN_MESSAGE_MAP
+		MESSAGE_HANDLER(UM_PLC, TMessage, ReceivePLC)
+	END_MESSAGE_MAP(TForm)
+
+	void __fastcall BuzzerOn(bool on);
+	void __fastcall LampModeChange(LampMode mode);
+
+	void __fastcall CmdTrayOut(int pos);
+
+    void __fastcall ShowDiffBatch();
+	void __fastcall WriteProgLog(AnsiString msg);
+	void __fastcall WriteErrorLog(AnsiString str1, AnsiString str2);
+	AnsiString __fastcall GetAlarmMsg(int code);
+	void __fastcall NotifyAlarm(bool alarm, AnsiString code = -1,  bool warning = true);
+
+	void __fastcall memoMainLineAdd(AnsiString msg);
+	void __fastcall memoGripperLineAdd(AnsiString msg);
+	void __fastcall memoRobostarLineAdd(AnsiString msg);
+
+	void __fastcall LanguageChange(int index);
+
+	void __fastcall setTrayInfo(int index);
+	void __fastcall saveTrayInfo(int index);
+	void __fastcall loadTrayInfo(int index);
+	bool __fastcall checkTrayInfo(int index);
+	SAVE_TRAY_INFO m_saveTrayInfo[2];
+
+	bool m_ServoOpen, m_ServoON, m_ServoHome, m_ServoHomeEmg;
+
+    int LampCount;
+
+	__fastcall TMainForm(TComponent* Owner);
+};
+//---------------------------------------------------------------------------
+extern PACKAGE TMainForm *MainForm;
+//---------------------------------------------------------------------------
+#endif

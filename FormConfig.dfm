@@ -1,0 +1,753 @@
+object ConfigForm: TConfigForm
+  Left = 300
+  Top = 50
+  BorderIcons = []
+  BorderStyle = bsSingle
+  Caption = 'CONFIGURATION'
+  ClientHeight = 421
+  ClientWidth = 488
+  Color = clWhite
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  FormStyle = fsStayOnTop
+  OldCreateOrder = False
+  Position = poScreenCenter
+  Scaled = False
+  OnCreate = FormCreate
+  OnShow = FormShow
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Image12: TImage
+    Left = 0
+    Top = 0
+    Width = 488
+    Height = 68
+    Align = alTop
+    AutoSize = True
+    Picture.Data = {
+      0A544A504547496D616765CE140000FFD8FFE000104A46494600010200006400
+      640000FFEC00114475636B79000100040000003C0000FFEE000E41646F626500
+      64C000000001FFDB0084000604040405040605050609060506090B080606080B
+      0C0A0A0B0A0A0C100C0C0C0C0C0C100C0E0F100F0E0C1313141413131C1B1B1B
+      1C1F1F1F1F1F1F1F1F1F1F010707070D0C0D181010181A1511151A1F1F1F1F1F
+      1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F
+      1F1F1F1F1F1F1F1F1F1F1F1FFFC0001108004407D103011100021101031101FF
+      C400670001010101000000000000000000000000000807060101010101000000
+      0000000000000000000006050710010000050500000700000000000000000001
+      11D1029251030414549152A21353051511010002030100000000000000000000
+      0000511201110213FFDA000C03010002110311003F00E43BFCEF46EE77557F4C
+      439D5FA93BFCEF46EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF3BD1BB9DD
+      529882FD49DFE77A3773BAA53105FA93BFCEF46EE7754A620BF5277F9DE8DDCE
+      EA94C417EA4EFF003BD1BB9DD529882FD49DFE77A3773BAA53105FA93BFCEF46
+      EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF3BD1BB9DD529882FD49DFE77A
+      3773BAA53105FA93BFCEF46EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF00
+      3BD1BB9DD529882FD49DFE77A3773BAA53105FA93BFCEF46EE7754A620BF5277
+      F9DE8DDCEEA94C417EA4EFF3BD1BB9DD529882FD49DFE77A3773BAA53105FA93
+      BFCEF46EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF003BD1BB9DD529882F
+      D49DFE77A3773BAA53105FA93BFCEF46EE7754A620BF5277F9DE8DDCEEA94C41
+      7EA4EFF3BD1BB9DD529882FD49DFE77A3773BAA53105FA93BFCEF46EE7754A62
+      0BF5277F9DE8DDCEEA94C417EA4EFF003BD1BB9DD529882FD49DFE77A3773BAA
+      53105FA93BFCEF46EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF3BD1BB9DD
+      529882FD49DFE77A3773BAA53105FA93BFCEF46EE7754A620BF5277F9DE8DDCE
+      EA94C417EA4EFF003BD1BB9DD529882FD49DFE77A3773BAA53105FA93BFCEF46
+      EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF3BD1BB9DD529882FD49DFE77A
+      3773BAA53105FA93BFCEF46EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF00
+      3BD1BB9DD529882FD49DFE77A3773BAA53105FA93BFCEF46EE7754A620BF5277
+      F9DE8DDCEEA94C417EA4EFF3BD1BB9DD529882FD49DFE77A3773BAA53105FA93
+      BFCEF46EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF003BD1BB9DD529882F
+      D49DFE77A3773BAA53105FA93BFCEF46EE7754A620BF5277F9DE8DDCEEA94C41
+      7EA4EFF3BD1BB9DD529882FD49DFE77A3773BAA53105FA93BFCEF46EE7754A62
+      0BF5277F9DE8DDCEEA94C417EA4EFF003BD1BB9DD529882FD49DFE77A3773BAA
+      53105FA93BFCEF46EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF3BD1BB9DD
+      529882FD49DFE77A3773BAA53105FA93BFCEF46EE7754A620BF5277F9DE8DDCE
+      EA94C417EA4EFF003BD1BB9DD529882FD49DFE77A3773BAA53105FA93BFCEF46
+      EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF3BD1BB9DD529882FD49DFE77A
+      3773BAA53105FA93BFCEF46EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF00
+      3BD1BB9DD529882FD49DFE77A3773BAA53105FA93BFCEF46EE7754A620BF5277
+      F9DE8DDCEEA94C417EA4EFF3BD1BB9DD529882FD49DFE77A3773BAA53105FA93
+      BFCEF46EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF003BD1BB9DD529882F
+      D49DFE77A3773BAA53105FA93BFCEF46EE7754A620BF5277F9DE8DDCEEA94C41
+      7EA4EFF3BD1BB9DD529882FD49DFE77A3773BAA53105FA93BFCEF46EE7754A62
+      0BF5277F9DE8DDCEEA94C417EA4EFF003BD1BB9DD529882FD49DFE77A3773BAA
+      53105FA93BFCEF46EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF3BD1BB9DD
+      529882FD49DFE77A3773BAA53105FA93BFCEF46EE7754A620BF5277F9DE8DDCE
+      EA94C417EA4EFF003BD1BB9DD529882FD49DFE77A3773BAA53105FA93BFCEF46
+      EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF3BD1BB9DD529882FD49DFE77A
+      3773BAA53105FA93BFCEF46EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF00
+      3BD1BB9DD529882FD49DFE77A3773BAA53105FA93BFCEF46EE7754A620BF5277
+      F9DE8DDCEEA94C417EA4EFF3BD1BB9DD529882FD49DFE77A3773BAA53105FA93
+      BFCEF46EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF003BD1BB9DD529882F
+      D49DFE77A3773BAA53105FA93BFCEF46EE7754A620BF5277F9DE8DDCEEA94C41
+      7EA4EFF3BD1BB9DD529882FD49DFE77A3773BAA53105FA93BFCEF46EE7754A62
+      0BF5277F9DE8DDCEEA94C417EA4EFF003BD1BB9DD529882FD49DFE77A3773BAA
+      53105FA93BFCEF46EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF3BD1BB9DD
+      529882FD49DFE77A3773BAA53105FA93BFCEF46EE7754A620BF5277F9DE8DDCE
+      EA94C417EA4EFF003BD1BB9DD529882FD49DFE77A3773BAA53105FA93BFCEF46
+      EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF3BD1BB9DD529882FD49DFE77A
+      3773BAA53105FA93BFCEF46EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF00
+      3BD1BB9DD529882FD49DFE77A3773BAA53105FA93BFCEF46EE7754A620BF5277
+      F9DE8DDCEEA94C417EA4EFF3BD1BB9DD529882FD49DFE77A3773BAA53105FA93
+      BFCEF46EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF003BD1BB9DD529882F
+      D49DFE77A3773BAA53105FA93BFCEF46EE7754A620BF5277F9DE8DDCEEA94C41
+      7EA4EFF3BD1BB9DD529882FD49DFE77A3773BAA53105FA93BFCEF46EE7754A62
+      0BF5277F9DE8DDCEEA94C417EA4EFF003BD1BB9DD529882FD49DFE77A3773BAA
+      53105FA93BFCEF46EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF3BD1BB9DD
+      529882FD49DFE77A3773BAA53105FA93BFCEF46EE7754A620BF5277F9DE8DDCE
+      EA94C417EA4EFF003BD1BB9DD529882FD49DFE77A3773BAA53105FA93BFCEF46
+      EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF3BD1BB9DD529882FD49DFE77A
+      3773BAA53105FA93BFCEF46EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF00
+      3BD1BB9DD529882FD49DFE77A3773BAA53105FA93BFCEF46EE7754A620BF5277
+      F9DE8DDCEEA94C417EA4EFF3BD1BB9DD529882FD49DFE77A3773BAA53105FA93
+      BFCEF46EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF003BD1BB9DD529882F
+      D49DFE77A3773BAA53105FA93BFCEF46EE7754A620BF5277F9DE8DDCEEA94C41
+      7EA4EFF3BD1BB9DD529882FD49DFE77A3773BAA53105FA93BFCEF46EE7754A62
+      0BF5277F9DE8DDCEEA94C417EA4EFF003BD1BB9DD529882FD49DFE77A3773BAA
+      53105FA93BFCEF46EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF3BD1BB9DD
+      529882FD49DFE77A3773BAA53105FA93BFCEF46EE7754A620BF5277F9DE8DDCE
+      EA94C417EA4EFF003BD1BB9DD529882FD49DFE77A3773BAA53105FA93BFCEF46
+      EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF3BD1BB9DD529882FD49DFE77A
+      3773BAA53105FA93BFCEF46EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF00
+      3BD1BB9DD529882FD49DFE77A3773BAA53105FA93BFCEF46EE7754A620BF5277
+      F9DE8DDCEEA94C417EA4EFF3BD1BB9DD529882FD49DFE77A3773BAA53105FA93
+      BFCEF46EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF003BD1BB9DD529882F
+      D49DFE77A3773BAA53105FA93BFCEF46EE7754A620BF5277F9DE8DDCEEA94C41
+      7EA4EFF3BD1BB9DD529882FD49DFE77A3773BAA53105FA93BFCEF46EE7754A62
+      0BF5277F9DE8DDCEEA94C417EA4EFF003BD1BB9DD529882FD49DFE77A3773BAA
+      53105FA93BFCEF46EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF3BD1BB9DD
+      529882FD49DFE77A3773BAA53105FA93BFCEF46EE7754A620BF5277F9DE8DDCE
+      EA94C417EA4EFF003BD1BB9DD529882FD49DFE77A3773BAA53105FA93BFCEF46
+      EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF3BD1BB9DD529882FD49DFE77A
+      3773BAA53105FA93BFCEF46EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF00
+      3BD1BB9DD529882FD49DFE77A3773BAA53105FA93BFCEF46EE7754A620BF5277
+      F9DE8DDCEEA94C417EA4EFF3BD1BB9DD529882FD49DFE77A3773BAA53105FA93
+      BFCEF46EE7754A620BF5277F9DE8DDCEEA94C417EA4EFF003BD1BB9DD529882F
+      D49DFE77A3773BAA53105FA93BFCEF46EE7754A620BF52A8FEE5FF00347E28FD
+      2D36955648800000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      1542396C95D62890000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      00001BF7F6FF0067F9BE9B289AF2E6153EDD4B0152A5C0000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      00000000000000000000000000000000006E09E51B019C756DB1344E3A8689C7
+      50D138EA1A271D4344E3A8689C750D138EA1A271D4344E3A8689C750D138EA1A
+      271D4344E3A8689C750D138EA1A271D4344E3A8689C750D138EA1A271D4344E3
+      A8689C750D138EA1A271D4344E3A8689C750D138EA1A271D4344E3A8689C750D
+      138EA1A271D4344E3A8689C750D138EA1A271D4344E3A8689C750D138EA1A271
+      D4344E3A8689C750D138EA1A271D4344E3A8689C750D138EA1A271D4344E3A86
+      89C750D138EA1A271D4344E3A8689C750D138EA1A271D4344E3A8689C750D138
+      EA1A271D4344E3A8689C750D138EA1A271D4344E3A8689C750D138EA1A271D43
+      44E3A8689C750D138EA1A271D4344E3A8689C750D138EA1A271D4344E3A8689C
+      750D138EA1A271D4344E3A8689C750D138EA1A271D4344E3A8689C750D138EA1
+      A271D4344E3A8689C750D138EA1A271D4344E3A8689C750D138EA1A271D4344E
+      3A8689C750D138EA1A271D4344E3A8689C750D138EA1A271D4344E3A8689C750
+      D138EA1A271D4344E3A8689C750D138EA1A271D4344E3A8689C750D138EA1A27
+      1D4344E3A8689C750D138EA1A271D4344E3A8689C750D138EA1A271D4344E3A8
+      689C750D138EA1A271D4344E3A8689C750D138EA1A271D4344E3A8689C750D13
+      8EA1A271D4344E3A8689C750D138EA1A271D4344E3A8689C750D138EA1A271D4
+      344E3A8689C750D138EA1A271D4344E3A8689C750D138EA1A271D4344E3A8689
+      C750D138EA1A271D4344E3A8689C750D138EA1A271D4344E3A8689C750D138EA
+      1A271D4344E3A8689C750D138EA1A271D4344E3A8689C750D138EA1A271D4344
+      E3A8689C750D138EA1A271D4344E3A8689C750D138EA1A271D4344E3A8689C75
+      0D138EA1A271D4344E3A8689C750D138EA1A271D4344E3A8689C750D138EA1A2
+      71D4344E3A8689C750D138EA1A271D4344E3A8689C750D138EA1A271D4344E3A
+      8689C750D138EA1A271D4344E3A8689C750D138EA1A271D4344E3A8689C750D1
+      38EA1A271D4344E3A8689C750D138EA1A271D4344E3A8689C750D138EA1A271D
+      4344E3A8689C750D138EA1A271D4344E3A8689C750D138EA1A271D4344E3A868
+      9C750D138EA1A271D4344E3A8689C750D138EA1A271D4344E3A8689C750D138E
+      A1A271D4344E3A8689C750D138EA1A271D4344E3A8689C750D138EA1A271D434
+      4E3A869BBCD84A0610DD4F800000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000A8BF81FACFC71CAEAA5FD7A55F97297550940000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000159A4D60931588F000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      00000000000000000000000000000000000000000159A4D60931588F00000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000000000000159A4D60FFFD9}
+    ExplicitWidth = 2001
+  end
+  object AdvSmoothLabel1: TAdvSmoothLabel
+    Left = 10
+    Top = 14
+    Width = 253
+    Height = 38
+    AutoSize = True
+    Fill.ColorMirror = clNone
+    Fill.ColorMirrorTo = clNone
+    Fill.GradientType = gtVertical
+    Fill.GradientMirrorType = gtSolid
+    Fill.BorderColor = clNone
+    Fill.Rounding = 0
+    Fill.ShadowOffset = 0
+    Fill.Glow = gmNone
+    Caption.Text = 'CONFIGURATION'
+    Caption.Location = plBottomLeft
+    Caption.Font.Charset = DEFAULT_CHARSET
+    Caption.Font.Color = clWindowText
+    Caption.Font.Height = -27
+    Caption.Font.Name = 'Tahoma'
+    Caption.Font.Style = [fsBold]
+    Caption.ColorStart = clWhite
+    Caption.ColorEnd = clWhite
+    CaptionShadow.Text = 'CONFIGURATION'
+    CaptionShadow.Font.Charset = DEFAULT_CHARSET
+    CaptionShadow.Font.Color = clWindowText
+    CaptionShadow.Font.Height = -27
+    CaptionShadow.Font.Name = 'Tahoma'
+    CaptionShadow.Font.Style = []
+    Version = '1.6.0.2'
+  end
+  object GroupBox1: TGroupBox
+    Left = 8
+    Top = 77
+    Width = 470
+    Height = 58
+    Caption = 'MES'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 0
+    object PortEdit: TEdit
+      Left = 140
+      Top = 22
+      Width = 100
+      Height = 29
+      Color = clWhite
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -17
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ImeName = #54620#44397#50612' '#51077#47141' '#49884#49828#53596' (IME 2000)'
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 0
+      Text = '7000'
+    end
+    object Button1: TAdvSmoothButton
+      Left = 249
+      Top = 21
+      Width = 100
+      Height = 30
+      Appearance.Font.Charset = DEFAULT_CHARSET
+      Appearance.Font.Color = clWindowText
+      Appearance.Font.Height = -11
+      Appearance.Font.Name = 'Tahoma'
+      Appearance.Font.Style = [fsBold]
+      Appearance.Spacing = 0
+      Appearance.Rounding = 3
+      Appearance.WordWrapping = False
+      Status.Caption = '0'
+      Status.Appearance.Fill.Color = clRed
+      Status.Appearance.Fill.ColorMirror = clNone
+      Status.Appearance.Fill.ColorMirrorTo = clNone
+      Status.Appearance.Fill.GradientType = gtSolid
+      Status.Appearance.Fill.GradientMirrorType = gtSolid
+      Status.Appearance.Fill.BorderColor = clGray
+      Status.Appearance.Fill.Rounding = 0
+      Status.Appearance.Fill.ShadowOffset = 0
+      Status.Appearance.Fill.Glow = gmNone
+      Status.Appearance.Font.Charset = DEFAULT_CHARSET
+      Status.Appearance.Font.Color = clWhite
+      Status.Appearance.Font.Height = -11
+      Status.Appearance.Font.Name = 'Tahoma'
+      Status.Appearance.Font.Style = []
+      BevelColor = clMedGray
+      Caption = 'CONNECT'
+      Color = clWhite
+      ParentFont = False
+      TabOrder = 1
+      Version = '2.1.1.5'
+      OnClick = Button1Click
+      TMSStyle = 8
+    end
+    object AdvSmoothButton1: TAdvSmoothButton
+      Left = 358
+      Top = 21
+      Width = 100
+      Height = 30
+      Appearance.Font.Charset = DEFAULT_CHARSET
+      Appearance.Font.Color = clWindowText
+      Appearance.Font.Height = -11
+      Appearance.Font.Name = 'Tahoma'
+      Appearance.Font.Style = [fsBold]
+      Appearance.Spacing = 0
+      Appearance.Rounding = 3
+      Appearance.WordWrapping = False
+      Status.Caption = '0'
+      Status.Appearance.Fill.Color = clRed
+      Status.Appearance.Fill.ColorMirror = clNone
+      Status.Appearance.Fill.ColorMirrorTo = clNone
+      Status.Appearance.Fill.GradientType = gtSolid
+      Status.Appearance.Fill.GradientMirrorType = gtSolid
+      Status.Appearance.Fill.BorderColor = clGray
+      Status.Appearance.Fill.Rounding = 0
+      Status.Appearance.Fill.ShadowOffset = 0
+      Status.Appearance.Fill.Glow = gmNone
+      Status.Appearance.Font.Charset = DEFAULT_CHARSET
+      Status.Appearance.Font.Color = clWhite
+      Status.Appearance.Font.Height = -11
+      Status.Appearance.Font.Name = 'Tahoma'
+      Status.Appearance.Font.Style = []
+      BevelColor = clMedGray
+      Caption = 'DISCONNECT'
+      Color = clWhite
+      ParentFont = False
+      TabOrder = 2
+      Version = '2.1.1.5'
+      OnClick = AdvSmoothButton1Click
+      TMSStyle = 8
+    end
+    object Panel3: TPanel
+      Left = 10
+      Top = 22
+      Width = 130
+      Height = 29
+      BevelKind = bkFlat
+      BevelOuter = bvNone
+      Caption = 'PORT'
+      Color = 15656921
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = 13996080
+      Font.Height = -15
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 3
+    end
+  end
+  object GroupBox3: TGroupBox
+    Left = 8
+    Top = 138
+    Width = 470
+    Height = 73
+    Caption = 'STAGE Information'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 1
+    object pcEdit: TEdit
+      Left = 140
+      Top = 30
+      Width = 100
+      Height = 29
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -17
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ImeName = 'Microsoft Office IME 2007'
+      ParentFont = False
+      TabOrder = 0
+      Text = 'H1DIF01A'
+    end
+    object Panel5: TPanel
+      Left = 10
+      Top = 30
+      Width = 130
+      Height = 29
+      BevelKind = bkFlat
+      BevelOuter = bvNone
+      Caption = 'CODE'
+      Color = 15656921
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = 13996080
+      Font.Height = -15
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 1
+    end
+  end
+  object AdvSmoothButton2: TAdvSmoothButton
+    Left = 272
+    Top = 18
+    Width = 100
+    Height = 30
+    Appearance.Font.Charset = DEFAULT_CHARSET
+    Appearance.Font.Color = clWindowText
+    Appearance.Font.Height = -11
+    Appearance.Font.Name = 'Tahoma'
+    Appearance.Font.Style = [fsBold]
+    Appearance.Spacing = 0
+    Appearance.Rounding = 3
+    Appearance.WordWrapping = False
+    Status.Caption = '0'
+    Status.Appearance.Fill.Color = clRed
+    Status.Appearance.Fill.ColorMirror = clNone
+    Status.Appearance.Fill.ColorMirrorTo = clNone
+    Status.Appearance.Fill.GradientType = gtSolid
+    Status.Appearance.Fill.GradientMirrorType = gtSolid
+    Status.Appearance.Fill.BorderColor = clGray
+    Status.Appearance.Fill.Rounding = 0
+    Status.Appearance.Fill.ShadowOffset = 0
+    Status.Appearance.Fill.Glow = gmNone
+    Status.Appearance.Font.Charset = DEFAULT_CHARSET
+    Status.Appearance.Font.Color = clWhite
+    Status.Appearance.Font.Height = -11
+    Status.Appearance.Font.Name = 'Tahoma'
+    Status.Appearance.Font.Style = []
+    BevelColor = clMedGray
+    Caption = 'SAVE'
+    Color = clWhite
+    ParentFont = False
+    TabOrder = 2
+    Version = '2.1.1.5'
+    OnClick = AdvSmoothButton2Click
+    TMSStyle = 8
+  end
+  object AdvSmoothButton3: TAdvSmoothButton
+    Left = 378
+    Top = 18
+    Width = 100
+    Height = 30
+    Appearance.Font.Charset = DEFAULT_CHARSET
+    Appearance.Font.Color = clWindowText
+    Appearance.Font.Height = -11
+    Appearance.Font.Name = 'Tahoma'
+    Appearance.Font.Style = [fsBold]
+    Appearance.Spacing = 0
+    Appearance.Rounding = 3
+    Appearance.WordWrapping = False
+    Status.Caption = '0'
+    Status.Appearance.Fill.Color = clRed
+    Status.Appearance.Fill.ColorMirror = clNone
+    Status.Appearance.Fill.ColorMirrorTo = clNone
+    Status.Appearance.Fill.GradientType = gtSolid
+    Status.Appearance.Fill.GradientMirrorType = gtSolid
+    Status.Appearance.Fill.BorderColor = clGray
+    Status.Appearance.Fill.Rounding = 0
+    Status.Appearance.Fill.ShadowOffset = 0
+    Status.Appearance.Fill.Glow = gmNone
+    Status.Appearance.Font.Charset = DEFAULT_CHARSET
+    Status.Appearance.Font.Color = clWhite
+    Status.Appearance.Font.Height = -11
+    Status.Appearance.Font.Name = 'Tahoma'
+    Status.Appearance.Font.Style = []
+    BevelColor = clMedGray
+    Caption = 'CANCEL'
+    Color = clWhite
+    ParentFont = False
+    TabOrder = 3
+    Version = '2.1.1.5'
+    OnClick = AdvSmoothButton3Click
+    TMSStyle = 8
+  end
+  object GroupBox5: TGroupBox
+    Left = 8
+    Top = 355
+    Width = 255
+    Height = 58
+    Caption = #44592#51333#49440#53469' (Teaching '#49440#53469')'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 4
+    object editRecipe: TEdit
+      Left = 146
+      Top = 22
+      Width = 100
+      Height = 29
+      Color = clWhite
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -17
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ImeName = #54620#44397#50612' '#51077#47141' '#49884#49828#53596' (IME 2000)'
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 0
+      Text = '1'
+    end
+    object Panel6: TPanel
+      Left = 10
+      Top = 22
+      Width = 130
+      Height = 29
+      BevelKind = bkFlat
+      BevelOuter = bvNone
+      Caption = #44592#51333#48264#54840
+      Color = 15656921
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = 13996080
+      Font.Height = -15
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 1
+    end
+  end
+  object GroupBox4: TGroupBox
+    Left = 7
+    Top = 217
+    Width = 473
+    Height = 130
+    Caption = 'ECS SETTING'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 5
+    object ecsPort: TEdit
+      Left = 111
+      Top = 61
+      Width = 196
+      Height = 29
+      Color = clWhite
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -17
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ImeName = #54620#44397#50612' '#51077#47141' '#49884#49828#53596' (IME 2000)'
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 0
+      Text = '6601'
+    end
+    object Panel9: TPanel
+      Left = 10
+      Top = 61
+      Width = 100
+      Height = 29
+      BevelOuter = bvNone
+      Caption = 'PORT'
+      Color = 12353126
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindow
+      Font.Height = -17
+      Font.Name = 'Arial'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 1
+    end
+    object Panel10: TPanel
+      Left = 10
+      Top = 94
+      Width = 100
+      Height = 29
+      BevelOuter = bvNone
+      Caption = 'STATE'
+      Color = 12353126
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindow
+      Font.Height = -17
+      Font.Name = 'Arial'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 3
+    end
+    object pecs: TPanel
+      Left = 112
+      Top = 94
+      Width = 301
+      Height = 29
+      Alignment = taLeftJustify
+      BevelKind = bkFlat
+      BevelOuter = bvNone
+      Caption = 'Connection failed.'
+      Color = 15658734
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clRed
+      Font.Height = -12
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentFont = False
+      TabOrder = 5
+    end
+    object Panel12: TPanel
+      Left = 10
+      Top = 27
+      Width = 100
+      Height = 29
+      BevelOuter = bvNone
+      Caption = 'ECS IP'
+      Color = 12353126
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindow
+      Font.Height = -17
+      Font.Name = 'Arial'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 2
+    end
+    object ecsIpEdit: TEdit
+      Left = 111
+      Top = 27
+      Width = 196
+      Height = 29
+      Color = clWhite
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -17
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ImeName = #54620#44397#50612' '#51077#47141' '#49884#49828#53596' (IME 2000)'
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 4
+      Text = '17.91.233.113'
+    end
+    object ecsConBtn: TAdvSmoothButton
+      Left = 313
+      Top = 20
+      Width = 100
+      Height = 30
+      Appearance.GlowPercentage = 50
+      Appearance.PictureAlignment = taCenter
+      Appearance.Font.Charset = DEFAULT_CHARSET
+      Appearance.Font.Color = clWindowText
+      Appearance.Font.Height = -13
+      Appearance.Font.Name = 'Tahoma'
+      Appearance.Font.Style = [fsBold]
+      Appearance.Spacing = 0
+      Appearance.Rounding = 3
+      Appearance.WordWrapping = False
+      Status.Caption = '0'
+      Status.Appearance.Fill.Color = clRed
+      Status.Appearance.Fill.ColorMirror = clNone
+      Status.Appearance.Fill.ColorMirrorTo = clNone
+      Status.Appearance.Fill.GradientType = gtSolid
+      Status.Appearance.Fill.GradientMirrorType = gtSolid
+      Status.Appearance.Fill.BorderColor = clGray
+      Status.Appearance.Fill.Rounding = 0
+      Status.Appearance.Fill.ShadowOffset = 0
+      Status.Appearance.Fill.Glow = gmNone
+      Status.Appearance.Font.Charset = DEFAULT_CHARSET
+      Status.Appearance.Font.Color = clWhite
+      Status.Appearance.Font.Height = -11
+      Status.Appearance.Font.Name = 'Tahoma'
+      Status.Appearance.Font.Style = []
+      BevelColor = clMedGray
+      Caption = 'CONNECT'
+      Color = clWhite
+      ParentFont = False
+      TabOrder = 6
+      Version = '2.1.1.5'
+      OnClick = ecsConBtnClick
+      TMSStyle = 8
+    end
+    object ecsDisBtn: TAdvSmoothButton
+      Left = 313
+      Top = 58
+      Width = 100
+      Height = 30
+      Appearance.GlowPercentage = 50
+      Appearance.PictureAlignment = taCenter
+      Appearance.Font.Charset = DEFAULT_CHARSET
+      Appearance.Font.Color = clWindowText
+      Appearance.Font.Height = -12
+      Appearance.Font.Name = 'Tahoma'
+      Appearance.Font.Style = [fsBold]
+      Appearance.Spacing = 0
+      Appearance.Rounding = 3
+      Appearance.WordWrapping = False
+      Status.Caption = '0'
+      Status.Appearance.Fill.Color = clRed
+      Status.Appearance.Fill.ColorMirror = clNone
+      Status.Appearance.Fill.ColorMirrorTo = clNone
+      Status.Appearance.Fill.GradientType = gtSolid
+      Status.Appearance.Fill.GradientMirrorType = gtSolid
+      Status.Appearance.Fill.BorderColor = clGray
+      Status.Appearance.Fill.Rounding = 0
+      Status.Appearance.Fill.ShadowOffset = 0
+      Status.Appearance.Fill.Glow = gmNone
+      Status.Appearance.Font.Charset = DEFAULT_CHARSET
+      Status.Appearance.Font.Color = clWhite
+      Status.Appearance.Font.Height = -11
+      Status.Appearance.Font.Name = 'Tahoma'
+      Status.Appearance.Font.Style = []
+      BevelColor = clMedGray
+      Caption = 'DISCONNECT'
+      Color = clWhite
+      ParentFont = False
+      TabOrder = 7
+      Version = '2.1.1.5'
+      OnClick = ecsDisBtnClick
+      TMSStyle = 8
+    end
+  end
+  object GroupBox2: TGroupBox
+    Left = 280
+    Top = 355
+    Width = 200
+    Height = 58
+    Caption = #51060#46041#49884' Z'#52629' '#49345#49849
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 6
+    object chkZAxisUp: TCheckBox
+      Left = 68
+      Top = 30
+      Width = 110
+      Height = 17
+      Caption = 'Z'#52629' '#49345#49849
+      Checked = True
+      State = cbChecked
+      TabOrder = 0
+    end
+  end
+end

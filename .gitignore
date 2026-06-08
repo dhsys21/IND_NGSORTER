@@ -1,0 +1,13 @@
+__history  
+__recovery
+*.obj
+*.exe
+*.tds
+*.pch
+*.map
+*.ils
+*.ilf
+*.ild
+*.ilc
+*.#00
+ 

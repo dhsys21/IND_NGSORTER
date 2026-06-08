@@ -1,0 +1,77 @@
+//---------------------------------------------------------------------------
+
+#ifndef FormConfigH
+#define FormConfigH
+//---------------------------------------------------------------------------
+#include <Classes.hpp>
+#include <Controls.hpp>
+#include <StdCtrls.hpp>
+#include <Forms.hpp>
+#include <ExtCtrls.hpp>
+#include <jpeg.hpp>
+#include <Buttons.hpp>
+#include <Menus.hpp>
+#include "AdvSmoothButton.hpp"
+#include "AdvSmoothLabel.hpp"
+//---------------------------------------------------------------------------
+class TConfigForm : public TForm
+{
+__published:	// IDE-managed Components
+	TGroupBox *GroupBox1;
+	TGroupBox *GroupBox3;
+	TEdit *pcEdit;
+	TEdit *PortEdit;
+	TAdvSmoothButton *Button1;
+	TAdvSmoothButton *AdvSmoothButton1;
+	TImage *Image12;
+	TAdvSmoothLabel *AdvSmoothLabel1;
+	TAdvSmoothButton *AdvSmoothButton2;
+	TAdvSmoothButton *AdvSmoothButton3;
+	TPanel *Panel3;
+	TPanel *Panel5;
+	TGroupBox *GroupBox5;
+	TEdit *editRecipe;
+	TPanel *Panel6;
+	TGroupBox *GroupBox4;
+	TEdit *ecsPort;
+	TPanel *Panel9;
+	TPanel *Panel10;
+	TPanel *pecs;
+	TPanel *Panel12;
+	TEdit *ecsIpEdit;
+	TAdvSmoothButton *ecsConBtn;
+	TAdvSmoothButton *ecsDisBtn;
+	TGroupBox *GroupBox2;
+	TCheckBox *chkZAxisUp;
+	void __fastcall FormShow(TObject *Sender);
+	void __fastcall FormCreate(TObject *Sender);
+	void __fastcall Button1Click(TObject *Sender);
+	void __fastcall AdvSmoothButton1Click(TObject *Sender);
+	void __fastcall AdvSmoothButton2Click(TObject *Sender);
+	void __fastcall AdvSmoothButton3Click(TObject *Sender);
+	void __fastcall AdvSmoothButton6Click(TObject *Sender);
+	void __fastcall AdvSmoothButton7Click(TObject *Sender);
+	void __fastcall AdvSmoothButton9Click(TObject *Sender);
+	void __fastcall AdvSmoothButton8Click(TObject *Sender);
+	void __fastcall AdvSmoothButton11Click(TObject *Sender);
+	void __fastcall AdvSmoothButton10Click(TObject *Sender);
+	void __fastcall AdvSmoothButton14Click(TObject *Sender);
+	void __fastcall AdvSmoothButton15Click(TObject *Sender);
+	void __fastcall AdvSmoothButton16Click(TObject *Sender);
+	void __fastcall AdvSmoothButton17Click(TObject *Sender);
+	void __fastcall AdvSmoothButton12Click(TObject *Sender);
+	void __fastcall AdvSmoothButton13Click(TObject *Sender);
+	void __fastcall ecsConBtnClick(TObject *Sender);
+	void __fastcall ecsDisBtnClick(TObject *Sender);
+private:	// User declarations
+	bool __fastcall ReadSystemInfo();
+	void __fastcall ApplyConfig();
+    void __fastcall WritePlcData();
+public:		// User declarations
+    void __fastcall WriteSystemInfo(AnsiString type="");
+	__fastcall TConfigForm(TComponent* Owner);
+};
+//---------------------------------------------------------------------------
+extern PACKAGE TConfigForm *ConfigForm;
+//---------------------------------------------------------------------------
+#endif
