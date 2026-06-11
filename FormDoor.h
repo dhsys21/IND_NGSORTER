@@ -64,7 +64,6 @@ __published:	// IDE-managed Components
 	void __fastcall okBtnClick(TObject *Sender);
 	void __fastcall btnSetKEYLOCKClick(TObject *Sender);
 	void __fastcall btnServoOpenClick(TObject *Sender);
-	void __fastcall AdvSmoothButton12Click(TObject *Sender);
 	void __fastcall stopBtnClick(TObject *Sender);
 	void __fastcall AdvSmoothButton12MouseUp(TObject *Sender, TMouseButton Button, TShiftState Shift,
           int X, int Y);

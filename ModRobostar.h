@@ -93,10 +93,10 @@ typedef struct{
 	uint8_t GRIPPER1_DOWN:1; //RX41
 	uint8_t GRIPPER1_BUFFER:1; //RX42
 	uint8_t GRIPPER1_CELL_DETECT:1; //RX43
-	uint8_t GRIPPER2_UP:1; //RX44
-	uint8_t GRIPPER2_DOWN:1; //RX45
-	uint8_t GRIPPER2_BUFFER:1; //RX46
-	uint8_t GRIPPER2_CELL_DETECT:1; //RX47
+	uint8_t RX44:1; //RX44
+	uint8_t RX45:1; //RX45
+	uint8_t RX46:1; //RX46
+	uint8_t RX47:1; //RX47
 	uint8_t RX48:1; //RX48
 	uint8_t RX49:1; //RX49
 	uint8_t RX4A:1; //RX4A
@@ -114,8 +114,8 @@ typedef struct{
 	uint8_t RX55:1; //RX55
 	uint8_t RX56:1; //RX56
 	uint8_t RX57:1; //RX57
-	uint8_t GRIPPER3_BUFFER:1; //RX58
-	uint8_t GRIPPER4_BUFFER:1; //RX59
+	uint8_t RX58:1; //RX58
+	uint8_t RX59:1; //RX59
 	uint8_t RX5A:1; //RX5A
 	uint8_t RX5B:1; //RX5B
 	uint8_t RX5C:1; //RX5C
@@ -160,11 +160,11 @@ typedef struct{
 	uint8_t GRIPPER1_CHUCK:1; //RX22
 	uint8_t GRIPPER1_FLOAT:1; //RX23
 	uint8_t GRIPPER1_DETECT:1; //RX24
-	uint8_t GRIPPER2_UP:1; //RX25
-	uint8_t GRIPPER2_DN:1; //RX26
-	uint8_t GRIPPER2_CHUCK:1; //RX27
-	uint8_t GRIPPER2_FLOAT:1; //RX28
-	uint8_t GRIPPER2_DETECT:1; //RX29
+	uint8_t RX25:1; //RX25
+	uint8_t RX26:1; //RX26
+	uint8_t RX27:1; //RX27
+	uint8_t RX28:1; //RX28
+	uint8_t RX29:1; //RX29
 	uint8_t RX2A:1; //RX2A
 	uint8_t RX2B:1; //RX2B
 	uint8_t RX2C:1; //RX2C
@@ -279,10 +279,10 @@ typedef struct{
 	uint8_t RY5E:1; //RY5E
 	uint8_t RY5F:1; //RY5F
 //--------------------------
-    uint8_t GRIPPER2_DOWN_SOL:1; //RY62
-	uint8_t GRIPPER2_UP_SOL:1; //RY63
-	uint8_t GRIPPER1_DOWN_SOL:1; //RY60
-	uint8_t GRIPPER1_UP_SOL:1; //RY61
+    uint8_t RY60:1; //RY60
+	uint8_t RY61:1; //RY61
+	uint8_t GRIPPER1_DOWN_SOL:1; //RY62
+	uint8_t GRIPPER1_UP_SOL:1; //RY63
 	uint8_t RY64:1; //RY64
 	uint8_t RY65:1; //RY65
 	uint8_t RY66:1; //RY66
@@ -347,21 +347,21 @@ typedef enum Sequence
 
 typedef struct{
 	short int system_status;
-	long int pos[10];
-	long int speed[10];
-	int status[10];
-	int servo[10];
-	int zero[10];
+	long int pos[AxisCnt];
+	long int speed[AxisCnt];
+	int status[AxisCnt];
+	int servo[AxisCnt];
+	int zero[AxisCnt];
 	unsigned short int system_alarm;
 	unsigned short int system_detail;
-	unsigned short int servo_alarm[10];
-	unsigned short int servo_detail[10];
-	unsigned short int oper_alarm[10];
-	unsigned short int oper_detail[10];
+	unsigned short int servo_alarm[AxisCnt];
+	unsigned short int servo_detail[AxisCnt];
+	unsigned short int oper_alarm[AxisCnt];
+	unsigned short int oper_detail[AxisCnt];
 
-	short int limit[10];
-	short int monnum[10][4];
-	short int mondata[10][4];
+	short int limit[AxisCnt];
+	short int monnum[AxisCnt][AxisCnt];
+	short int mondata[AxisCnt][AxisCnt];
 }MR2;
 
 
@@ -374,17 +374,12 @@ __published:	// IDE-managed Components
 	void __fastcall DataModuleCreate(TObject *Sender);
 	void __fastcall Timer_zUpTestTimer(TObject *Sender);
 private:	// User declarations
-
-
-
-
 	typedef struct{
 		int step;
 		int delay;
 		int timeout;
 		robotSequence reserve;
 	}STEP;
-
 
 	typedef struct{
 		int tool;
@@ -418,7 +413,6 @@ private:	// User declarations
 	STEP step_save;
 
 	// IO 용
-
 	bool __fastcall CheckEjectUnchuck(int pos);
 	bool __fastcall CheckEjectDown(int pos);
 	bool __fastcall CheckEjectChuck(int pos);
@@ -435,8 +429,7 @@ private:	// User declarations
 	int board_id;   // mr2 제어 보드용
 	int channel_id;
 	int timeout;
-    PNT_DATA_EX point[7];
-	//PNT_DATA_EX point[10];
+    PNT_DATA_EX point[AxisCnt];
     bool bSetPoint;
 	bool __fastcall setPoint(int axnum_id, unsigned long int pos);
 	bool __fastcall rangeCheck(int axnum_id);
@@ -458,8 +451,6 @@ public:		// User declarations
 	MR2 mr2;
 
 	int __fastcall io_Init();
-
-
 	void __fastcall InitSequence(robotSequence data, robotSequence reserve = seqIdle);
 
 	void __fastcall req_Init();
@@ -499,13 +490,9 @@ public:		// User declarations
 	robotSequence seq_save;
 	bool pauseStatus;
 	void __fastcall req_Pause(bool stop);
-
 	void __fastcall setTx();
-
 	bool __fastcall CheckEjectCell_before(int pos);
-
 	bool __fastcall KeyLock(int pos);
-
 	bool m_bInsertSave;
 
 	__fastcall Trobostar(TComponent* Owner);

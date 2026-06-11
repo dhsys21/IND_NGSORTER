@@ -197,18 +197,6 @@ void __fastcall Tgripper::Initialize()
                                     //* 현재 대상 채널 모두 white 색이기때문에 nzone = 3만 동작 => white가 아니면(이미 셀이 담겨있으면) false.
 									if(MainForm->GetZoneChannel(nzone, tch)){
                                         //* 불량셀이 2개 이상, 대상트레이 빈곳 2개 이상인 경우
-//                                        if(MainForm->tray_source.remainCnt >= 2 && MainForm->tray_target.remainCnt >= 2){
-//                                            bcheck = true;  	// 모든 그리퍼 가능
-//                                            switch(tch%2){
-//                                                case 0:
-//                                                    if(step.chCnt < 0) bcheck = false;
-//                                                    break;		// 1번 그리퍼 불가 => 홀수 채널에 1번 그리퍼 사용못함.
-//                                                case 1:
-//                                                    if(step.chCnt < 1)bcheck = false;
-//                                                    break;		// 2번 그리퍼 불가  => 짝수 채널에 2번 그리퍼 사용못함.
-//                                            }
-//                                        }
-                                        //* 불량셀이 2개 이상, 대상트레이 빈곳 2개 이상인 경우
                                         //* 불량셀이 1개면 아래 코드 건너뛰고 모든 그리퍼 가능.
                                         if(MainForm->tray_source.remainCnt >= 2 && MainForm->tray_target.remainCnt >= 2){
                                             bcheck = true; 	// 모든 그리퍼 가능
@@ -294,7 +282,6 @@ void __fastcall Tgripper::Initialize()
 //---------------------------------------------------------------------------
 void __fastcall Tgripper::Sorting()
 {
-
 	int pos1 = 0, pos2 = 0;
 	int div1 = 0, div2 = 0;
 	bool bfind = false;
@@ -329,21 +316,11 @@ void __fastcall Tgripper::Sorting()
 							}catch(...){
 								pos2 = 0;
 							}
-
-                            //* 2025 05 23 한번에 여러셀뽑기 삭제 ( 자기 위치가 아닌데 내려가는 경우 발생함)
-//							if( (pos2 - pos1 == 1) && (tool[i].eject_end == false) ){		// NEXT 선별 채널과 한채널 차이가 나고
-//								div2 = (pos2-1)/ (MainForm->tray_source.SLOT_COUNT/8);		// 6개 단위로 나뉘어진 트레이 블럭이 같으면
-//								if(div1 == div2){
-//									eject.conCnt += 1;		// 한번에 여러셀을 뽑는다.
-//                                	pos1 = pos2;
-//								}
-//							}
 						}
 					}
 					break;
 				}
 			}
-
 
 			if(eject.pos > 0){	// 취출 시작
 				if(MainForm->tray_source.SLOT_COUNT == 96){
@@ -351,27 +328,6 @@ void __fastcall Tgripper::Sorting()
 					 robostar->req_AutoEject(1, eject.gripper , MainForm->mapSort[0][eject.pos-1], eject.conCnt, 962);
 					 MainForm->memoGripperLineAdd("[Eject step 0] 96 Channel 취출시작");
 					 step.step += 1;
-				}
-                //* Gamma
-				//else if(MainForm->tray_source.SLOT_COUNT == 48 && MainForm->tray->CH_GUBUN == 482){
-				else if(MainForm->tray_source.SLOT_COUNT == 48 && MainForm->tray_source.CH_GUBUN == 482){
-					MainForm->memoGripperLineAdd("[Eject step 0] 48 Tray / Gripper #" + IntToStr(eject.gripper) + " / Channel #" + IntToStr(eject.pos) + " / Continuous eject #" + IntToStr(eject.conCnt));
-					robostar->req_AutoEject(1, eject.gripper , MainForm->mapSort[0][eject.pos-1], eject.conCnt, 482);
-					MainForm->memoGripperLineAdd("[Eject step 0] 48 Channel 취출시작");
-					step.step += 1;
-				}
-				//* New Kind (HKMC) 2023 06 26
-				//else if(MainForm->tray_source.SLOT_COUNT == 24 && MainForm->tray->CH_GUBUN == 242){
-				else if(MainForm->tray_source.SLOT_COUNT == 24 && MainForm->tray_source.CH_GUBUN == 242){
-					MainForm->memoGripperLineAdd("[Eject step 0] 24 Tray / Gripper #" + IntToStr(eject.gripper) + " / Channel #" + IntToStr(eject.pos) + " / Continuous eject #" + IntToStr(eject.conCnt));
-					robostar->req_AutoEject(1, eject.gripper , MainForm->mapSort[0][eject.pos-1], eject.conCnt, 242);
-					MainForm->memoGripperLineAdd("[Eject step 0] 24 Channel 취출시작");
-					step.step += 1;
-				}
-				else if(MainForm->tray_source.SLOT_COUNT == 48 && MainForm->tray->CH_GUBUN == 48){
-					MainForm->memoGripperLineAdd("[Eject step 0] 48 Tray / Gripper #" + IntToStr(eject.gripper) + " / Channel #" + IntToStr(eject.pos) + " / Continuous eject #" + IntToStr(eject.conCnt));
-					robostar->req_AutoEject(1, eject.gripper , MainForm->mapSort[1][eject.pos-1], eject.conCnt, 48);
-					step.step += 1;
 				}else{
 					MainForm->memoGripperLineAdd("[MES] 등록되지 않은 트레이.");
 				}

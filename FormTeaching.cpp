@@ -281,6 +281,7 @@ void __fastcall TteachForm::tClick(TObject *Sender)
 //---------------------------------------------------------------------------
 bool __fastcall TteachForm::CheckMoveTargetChannel(int channel)
 {
+    //* 2026 06 96채널로 변경해야 함.
     bool isPossible = true;
 
     if(MainForm->color_target[channel/6][5-(channel%6)] == clInactiveCaption
@@ -288,16 +289,8 @@ bool __fastcall TteachForm::CheckMoveTargetChannel(int channel)
     {
         if(sCombo->ItemIndex == 0 && robostar->input.GRIPPER1_CELL_DETECT)
             isPossible = false;
-        else if(sCombo->ItemIndex == 1 && robostar->input.GRIPPER2_CELL_DETECT)
-            isPossible = false;
     }
 
-//    if(sCombo->ItemIndex == 0 && robostar->input.GRIPPER1_CELL_DETECT == true
-//        	&& (MainForm->color_target[ch/6][5-(ch%6)] == clInactiveCaption || MainForm->color_target[ch/6][5-(ch%6)] == clSilver))
-//            isPossible = false;
-//    else if(sCombo->ItemIndex == 1 && robostar->input.GRIPPER2_CELL_DETECT == true
-//        	&& (MainForm->color_target[ch/6][5-(ch%6)] == clInactiveCaption || MainForm->color_target[ch/6][5-(ch%6)] == clSilver))
-//            isPossible = false;
     return isPossible;
 }
 //---------------------------------------------------------------------------
@@ -307,8 +300,6 @@ bool __fastcall TteachForm::CheckMoveSourceChannel()
 
     if(sCombo->ItemIndex == 0 && robostar->input.GRIPPER1_CELL_DETECT)
     	isPossible = false;
-    else if(sCombo->ItemIndex == 1 && robostar->input.GRIPPER2_CELL_DETECT)
-        isPossible = false;
 
     return isPossible;
 }
@@ -323,7 +314,7 @@ void __fastcall TteachForm::homeBtnClick(TObject *Sender)
 {
     UnicodeString msg;
 	//* 2025 05 21
-    if(robostar->input.GRIPPER1_CELL_DETECT == true || robostar->input.GRIPPER2_CELL_DETECT == true)
+    if(robostar->input.GRIPPER1_CELL_DETECT == true == true)
 			msg = "[B_Ignition] 그리퍼에 셀이 있습니다. 대기 위치로 이동하시겠습니까?";
 		else
 			msg = "[C_Maint] 대기 위치로 이동하시겠습니까?";
@@ -721,7 +712,7 @@ void __fastcall TteachForm::waitBtnClick(TObject *Sender)
 	}
 	else {
         //* 2025 05 21
-		if(robostar->input.GRIPPER1_CELL_DETECT == true || robostar->input.GRIPPER2_CELL_DETECT == true)
+		if(robostar->input.GRIPPER1_CELL_DETECT == true)
 			msg = "[B_Ignition] 그리퍼에 셀이 있습니다. 대기 위치로 이동하시겠습니까?";
 		else
 			msg = "[C_Maint] 대기 위치로 이동하시겠습니까?";
@@ -903,42 +894,16 @@ void __fastcall TteachForm::Button2MouseDown(TObject *Sender, TMouseButton Butto
 			}
 			else if(robostar->input.GRIPPER1_CELL_DETECT == true && (pos_z >= 20000 || MainForm->m_ServoHome))
 			{
-				//if(MessageBox(Handle, L"[B_Ignition] 그리퍼 1에 셀이 있습니다. 그리퍼를 이동 하시겠습니까?", L"위치 확인", MB_YESNO|MB_ICONWARNING) == ID_YES)
 				if(isGripperOpen1 == true)
 					robostar->req_JogMove(btn->Tag);
 				else if(MessageBox(Handle, L"[B_Ignition] 그리퍼 1에 셀이 있습니다.", L"위치 확인", MB_YESNO|MB_ICONWARNING) == ID_YES)
 				{
-					//robostar->req_JogMove(btn->Tag);
 					robostar->req_JogMove(-1);
                     isGripperOpen1 = true;
 				}
 			}
 			else
 				robostar->req_JogMove(btn->Tag);
-
-		}
-		// 2019 07 05 btn->Tag 6,7,8,9 일때 (gripper 1, 2 => +, -) 셀 있으면 z축이 내려가 있을 때만 동작.
-		else if(btn->Tag == 8 || btn->Tag == 9)
-		{
-			int pos_z = robostar->mr2.pos[4];
-			if(robostar->input.GRIPPER2_CELL_DETECT == true && (pos_z < 20000 && !MainForm->m_ServoHome))
-			{
-				ShowMessage("[B_Ignition] 그리퍼 2에 셀이 있습니다. 위치를 확인 해 주세요");
-			}
-			else if(robostar->input.GRIPPER2_CELL_DETECT == true && (pos_z >= 20000 || MainForm->m_ServoHome))
-			{
-				if(isGripperOpen2 == true)
-                    robostar->req_JogMove(btn->Tag);
-				else if(MessageBox(Handle, L"[B_Ignition] 그리퍼 2에 셀이 있습니다. 그리퍼를 이동 하시겠습니까?", L"위치 확인", MB_YESNO|MB_ICONWARNING) == ID_YES)
-				{
-					//robostar->req_JogMove(btn->Tag);
-					robostar->req_JogMove(-1);
-                    isGripperOpen2 = true;
-				}
-			}
-			else
-				robostar->req_JogMove(btn->Tag);
-
 		}
 		else
 		{
@@ -954,85 +919,42 @@ void __fastcall TteachForm::SetTrayMaxPosition()
 	sTray_Position.Left = 0;
 	sTray_Position.Right = 0;
 
-    // teachEdit[0] -> X, teachEdit[1] -> Y
-	if(MainForm->tray->CH_GUBUN == 242 || MainForm->tray->CH_GUBUN == 482)
-	{
-        sTray_Position.Left = teachEdit[1][0]->Text.ToInt();
-		sTray_Position.Right = teachEdit[1][1]->Text.ToInt();
+    sTray_Position.Left = teachEdit[1][0]->Text.ToInt();
+    sTray_Position.Right = teachEdit[1][3]->Text.ToInt();
 
-		for(int i = 0; i < 2; i++)  // 선별트레이 2열
-		{
-			if(sTray_Position.Bottom == 0 || sTray_Position.Bottom > teachEdit[0][i]->Text.ToInt())
-				sTray_Position.Bottom = teachEdit[0][i]->Text.ToInt();
-			if(sTray_Position.Top < teachEdit[0][i]->Text.ToInt())
-				sTray_Position.Top = teachEdit[0][i]->Text.ToInt();
-		}
-	}
-	else
-	{
-		sTray_Position.Left = teachEdit[1][0]->Text.ToInt();
-		sTray_Position.Right = teachEdit[1][3]->Text.ToInt();
-
-		for(int i = 0; i < 4; i++)   // 선별트레이 4열
-		{
-			if(sTray_Position.Bottom == 0 || sTray_Position.Bottom > teachEdit[0][i]->Text.ToInt())
-				sTray_Position.Bottom = teachEdit[0][i]->Text.ToInt();
-			if(sTray_Position.Top < teachEdit[0][i]->Text.ToInt())
-				sTray_Position.Top = teachEdit[0][i]->Text.ToInt();
-		}
-	}
+    for(int i = 0; i < 4; i++)   // 선별트레이 4열
+    {
+        if(sTray_Position.Bottom == 0 || sTray_Position.Bottom > teachEdit[0][i]->Text.ToInt())
+            sTray_Position.Bottom = teachEdit[0][i]->Text.ToInt();
+        if(sTray_Position.Top < teachEdit[0][i]->Text.ToInt())
+            sTray_Position.Top = teachEdit[0][i]->Text.ToInt();
+    }
 
 	sTray_Position.Top += 1111000; // 선별 1열 X + 24열 X
-//	sTray_Position.Bottom = teachEdit[0][0]->Text.ToInt();;
 
 	tTray_Position.Top = 0;
 	tTray_Position.Bottom = 0;
 	tTray_Position.Left = 0;
 	tTray_Position.Right = 0;
 
-	if(MainForm->tray->CH_GUBUN == 242 || MainForm->tray->CH_GUBUN == 482 || MainForm->tray->CH_GUBUN == 962)
-	{
-        tTray_Position.Left = teachEdit[1][4]->Text.ToInt();
-		tTray_Position.Right = teachEdit[1][5]->Text.ToInt();
+	tTray_Position.Left = teachEdit[1][4]->Text.ToInt();
+    tTray_Position.Right = teachEdit[1][7]->Text.ToInt();
 
-		for(int i = 4; i < 6; i++)      // 대상트레이 2열
-		{
-			if(tTray_Position.Bottom == 0 || tTray_Position.Bottom > teachEdit[0][i]->Text.ToInt())
-				tTray_Position.Bottom = teachEdit[0][i]->Text.ToInt();
-			if(tTray_Position.Top < teachEdit[0][i]->Text.ToInt())
-				tTray_Position.Top = teachEdit[0][i]->Text.ToInt();
-		}
-	}
-	else
-	{
-		tTray_Position.Left = teachEdit[1][4]->Text.ToInt();
-		tTray_Position.Right = teachEdit[1][7]->Text.ToInt();
-
-		for(int i = 4; i < 6; i++)    // 대상트레이 2열
-		{
-			if(tTray_Position.Bottom == 0 || tTray_Position.Bottom > teachEdit[0][i]->Text.ToInt())
-				tTray_Position.Bottom = teachEdit[0][i]->Text.ToInt();
-			if(tTray_Position.Top < teachEdit[0][i]->Text.ToInt())
-				tTray_Position.Top = teachEdit[0][i]->Text.ToInt();
-		}
+    for(int i = 4; i < 8; i++)    // 대상트레이 2열
+    {
+        if(tTray_Position.Bottom == 0 || tTray_Position.Bottom > teachEdit[0][i]->Text.ToInt())
+            tTray_Position.Bottom = teachEdit[0][i]->Text.ToInt();
+        if(tTray_Position.Top < teachEdit[0][i]->Text.ToInt())
+            tTray_Position.Top = teachEdit[0][i]->Text.ToInt();
     }
 
 	tTray_Position.Top += 395000; // 대상 1열 X + 6열 X
-//	tTray_Position.Bottom = teachEdit[0][4]->Text.ToInt();
 }
 //---------------------------------------------------------------------------
 bool __fastcall TteachForm::CheckPositionDown(int gripperIndex)
 {
 	int pos_x = robostar->mr2.pos[1];
 	int pos_y = robostar->mr2.pos[3];
-
-	//* 2023 07 06 HKMC
-//	if(((pos_x + (gripperIndex) * 90000) <= sTray_Position.Top
-//		&& (pos_x + (gripperIndex) * 90000) >= sTray_Position.Bottom
-//		&& pos_y <= sTray_Position.Left && pos_y >= sTray_Position.Right)
-//		|| (pos_x <= tTray_Position.Top && pos_x >= tTray_Position.Bottom
-//		&& pos_y <= tTray_Position.Left && pos_y >= tTray_Position.Right))
-//		return true;
 
 	if(((pos_x + (gripperIndex) * 90000) <= sTray_Position.Top
 		&& (pos_x + (gripperIndex) * 90000) >= sTray_Position.Bottom
@@ -1052,12 +974,6 @@ bool __fastcall TteachForm::CheckUnchuckPosition(int gripperIndex)
 	int pos_x = robostar->mr2.pos[1];
 	int pos_y = robostar->mr2.pos[3];
 
-	//* 2023 07 06 HKMC - T1A
-//	if(((pos_x + (gripperIndex) * 90000) <= sTray_Position.Top && (pos_x + (gripperIndex) * 90000) >= sTray_Position.Bottom
-//		&& gripper_position == unchuck_position )
-//		|| (pos_x <= tTray_Position.Top && pos_x >= tTray_Position.Bottom && gripper_position == chuck_position)
-//		)
-//		return true;
     if(((pos_x + (gripperIndex) * 90000) <= sTray_Position.Top && (pos_x + (gripperIndex) * 90000) >= sTray_Position.Bottom
 		&& gripper_position == unchuck_position )
 		|| (pos_x + (gripperIndex * 90000) <= tTray_Position.Top && pos_x + (gripperIndex * 90000) >= tTray_Position.Bottom && gripper_position == chuck_position)
@@ -1340,5 +1256,6 @@ void __fastcall TteachForm::zdown()
 	}
 }
 //---------------------------------------------------------------------------
+
 
 

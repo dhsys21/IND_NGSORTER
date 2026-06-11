@@ -52,7 +52,7 @@ object doorForm: TdoorForm
     object Label1: TLabel
       Left = 6
       Top = 8
-      Width = 68
+      Width = 48
       Height = 16
       Alignment = taCenter
       Caption = #50508#46988' '#51221#48372
@@ -359,7 +359,7 @@ object doorForm: TdoorForm
     object Label4: TLabel
       Left = 6
       Top = 8
-      Width = 68
+      Width = 48
       Height = 16
       Alignment = taCenter
       Caption = #50508#46988' '#51221#48372
@@ -5372,7 +5372,7 @@ object doorForm: TdoorForm
       object Label6: TLabel
         Left = 6
         Top = 8
-        Width = 84
+        Width = 59
         Height = 16
         Alignment = taCenter
         Caption = #44536#47532#54140' '#50676#44592
@@ -5513,7 +5513,6 @@ object doorForm: TdoorForm
         Version = '2.1.1.5'
         OnMouseDown = AdvSmoothButton12MouseDown
         OnMouseUp = AdvSmoothButton12MouseUp
-        OnClick = AdvSmoothButton12Click
         TMSStyle = 8
       end
       object AdvSmoothButton1: TAdvSmoothButton
@@ -5645,7 +5644,6 @@ object doorForm: TdoorForm
         Version = '2.1.1.5'
         OnMouseDown = AdvSmoothButton1MouseDown
         OnMouseUp = AdvSmoothButton12MouseUp
-        OnClick = AdvSmoothButton12Click
         TMSStyle = 8
       end
       object stopBtn: TAdvSmoothButton

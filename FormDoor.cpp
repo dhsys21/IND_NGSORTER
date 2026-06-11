@@ -171,43 +171,6 @@ void __fastcall TdoorForm::btnServoOpenClick(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TdoorForm::AdvSmoothButton12Click(TObject *Sender)
-{
-//	TAdvSmoothButton *btn;
-//	btn = (TAdvSmoothButton*)Sender;
-//
-//	// 2019 07 05 HOME 위치에서 그리퍼 [열기]
-//	if(robostar->getCellDetectStatus(btn->Tag) == false) // getCellDetectStatus(btn->Tag) == false =>셀이 있을 때
-//	{
-//		if(MainForm->m_ServoHomeEmg)
-//		{
-//			if(MessageBox(Handle, ("셀이 감지 되었습니다.\r\nGripper #" + IntToStr(btn->Tag) + " 을 [열기] 하시겠습니까?").c_str(),
-//				L"열기", MB_YESNO|MB_ICONWARNING) == ID_YES)
-//				//robostar->GripperChuck(btn->Tag, true, false); // gripper no, open, close
-//				//robostar->req_JogMove(btn->Tag);  //this->Tag 7 => gripper 1 번
-//				if(btn->Tag == 7) isGripperOpen1 = true;
-//				else if(btn->Tag == 8) isGripperOpen2 = true;
-//		}
-//	}
-//	else
-//	{
-//        if(MainForm->m_ServoHomeEmg)
-//		{
-//			if(MessageBox(Handle, ("셀이 감지 되지 않았습니다.\r\nGripper #" + IntToStr(btn->Tag) + " 을 [열기] 하시겠습니까?").c_str(),
-//				L"열기", MB_YESNO|MB_ICONWARNING) == ID_YES)
-//				//robostar->GripperChuck(btn->Tag, true, false); // gripper no, open, close
-//				//robostar->req_JogMove(btn->Tag);  //this->Tag 8 => gripper 2번
-//                if(btn->Tag == 7) isGripperOpen1 = true;
-//				else if(btn->Tag == 8) isGripperOpen2 = true;
-//		}
-//	}
-//
-//	if(MainForm->m_ServoHomeEmg && isGripperOpen1)
-//		robostar->req_JogMove(7);
-//	else if(MainForm->m_ServoHomeEmg && isGripperOpen2)
-//        robostar->req_JogMove(8);
-}
-//---------------------------------------------------------------------------
 
 void __fastcall TdoorForm::stopBtnClick(TObject *Sender)
 {

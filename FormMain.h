@@ -396,21 +396,17 @@ private:	// User declarations
 	void __fastcall ReadZoneList();
 
 
-	TPanel *status_on[7], *status_org[7], *status_error[7], *status_lsp[7], *status_lsn[7], *status_pos[7];
+	TPanel *status_on[AxisCnt], *status_org[AxisCnt], *status_error[AxisCnt], *status_lsp[AxisCnt], *status_lsn[AxisCnt], *status_pos[AxisCnt];
 
 public:		// User declarations
 
 	TBarcode *comBcr[2];
 	void __fastcall setBarcode(int pos, AnsiString strBcr);
-
 	SorterMode equipMode;
 	LampMode nowLampMode, beforeLampMode;
 
-
 	long	path;				/*	CCLINK variable to save path		*/
-
 	TX_DATA *tx;
-
 	TPanel *psort_ch[96];
 	TPanel *psort_ing[96];
 	TPanel *psort_bad[96];
@@ -481,7 +477,7 @@ public:		// User declarations
 	bool __fastcall checkTrayInfo(int index);
 	SAVE_TRAY_INFO m_saveTrayInfo[2];
 
-	bool m_ServoOpen, m_ServoON, m_ServoHome, m_ServoHomeEmg;
+	bool m_ServoOpen, m_ServoON, m_ServoHome, m_ServoHomeEmg;//* 에러 났을 때 x,y,z축이 원점일 때 gripper 조그버튼 동작가능
 
     int LampCount;
 

@@ -563,24 +563,11 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	for(int i=0; i<=3; ++i)GetZoneCount(i);
 
 	sensorColor(pcell1, robostar->input.GRIPPER1_CELL_DETECT);
-	sensorColor(pcell2, robostar->input.GRIPPER2_CELL_DETECT);
-
-
 	sensorColor(pup1, robostar->input.GRIPPER1_UP);
-	sensorColor(pup2, robostar->input.GRIPPER2_UP);
-
 	sensorColor(pdn1, robostar->input.GRIPPER1_DOWN);
-	sensorColor(pdn2, robostar->input.GRIPPER2_DOWN);
-
 	sensorColor(pflow1, robostar->input.GRIPPER1_BUFFER);
-	sensorColor(pflow2, robostar->input.GRIPPER2_BUFFER);
-	sensorColor(pflow3, robostar->input.GRIPPER3_BUFFER);
-	sensorColor(pflow4, robostar->input.GRIPPER4_BUFFER);
-
 	sensorColor(popen1, !robostar->output.GRIPPER1_CHUCK);
-	sensorColor(popen2, !robostar->output.GRIPPER2_CHUCK);
 	sensorColor(pclose1, robostar->output.GRIPPER1_CHUCK);
-	sensorColor(pclose2, robostar->output.GRIPPER2_CHUCK);
 
     //* 2025 09 25 Ãß°¡
 	sensorColor(pRun, robostar->output.SERVO_RUNNING);
@@ -604,10 +591,11 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	bool NGflag = false;
 	if(robostar->mr2.system_detail == 0)
 	{
-		if(robostar->mr2.speed[1] < 0) robostar->mr2.speed[1] *= -1;
-		if(robostar->mr2.speed[3] < 0) robostar->mr2.speed[3] *= -1;
-		pspeed->Caption = FloatToStr(robostar->mr2.speed[1]) + " / " + FloatToStr(robostar->mr2.speed[3]);
-		for(int i=1; i<=servoCnt; ++i){
+		if(robostar->mr2.speed[Axis_x] < 0) robostar->mr2.speed[Axis_x] *= -1;
+		if(robostar->mr2.speed[Axis_y] < 0) robostar->mr2.speed[Axis_y] *= -1;
+		pspeed->Caption = FloatToStr(robostar->mr2.speed[Axis_x]) + " / " + FloatToStr(robostar->mr2.speed[Axis_y]);
+        //* servoCnt = 4, X, Y, Z, G ÃÑ4°³
+		for(int i = 1; i <= servoCnt; ++i){
 			loadfactorForm->Panel_Position[i]->Caption = FormatFloat("0 %", robostar->mr2.mondata[i][0]);
 			teachForm->lblLoadFactor[i]->Caption = FormatFloat("0 %", robostar->mr2.mondata[i][0]);
 			status_pos[i]->Caption = FloatToStr(robostar->mr2.pos[i]);
@@ -624,7 +612,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 			else status_lsn[i]->Color = clRed;
 		}
 
-		for(int i=1; i<=servoCnt; ++i){
+		for(int i = 1; i <= servoCnt; ++i){
 			if(robostar->mr2.servo_alarm[i] > 0){
 				perr->Color = clRed;
 				perr->Caption = IntToHex(robostar->mr2.servo_alarm[i], 2);
@@ -651,7 +639,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		perr->Caption = IntToHex(robostar->mr2.system_detail, 8);
 	}
 
-	for(int i=1; i<=servoCnt; ++i){
+	for(int i = 1; i <= servoCnt; ++i){
 		if(robostar->mr2.mondata[i][0] > loadfactorForm->m_SetLimit)
 		{
 			loadfactorForm->m_Count++;
@@ -667,22 +655,20 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	{
 		m_ServoOpen = true;
 
-		if(status_on[1]->Color == clLime && status_on[2]->Color == clLime
-			&& status_on[3]->Color == clLime && status_on[4]->Color == clLime
-			 && status_on[5]->Color == clLime && status_on[6]->Color == clLime)
+		if(status_on[Axis_x]->Color == clLime && status_on[Axis_y]->Color == clLime
+			&& status_on[Axis_z]->Color == clLime && status_on[Axis_g]->Color == clLime)
 		{
 			m_ServoON = true;
 
-			if(status_org[1]->Color == clLime && status_org[2]->Color == clLime
-				&& status_org[3]->Color == clLime && status_org[4]->Color == clLime
-					&& status_org[5]->Color == clLime && status_org[6]->Color == clLime) {
+			if(status_org[Axis_x]->Color == clLime && status_org[Axis_y]->Color == clLime
+				&& status_org[Axis_z]->Color == clLime && status_org[Axis_g]->Color == clLime) {
 				m_ServoHome = true;
 			}
 			else {
 				m_ServoHome = false;
 			}
-            if(status_org[1]->Color == clLime && status_org[2]->Color == clLime
-				&& status_org[3]->Color == clLime && status_org[4]->Color == clLime ) {
+            if(status_org[Axis_x]->Color == clLime && status_org[Axis_y]->Color == clLime
+				&& status_org[Axis_z]->Color == clLime) {
 				m_ServoHomeEmg = true;
 			}
 			else {

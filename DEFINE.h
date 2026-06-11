@@ -4,9 +4,7 @@
 #define APP_PATH					"D:\\NGSORTER_IND\\"
 #define SAVE_PATH					"D:\\NGSORTER_IND\\"
 
-
 #define BIN							APP_PATH"Bin\\"
-
 #define LOG                         SAVE_PATH"Log\\"
 #define SOCK_LOG					LOG"MES_LOG\\"
 #define PROG_LOG					LOG"PROG_LOG\\"
@@ -130,7 +128,14 @@ const int ETC = 3;
 const char nAuto 	= 0;
 const char nLocal 	= 1;
 const int servoCnt 	= 4;  //* X, Y, Z, G1 총 4개
-const int gripCnt 	= 2;
+const int gripCnt 	= 1;  //* gripper 1개
+
+const int Axis_x = 1;
+const int Axis_y = 2;
+const int Axis_z = 3;
+const int Axis_g = 4;
+const int Axis_zUp = 0;
+const int AxisCnt = 5;  //* 서보에서 값이 1부터 들어옴. 0은? X=1, Y=2, Z=3, G=4
 
 typedef struct{
 	int arl;
