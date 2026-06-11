@@ -457,7 +457,7 @@ object teachForm: TteachForm
   object Label1: TLabel
     Left = 8
     Top = 72
-    Width = 277
+    Width = 256
     Height = 13
     Caption = #8251' '#52292#45328#51012' '#53364#47533#54616#47732'  '#52292#45328' '#50948#52824#47196' '#47196#48391#51060' '#51060#46041#54633#45768#45796'.'
   end
@@ -507,7 +507,7 @@ object teachForm: TteachForm
     object Label2: TLabel
       Left = 7
       Top = 10
-      Width = 84
+      Width = 59
       Height = 16
       Caption = #49440#48324' '#53944#47112#51060
       Font.Charset = DEFAULT_CHARSET
@@ -1562,38 +1562,6 @@ object teachForm: TteachForm
       ShowHint = False
       TabOrder = 32
     end
-    object rdo48: TRadioButton
-      Tag = 2
-      Left = 452
-      Top = 8
-      Width = 64
-      Height = 17
-      Caption = '48-4'#50676
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlue
-      Font.Height = -12
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentFont = False
-      TabOrder = 33
-      Visible = False
-      OnClick = rdoChangeTrayMap
-    end
-    object rdo96: TRadioButton
-      Left = 521
-      Top = 8
-      Width = 64
-      Height = 17
-      Caption = '96-4'#50676
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlue
-      Font.Height = -12
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentFont = False
-      TabOrder = 34
-      OnClick = rdoChangeTrayMap
-    end
     object gpEdit1: TEdit
       Left = 83
       Top = 54
@@ -1606,7 +1574,7 @@ object teachForm: TteachForm
       Font.Style = []
       ImeName = 'Microsoft IME 2010'
       ParentFont = False
-      TabOrder = 35
+      TabOrder = 33
       Text = 'Edit1'
     end
     object gpEdit2: TEdit
@@ -1621,7 +1589,7 @@ object teachForm: TteachForm
       Font.Style = []
       ImeName = 'Microsoft IME 2010'
       ParentFont = False
-      TabOrder = 36
+      TabOrder = 34
       Text = 'Edit1'
     end
     object Panel14: TPanel
@@ -1641,7 +1609,7 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 37
+      TabOrder = 35
     end
     object Panel15: TPanel
       Left = 52
@@ -1660,7 +1628,7 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 38
+      TabOrder = 36
     end
     object Panel16: TPanel
       Left = 52
@@ -1679,7 +1647,7 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 39
+      TabOrder = 37
     end
     object gpEdit3: TEdit
       Left = 223
@@ -1693,7 +1661,7 @@ object teachForm: TteachForm
       Font.Style = []
       ImeName = 'Microsoft IME 2010'
       ParentFont = False
-      TabOrder = 40
+      TabOrder = 38
       Text = 'Edit1'
     end
     object gpEdit4: TEdit
@@ -1708,7 +1676,7 @@ object teachForm: TteachForm
       Font.Style = []
       ImeName = 'Microsoft IME 2010'
       ParentFont = False
-      TabOrder = 41
+      TabOrder = 39
       Text = 'Edit1'
     end
     object Panel17: TPanel
@@ -1728,7 +1696,7 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 42
+      TabOrder = 40
     end
     object Panel18: TPanel
       Left = 193
@@ -1747,7 +1715,7 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 43
+      TabOrder = 41
     end
     object Panel19: TPanel
       Left = 193
@@ -1766,7 +1734,7 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 44
+      TabOrder = 42
     end
     object gpEdit5: TEdit
       Left = 364
@@ -1780,7 +1748,7 @@ object teachForm: TteachForm
       Font.Style = []
       ImeName = 'Microsoft IME 2010'
       ParentFont = False
-      TabOrder = 45
+      TabOrder = 43
       Text = 'Edit1'
     end
     object gpEdit6: TEdit
@@ -1795,7 +1763,7 @@ object teachForm: TteachForm
       Font.Style = []
       ImeName = 'Microsoft IME 2010'
       ParentFont = False
-      TabOrder = 46
+      TabOrder = 44
       Text = 'Edit1'
     end
     object Panel21: TPanel
@@ -1815,7 +1783,7 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 47
+      TabOrder = 45
     end
     object Panel22: TPanel
       Left = 334
@@ -1834,7 +1802,7 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 48
+      TabOrder = 46
     end
     object Panel23: TPanel
       Left = 334
@@ -1853,7 +1821,7 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 49
+      TabOrder = 47
     end
     object s1: TAdvSmoothPanel
       Left = 15
@@ -1890,7 +1858,7 @@ object teachForm: TteachForm
       Fill.Glow = gmNone
       Version = '1.5.2.1'
       OnClick = sClick
-      TabOrder = 50
+      TabOrder = 48
       TMSStyle = 0
     end
     object s2: TAdvSmoothPanel
@@ -1927,7 +1895,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 51
+      TabOrder = 49
       TMSStyle = 0
     end
     object s3: TAdvSmoothPanel
@@ -1964,7 +1932,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 52
+      TabOrder = 50
       TMSStyle = 0
     end
     object s5: TAdvSmoothPanel
@@ -2001,7 +1969,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 53
+      TabOrder = 51
       TMSStyle = 0
     end
     object s6: TAdvSmoothPanel
@@ -2038,7 +2006,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 54
+      TabOrder = 52
       TMSStyle = 0
     end
     object s4: TAdvSmoothPanel
@@ -2075,7 +2043,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 55
+      TabOrder = 53
       TMSStyle = 0
     end
     object s7: TAdvSmoothPanel
@@ -2112,7 +2080,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 56
+      TabOrder = 54
       TMSStyle = 0
     end
     object s8: TAdvSmoothPanel
@@ -2149,7 +2117,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 57
+      TabOrder = 55
       TMSStyle = 0
     end
     object s9: TAdvSmoothPanel
@@ -2186,7 +2154,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 58
+      TabOrder = 56
       TMSStyle = 0
     end
     object s11: TAdvSmoothPanel
@@ -2223,7 +2191,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 59
+      TabOrder = 57
       TMSStyle = 0
     end
     object s12: TAdvSmoothPanel
@@ -2260,7 +2228,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 60
+      TabOrder = 58
       TMSStyle = 0
     end
     object s10: TAdvSmoothPanel
@@ -2297,7 +2265,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 61
+      TabOrder = 59
       TMSStyle = 0
     end
     object s13: TAdvSmoothPanel
@@ -2334,7 +2302,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 62
+      TabOrder = 60
       TMSStyle = 0
     end
     object s14: TAdvSmoothPanel
@@ -2371,7 +2339,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 63
+      TabOrder = 61
       TMSStyle = 0
     end
     object s15: TAdvSmoothPanel
@@ -2408,7 +2376,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 64
+      TabOrder = 62
       TMSStyle = 0
     end
     object s17: TAdvSmoothPanel
@@ -2445,7 +2413,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 65
+      TabOrder = 63
       TMSStyle = 0
     end
     object s18: TAdvSmoothPanel
@@ -2482,7 +2450,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 66
+      TabOrder = 64
       TMSStyle = 0
     end
     object s16: TAdvSmoothPanel
@@ -2519,7 +2487,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 67
+      TabOrder = 65
       TMSStyle = 0
     end
     object s19: TAdvSmoothPanel
@@ -2556,7 +2524,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 68
+      TabOrder = 66
       TMSStyle = 0
     end
     object s20: TAdvSmoothPanel
@@ -2593,7 +2561,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 69
+      TabOrder = 67
       TMSStyle = 0
     end
     object s21: TAdvSmoothPanel
@@ -2630,7 +2598,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 70
+      TabOrder = 68
       TMSStyle = 0
     end
     object s23: TAdvSmoothPanel
@@ -2667,7 +2635,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 71
+      TabOrder = 69
       TMSStyle = 0
     end
     object s24: TAdvSmoothPanel
@@ -2704,7 +2672,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 72
+      TabOrder = 70
       TMSStyle = 0
     end
     object s22: TAdvSmoothPanel
@@ -2741,7 +2709,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 73
+      TabOrder = 71
       TMSStyle = 0
     end
     object s53: TAdvSmoothPanel
@@ -2778,7 +2746,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 74
+      TabOrder = 72
       TMSStyle = 0
     end
     object s54: TAdvSmoothPanel
@@ -2815,7 +2783,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 75
+      TabOrder = 73
       TMSStyle = 0
     end
     object s52: TAdvSmoothPanel
@@ -2852,7 +2820,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 76
+      TabOrder = 74
       TMSStyle = 0
     end
     object s49: TAdvSmoothPanel
@@ -2889,7 +2857,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 77
+      TabOrder = 75
       TMSStyle = 0
     end
     object s50: TAdvSmoothPanel
@@ -2926,7 +2894,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 78
+      TabOrder = 76
       TMSStyle = 0
     end
     object s51: TAdvSmoothPanel
@@ -2963,7 +2931,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 79
+      TabOrder = 77
       TMSStyle = 0
     end
     object s59: TAdvSmoothPanel
@@ -3000,7 +2968,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 80
+      TabOrder = 78
       TMSStyle = 0
     end
     object s60: TAdvSmoothPanel
@@ -3037,7 +3005,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 81
+      TabOrder = 79
       TMSStyle = 0
     end
     object s58: TAdvSmoothPanel
@@ -3074,7 +3042,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 82
+      TabOrder = 80
       TMSStyle = 0
     end
     object s55: TAdvSmoothPanel
@@ -3111,7 +3079,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 83
+      TabOrder = 81
       TMSStyle = 0
     end
     object s56: TAdvSmoothPanel
@@ -3148,7 +3116,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 84
+      TabOrder = 82
       TMSStyle = 0
     end
     object s57: TAdvSmoothPanel
@@ -3185,7 +3153,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 85
+      TabOrder = 83
       TMSStyle = 0
     end
     object s65: TAdvSmoothPanel
@@ -3222,7 +3190,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 86
+      TabOrder = 84
       TMSStyle = 0
     end
     object s66: TAdvSmoothPanel
@@ -3259,7 +3227,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 87
+      TabOrder = 85
       TMSStyle = 0
     end
     object s64: TAdvSmoothPanel
@@ -3296,7 +3264,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 88
+      TabOrder = 86
       TMSStyle = 0
     end
     object s61: TAdvSmoothPanel
@@ -3333,7 +3301,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 89
+      TabOrder = 87
       TMSStyle = 0
     end
     object s62: TAdvSmoothPanel
@@ -3370,7 +3338,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 90
+      TabOrder = 88
       TMSStyle = 0
     end
     object s63: TAdvSmoothPanel
@@ -3407,7 +3375,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 91
+      TabOrder = 89
       TMSStyle = 0
     end
     object s71: TAdvSmoothPanel
@@ -3444,7 +3412,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 92
+      TabOrder = 90
       TMSStyle = 0
     end
     object s72: TAdvSmoothPanel
@@ -3481,7 +3449,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 93
+      TabOrder = 91
       TMSStyle = 0
     end
     object s70: TAdvSmoothPanel
@@ -3518,7 +3486,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 94
+      TabOrder = 92
       TMSStyle = 0
     end
     object s67: TAdvSmoothPanel
@@ -3555,7 +3523,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 95
+      TabOrder = 93
       TMSStyle = 0
     end
     object s68: TAdvSmoothPanel
@@ -3592,7 +3560,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 96
+      TabOrder = 94
       TMSStyle = 0
     end
     object s69: TAdvSmoothPanel
@@ -3629,7 +3597,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 97
+      TabOrder = 95
       TMSStyle = 0
     end
     object s30: TAdvSmoothPanel
@@ -3666,7 +3634,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 98
+      TabOrder = 96
       TMSStyle = 0
     end
     object s27: TAdvSmoothPanel
@@ -3703,7 +3671,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 99
+      TabOrder = 97
       TMSStyle = 0
     end
     object s28: TAdvSmoothPanel
@@ -3740,7 +3708,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 100
+      TabOrder = 98
       TMSStyle = 0
     end
     object s29: TAdvSmoothPanel
@@ -3777,7 +3745,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 101
+      TabOrder = 99
       TMSStyle = 0
     end
     object s26: TAdvSmoothPanel
@@ -3814,7 +3782,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 102
+      TabOrder = 100
       TMSStyle = 0
     end
     object s25: TAdvSmoothPanel
@@ -3851,7 +3819,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 103
+      TabOrder = 101
       TMSStyle = 0
     end
     object s36: TAdvSmoothPanel
@@ -3888,7 +3856,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 104
+      TabOrder = 102
       TMSStyle = 0
     end
     object s33: TAdvSmoothPanel
@@ -3925,7 +3893,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 105
+      TabOrder = 103
       TMSStyle = 0
     end
     object s34: TAdvSmoothPanel
@@ -3962,7 +3930,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 106
+      TabOrder = 104
       TMSStyle = 0
     end
     object s35: TAdvSmoothPanel
@@ -3999,7 +3967,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 107
+      TabOrder = 105
       TMSStyle = 0
     end
     object s32: TAdvSmoothPanel
@@ -4036,7 +4004,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 108
+      TabOrder = 106
       TMSStyle = 0
     end
     object s31: TAdvSmoothPanel
@@ -4073,7 +4041,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 109
+      TabOrder = 107
       TMSStyle = 0
     end
     object s42: TAdvSmoothPanel
@@ -4110,7 +4078,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 110
+      TabOrder = 108
       TMSStyle = 0
     end
     object s39: TAdvSmoothPanel
@@ -4147,7 +4115,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 111
+      TabOrder = 109
       TMSStyle = 0
     end
     object s40: TAdvSmoothPanel
@@ -4184,7 +4152,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 112
+      TabOrder = 110
       TMSStyle = 0
     end
     object s41: TAdvSmoothPanel
@@ -4221,7 +4189,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 113
+      TabOrder = 111
       TMSStyle = 0
     end
     object s38: TAdvSmoothPanel
@@ -4258,7 +4226,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 114
+      TabOrder = 112
       TMSStyle = 0
     end
     object s37: TAdvSmoothPanel
@@ -4295,7 +4263,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 115
+      TabOrder = 113
       TMSStyle = 0
     end
     object s48: TAdvSmoothPanel
@@ -4332,7 +4300,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 116
+      TabOrder = 114
       TMSStyle = 0
     end
     object s45: TAdvSmoothPanel
@@ -4369,7 +4337,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 117
+      TabOrder = 115
       TMSStyle = 0
     end
     object s46: TAdvSmoothPanel
@@ -4406,7 +4374,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 118
+      TabOrder = 116
       TMSStyle = 0
     end
     object s47: TAdvSmoothPanel
@@ -4443,7 +4411,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 119
+      TabOrder = 117
       TMSStyle = 0
     end
     object s44: TAdvSmoothPanel
@@ -4480,7 +4448,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 120
+      TabOrder = 118
       TMSStyle = 0
     end
     object s43: TAdvSmoothPanel
@@ -4517,7 +4485,7 @@ object teachForm: TteachForm
       Fill.ShadowOffset = 0
       Fill.Glow = gmNone
       Version = '1.5.2.1'
-      TabOrder = 121
+      TabOrder = 119
       TMSStyle = 0
     end
     object Panel45: TPanel
@@ -4528,7 +4496,7 @@ object teachForm: TteachForm
       BevelOuter = bvNone
       Color = clRed
       ParentBackground = False
-      TabOrder = 122
+      TabOrder = 120
     end
     object AdvSmoothButton_CenteringDown: TAdvSmoothButton
       Left = 98
@@ -4563,7 +4531,7 @@ object teachForm: TteachForm
       Caption = #49468#53552#47553
       Color = clWhite
       ParentFont = False
-      TabOrder = 123
+      TabOrder = 121
       Version = '2.1.1.5'
       OnClick = AdvSmoothButton_CenteringDownClick
       TMSStyle = 8
@@ -4580,7 +4548,7 @@ object teachForm: TteachForm
       Font.Style = []
       ImeName = 'Microsoft IME 2010'
       ParentFont = False
-      TabOrder = 124
+      TabOrder = 122
       Text = '46320'
     end
     object Panel52: TPanel
@@ -4601,7 +4569,7 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 125
+      TabOrder = 123
     end
     object Panel53: TPanel
       Left = 128
@@ -4621,7 +4589,7 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 126
+      TabOrder = 124
     end
     object gpEdit20: TEdit
       Left = 188
@@ -4635,40 +4603,8 @@ object teachForm: TteachForm
       Font.Style = []
       ImeName = 'Microsoft IME 2010'
       ParentFont = False
-      TabOrder = 127
+      TabOrder = 125
       Text = '56120'
-    end
-    object rdo482: TRadioButton
-      Tag = 3
-      Left = 383
-      Top = 8
-      Width = 64
-      Height = 17
-      Caption = '48-2'#50676
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlue
-      Font.Height = -12
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentFont = False
-      TabOrder = 128
-      OnClick = rdoChangeTrayMap
-    end
-    object rdo242: TRadioButton
-      Tag = 4
-      Left = 314
-      Top = 8
-      Width = 64
-      Height = 17
-      Caption = '24-2'#50676
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlue
-      Font.Height = -12
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentFont = False
-      TabOrder = 129
-      OnClick = rdoChangeTrayMap
     end
   end
   object grp_process: TAdvSmoothPanel
@@ -4704,7 +4640,7 @@ object teachForm: TteachForm
     object Label7: TLabel
       Left = 7
       Top = 10
-      Width = 84
+      Width = 59
       Height = 16
       Caption = #45824#49345' '#53944#47112#51060
       Font.Charset = DEFAULT_CHARSET
@@ -6073,7 +6009,7 @@ object teachForm: TteachForm
     object Label3: TLabel
       Left = 7
       Top = 10
-      Width = 68
+      Width = 48
       Height = 16
       Caption = #49688#46041' '#51228#50612
       Font.Charset = DEFAULT_CHARSET
@@ -6087,9 +6023,9 @@ object teachForm: TteachForm
       Transparent = True
     end
     object pnlMovingAlarm2: TAdvSmoothPanel
-      Left = 659
+      Left = 1128
       Top = 31
-      Width = 576
+      Width = 107
       Height = 545
       Cursor = crDefault
       Caption.HTMLFont.Charset = DEFAULT_CHARSET
@@ -6120,7 +6056,7 @@ object teachForm: TteachForm
       object Label59: TLabel
         Left = 220
         Top = 139
-        Width = 136
+        Width = 96
         Height = 16
         Caption = #49436#48372' '#51060#46041#51473#51077#45768#45796'.'
         Font.Charset = DEFAULT_CHARSET
@@ -6186,7 +6122,7 @@ object teachForm: TteachForm
       object Label57: TLabel
         Left = 60
         Top = 100
-        Width = 136
+        Width = 96
         Height = 16
         Caption = #49436#48372' '#51060#46041#51473#51077#45768#45796'.'
         Font.Charset = DEFAULT_CHARSET
@@ -6251,7 +6187,7 @@ object teachForm: TteachForm
       object Label5: TLabel
         Left = 7
         Top = 10
-        Width = 78
+        Width = 68
         Height = 16
         Caption = 'SERVO '#49444#51221
         Font.Charset = DEFAULT_CHARSET
@@ -6570,25 +6506,6 @@ object teachForm: TteachForm
         ShowHint = False
         TabOrder = 10
       end
-      object pOnX2: TPanel
-        Left = 69
-        Top = 64
-        Width = 16
-        Height = 20
-        BevelOuter = bvNone
-        Caption = 'X2'
-        Color = clSilver
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
-        ParentBackground = False
-        ParentFont = False
-        ParentShowHint = False
-        ShowHint = False
-        TabOrder = 11
-      end
       object Panel36: TPanel
         Left = 13
         Top = 85
@@ -6607,7 +6524,7 @@ object teachForm: TteachForm
         ParentFont = False
         ParentShowHint = False
         ShowHint = False
-        TabOrder = 12
+        TabOrder = 11
       end
       object pOrgX1: TPanel
         Left = 52
@@ -6626,7 +6543,7 @@ object teachForm: TteachForm
         ParentFont = False
         ParentShowHint = False
         ShowHint = False
-        TabOrder = 13
+        TabOrder = 12
       end
       object pOrgY: TPanel
         Left = 86
@@ -6645,7 +6562,7 @@ object teachForm: TteachForm
         ParentFont = False
         ParentShowHint = False
         ShowHint = False
-        TabOrder = 14
+        TabOrder = 13
       end
       object pOrgZ: TPanel
         Left = 103
@@ -6664,26 +6581,7 @@ object teachForm: TteachForm
         ParentFont = False
         ParentShowHint = False
         ShowHint = False
-        TabOrder = 15
-      end
-      object pOrgX2: TPanel
-        Left = 69
-        Top = 85
-        Width = 16
-        Height = 20
-        BevelOuter = bvNone
-        Caption = 'X2'
-        Color = clSilver
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
-        ParentBackground = False
-        ParentFont = False
-        ParentShowHint = False
-        ShowHint = False
-        TabOrder = 16
+        TabOrder = 14
       end
       object Panel38: TPanel
         Left = 157
@@ -6703,7 +6601,7 @@ object teachForm: TteachForm
         ParentFont = False
         ParentShowHint = False
         ShowHint = False
-        TabOrder = 17
+        TabOrder = 15
       end
       object pErrorX1: TPanel
         Left = 196
@@ -6722,7 +6620,7 @@ object teachForm: TteachForm
         ParentFont = False
         ParentShowHint = False
         ShowHint = False
-        TabOrder = 18
+        TabOrder = 16
       end
       object pErrorY: TPanel
         Left = 230
@@ -6741,7 +6639,7 @@ object teachForm: TteachForm
         ParentFont = False
         ParentShowHint = False
         ShowHint = False
-        TabOrder = 19
+        TabOrder = 17
       end
       object pErrorZ: TPanel
         Left = 247
@@ -6760,26 +6658,7 @@ object teachForm: TteachForm
         ParentFont = False
         ParentShowHint = False
         ShowHint = False
-        TabOrder = 20
-      end
-      object pErrorX2: TPanel
-        Left = 213
-        Top = 43
-        Width = 16
-        Height = 20
-        BevelOuter = bvNone
-        Caption = 'X2'
-        Color = clSilver
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
-        ParentBackground = False
-        ParentFont = False
-        ParentShowHint = False
-        ShowHint = False
-        TabOrder = 21
+        TabOrder = 18
       end
       object Panel42: TPanel
         Left = 157
@@ -6799,7 +6678,7 @@ object teachForm: TteachForm
         ParentFont = False
         ParentShowHint = False
         ShowHint = False
-        TabOrder = 22
+        TabOrder = 19
       end
       object pLspX1: TPanel
         Left = 196
@@ -6818,7 +6697,7 @@ object teachForm: TteachForm
         ParentFont = False
         ParentShowHint = False
         ShowHint = False
-        TabOrder = 23
+        TabOrder = 20
       end
       object pLspY: TPanel
         Left = 230
@@ -6837,7 +6716,7 @@ object teachForm: TteachForm
         ParentFont = False
         ParentShowHint = False
         ShowHint = False
-        TabOrder = 24
+        TabOrder = 21
       end
       object pLspZ: TPanel
         Left = 247
@@ -6856,26 +6735,7 @@ object teachForm: TteachForm
         ParentFont = False
         ParentShowHint = False
         ShowHint = False
-        TabOrder = 25
-      end
-      object pLspX2: TPanel
-        Left = 213
-        Top = 64
-        Width = 16
-        Height = 20
-        BevelOuter = bvNone
-        Caption = 'X2'
-        Color = clSilver
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
-        ParentBackground = False
-        ParentFont = False
-        ParentShowHint = False
-        ShowHint = False
-        TabOrder = 26
+        TabOrder = 22
       end
       object Panel43: TPanel
         Left = 157
@@ -6895,7 +6755,7 @@ object teachForm: TteachForm
         ParentFont = False
         ParentShowHint = False
         ShowHint = False
-        TabOrder = 27
+        TabOrder = 23
       end
       object pLsnX1: TPanel
         Left = 196
@@ -6914,7 +6774,7 @@ object teachForm: TteachForm
         ParentFont = False
         ParentShowHint = False
         ShowHint = False
-        TabOrder = 28
+        TabOrder = 24
       end
       object pLsnY: TPanel
         Left = 230
@@ -6933,7 +6793,7 @@ object teachForm: TteachForm
         ParentFont = False
         ParentShowHint = False
         ShowHint = False
-        TabOrder = 29
+        TabOrder = 25
       end
       object pLsnZ: TPanel
         Left = 247
@@ -6952,26 +6812,7 @@ object teachForm: TteachForm
         ParentFont = False
         ParentShowHint = False
         ShowHint = False
-        TabOrder = 30
-      end
-      object pLsnX2: TPanel
-        Left = 213
-        Top = 85
-        Width = 16
-        Height = 20
-        BevelOuter = bvNone
-        Caption = 'X2'
-        Color = clSilver
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
-        ParentBackground = False
-        ParentFont = False
-        ParentShowHint = False
-        ShowHint = False
-        TabOrder = 31
+        TabOrder = 26
       end
       object pOnG1: TPanel
         Left = 120
@@ -6990,26 +6831,7 @@ object teachForm: TteachForm
         ParentFont = False
         ParentShowHint = False
         ShowHint = False
-        TabOrder = 32
-      end
-      object pOnG2: TPanel
-        Left = 137
-        Top = 64
-        Width = 16
-        Height = 20
-        BevelOuter = bvNone
-        Caption = 'G2'
-        Color = clSilver
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
-        ParentBackground = False
-        ParentFont = False
-        ParentShowHint = False
-        ShowHint = False
-        TabOrder = 33
+        TabOrder = 27
       end
       object pErrorG1: TPanel
         Left = 264
@@ -7028,26 +6850,7 @@ object teachForm: TteachForm
         ParentFont = False
         ParentShowHint = False
         ShowHint = False
-        TabOrder = 34
-      end
-      object pErrorG2: TPanel
-        Left = 281
-        Top = 43
-        Width = 16
-        Height = 20
-        BevelOuter = bvNone
-        Caption = 'G2'
-        Color = clSilver
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
-        ParentBackground = False
-        ParentFont = False
-        ParentShowHint = False
-        ShowHint = False
-        TabOrder = 35
+        TabOrder = 28
       end
       object pLsnG1: TPanel
         Left = 264
@@ -7066,26 +6869,7 @@ object teachForm: TteachForm
         ParentFont = False
         ParentShowHint = False
         ShowHint = False
-        TabOrder = 36
-      end
-      object pLsnG2: TPanel
-        Left = 281
-        Top = 85
-        Width = 16
-        Height = 20
-        BevelOuter = bvNone
-        Caption = 'G2'
-        Color = clSilver
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
-        ParentBackground = False
-        ParentFont = False
-        ParentShowHint = False
-        ShowHint = False
-        TabOrder = 37
+        TabOrder = 29
       end
       object pOrgG1: TPanel
         Left = 120
@@ -7104,26 +6888,7 @@ object teachForm: TteachForm
         ParentFont = False
         ParentShowHint = False
         ShowHint = False
-        TabOrder = 38
-      end
-      object pOrgG2: TPanel
-        Left = 137
-        Top = 85
-        Width = 16
-        Height = 20
-        BevelOuter = bvNone
-        Caption = 'G2'
-        Color = clSilver
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
-        ParentBackground = False
-        ParentFont = False
-        ParentShowHint = False
-        ShowHint = False
-        TabOrder = 39
+        TabOrder = 30
       end
       object pLspG1: TPanel
         Left = 264
@@ -7142,26 +6907,7 @@ object teachForm: TteachForm
         ParentFont = False
         ParentShowHint = False
         ShowHint = False
-        TabOrder = 40
-      end
-      object pLspG2: TPanel
-        Left = 281
-        Top = 64
-        Width = 16
-        Height = 20
-        BevelOuter = bvNone
-        Caption = 'G2'
-        Color = clSilver
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
-        ParentBackground = False
-        ParentFont = False
-        ParentShowHint = False
-        ShowHint = False
-        TabOrder = 41
+        TabOrder = 31
       end
     end
     object AdvSmoothPanel2: TAdvSmoothPanel
@@ -7197,7 +6943,7 @@ object teachForm: TteachForm
       object Label4: TLabel
         Left = 7
         Top = 5
-        Width = 110
+        Width = 90
         Height = 16
         Caption = 'SERVO '#49345#53468#51221#48372
         Font.Charset = DEFAULT_CHARSET
@@ -7848,7 +7594,7 @@ object teachForm: TteachForm
       object Label6: TLabel
         Left = 7
         Top = 10
-        Width = 59
+        Width = 49
         Height = 16
         Caption = 'JOG '#51228#50612
         Font.Charset = DEFAULT_CHARSET
@@ -7863,9 +7609,9 @@ object teachForm: TteachForm
         OnClick = Label6Click
       end
       object Label8: TLabel
-        Left = 7
+        Left = 12
         Top = 46
-        Width = 29
+        Width = 24
         Height = 16
         Alignment = taRightJustify
         Caption = 'X '#52629
@@ -7880,9 +7626,9 @@ object teachForm: TteachForm
         Transparent = True
       end
       object Label9: TLabel
-        Left = 7
+        Left = 12
         Top = 78
-        Width = 29
+        Width = 24
         Height = 16
         Alignment = taRightJustify
         Caption = 'Y '#52629
@@ -7897,9 +7643,9 @@ object teachForm: TteachForm
         Transparent = True
       end
       object Label10: TLabel
-        Left = 9
+        Left = 14
         Top = 110
-        Width = 27
+        Width = 22
         Height = 16
         Alignment = taRightJustify
         Caption = 'Z '#52629
@@ -7982,7 +7728,7 @@ object teachForm: TteachForm
       object Label58: TLabel
         Left = 195
         Top = 10
-        Width = 48
+        Width = 33
         Height = 16
         Caption = #48512#54616#50984
         Font.Charset = DEFAULT_CHARSET
@@ -8248,9 +7994,9 @@ object teachForm: TteachForm
       end
     end
     object AdvSmoothPanel5: TAdvSmoothPanel
-      Left = 659
+      Left = 1128
       Top = 31
-      Width = 576
+      Width = 107
       Height = 545
       Cursor = crDefault
       Caption.HTMLFont.Charset = DEFAULT_CHARSET
@@ -8280,7 +8026,7 @@ object teachForm: TteachForm
       object Label11: TLabel
         Left = 7
         Top = 15
-        Width = 84
+        Width = 59
         Height = 16
         Caption = #44536#47532#54140' '#51312#51089
         Font.Charset = DEFAULT_CHARSET
@@ -8294,9 +8040,9 @@ object teachForm: TteachForm
         Transparent = True
       end
       object Label29: TLabel
-        Left = 25
-        Top = 52
-        Width = 55
+        Left = 425
+        Top = 2
+        Width = 47
         Height = 13
         Caption = #51204#52404' '#49345#49849
         Font.Charset = DEFAULT_CHARSET
@@ -8310,9 +8056,9 @@ object teachForm: TteachForm
         Transparent = True
       end
       object Label30: TLabel
-        Left = 91
-        Top = 52
-        Width = 55
+        Left = 499
+        Top = 2
+        Width = 47
         Height = 13
         Alignment = taRightJustify
         Caption = #51204#52404' '#54616#44053
@@ -8329,7 +8075,7 @@ object teachForm: TteachForm
       object Label31: TLabel
         Left = 427
         Top = 52
-        Width = 55
+        Width = 47
         Height = 13
         Caption = #51204#52404' '#50676#44592
         Font.Charset = DEFAULT_CHARSET
@@ -8343,9 +8089,9 @@ object teachForm: TteachForm
         Transparent = True
       end
       object Label32: TLabel
-        Left = 496
+        Left = 504
         Top = 52
-        Width = 55
+        Width = 47
         Height = 13
         Alignment = taRightJustify
         Caption = #51204#52404' '#45803#44592
@@ -8611,7 +8357,7 @@ object teachForm: TteachForm
           Tag = 1
           Left = 5
           Top = 2
-          Width = 58
+          Width = 52
           Height = 13
           Caption = #44536#47532#54140' #1'
           Font.Charset = DEFAULT_CHARSET
@@ -8626,9 +8372,9 @@ object teachForm: TteachForm
         end
         object Label12: TLabel
           Tag = 1
-          Left = 18
+          Left = 26
           Top = 238
-          Width = 58
+          Width = 50
           Height = 13
           Alignment = taRightJustify
           Caption = #49345#49849'/'#54616#44053
@@ -8644,9 +8390,9 @@ object teachForm: TteachForm
         end
         object Label13: TLabel
           Tag = 1
-          Left = 18
+          Left = 26
           Top = 318
-          Width = 58
+          Width = 50
           Height = 13
           Alignment = taRightJustify
           Caption = #50676#44592'/'#45803#44592
@@ -9569,7 +9315,7 @@ object teachForm: TteachForm
           Tag = 2
           Left = 5
           Top = 2
-          Width = 58
+          Width = 52
           Height = 13
           Caption = #44536#47532#54140' #2'
           Font.Charset = DEFAULT_CHARSET
@@ -9584,9 +9330,9 @@ object teachForm: TteachForm
         end
         object Label15: TLabel
           Tag = 2
-          Left = 18
+          Left = 26
           Top = 238
-          Width = 58
+          Width = 50
           Height = 13
           Alignment = taRightJustify
           Caption = #49345#49849'/'#54616#44053
@@ -9602,9 +9348,9 @@ object teachForm: TteachForm
         end
         object Label16: TLabel
           Tag = 2
-          Left = 18
+          Left = 26
           Top = 318
-          Width = 58
+          Width = 50
           Height = 13
           Alignment = taRightJustify
           Caption = #50676#44592'/'#45803#44592
@@ -10263,12 +10009,14 @@ object teachForm: TteachForm
           Width = 71
           Height = 17
           Caption = #48120#49324#50857
+          Checked = True
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clRed
           Font.Height = -13
           Font.Name = 'Tahoma'
           Font.Style = [fsBold]
           ParentFont = False
+          State = cbChecked
           TabOrder = 10
           OnClick = disableChk1Click
         end
@@ -10527,7 +10275,7 @@ object teachForm: TteachForm
           Tag = 3
           Left = 5
           Top = 2
-          Width = 58
+          Width = 52
           Height = 13
           Caption = #44536#47532#54140' #3'
           Font.Charset = DEFAULT_CHARSET
@@ -10542,9 +10290,9 @@ object teachForm: TteachForm
         end
         object Label18: TLabel
           Tag = 3
-          Left = 18
+          Left = 26
           Top = 238
-          Width = 58
+          Width = 50
           Height = 13
           Alignment = taRightJustify
           Caption = #49345#49849'/'#54616#44053
@@ -10560,9 +10308,9 @@ object teachForm: TteachForm
         end
         object Label19: TLabel
           Tag = 3
-          Left = 18
+          Left = 26
           Top = 318
-          Width = 58
+          Width = 50
           Height = 13
           Alignment = taRightJustify
           Caption = #50676#44592'/'#45803#44592
@@ -11484,7 +11232,7 @@ object teachForm: TteachForm
           Tag = 4
           Left = 5
           Top = 2
-          Width = 58
+          Width = 52
           Height = 13
           Caption = #44536#47532#54140' #4'
           Font.Charset = DEFAULT_CHARSET
@@ -11499,9 +11247,9 @@ object teachForm: TteachForm
         end
         object Label21: TLabel
           Tag = 4
-          Left = 18
+          Left = 26
           Top = 238
-          Width = 58
+          Width = 50
           Height = 13
           Alignment = taRightJustify
           Caption = #49345#49849'/'#54616#44053
@@ -11517,9 +11265,9 @@ object teachForm: TteachForm
         end
         object Label22: TLabel
           Tag = 4
-          Left = 18
+          Left = 26
           Top = 318
-          Width = 58
+          Width = 50
           Height = 13
           Alignment = taRightJustify
           Caption = #50676#44592'/'#45803#44592
@@ -12441,7 +12189,7 @@ object teachForm: TteachForm
           Tag = 5
           Left = 5
           Top = 2
-          Width = 58
+          Width = 52
           Height = 13
           Caption = #44536#47532#54140' #5'
           Font.Charset = DEFAULT_CHARSET
@@ -12456,9 +12204,9 @@ object teachForm: TteachForm
         end
         object Label24: TLabel
           Tag = 5
-          Left = 18
+          Left = 26
           Top = 238
-          Width = 58
+          Width = 50
           Height = 13
           Alignment = taRightJustify
           Caption = #49345#49849'/'#54616#44053
@@ -12474,9 +12222,9 @@ object teachForm: TteachForm
         end
         object Label25: TLabel
           Tag = 5
-          Left = 18
+          Left = 26
           Top = 318
-          Width = 58
+          Width = 50
           Height = 13
           Alignment = taRightJustify
           Caption = #50676#44592'/'#45803#44592
@@ -13398,7 +13146,7 @@ object teachForm: TteachForm
           Tag = 6
           Left = 5
           Top = 2
-          Width = 58
+          Width = 52
           Height = 13
           Caption = #44536#47532#54140' #6'
           Font.Charset = DEFAULT_CHARSET
@@ -13413,9 +13161,9 @@ object teachForm: TteachForm
         end
         object Label27: TLabel
           Tag = 6
-          Left = 18
+          Left = 26
           Top = 238
-          Width = 58
+          Width = 50
           Height = 13
           Alignment = taRightJustify
           Caption = #49345#49849'/'#54616#44053
@@ -13431,9 +13179,9 @@ object teachForm: TteachForm
         end
         object Label28: TLabel
           Tag = 6
-          Left = 18
+          Left = 26
           Top = 318
-          Width = 58
+          Width = 50
           Height = 13
           Alignment = taRightJustify
           Caption = #50676#44592'/'#45803#44592
@@ -14103,8 +13851,8 @@ object teachForm: TteachForm
         end
       end
       object AdvSmoothButton35: TAdvSmoothButton
-        Left = 88
-        Top = 66
+        Left = 488
+        Top = 16
         Width = 75
         Height = 30
         Appearance.PictureAlignment = taCenter
@@ -14231,8 +13979,8 @@ object teachForm: TteachForm
         TMSStyle = 8
       end
       object AdvSmoothButton36: TAdvSmoothButton
-        Left = 10
-        Top = 66
+        Left = 410
+        Top = 16
         Width = 75
         Height = 30
         Appearance.PictureAlignment = taCenter
@@ -14650,7 +14398,7 @@ object teachForm: TteachForm
       object Label50: TLabel
         Left = 7
         Top = 10
-        Width = 120
+        Width = 85
         Height = 16
         Caption = #44592#51333#48324' '#54000#52845' '#49444#51221
         Font.Charset = DEFAULT_CHARSET
@@ -14986,38 +14734,6 @@ object teachForm: TteachForm
           'BOLT'
           'NUDE')
       end
-      object msa96: TRadioButton
-        Left = 23
-        Top = 151
-        Width = 84
-        Height = 22
-        Caption = '96CH - 4'#50676
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
-        Font.Height = -13
-        Font.Name = 'Tahoma'
-        Font.Style = []
-        ParentFont = False
-        TabOrder = 2
-        OnClick = rbSetTeachingValueEdit
-      end
-      object msa48: TRadioButton
-        Tag = 1
-        Left = 23
-        Top = 130
-        Width = 84
-        Height = 22
-        Caption = '48CH - 4'#50676
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
-        Font.Height = -13
-        Font.Name = 'Tahoma'
-        Font.Style = []
-        ParentFont = False
-        TabOrder = 3
-        Visible = False
-        OnClick = rbSetTeachingValueEdit
-      end
       object typeEdit6: TEdit
         Left = 288
         Top = 165
@@ -15030,7 +14746,7 @@ object teachForm: TteachForm
         Font.Style = [fsBold]
         ImeName = 'Microsoft Office IME 2007'
         ParentFont = False
-        TabOrder = 4
+        TabOrder = 2
       end
       object typeEdit5: TEdit
         Left = 288
@@ -15044,7 +14760,7 @@ object teachForm: TteachForm
         Font.Style = [fsBold]
         ImeName = 'Microsoft Office IME 2007'
         ParentFont = False
-        TabOrder = 5
+        TabOrder = 3
       end
       object typeEdit4: TEdit
         Left = 288
@@ -15058,7 +14774,7 @@ object teachForm: TteachForm
         Font.Style = [fsBold]
         ImeName = 'Microsoft Office IME 2007'
         ParentFont = False
-        TabOrder = 6
+        TabOrder = 4
       end
       object typeEdit3: TEdit
         Left = 288
@@ -15072,7 +14788,7 @@ object teachForm: TteachForm
         Font.Style = [fsBold]
         ImeName = 'Microsoft Office IME 2007'
         ParentFont = False
-        TabOrder = 7
+        TabOrder = 5
       end
       object typeEdit2: TEdit
         Left = 288
@@ -15086,7 +14802,7 @@ object teachForm: TteachForm
         Font.Style = [fsBold]
         ImeName = 'Microsoft Office IME 2007'
         ParentFont = False
-        TabOrder = 8
+        TabOrder = 6
       end
       object typeEdit11: TEdit
         Left = 495
@@ -15100,7 +14816,7 @@ object teachForm: TteachForm
         Font.Style = [fsBold]
         ImeName = 'Microsoft Office IME 2007'
         ParentFont = False
-        TabOrder = 9
+        TabOrder = 7
       end
       object typeEdit10: TEdit
         Left = 495
@@ -15114,7 +14830,7 @@ object teachForm: TteachForm
         Font.Style = [fsBold]
         ImeName = 'Microsoft Office IME 2007'
         ParentFont = False
-        TabOrder = 10
+        TabOrder = 8
         Visible = False
       end
       object typeEdit9: TEdit
@@ -15129,7 +14845,7 @@ object teachForm: TteachForm
         Font.Style = [fsBold]
         ImeName = 'Microsoft Office IME 2007'
         ParentFont = False
-        TabOrder = 11
+        TabOrder = 9
         Visible = False
       end
       object typeEdit8: TEdit
@@ -15144,7 +14860,7 @@ object teachForm: TteachForm
         Font.Style = [fsBold]
         ImeName = 'Microsoft Office IME 2007'
         ParentFont = False
-        TabOrder = 12
+        TabOrder = 10
       end
       object typeEdit7: TEdit
         Left = 495
@@ -15158,41 +14874,7 @@ object teachForm: TteachForm
         Font.Style = [fsBold]
         ImeName = 'Microsoft Office IME 2007'
         ParentFont = False
-        TabOrder = 13
-      end
-      object msa482: TRadioButton
-        Tag = 3
-        Left = 113
-        Top = 130
-        Width = 84
-        Height = 22
-        Caption = '48CH - 2'#50676
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
-        Font.Height = -13
-        Font.Name = 'Tahoma'
-        Font.Style = []
-        ParentFont = False
-        TabOrder = 16
-        OnClick = rbSetTeachingValueEdit
-      end
-      object msa242: TRadioButton
-        Tag = 4
-        Left = 23
-        Top = 108
-        Width = 84
-        Height = 22
-        Caption = '24CH - 2'#50676
-        Checked = True
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
-        Font.Height = -13
-        Font.Name = 'Tahoma'
-        Font.Style = []
-        ParentFont = False
-        TabOrder = 17
-        TabStop = True
-        OnClick = rbSetTeachingValueEdit
+        TabOrder = 11
       end
       object AdvSmoothButton2: TAdvSmoothButton
         Left = 109
@@ -15227,7 +14909,7 @@ object teachForm: TteachForm
         Caption = #49325#51228
         Color = clWhite
         ParentFont = False
-        TabOrder = 15
+        TabOrder = 13
         Version = '2.1.1.5'
         OnClick = AdvSmoothButton2Click
         TMSStyle = 8
@@ -15265,31 +14947,15 @@ object teachForm: TteachForm
         Caption = #46321#47197' / '#49688#51221
         Color = clWhite
         ParentFont = False
-        TabOrder = 14
+        TabOrder = 12
         Version = '2.1.1.5'
         OnClick = AdvSmoothButton1Click
         TMSStyle = 8
       end
-      object msa962: TRadioButton
-        Left = 113
-        Top = 151
-        Width = 84
-        Height = 22
-        Caption = '96CH - 2'#50676
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
-        Font.Height = -13
-        Font.Name = 'Tahoma'
-        Font.Style = []
-        ParentFont = False
-        TabOrder = 18
-        Visible = False
-        OnClick = rbSetTeachingValueEdit
-      end
     end
     object GroupBox1: TGroupBox
-      Left = 871
-      Top = 138
+      Left = 1103
+      Top = 3
       Width = 185
       Height = 81
       Caption = 'Z'#52629' '#51060#46041
@@ -15332,9 +14998,9 @@ object teachForm: TteachForm
     end
   end
   object tea_memo: TMemo
-    Left = 1468
-    Top = 293
-    Width = 356
+    Left = 1711
+    Top = 179
+    Width = 185
     Height = 176
     ImeName = 'Microsoft IME 2010'
     Lines.Strings = (
@@ -15677,7 +15343,7 @@ object teachForm: TteachForm
     object Label34: TLabel
       Left = 10
       Top = 4
-      Width = 54
+      Width = 36
       Height = 21
       Caption = #44536#47532#54140
       Font.Charset = DEFAULT_CHARSET

@@ -4053,101 +4053,6 @@ object MainForm: TMainForm
       ShowHint = False
       TabOrder = 34
     end
-    object pOnX2: TPanel
-      Left = 32
-      Top = 95
-      Width = 16
-      Height = 20
-      BevelOuter = bvNone
-      Caption = 'X2'
-      Color = clSilver
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentBackground = False
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = False
-      TabOrder = 35
-    end
-    object pErrorX2: TPanel
-      Left = 32
-      Top = 173
-      Width = 16
-      Height = 20
-      BevelOuter = bvNone
-      Caption = 'X2'
-      Color = clSilver
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentBackground = False
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = False
-      TabOrder = 36
-    end
-    object pOrgX2: TPanel
-      Left = 32
-      Top = 134
-      Width = 16
-      Height = 20
-      BevelOuter = bvNone
-      Caption = 'X2'
-      Color = clSilver
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentBackground = False
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = False
-      TabOrder = 37
-    end
-    object pLsnX2: TPanel
-      Left = 33
-      Top = 249
-      Width = 16
-      Height = 20
-      BevelOuter = bvNone
-      Caption = 'X2'
-      Color = clSilver
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentBackground = False
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = False
-      TabOrder = 38
-    end
-    object pLspX2: TPanel
-      Left = 33
-      Top = 211
-      Width = 16
-      Height = 20
-      BevelOuter = bvNone
-      Caption = 'X2'
-      Color = clSilver
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentBackground = False
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = False
-      TabOrder = 39
-    end
     object pOnG1: TPanel
       Left = 83
       Top = 95
@@ -4165,26 +4070,7 @@ object MainForm: TMainForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 40
-    end
-    object pOnG2: TPanel
-      Left = 100
-      Top = 95
-      Width = 16
-      Height = 20
-      BevelOuter = bvNone
-      Caption = 'G2'
-      Color = clSilver
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentBackground = False
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = False
-      TabOrder = 41
+      TabOrder = 35
     end
     object pOrgG1: TPanel
       Left = 82
@@ -4203,26 +4089,7 @@ object MainForm: TMainForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 42
-    end
-    object pOrgG2: TPanel
-      Left = 99
-      Top = 134
-      Width = 16
-      Height = 20
-      BevelOuter = bvNone
-      Caption = 'G2'
-      Color = clSilver
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentBackground = False
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = False
-      TabOrder = 43
+      TabOrder = 36
     end
     object pErrorG1: TPanel
       Left = 83
@@ -4241,26 +4108,7 @@ object MainForm: TMainForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 44
-    end
-    object pErrorG2: TPanel
-      Left = 100
-      Top = 173
-      Width = 16
-      Height = 20
-      BevelOuter = bvNone
-      Caption = 'G2'
-      Color = clSilver
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentBackground = False
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = False
-      TabOrder = 45
+      TabOrder = 37
     end
     object pLspG1: TPanel
       Left = 84
@@ -4279,26 +4127,7 @@ object MainForm: TMainForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 46
-    end
-    object pLspG2: TPanel
-      Left = 101
-      Top = 211
-      Width = 16
-      Height = 20
-      BevelOuter = bvNone
-      Caption = 'G2'
-      Color = clSilver
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentBackground = False
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = False
-      TabOrder = 47
+      TabOrder = 38
     end
     object pLsnG1: TPanel
       Left = 84
@@ -4317,26 +4146,7 @@ object MainForm: TMainForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 48
-    end
-    object pLsnG2: TPanel
-      Left = 101
-      Top = 249
-      Width = 16
-      Height = 20
-      BevelOuter = bvNone
-      Caption = 'G2'
-      Color = clSilver
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentBackground = False
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = False
-      TabOrder = 49
+      TabOrder = 39
     end
     object pg1: TPanel
       Left = 10
@@ -4355,7 +4165,7 @@ object MainForm: TMainForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 50
+      TabOrder = 40
     end
     object pg2: TPanel
       Left = 10
@@ -4374,7 +4184,7 @@ object MainForm: TMainForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 51
+      TabOrder = 41
     end
     object pRun: TPanel
       Left = 90
@@ -4393,7 +4203,7 @@ object MainForm: TMainForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 52
+      TabOrder = 42
     end
   end
   object AdvSmoothPanel4: TAdvSmoothPanel
@@ -6039,7 +5849,6 @@ object MainForm: TMainForm
       ParentBackground = False
       ParentFont = False
       TabOrder = 1
-      OnClick = Panel2Click
     end
     object Panel3: TPanel
       Left = 777
@@ -6658,78 +6467,6 @@ object MainForm: TMainForm
     TabOrder = 10
     Visible = False
   end
-  object GroupBox1: TGroupBox
-    Left = 1504
-    Top = 427
-    Width = 371
-    Height = 40
-    TabOrder = 11
-    Visible = False
-    object rdo482: TRadioButton
-      Tag = 3
-      Left = 101
-      Top = 12
-      Width = 90
-      Height = 17
-      Caption = '48CH - 2'#50676
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlue
-      Font.Height = -13
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ParentFont = False
-      TabOrder = 0
-      OnClick = rdoChangeTrayMap
-    end
-    object rdo48: TRadioButton
-      Tag = 2
-      Left = 194
-      Top = 12
-      Width = 90
-      Height = 17
-      Caption = '48CH - 4'#50676
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlue
-      Font.Height = -13
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ParentFont = False
-      TabOrder = 1
-      Visible = False
-      OnClick = rdoChangeTrayMap
-    end
-    object rdo96: TRadioButton
-      Left = 286
-      Top = 12
-      Width = 90
-      Height = 17
-      Caption = '96CH - 4'#50676
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlue
-      Font.Height = -13
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ParentFont = False
-      TabOrder = 2
-      OnClick = rdoChangeTrayMap
-    end
-    object RadioButton1: TRadioButton
-      Tag = 4
-      Left = 5
-      Top = 12
-      Width = 90
-      Height = 17
-      Caption = '24CH - 2'#50676
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlue
-      Font.Height = -13
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ParentFont = False
-      TabOrder = 3
-      OnClick = rdoChangeTrayMap
-    end
-  end
   object pnlPLCTEST: TAdvSmoothPanel
     Left = 136
     Top = 551
@@ -6760,7 +6497,7 @@ object MainForm: TMainForm
     Fill.Glow = gmNone
     Version = '1.5.2.1'
     Visible = False
-    TabOrder = 12
+    TabOrder = 11
     TMSStyle = 0
     object Label14: TLabel
       Left = 29
@@ -7392,172 +7129,6 @@ object MainForm: TMainForm
       TabOrder = 14
       OnClick = AdvSmoothToggleButton17Click
       TMSStyle = 0
-    end
-  end
-  object pdiff2: TAdvSmoothPanel
-    Left = 1237
-    Top = 75
-    Width = 385
-    Height = 236
-    Cursor = crDefault
-    Caption.HTMLFont.Charset = DEFAULT_CHARSET
-    Caption.HTMLFont.Color = clWindowText
-    Caption.HTMLFont.Height = -11
-    Caption.HTMLFont.Name = 'Tahoma'
-    Caption.HTMLFont.Style = []
-    Caption.Font.Charset = DEFAULT_CHARSET
-    Caption.Font.Color = clWindowText
-    Caption.Font.Height = -16
-    Caption.Font.Name = 'Tahoma'
-    Caption.Font.Style = []
-    Fill.Color = clWhite
-    Fill.ColorTo = clWhite
-    Fill.ColorMirror = clWhite
-    Fill.ColorMirrorTo = clWhite
-    Fill.GradientType = gtVertical
-    Fill.GradientMirrorType = gtVertical
-    Fill.BorderColor = 6265587
-    Fill.BorderWidth = 2
-    Fill.Rounding = 5
-    Fill.ShadowOffset = 0
-    Fill.Glow = gmNone
-    Version = '1.5.2.1'
-    Visible = False
-    TabOrder = 13
-    TMSStyle = 0
-    object Label56: TLabel
-      Left = 0
-      Top = 45
-      Width = 385
-      Height = 24
-      Alignment = taCenter
-      AutoSize = False
-      Caption = #45824#49345' '#53944#47112#51060' '#49472' '#44060#49688'(12)'#44032' '#45796#47493#45768#45796'.'
-      Color = clWhite
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clRed
-      Font.Height = -20
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentColor = False
-      ParentFont = False
-    end
-    object Label15: TLabel
-      Left = 0
-      Top = 82
-      Width = 385
-      Height = 24
-      Alignment = taCenter
-      AutoSize = False
-      Caption = #45824#49345' '#53944#47112#51060#47484' '#54869#51064' '#54644' '#51452#49464#50836'.'
-      Color = clWhite
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clRed
-      Font.Height = -20
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentColor = False
-      ParentFont = False
-    end
-    object Panel33: TPanel
-      Left = 117
-      Top = 910
-      Width = 249
-      Height = 13
-      Alignment = taLeftJustify
-      BevelOuter = bvNone
-      Caption = 'Link status'
-      Color = clWhite
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clRed
-      Font.Height = -13
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentFont = False
-      TabOrder = 0
-    end
-    object AdvSmoothToggleButton18: TAdvSmoothToggleButton
-      Tag = 1
-      Left = 330
-      Top = 6
-      Width = 51
-      Height = 21
-      Color = clWhite
-      ColorDown = 16744448
-      BorderColor = clWhite
-      BorderInnerColor = clGray
-      BevelWidth = 0
-      AutoToggle = False
-      Appearance.GlowPercentage = 50
-      Appearance.Font.Charset = DEFAULT_CHARSET
-      Appearance.Font.Color = clBlack
-      Appearance.Font.Height = -11
-      Appearance.Font.Name = 'Tahoma'
-      Appearance.Font.Style = []
-      Appearance.Spacing = 0
-      Appearance.FocusColor = clWhite
-      Appearance.Rounding = 5
-      Appearance.WordWrapping = False
-      Caption = 'Close'
-      Version = '1.5.1.1'
-      Status.Caption = '0'
-      Status.Appearance.Fill.Color = clRed
-      Status.Appearance.Fill.ColorMirror = clNone
-      Status.Appearance.Fill.ColorMirrorTo = clNone
-      Status.Appearance.Fill.GradientType = gtSolid
-      Status.Appearance.Fill.GradientMirrorType = gtSolid
-      Status.Appearance.Fill.BorderColor = clGray
-      Status.Appearance.Fill.Rounding = 0
-      Status.Appearance.Fill.ShadowOffset = 0
-      Status.Appearance.Fill.Glow = gmNone
-      Status.Appearance.Font.Charset = DEFAULT_CHARSET
-      Status.Appearance.Font.Color = clWhite
-      Status.Appearance.Font.Height = -11
-      Status.Appearance.Font.Name = 'Tahoma'
-      Status.Appearance.Font.Style = []
-      ParentFont = False
-      TabOrder = 1
-      OnClick = AdvSmoothToggleButton18Click
-      TMSStyle = 0
-    end
-    object AdvSmoothButton3: TAdvSmoothButton
-      Left = 17
-      Top = 128
-      Width = 351
-      Height = 92
-      Appearance.PictureAlignment = taCenter
-      Appearance.Font.Charset = DEFAULT_CHARSET
-      Appearance.Font.Color = clBlack
-      Appearance.Font.Height = -24
-      Appearance.Font.Name = 'Tahoma'
-      Appearance.Font.Style = [fsBold]
-      Appearance.Spacing = 0
-      Appearance.Rounding = 3
-      Appearance.WordWrapping = False
-      Status.Visible = True
-      Status.Caption = #45824#49345' TRAY'
-      Status.Appearance.Fill.Color = clRed
-      Status.Appearance.Fill.ColorMirror = clNone
-      Status.Appearance.Fill.ColorMirrorTo = clNone
-      Status.Appearance.Fill.GradientType = gtSolid
-      Status.Appearance.Fill.GradientMirrorType = gtSolid
-      Status.Appearance.Fill.BorderColor = clGray
-      Status.Appearance.Fill.Rounding = 10
-      Status.Appearance.Fill.ShadowOffset = 0
-      Status.Appearance.Fill.Glow = gmNone
-      Status.Appearance.Font.Charset = DEFAULT_CHARSET
-      Status.Appearance.Font.Color = clWhite
-      Status.Appearance.Font.Height = -13
-      Status.Appearance.Font.Name = 'Tahoma'
-      Status.Appearance.Font.Style = []
-      BevelColor = clBlack
-      Caption = 'TRAY '#48176#52636
-      Color = clWhite
-      ParentFont = False
-      TabOrder = 2
-      Version = '2.1.1.5'
-      OnClick = AdvSmoothButton3Click
-      TMSStyle = 8
     end
   end
   object Client: TClientSocket

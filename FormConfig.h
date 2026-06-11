@@ -32,15 +32,6 @@ __published:	// IDE-managed Components
 	TGroupBox *GroupBox5;
 	TEdit *editRecipe;
 	TPanel *Panel6;
-	TGroupBox *GroupBox4;
-	TEdit *ecsPort;
-	TPanel *Panel9;
-	TPanel *Panel10;
-	TPanel *pecs;
-	TPanel *Panel12;
-	TEdit *ecsIpEdit;
-	TAdvSmoothButton *ecsConBtn;
-	TAdvSmoothButton *ecsDisBtn;
 	TGroupBox *GroupBox2;
 	TCheckBox *chkZAxisUp;
 	void __fastcall FormShow(TObject *Sender);
@@ -61,8 +52,6 @@ __published:	// IDE-managed Components
 	void __fastcall AdvSmoothButton17Click(TObject *Sender);
 	void __fastcall AdvSmoothButton12Click(TObject *Sender);
 	void __fastcall AdvSmoothButton13Click(TObject *Sender);
-	void __fastcall ecsConBtnClick(TObject *Sender);
-	void __fastcall ecsDisBtnClick(TObject *Sender);
 private:	// User declarations
 	bool __fastcall ReadSystemInfo();
 	void __fastcall ApplyConfig();

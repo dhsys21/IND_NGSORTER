@@ -1,8 +1,8 @@
 #ifndef RVMO_define
 #define RVMO_define
 
-#define APP_PATH					"C:\\Inspection\\"
-#define SAVE_PATH					"C:\\Inspection\\"
+#define APP_PATH					"D:\\NGSORTER_IND\\"
+#define SAVE_PATH					"D:\\NGSORTER_IND\\"
 
 
 #define BIN							APP_PATH"Bin\\"
@@ -129,7 +129,7 @@ const int ETC = 3;
 
 const char nAuto 	= 0;
 const char nLocal 	= 1;
-const int servoCnt 	= 6;
+const int servoCnt 	= 4;  //* X, Y, Z, G1 ÃÑ 4°³
 const int gripCnt 	= 2;
 
 typedef struct{

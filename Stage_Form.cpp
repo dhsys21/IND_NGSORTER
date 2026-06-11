@@ -464,58 +464,58 @@ void __fastcall TMainForm::SetOption_TargetTray(TPanel *pnl, int nx, int ny, int
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::ChangeTrayMap_TargetTray(int channel)
 {
-	int nx, ny, nw, nh;
-
-	nx = 2;
-	ny = 284;
-	nh = 56;
-
-	if(channel == 482)
-	{
-		nw = 421;
-        for(int index=0; index < 24;){
-			if(index < 12)
-			{
-				SetOption_TargetTray(pTarget_ch[index], nx, ny, 30, nh, psample->Color, index);
-				SetOption_TargetTray(pTarget_bad[index], nx + 30 + 1, ny, 420, nh, clWhite, index);
-
-				ny = ny - nh - 1;
-				index += 1;
-
-				if(index % 6 == 0){
-					nx = nx + 30 + nw + 3;
-					ny = 284;
-				}
-			}else{
-				pTarget_ch[index]->Visible = false;
-				pTarget_bad[index]->Visible = false;
-				index += 1;
-			}
-		}
-	}
-	else
-	{
-		nw = 194;
-		for(int index = 0; index < 24;){
-            if(index < 12)
-			{
-				SetOption_TargetTray(pTarget_ch[index], nx, ny, 30, nh, psample->Color, index);
-				SetOption_TargetTray(pTarget_bad[index], nx + 30 + 1, ny, 193, nh, clWhite, index);
-
-				ny = ny - nh - 1;
-				index += 1;
-
-				if(index % 6 == 0){
-					nx = nx + 30 + nw + 3;
-					ny = 284;
-				}
-			}else{
-				pTarget_ch[index]->Visible = true;
-				pTarget_bad[index]->Visible = true;
-				index += 1;
-			}
-		}
-    }
+//	int nx, ny, nw, nh;
+//
+//	nx = 2;
+//	ny = 284;
+//	nh = 56;
+//
+//	if(channel == 482)
+//	{
+//		nw = 421;
+//        for(int index=0; index < 24;){
+//			if(index < 12)
+//			{
+//				SetOption_TargetTray(pTarget_ch[index], nx, ny, 30, nh, psample->Color, index);
+//				SetOption_TargetTray(pTarget_bad[index], nx + 30 + 1, ny, 420, nh, clWhite, index);
+//
+//				ny = ny - nh - 1;
+//				index += 1;
+//
+//				if(index % 6 == 0){
+//					nx = nx + 30 + nw + 3;
+//					ny = 284;
+//				}
+//			}else{
+//				pTarget_ch[index]->Visible = false;
+//				pTarget_bad[index]->Visible = false;
+//				index += 1;
+//			}
+//		}
+//	}
+//	else
+//	{
+//		nw = 194;
+//		for(int index = 0; index < 24;){
+//            if(index < 12)
+//			{
+//				SetOption_TargetTray(pTarget_ch[index], nx, ny, 30, nh, psample->Color, index);
+//				SetOption_TargetTray(pTarget_bad[index], nx + 30 + 1, ny, 193, nh, clWhite, index);
+//
+//				ny = ny - nh - 1;
+//				index += 1;
+//
+//				if(index % 6 == 0){
+//					nx = nx + 30 + nw + 3;
+//					ny = 284;
+//				}
+//			}else{
+//				pTarget_ch[index]->Visible = true;
+//				pTarget_bad[index]->Visible = true;
+//				index += 1;
+//			}
+//		}
+//    }
 }
 //---------------------------------------------------------------------------
 int __fastcall TMainForm::FindList(AnsiString strType)

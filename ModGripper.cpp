@@ -37,14 +37,11 @@ void __fastcall Tgripper::req_Pause(bool stop)
 			seq_save = seq;
 			seq = seqPause;
 			pauseStatus = true;
-			EcsMod->SendMsg("H1DIF01A", "90", "00", "00");//EcsMod->SendMsg("9");
 			MainForm->memoGripperLineAdd("[Pause] Pause state.");
 		}else{
 			seq = seq_save;
 			pauseStatus = false;
 			MainForm->memoGripperLineAdd("[Restart] Release the paused state.");
-			if(MainForm->plcInput.SRC_ARRIVE) EcsMod->SendMsg("H1DIF01A", "10", "00", "00");//EcsMod->SendMsg("1");
-			else EcsMod->SendMsg("H1DIF01A", "00", "00", "00");//EcsMod->SendMsg("0");
 		}
 	}
 }
@@ -535,25 +532,6 @@ bool __fastcall Tgripper::getReadyStatus()
 	if(MainForm->psrcArrive->Color != clLime)
 		return true;
 
-//    if(MainForm->tray_source.TYPE == "APA" && MainForm->tray_target.SLOT_COUNT != 12)
-//	{
-//        MainForm->ShowDiffBatch();
-//		robostar->req_Pause(true);
-//		req_Pause(true);
-//	}
-
-//	if(((MainForm->tray_source.CH_GUBUN == 482 || MainForm->tray_source.CH_GUBUN == 962) && MainForm->tray_target.SLOT_COUNT == 12)
-//	|| ((MainForm->tray_source.CH_GUBUN != 482 && MainForm->tray_source.CH_GUBUN != 962) && MainForm->tray_target.SLOT_COUNT == 24))
-//	{
-//		bresult = true;
-//	}
-//	else
-//	{
-//		MainForm->ShowDiffBatch();
-//		robostar->req_Pause(true);
-//		req_Pause(true);
-//		// 기종이 다른 경우 에러를 발생시키고
-//	}
     bresult = true;
 
 	return bresult;

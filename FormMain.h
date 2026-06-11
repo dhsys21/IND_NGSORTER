@@ -260,11 +260,6 @@ __published:	// IDE-managed Components
 	TAdvSmoothButton *openBtn;
 	TLabel *Label4;
 	TPanel *px2;
-	TPanel *pOnX2;
-	TPanel *pErrorX2;
-	TPanel *pOrgX2;
-	TPanel *pLsnX2;
-	TPanel *pLspX2;
 	TButton *Button1;
 	TButton *Button2;
 	TMemo *Memo_Ko;
@@ -274,23 +269,14 @@ __published:	// IDE-managed Components
 	TAdvSmoothToggleButton *AdvSmoothToggleButton_InitWork;
 	TAdvSmoothToggleButton *pause_startBtn;
 	TPanel *pOnG1;
-	TPanel *pOnG2;
 	TPanel *pOrgG1;
-	TPanel *pOrgG2;
 	TPanel *pErrorG1;
-	TPanel *pErrorG2;
 	TPanel *pLspG1;
-	TPanel *pLspG2;
 	TPanel *pLsnG1;
-	TPanel *pLsnG2;
 	TLabel *Label12;
 	TPanel *pg1;
 	TLabel *Label13;
 	TPanel *pg2;
-	TGroupBox *GroupBox1;
-	TRadioButton *rdo482;
-	TRadioButton *rdo48;
-	TRadioButton *rdo96;
 	TAdvSmoothPanel *pnlPLCTEST;
 	TPanel *Panel28;
 	TLabel *Label14;
@@ -313,13 +299,6 @@ __published:	// IDE-managed Components
 	TPanel *pflow3;
 	TPanel *pflow4;
 	TMemo *Memo2;
-	TAdvSmoothPanel *pdiff2;
-	TLabel *Label56;
-	TLabel *Label15;
-	TPanel *Panel33;
-	TAdvSmoothToggleButton *AdvSmoothToggleButton18;
-	TAdvSmoothButton *AdvSmoothButton3;
-	TRadioButton *RadioButton1;
 	TCheckBox *CheckBox1;
 	TPanel *pRun;
 	void __fastcall FormShow(TObject *Sender);
@@ -353,10 +332,6 @@ __published:	// IDE-managed Components
 	void __fastcall zone1Click(TObject *Sender);
 	void __fastcall openBtnClick(TObject *Sender);
 	void __fastcall AdvSmoothToggleButton_InitWorkClick(TObject *Sender);
-	void __fastcall rdo96Click(TObject *Sender);
-	void __fastcall rdo48Click(TObject *Sender);
-	void __fastcall rdo482Click(TObject *Sender);
-	void __fastcall Panel2Click(TObject *Sender);
 	void __fastcall AdvSmoothToggleButton2Click(TObject *Sender);
 	void __fastcall AdvSmoothToggleButton3Click(TObject *Sender);
 	void __fastcall AdvSmoothToggleButton6Click(TObject *Sender);
@@ -372,9 +347,6 @@ __published:	// IDE-managed Components
 	void __fastcall AdvSmoothToggleButton12Click(TObject *Sender);
 	void __fastcall AdvSmoothToggleButton13Click(TObject *Sender);
 	void __fastcall Panel70Click(TObject *Sender);
-	void __fastcall AdvSmoothButton3Click(TObject *Sender);
-	void __fastcall AdvSmoothToggleButton18Click(TObject *Sender);
-    void __fastcall rdoChangeTrayMap(TObject *Sender);
 	void __fastcall lblTitleClick(TObject *Sender);
 private:	// User declarations
 //------------ Æû °ü·Ã -------------------//
@@ -492,8 +464,6 @@ public:		// User declarations
 	void __fastcall LampModeChange(LampMode mode);
 
 	void __fastcall CmdTrayOut(int pos);
-
-    void __fastcall ShowDiffBatch();
 	void __fastcall WriteProgLog(AnsiString msg);
 	void __fastcall WriteErrorLog(AnsiString str1, AnsiString str2);
 	AnsiString __fastcall GetAlarmMsg(int code);

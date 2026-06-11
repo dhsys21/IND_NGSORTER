@@ -18,14 +18,6 @@ __fastcall TConfigForm::TConfigForm(TComponent* Owner)
 void __fastcall TConfigForm::ApplyConfig()
 {
 	mes->pcName = pcEdit->Text;
-//	if(mes->pcName == "U4DIF04A"){
-//		plc->Tag = 1;
-//		plc->client->Port = 8192;
-//	}
-//	else if(mes->pcName == "U4DIF05A"){
-//		plc->Tag = 2;
-//		plc->client->Port = 8193;
-//	}
 
 	plc->Tag = 2;
 	plc->client->Port = 8197;
@@ -37,18 +29,6 @@ void __fastcall TConfigForm::ApplyConfig()
 	if(mes->ServerSocket->Active == false){
 		mes->ServerSocket->Port = PortEdit->Text.ToInt();
 		mes->ServerSocket->Active = true;
-	}
-	EcsMod->auto_contact = true;
-
-	if(EcsMod->ecsSock->Active == false){
-	   try{
-		   EcsMod->ecsSock->Host = ecsIpEdit->Text;
-		   EcsMod->ecsSock->Port = ecsPort->Text.ToInt();
-		   EcsMod->ecsSock->Active = true;
-
-	   }
-	   catch(...){
-       }
 	}
 }
 
@@ -94,8 +74,6 @@ void __fastcall TConfigForm::WriteSystemInfo(AnsiString type)
 	{
 		ini->WriteString("INFO", "PC", pcEdit->Text);
 		ini->WriteString("COMMUNICATION", "IMS_PORT", PortEdit->Text);
-		ini->WriteString("ECS", "IP", ecsIpEdit->Text);
-		ini->WriteString("ECS", "PORT", ecsPort->Text);
 	}
 
 	if(chkZAxisUp->Checked == true)
@@ -126,8 +104,6 @@ bool __fastcall TConfigForm::ReadSystemInfo()
 
 	pcEdit->Text = ini->ReadString("INFO", "PC", "H1DIF01A");
 	PortEdit->Text = ini->ReadString("COMMUNICATION", "IMS_PORT", "7000");
-	ecsIpEdit->Text = ini->ReadString("ECS", "IP", "17.91.233.113");
-	ecsPort->Text = ini->ReadString("ECS", "PORT", "7800");
 	editRecipe->Text = ini->ReadString("RECIPE", "NO", "1");
 	AnsiString recipe = editRecipe->Text;
 
@@ -144,28 +120,11 @@ bool __fastcall TConfigForm::ReadSystemInfo()
 	return true;
 }
 //---------------------------------------------------------------------------
-
-
-
-
-
-
-
 void __fastcall TConfigForm::FormShow(TObject *Sender)
 {
 	this->BringToFront();
 }
 //---------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
 void __fastcall TConfigForm::Button1Click(TObject *Sender)
 {
 	mes->ServerSocket->Port = PortEdit->Text.ToInt();
@@ -303,17 +262,5 @@ void __fastcall TConfigForm::AdvSmoothButton13Click(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TConfigForm::ecsConBtnClick(TObject *Sender)
-{
-    EcsMod->ecsSock->Host = ecsIpEdit->Text;
-	EcsMod->ecsSock->Port 	= ecsPort->Text.ToInt();
-	EcsMod->ecsSock->Active = true;
-}
-//---------------------------------------------------------------------------
 
-void __fastcall TConfigForm::ecsDisBtnClick(TObject *Sender)
-{
-    EcsMod->ecsSock->Active = false;
-}
-//---------------------------------------------------------------------------
 

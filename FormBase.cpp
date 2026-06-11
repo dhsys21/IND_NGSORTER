@@ -93,7 +93,6 @@ void __fastcall TBaseForm::ClockTimerTimer(TObject *Sender)
 	dt = Now();
 
 	setColor(pims, mes->bConnect);
-	//setColor(pecs, EcsMod->bConnect);
 	setColor(pplc, plc->client->Active);
 	if(MainForm->path  == 81)setColor(pcclink, true);
 	else setColor(pcclink, false);

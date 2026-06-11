@@ -224,14 +224,7 @@ void __fastcall TteachForm::sClick(TObject *Sender)
         } else{
             str = "[" + sCombo->Text + "] 선별 트레이 채널" + pnl->Caption->Text + " 으로 이동 하시겠습니까?";
             if(MessageBox(Handle, str.c_str(), L"이동", MB_YESNO|MB_ICONQUESTION) == ID_YES){
-				if(rdo48->Checked)
-                    robostar->req_AutoMove(1, sCombo->ItemIndex + 1 , pnl->Tag, 48);
-                else if(rdo96->Checked)
-                    robostar->req_AutoMove(1, sCombo->ItemIndex + 1 , pnl->Tag, 962);
-                else if(rdo482->Checked)
-                    robostar->req_AutoMove(1, sCombo->ItemIndex + 1 , pnl->Tag, 482);
-                else if(rdo242->Checked) //* New Kind (Gamma, HKMC) 2023 06 26
-                    robostar->req_AutoMove(1, sCombo->ItemIndex + 1 , pnl->Tag, 242);
+				robostar->req_AutoMove(1, sCombo->ItemIndex + 1 , pnl->Tag, 962);
 
                 for(int i=0; i< 96; ++i){
                     sTray[i]->Fill->Color = clWhite;
@@ -787,48 +780,6 @@ void __fastcall TteachForm::stopBtnClick(TObject *Sender)
 	teachForm->pnlMovingAlarm2->Visible = false;
 }
 //---------------------------------------------------------------------------
-
-void __fastcall TteachForm::rdo48Click(TObject *Sender)
-{
-	if(rdo48->Checked)ChangeTrayMap(48);
-}
-//---------------------------------------------------------------------------
-void __fastcall TteachForm::rdo96Click(TObject *Sender)
-{
-	if(rdo96->Checked)ChangeTrayMap(96);
-}
-//---------------------------------------------------------------------------
-void __fastcall TteachForm::rdo482Click(TObject *Sender)
-{
-	if(rdo482->Checked)ChangeTrayMap(482);
-}
-//---------------------------------------------------------------------------
-void __fastcall TteachForm::rdoChangeTrayMap(TObject *Sender)
-{
-	// 2023 06 26 대상 트레이는 항상 2열(12채널)로 고정
-
-	TRadioButton *rdoType;
-	rdoType = (TRadioButton*)Sender;
-
-	switch(rdoType->Tag)
-	{
-		case 0:
-			ChangeTrayMap(962);
-			break;
-		case 1:
-			ChangeTrayMap(962);
-			break;
-		case 2:
-			ChangeTrayMap(48);
-			break;
-		case 3:  // Gamma
-			ChangeTrayMap(482);
-			break;
-		case 4: //* New Kind (Gamma) 2023 06 26
-			ChangeTrayMap(242);
-			break;
-    }
-}
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::ChangeTrayMap(int channel)
 {
@@ -869,10 +820,6 @@ void __fastcall TteachForm::ChangeTrayMap(int channel)
 			}
 		}
 
-		// Target Tray Map
-//		tTray[0]->Width = 140;
-//		tTray[6]->Width = 140;
-//		tTray[6]->Left = tTray[7]->Left;
         for(int i = 0; i < 12; i++)
 			tTray[i]->Width = 140;
 
@@ -882,7 +829,6 @@ void __fastcall TteachForm::ChangeTrayMap(int channel)
 			tTray[i]->BringToFront();
 		}
 
-		// Source/Target Tray Teaching Value init
 		Panel14->Caption = "CH 1";
 		Panel17->Caption = "CH 25";
 		Panel21->Caption = "CH 49";
@@ -891,247 +837,6 @@ void __fastcall TteachForm::ChangeTrayMap(int channel)
 		Panel7->Caption = "CH 13";
 		Panel11->Caption = "CH 19";
 
-		for(int i = 0; i < 7; i++)
-		{
-			teachEdit[0][i]->Text = "";
-			teachEdit[1][i]->Text = "";
-		}
-	}
-	else if(channel == 962){
-		// Source Tray Map
-		nh = 20;
-		for(int index=0; index<96;){
-			sTray[index]->Caption->Text = MainForm->mapSort[0][index];
-			sTray[index]->Tag = MainForm->mapSort[0][index];
-
-			if(index < 48){
-				sTray[index]->Left = nx;
-				sTray[index]->Top = ny;
-				sTray[index]->Height = nh;
-				sTray[index]->Width = nw;
-				sTray[index]->Fill->Color = clWhite;
-				sTray[index]->Fill->ColorTo = clWhite;
-				sTray[index]->Fill->ColorMirror = clWhite;
-				sTray[index]->Fill->ColorMirrorTo = clWhite;
-				sTray[index]->Visible = true;
-
-				ny = ny - nh - 1;
-				index += 1;
-
-				if(index % 12 == 0) ny -= 4;
-				if(index % 24 == 0){
-					nx = nx + nw + 1;
-					ny = 585;
-				}
-			}else{
-				sTray[index]->Visible = true;
-				index += 1;
-			}
-		}
-
-		// Target Tray Map
-//		tTray[0]->Width = 280;
-//		tTray[6]->Width = 280;
-//		tTray[6]->Left = tTray[12]->Left;
-//		tTray[6]->BringToFront();
-        for(int i = 0; i < 12; i++)
-			tTray[i]->Width = 280;
-
-		for(int i = 6; i < 12; i++)
-		{
-			tTray[i]->Left = tTray[12]->Left;
-			tTray[i]->BringToFront();
-        }
-
-		// Source/Target Tray Teaching Value init
-		Panel14->Caption = "CH 1";
-		Panel17->Caption = "CH 25";
-		Panel21->Caption = "";
-		Panel24->Caption = "";
-
-		Panel7->Caption = "";
-		Panel11->Caption = "";
-		for(int i = 0; i < 7; i++)
-		{
-			teachEdit[0][i]->Text = "";
-			teachEdit[1][i]->Text = "";
-		}
-	}
-	else if(channel == 48){
-		// Source Tray Map
-		nh = 41;
-		ny = 565;
-		for(int index=0; index<96;){
-			sTray[index]->Caption->Text = index+1;
-			sTray[index]->Tag = MainForm->mapSort[1][index];
-			if(index < 48){
-				sTray[index]->Left = nx;
-				sTray[index]->Top = ny;
-				sTray[index]->Height = nh;
-				sTray[index]->Width = nw;
-				sTray[index]->Fill->Color = clWhite;
-				sTray[index]->Fill->ColorTo = clWhite;
-				sTray[index]->Fill->ColorMirror = clWhite;
-				sTray[index]->Fill->ColorMirrorTo = clWhite;
-				sTray[index]->Visible = true;
-
-				ny = ny - nh - 1;
-				index += 1;
-
-				if(index % 6 == 0) ny -= 6;
-				if(index % 12 == 0){
-					nx = nx + nw + 1;
-					ny = 565;
-				}
-			}else{
-				sTray[index]->Visible = false;
-				index += 1;
-			}
-		}
-
-        // Target Tray Map
-//		tTray[0]->Width = 140;
-//		tTray[6]->Width = 140;
-//		tTray[6]->Left = tTray[7]->Left;
-        for(int i = 0; i < 12; i++)
-			tTray[i]->Width = 280;
-
-		for(int i = 6; i < 12; i++)
-		{
-			tTray[i]->Left = tTray[12]->Left;
-			tTray[i]->BringToFront();
-        }
-
-		// Source/Target Tray Teaching Value init
-		Panel14->Caption = "CH 1";
-		Panel17->Caption = "CH 25";
-		Panel21->Caption = "";
-		Panel24->Caption = "";
-
-		Panel7->Caption = "";
-		Panel11->Caption = "";
-		for(int i = 0; i < 7; i++)
-		{
-			teachEdit[0][i]->Text = "";
-			teachEdit[1][i]->Text = "";
-		}
-	}
-	else if(channel == 482){
-        // Source Tray Map
-		nh = 20;
-		nw = 280;
-		for(int index=0; index<96;){
-			sTray[index]->Caption->Text = index+1;
-			sTray[index]->Tag = MainForm->mapSort[0][index];
-			if(index < 48){
-				sTray[index]->Left = nx;
-				sTray[index]->Top = ny;
-				sTray[index]->Height = nh;
-				sTray[index]->Width = nw;
-				sTray[index]->Fill->Color = clWhite;
-				sTray[index]->Fill->ColorTo = clWhite;
-				sTray[index]->Fill->ColorMirror = clWhite;
-				sTray[index]->Fill->ColorMirrorTo = clWhite;
-				sTray[index]->Visible = true;
-
-				ny = ny - nh - 1;
-				index += 1;
-
-				if(index % 12 == 0) ny -= 4;
-				if(index % 24 == 0){
-					nx = nx + nw + 1;
-					ny = 585;
-				}
-			}else{
-				sTray[index]->Visible = false;
-				index += 1;
-			}
-		}
-
-		// Target Tray Map
-//		tTray[0]->Width = 280;
-//		tTray[6]->Width = 280;
-//		tTray[6]->Left = tTray[12]->Left;
-//		tTray[6]->BringToFront();
-        for(int i = 0; i < 12; i++)
-			tTray[i]->Width = 280;
-
-		for(int i = 6; i < 12; i++)
-		{
-			tTray[i]->Left = tTray[12]->Left;
-			tTray[i]->BringToFront();
-        }
-
-		// Source/Target Tray Teaching Value init
-		Panel14->Caption = "CH 1";
-		Panel17->Caption = "CH 25";
-		Panel21->Caption = "";
-		Panel24->Caption = "";
-
-		Panel7->Caption = "";
-		Panel11->Caption = "";
-		for(int i = 0; i < 7; i++)
-		{
-			teachEdit[0][i]->Text = "";
-			teachEdit[1][i]->Text = "";
-		}
-	}
-    //* New Kind (Gamma, HKMC) 2023 06 26
-    else if(channel == 242){
-        // Source Tray Map
-		nh = 41;
-		nw = 280;
-        ny = 565;
-		for(int index=0; index<96;){
-			sTray[index]->Caption->Text = index+1;
-			sTray[index]->Tag = MainForm->mapSort[0][index];
-			if(index < 24){
-				sTray[index]->Left = nx;
-				sTray[index]->Top = ny;
-				sTray[index]->Height = nh;
-				sTray[index]->Width = nw;
-				sTray[index]->Fill->Color = clWhite;
-				sTray[index]->Fill->ColorTo = clWhite;
-				sTray[index]->Fill->ColorMirror = clWhite;
-				sTray[index]->Fill->ColorMirrorTo = clWhite;
-				sTray[index]->Visible = true;
-
-				ny = ny - nh - 1;
-				index += 1;
-
-				if(index % 6 == 0) ny -= 4;
-				if(index % 12 == 0){
-					nx = nx + nw + 1;
-					ny = 565;
-				}
-			}else{
-				sTray[index]->Visible = false;
-				index += 1;
-			}
-		}
-
-		// Target Tray Map
-//		tTray[0]->Width = 280;
-//		tTray[6]->Width = 280;
-//		tTray[6]->Left = tTray[12]->Left;
-//		tTray[6]->BringToFront();
-        for(int i = 0; i < 12; i++)
-			tTray[i]->Width = 280;
-
-		for(int i = 6; i < 12; i++)
-		{
-			tTray[i]->Left = tTray[12]->Left;
-			tTray[i]->BringToFront();
-        }
-
-		// Source/Target Tray Teaching Value init
-		Panel14->Caption = "CH 1";
-		Panel17->Caption = "CH 25";
-		Panel21->Caption = "";
-		Panel24->Caption = "";
-
-		Panel7->Caption = "";
-		Panel11->Caption = "";
 		for(int i = 0; i < 7; i++)
 		{
 			teachEdit[0][i]->Text = "";
@@ -1148,11 +853,6 @@ void __fastcall TteachForm::Button1MouseDown(TObject *Sender, TMouseButton Butto
 	btn = (TButton*)Sender;
 
 	if(Button == mbLeft){
-//		if(robostar->getCellDetectStatus(1) && robostar->getCellDetectStatus(2))
-//		{
-//             robostar->req_JogMove(btn->Tag);
-//        }
-
 		if(MainForm->psrcReady->Color != clLime)
 		{
 			if(MessageBox(Handle, L"[C_Maint] 선별 트레이가 DOWN 상태가 아닙니다. down 하시겠습니까?",
@@ -1521,8 +1221,6 @@ void __fastcall TteachForm::LanguageChange(int index)
 	sCombo->Clear();
 	for(int i = 0; i < 2; i++) sCombo->Items->Add(mm->Lines->Strings[6 + i]);
 	sCombo->ItemIndex = 0;
-	rdo48->Caption = mm->Lines->Strings[12];
-	rdo96->Caption = mm->Lines->Strings[13];
 	Label3->Caption = mm->Lines->Strings[14];
 	Label5->Caption = mm->Lines->Strings[15];
 	Label4->Caption = mm->Lines->Strings[16];
@@ -1617,57 +1315,20 @@ void __fastcall TteachForm::LanguageChange(int index)
 void __fastcall TteachForm::AdvSmoothButton1Click(TObject *Sender)
 {
 	try{
-		if(msa482->Checked == true || msa242->Checked == true)
-		{
-			if(typeEdit1->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] KIND 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-			else if(typeEdit2->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 선별 트레이 CH1 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-			else if(typeEdit3->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 선별 트레이 CH25 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-//			else if(typeEdit4->Text.Trim().IsEmpty())MessageBox(Handle, L"Check the Source Tray CH49 information.", L"Warning", MB_OK|MB_ICONWARNING);
-//			else if(typeEdit5->Text.Trim().IsEmpty())MessageBox(Handle, L"Check the Source Tray CH73 information.", L"Warning", MB_OK|MB_ICONWARNING);
-			else if(typeEdit7->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 대상 트레이 CH1 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-			else if(typeEdit8->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 대상 트레이 CH7 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-//			else if(typeEdit9->Text.Trim().IsEmpty())MessageBox(Handle, L"Check the Target Tray CH13 information.", L"Warning", MB_OK|MB_ICONWARNING);
-//			else if(typeEdit10->Text.Trim().IsEmpty())MessageBox(Handle, L"Check the Target Tray CH19 information.", L"Warning", MB_OK|MB_ICONWARNING);
-			else if(typeEdit6->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] GRIP1 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-			else if(typeEdit11->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] GRIP2 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-			else{
-				AddList(FindList(typeEdit1->Text));
-			}
-		}
-		else if(msa962->Checked == true)
-		{
-			if(typeEdit1->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] KIND 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-			else if(typeEdit2->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 선별 트레이 CH1 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-			else if(typeEdit3->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 선별 트레이 CH25 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-			else if(typeEdit4->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 선별트레이 CH49 정보를 확인하세요.", L"Warning", MB_OK|MB_ICONWARNING);
-			else if(typeEdit5->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 선별트레이 CH73 정보를 확인하세요.", L"Warning", MB_OK|MB_ICONWARNING);
-			else if(typeEdit7->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 대상 트레이 CH1 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-			else if(typeEdit8->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 대상 트레이 CH7 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-//			else if(typeEdit9->Text.Trim().IsEmpty())MessageBox(Handle, L"Check the Target Tray CH13 information.", L"Warning", MB_OK|MB_ICONWARNING);
-//			else if(typeEdit10->Text.Trim().IsEmpty())MessageBox(Handle, L"Check the Target Tray CH19 information.", L"Warning", MB_OK|MB_ICONWARNING);
-			else if(typeEdit6->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] GRIP1 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-			else if(typeEdit11->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] GRIP2 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-			else{
-				AddList(FindList(typeEdit1->Text));
-			}
-		}
-		else
-		{
-			if(typeEdit1->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] KIND 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-			else if(typeEdit2->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 선별 트레이 CH1 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-			else if(typeEdit3->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 선별 트레이 CH25 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-			else if(typeEdit4->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 선별 트레이 CH49 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-			else if(typeEdit5->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 선별 트레이 CH73 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-			else if(typeEdit7->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 대상 트레이 CH1 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-			else if(typeEdit8->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 대상 트레이 CH7 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-			else if(typeEdit9->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 대상 트레이 CH13 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-			else if(typeEdit10->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 대상 트레이 CH19 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-			else if(typeEdit6->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] GRIP1 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-			else if(typeEdit11->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] GRIP2 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-			else{
-				AddList(FindList(typeEdit1->Text));
-			}
-		}
+        if(typeEdit1->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] KIND 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
+        else if(typeEdit2->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 선별 트레이 CH1 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
+        else if(typeEdit3->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 선별 트레이 CH25 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
+        else if(typeEdit4->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 선별 트레이 CH49 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
+        else if(typeEdit5->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 선별 트레이 CH73 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
+        else if(typeEdit7->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 대상 트레이 CH1 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
+        else if(typeEdit8->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 대상 트레이 CH7 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
+        else if(typeEdit9->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 대상 트레이 CH13 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
+        else if(typeEdit10->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 대상 트레이 CH19 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
+        else if(typeEdit6->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] GRIP1 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
+        else if(typeEdit11->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] GRIP2 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
+        else{
+            AddList(FindList(typeEdit1->Text));
+        }
 	}catch(...){
 		MessageBox(Handle, L"[C_Maint] 정보를 입력 하세요.", L"경고", MB_OK|MB_ICONWARNING);
 	}
@@ -1739,110 +1400,39 @@ void __fastcall TteachForm::AddList(int index)
 		ITEM->Caption = typeEdit1->Text;
 		ITEM->SubItems->Add(typeCombo->Text);
 
-		if(msa96->Checked || msa962->Checked) ITEM->SubItems->Add("96");
-		else if(msa48->Checked || msa482->Checked) ITEM->SubItems->Add("48");
-		else if(msa242->Checked) ITEM->SubItems->Add("24");
+        ITEM->SubItems->Add("96");
 
-		if(msa482->Checked == true || msa242->Checked == true)
-		{
-            ITEM->SubItems->Add(typeEdit2->Text);
-			ITEM->SubItems->Add(typeEdit3->Text);
-			ITEM->SubItems->Add("0,0,0");
-			ITEM->SubItems->Add("0,0,0");
+		ITEM->SubItems->Add(typeEdit2->Text);
+        ITEM->SubItems->Add(typeEdit3->Text);
+        ITEM->SubItems->Add(typeEdit4->Text);
+        ITEM->SubItems->Add(typeEdit5->Text);
 
-			ITEM->SubItems->Add(typeEdit7->Text);
-			ITEM->SubItems->Add(typeEdit8->Text);
-			ITEM->SubItems->Add("0,0,0");
-			ITEM->SubItems->Add("0,0,0");
+        ITEM->SubItems->Add(typeEdit7->Text);
+        ITEM->SubItems->Add(typeEdit8->Text);
+        ITEM->SubItems->Add(typeEdit9->Text);
+        ITEM->SubItems->Add(typeEdit10->Text);
 
-			ITEM->SubItems->Add(typeEdit6->Text);
-			ITEM->SubItems->Add(typeEdit11->Text);
-		}
-		else if(msa962->Checked == true)
-		{
-			ITEM->SubItems->Add(typeEdit2->Text);
-			ITEM->SubItems->Add(typeEdit3->Text);
-			ITEM->SubItems->Add(typeEdit4->Text);
-			ITEM->SubItems->Add(typeEdit5->Text);
-
-			ITEM->SubItems->Add(typeEdit7->Text);
-			ITEM->SubItems->Add(typeEdit8->Text);
-			ITEM->SubItems->Add("0,0,0");
-			ITEM->SubItems->Add("0,0,0");
-
-			ITEM->SubItems->Add(typeEdit6->Text);
-			ITEM->SubItems->Add(typeEdit11->Text);
-		}
-		else
-		{
-			ITEM->SubItems->Add(typeEdit2->Text);
-			ITEM->SubItems->Add(typeEdit3->Text);
-			ITEM->SubItems->Add(typeEdit4->Text);
-			ITEM->SubItems->Add(typeEdit5->Text);
-
-			ITEM->SubItems->Add(typeEdit7->Text);
-			ITEM->SubItems->Add(typeEdit8->Text);
-			ITEM->SubItems->Add(typeEdit9->Text);
-			ITEM->SubItems->Add(typeEdit10->Text);
-
-			ITEM->SubItems->Add(typeEdit6->Text);
-			ITEM->SubItems->Add(typeEdit11->Text);
-		}
+        ITEM->SubItems->Add(typeEdit6->Text);
+        ITEM->SubItems->Add(typeEdit11->Text);
 		searchList->Items->EndUpdate();
 	}
 	else
 	{
 		if(MessageBox(Handle, L"KIND 정보를 업데이트 하시겠습니까?", L"Update", MB_YESNO|MB_ICONQUESTION) == ID_NO)return;
+            searchList->Items->Item[index]->SubItems->Strings[1] = "96";
 
-			if(msa96->Checked || msa962->Checked)searchList->Items->Item[index]->SubItems->Strings[1] = "96";
-			else if(msa48->Checked || msa482->Checked) searchList->Items->Item[index]->SubItems->Strings[1] = "48";
-            else if(msa242->Checked) searchList->Items->Item[index]->SubItems->Strings[1] = "24";
+			searchList->Items->Item[index]->SubItems->Strings[2] = typeEdit2->Text;
+            searchList->Items->Item[index]->SubItems->Strings[3] = typeEdit3->Text;
+            searchList->Items->Item[index]->SubItems->Strings[4] = typeEdit4->Text;
+            searchList->Items->Item[index]->SubItems->Strings[5] = typeEdit5->Text;
 
-			if(msa482->Checked == true || msa242->Checked == true)
-			{
-                searchList->Items->Item[index]->SubItems->Strings[2] = typeEdit2->Text;
-				searchList->Items->Item[index]->SubItems->Strings[3] = typeEdit3->Text;
-				searchList->Items->Item[index]->SubItems->Strings[4] = "0,0,0";
-				searchList->Items->Item[index]->SubItems->Strings[5] = "0,0,0";
+            searchList->Items->Item[index]->SubItems->Strings[6] = typeEdit7->Text;
+            searchList->Items->Item[index]->SubItems->Strings[7] = typeEdit8->Text;
+            searchList->Items->Item[index]->SubItems->Strings[8] = typeEdit9->Text;
+            searchList->Items->Item[index]->SubItems->Strings[9] = typeEdit10->Text;
 
-				searchList->Items->Item[index]->SubItems->Strings[6] = typeEdit7->Text;
-				searchList->Items->Item[index]->SubItems->Strings[7] = typeEdit8->Text;
-				searchList->Items->Item[index]->SubItems->Strings[8] = "0,0,0";
-				searchList->Items->Item[index]->SubItems->Strings[9] = "0,0,0";
-
-				searchList->Items->Item[index]->SubItems->Strings[10] = typeEdit6->Text;
-				searchList->Items->Item[index]->SubItems->Strings[11] = typeEdit11->Text;
-			}
-			else if(msa962->Checked == true)
-			{
-				searchList->Items->Item[index]->SubItems->Strings[2] = typeEdit2->Text;
-				searchList->Items->Item[index]->SubItems->Strings[3] = typeEdit3->Text;
-				searchList->Items->Item[index]->SubItems->Strings[4] = typeEdit4->Text;
-				searchList->Items->Item[index]->SubItems->Strings[5] = typeEdit5->Text;
-
-				searchList->Items->Item[index]->SubItems->Strings[6] = typeEdit7->Text;
-				searchList->Items->Item[index]->SubItems->Strings[7] = typeEdit8->Text;
-				searchList->Items->Item[index]->SubItems->Strings[8] = "0,0,0";
-				searchList->Items->Item[index]->SubItems->Strings[9] = "0,0,0";
-
-				searchList->Items->Item[index]->SubItems->Strings[10] = typeEdit6->Text;
-				searchList->Items->Item[index]->SubItems->Strings[11] = typeEdit11->Text;
-			}
-			else
-			{
-				searchList->Items->Item[index]->SubItems->Strings[2] = typeEdit2->Text;
-				searchList->Items->Item[index]->SubItems->Strings[3] = typeEdit3->Text;
-				searchList->Items->Item[index]->SubItems->Strings[4] = typeEdit4->Text;
-				searchList->Items->Item[index]->SubItems->Strings[5] = typeEdit5->Text;
-
-				searchList->Items->Item[index]->SubItems->Strings[6] = typeEdit7->Text;
-				searchList->Items->Item[index]->SubItems->Strings[7] = typeEdit8->Text;
-				searchList->Items->Item[index]->SubItems->Strings[8] = typeEdit9->Text;
-				searchList->Items->Item[index]->SubItems->Strings[9] = typeEdit10->Text;
-
-				searchList->Items->Item[index]->SubItems->Strings[10] = typeEdit6->Text;
-				searchList->Items->Item[index]->SubItems->Strings[11] = typeEdit11->Text;
-            }
+            searchList->Items->Item[index]->SubItems->Strings[10] = typeEdit6->Text;
+            searchList->Items->Item[index]->SubItems->Strings[11] = typeEdit11->Text;
 
 			searchList->ItemIndex = index;
 			ChangeTeaching(index);
@@ -1870,47 +1460,9 @@ void __fastcall TteachForm::searchListClick(TObject *Sender)
 void __fastcall TteachForm::ChangeTeaching(int index)
 {
 	// tea_memo 추가
-	//* New Kind T1A, F3A, (Gamma, HKMC) Gamma 48, HKMC 24 2023 06 26,  F4A - 2023 10 24,
-	//* F5A(JG1) - 2024 09 05
-	//* F6A - 2025 01 06
-	if(searchList->Items->Item[index]->Caption == "L4A" || searchList->Items->Item[index]->Caption == "L3A"
-		|| searchList->Items->Item[index]->Caption == "F2A"
-		|| searchList->Items->Item[index]->Caption == "F3A" || searchList->Items->Item[index]->Caption == "F4A"
-		|| searchList->Items->Item[index]->Caption == "F5A"|| searchList->Items->Item[index]->Caption == "F6A") {
-		MainForm->tray->CH_GUBUN = 482;
-		MainForm->tray_source.CH_GUBUN = 482;
-	}
-	//* 2025 12 T3A(XV1) 모델 추가
-	else if(searchList->Items->Item[index]->Caption == "T1A" || searchList->Items->Item[index]->Caption == "T3A"){
-		MainForm->tray->CH_GUBUN = 242;
-		MainForm->tray_source.CH_GUBUN = 242;
-	}
-    //* PPE, PPE 4
-	else if(searchList->Items->Item[index]->Caption == "APA"
-    	|| searchList->Items->Item[index]->Caption == "AP4"){
-		MainForm->tray->CH_GUBUN = 962;
-		MainForm->tray_source.CH_GUBUN = 962;
-	}
-	else{
-		MainForm->tray->CH_GUBUN = searchList->Items->Item[index]->SubItems->Strings[1];
+	MainForm->tray->CH_GUBUN = searchList->Items->Item[index]->SubItems->Strings[1];
 		MainForm->tray_source.CH_GUBUN = searchList->Items->Item[index]->SubItems->Strings[1];
-    }
 
-	if(searchList->Items->Item[index]->SubItems->Strings[1] == "48")
-	{
-		rdo482->Checked = true;
-		ChangeTrayMap(482);
-	}
-	else if(searchList->Items->Item[index]->SubItems->Strings[1] == "24")
-	{
-		rdo242->Checked = true;
-		ChangeTrayMap(242);
-	}
-	else if(searchList->Items->Item[index]->SubItems->Strings[1] == "96")
-	{
-		rdo96->Checked = true;
-		ChangeTrayMap(962);
-	}
 
 	typeEdit9->Enabled = false;
 	typeEdit10->Enabled = false;
@@ -1940,12 +1492,6 @@ void __fastcall TteachForm::ChangeTeaching(int index)
 	typeEdit1->Text = searchList->Items->Item[nindex]->Caption;
 	typeCombo->Text = searchList->Items->Item[nindex]->SubItems->Strings[0];
 
-	if(searchList->Items->Item[index]->SubItems->Strings[1] == "48")
-		msa482->Checked = true;
-	else if(searchList->Items->Item[index]->SubItems->Strings[1] == "24")
-		msa242->Checked = true;
-	else if(searchList->Items->Item[index]->SubItems->Strings[1] == "96")
-		msa962->Checked = true;
 
 	typeEdit2->Text = searchList->Items->Item[nindex]->SubItems->Strings[2];
 	typeEdit3->Text = searchList->Items->Item[nindex]->SubItems->Strings[3];
@@ -1961,118 +1507,12 @@ void __fastcall TteachForm::ChangeTeaching(int index)
 	typeEdit11->Text = searchList->Items->Item[nindex]->SubItems->Strings[11];
 }
 //---------------------------------------------------------------------------
-void __fastcall TteachForm::msa482Click(TObject *Sender)
-{
-	typeEdit4->Enabled = false;
-	typeEdit5->Enabled = false;
-	typeEdit9->Enabled = false;
-	typeEdit10->Enabled = false;
-}
-//---------------------------------------------------------------------------
-void __fastcall TteachForm::msa96Click(TObject *Sender)
-{
-	typeEdit4->Enabled = true;
-	typeEdit5->Enabled = true;
-	typeEdit9->Enabled = true;
-	typeEdit10->Enabled = true;
-}
-//---------------------------------------------------------------------------
 
-void __fastcall TteachForm::msa48Click(TObject *Sender)
-{
-	typeEdit4->Enabled = true;
-	typeEdit5->Enabled = true;
-	typeEdit9->Enabled = true;
-	typeEdit10->Enabled = true;
-}
-//---------------------------------------------------------------------------
-void __fastcall TteachForm::rbSetTeachingValueEdit(TObject *Sender)
-{
-//	TAdvSmoothPanel *pnl;
-//	pnl = (TAdvSmoothPanel*)Sender;
-
-	TRadioButton *rbType;
-	rbType = (TRadioButton*)Sender;
-
-	switch(rbType->Tag)
-	{
-		case 0: // 96 CH - 4열
-			Label38->Caption = "CH 1";
-			Label39->Caption = "CH 25";
-			Label40->Caption = "CH 49";
-			Label41->Caption = "CH 73";
-
-			typeEdit4->Enabled = true;
-			typeEdit5->Enabled = true;
-			typeEdit9->Enabled = false;
-			typeEdit10->Enabled = false;
-			break;
-		case 1: // 48 CH - 4열
-			Label38->Caption = "CH 1";
-			Label39->Caption = "CH 13";
-			Label40->Caption = "CH 25";
-			Label41->Caption = "CH 37";
-
-			typeEdit4->Enabled = true;
-			typeEdit5->Enabled = true;
-			typeEdit9->Enabled = false;
-			typeEdit10->Enabled = false;
-			break;
-		case 2: // 96 CH - 4열
-            Label38->Caption = "CH 1";
-			Label39->Caption = "CH 25";
-			Label40->Caption = "CH 49";
-			Label41->Caption = "CH 73";
-
-			typeEdit4->Enabled = true;
-			typeEdit5->Enabled = true;
-			typeEdit9->Enabled = false;
-			typeEdit10->Enabled = false;
-			break;
-		case 3: // 48 CH - 2열
-            Label38->Caption = "CH 1";
-			Label39->Caption = "CH 25";
-			Label40->Caption = "";
-			Label41->Caption = "";
-
-			typeEdit4->Enabled = false;
-			typeEdit5->Enabled = false;
-			typeEdit9->Enabled = false;
-			typeEdit10->Enabled = false;
-            break;
-		case 4: // 24 CH - 2열
-			Label38->Caption = "CH 1";
-			Label39->Caption = "CH 13";
-			Label40->Caption = "";
-			Label41->Caption = "";
-
-			typeEdit4->Enabled = false;
-			typeEdit5->Enabled = false;
-			typeEdit9->Enabled = false;
-			typeEdit10->Enabled = false;
-			break;
-		break;
-	}
-}
-//---------------------------------------------------------------------------
 void __fastcall TteachForm::Panel47Click(TObject *Sender)
 {
     tea_memo->Visible = !tea_memo->Visible;
 }
 //---------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
 void __fastcall TteachForm::btnZAxisDownMouseDown(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y)
 {

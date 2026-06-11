@@ -248,8 +248,6 @@ __published:	// IDE-managed Components
 	TSaveDialog *SaveDialog;
 	TAdvSmoothButton *AdvSmoothButton_ServoOff;
 	TAdvSmoothButton *waitBtn;
-	TRadioButton *rdo48;
-	TRadioButton *rdo96;
 	TPanel *Panel9;
 	TPanel *Panel8;
 	TPanel *Panel7;
@@ -374,27 +372,22 @@ __published:	// IDE-managed Components
 	TPanel *pOnX1;
 	TPanel *pOnY;
 	TPanel *pOnZ;
-	TPanel *pOnX2;
 	TPanel *Panel36;
 	TPanel *pOrgX1;
 	TPanel *pOrgY;
 	TPanel *pOrgZ;
-	TPanel *pOrgX2;
 	TPanel *Panel38;
 	TPanel *pErrorX1;
 	TPanel *pErrorY;
 	TPanel *pErrorZ;
-	TPanel *pErrorX2;
 	TPanel *Panel42;
 	TPanel *pLspX1;
 	TPanel *pLspY;
 	TPanel *pLspZ;
-	TPanel *pLspX2;
 	TPanel *Panel43;
 	TPanel *pLsnX1;
 	TPanel *pLsnY;
 	TPanel *pLsnZ;
-	TPanel *pLsnX2;
 	TPanel *Panel44;
 	TPanel *px2;
 	TLabel *Label33;
@@ -407,15 +400,10 @@ __published:	// IDE-managed Components
 	TPanel *Panel_speedEdit;
 	TAdvSmoothButton *AdvSmoothButton_LoadFactorInfo;
 	TPanel *pOnG1;
-	TPanel *pOnG2;
 	TPanel *pErrorG1;
-	TPanel *pErrorG2;
 	TPanel *pLsnG1;
-	TPanel *pLsnG2;
 	TPanel *pOrgG1;
-	TPanel *pOrgG2;
 	TPanel *pLspG1;
-	TPanel *pLspG2;
 	TPanel *Panel46;
 	TPanel *pg1;
 	TPanel *Panel49;
@@ -435,8 +423,6 @@ __published:	// IDE-managed Components
 	TLabel *Label36;
 	TComboBox *typeCombo;
 	TLabel *Label37;
-	TRadioButton *msa96;
-	TRadioButton *msa48;
 	TLabel *Label38;
 	TLabel *Label48;
 	TEdit *typeEdit6;
@@ -465,15 +451,12 @@ __published:	// IDE-managed Components
 	TLabel *Label53;
 	TLabel *Label54;
 	TLabel *Label55;
-	TRadioButton *rdo482;
-	TRadioButton *msa482;
 	TButton *Button7;
 	TButton *Button8;
 	TLabel *Label51;
 	TLabel *Label56;
 	TButton *Button9;
 	TButton *Button10;
-	TRadioButton *msa242;
 	TPanel *Panel73;
 	TPanel *Panel69;
 	TEdit *acclSpeedEdit;
@@ -489,8 +472,6 @@ __published:	// IDE-managed Components
 	TGroupBox *GroupBox1;
 	TButton *btnZAxisUp;
 	TButton *btnZAxisDown;
-	TRadioButton *rdo242;
-	TRadioButton *msa962;
 	TAdvSmoothButton *btnKeyLock;
 	TTimer *unchuckTimer;
 	TTimer *unchuckAllTimer;
@@ -519,8 +500,6 @@ __published:	// IDE-managed Components
 	void __fastcall AdvSmoothButton3Click(TObject *Sender);
 	void __fastcall disableChk1Click(TObject *Sender);
 	void __fastcall waitBtnClick(TObject *Sender);
-	void __fastcall rdo48Click(TObject *Sender);
-	void __fastcall rdo96Click(TObject *Sender);
 	void __fastcall openBtnClick(TObject *Sender);
 	void __fastcall Button1MouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift,
 		  int X, int Y);
@@ -538,13 +517,7 @@ __published:	// IDE-managed Components
 	void __fastcall AdvSmoothButton1Click(TObject *Sender);
 	void __fastcall AdvSmoothButton2Click(TObject *Sender);
 	void __fastcall searchListClick(TObject *Sender);
-	void __fastcall rdo482Click(TObject *Sender);
-	void __fastcall msa482Click(TObject *Sender);
-	void __fastcall msa96Click(TObject *Sender);
-	void __fastcall msa48Click(TObject *Sender);
 	void __fastcall Panel47Click(TObject *Sender);
-	void __fastcall rbSetTeachingValueEdit(TObject *Sender);
-    void __fastcall rdoChangeTrayMap(TObject *Sender);
 	void __fastcall btnZAxisDownMouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift,
           int X, int Y);
 	void __fastcall btnZAxisDownMouseUp(TObject *Sender, TMouseButton Button, TShiftState Shift,

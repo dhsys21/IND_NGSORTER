@@ -5,7 +5,6 @@
 #include <tchar.h>
 //---------------------------------------------------------------------------
 USEFORM("ModGripper.cpp", gripper); /* TDataModule: File Type */
-USEFORM("ModEcs.cpp", EcsMod); /* TDataModule: File Type */
 USEFORM("FormServoAlarmList.cpp", ServoAlarmListForm);
 USEFORM("FormMain.cpp", MainForm);
 USEFORM("FormTeaching.cpp", teachForm);
@@ -47,7 +46,6 @@ int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 		Application->CreateForm(__classid(TBaseForm), &BaseForm);
 		Application->CreateForm(__classid(TMainForm), &MainForm);
 		Application->CreateForm(__classid(Tmes), &mes);
-		Application->CreateForm(__classid(TEcsMod), &EcsMod);
 		Application->CreateForm(__classid(Trobostar), &robostar);
 		Application->CreateForm(__classid(Tgripper), &gripper);
 		Application->CreateForm(__classid(TErrorForm_eject), &ErrorForm_eject);

@@ -106,19 +106,8 @@ void __fastcall TMainForm::DisplayTrayInfo()
 		pSLOT_COUNT_target->Caption = tray->SLOT_COUNT;
 		pKIND_target->Caption = tray->KIND;
 
-		//* 2023 06 26 대상트레이는 항상 2열 12채널
-		ChangeTrayMap_TargetTray(482);
-
 		AnsiString str;
-
 		tray->remainCnt = 0;	// 대상 트레이 투입가능 수량 확인
-
-		// 2019 09 17 -> 12개로 통일
-		if(tray->TRAY_GUBUN != 12)
-		{
-			MainForm->ShowDiffBatch();
-			return;
-		}
 
 		for(int i = 0; i < tray->TRAY_GUBUN; ++i)
 		{

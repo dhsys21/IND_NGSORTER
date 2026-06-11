@@ -24,7 +24,6 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 
 	MakePanel();
 	MakePanel_TargetTray();
-    ChangeTrayMap_TargetTray(482);
 	setMapping();
 	tray = &tray_target;
 	equipMode = modeManual;
@@ -33,46 +32,34 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	InitStep(&step[1]);
 
 	status_on[1] = pOnX1;
-	status_on[2] = pOnX2;
-	status_on[3] = pOnY;
-	status_on[4] = pOnZ;
-	status_on[5] = pOnG1;
-	status_on[6] = pOnG2;
+	status_on[2] = pOnY;
+	status_on[3] = pOnZ;
+	status_on[4] = pOnG1;
 
 	status_org[1] = pOrgX1;
-	status_org[2] = pOrgX2;
-	status_org[3] = pOrgY;
-	status_org[4] = pOrgZ;
-	status_org[5] = pOrgG1;
-	status_org[6] = pOrgG2;
+	status_org[2] = pOrgY;
+	status_org[3] = pOrgZ;
+	status_org[4] = pOrgG1;
 
 	status_error[1] = pErrorX1;
-	status_error[2] = pErrorX2;
-	status_error[3] = pErrorY;
-	status_error[4] = pErrorZ;
-	status_error[5] = pErrorG1;
-	status_error[6] = pErrorG2;
+	status_error[2] = pErrorY;
+	status_error[3] = pErrorZ;
+	status_error[4] = pErrorG1;
 
 	status_lsp[1] = pLspX1;
-	status_lsp[2] = pLspX2;
-	status_lsp[3] = pLspY;
-	status_lsp[4] = pLspZ;
-	status_lsp[5] = pLspG1;
-	status_lsp[6] = pLspG2;
+	status_lsp[2] = pLspY;
+	status_lsp[3] = pLspZ;
+	status_lsp[4] = pLspG1;
 
 	status_lsn[1] = pLsnX1;
-	status_lsn[2] = pLsnX2;
-	status_lsn[3] = pLsnY;
-	status_lsn[4] = pLsnZ;
-	status_lsn[5] = pLsnG1;
-	status_lsn[6] = pLsnG2;
+	status_lsn[2] = pLsnY;
+	status_lsn[3] = pLsnZ;
+	status_lsn[4] = pLsnG1;
 
 	status_pos[1] = px1;
-	status_pos[2] = px2;
-	status_pos[3] = py;
-	status_pos[4] = pz;
-	status_pos[5] = pg1;
-	status_pos[6] = pg2;
+	status_pos[2] = py;
+	status_pos[3] = pz;
+	status_pos[4] = pg1;
 
 
 	m_ServoOpen = false;
@@ -89,12 +76,6 @@ void __fastcall TMainForm::FormShow(TObject *Sender)
 	comBcr[0]->CommOpen("COM2", 0);     	// test
 	comBcr[1]->CommOpen("COM1", 1);
 
-	// for TEST
-//	pTrayid_source->Caption = "5A02320";       // test
-//	pTrayid_source2->Caption = "5A02320";      // test
-//	pTrayid_target->Caption = "NG50012";       // test
-//	pTrayid_target2->Caption = "NG50012";      // test
-
 	tx = new TX_DATA;
 	mes->savePath = (AnsiString)SOCK_LOG;
 
@@ -104,7 +85,7 @@ void __fastcall TMainForm::FormShow(TObject *Sender)
 	robostar->config.path = path;
 	robostar->io_Init();
 
-	for(int i=0; i<6; ++i){
+	for(int i=0; i<4; ++i){
 		color_target[0][i] = clWhite;
 		color_target[1][i] = clWhite;
 		color_target[2][i] = clWhite;
@@ -135,13 +116,9 @@ void __fastcall TMainForm::CmdTrayOut(int pos)
 		AlarmForm->ShowError("[C_Maint] 그리퍼가 DOWN 상태 입니다.", "상태를 확인하고 트레이를 배출하세요.");
         return;
 	}
-//
-//	if(status_pos[4]->Caption.ToInt() >= 30000)
-//		AlarmForm->ShowError("Z축이 DOWN 상태 입니다.", "상태를 확인하고 트레이를 배출하세요.");
 
     if(pos == 0){
 		NotifyEquipStatus("IDLE");
-		EcsMod->SendMsg("H1DIF01A", "00", "01", "00");//EcsMod->SendMsg("0");	// empty
 
 		if(tray_source.empTray && tray_source.remainCnt == 0) plcOutput.SRC_EMP = 1;
 		else plcOutput.SRC_EMP = 0;
@@ -151,23 +128,6 @@ void __fastcall TMainForm::CmdTrayOut(int pos)
 	}else{
 		plcOutput.TARGET_OUT = 1;
 	}
-
-//	if(robostar->getGripperUpStatus() && status_pos[4]->Caption.ToInt() < 30000)
-//	{
-//		if(pos == 0){
-//			NotifyEquipStatus("IDLE");
-//			EcsMod->SendMsg("0");	// empty
-//
-//			if(tray_source.empTray && tray_source.remainCnt == 0) plcOutput.SRC_EMP = 1;
-//			else plcOutput.SRC_EMP = 0;
-//
-//			plcOutput.SRC_OUT = 1;
-//			plcOutput.SRC_WORK = 0;
-//		}else{
-//			plcOutput.TARGET_OUT = 1;
-//		}
-//	}
-//	else AlarmForm->ShowError("그리퍼 또는 Z 축이 DOWN 상태 입니다.", "상태를 확인하고 트레이를 배출하세요.");
 }
 //---------------------------------------------------------------------------
 
@@ -193,7 +153,6 @@ void __fastcall TMainForm::pause_startBtnClick(TObject *Sender)
 	{
         if(gripper->pauseStatus && robostar->pauseStatus)
 		{
-//            nowLampMode = beforeLampMode;
 			gripper->req_Pause(false);
 			robostar->req_Pause(false);
         }
@@ -205,9 +164,6 @@ void __fastcall TMainForm::pause_stopBtnClick(TObject *Sender)
 {
 	gripper->req_Pause(true);
 	robostar->req_Pause(true);
-
-//	beforeLampMode = nowLampMode;
-//    nowLampMode = LampEmergency;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::teachingBtnClick(TObject *Sender)
@@ -281,7 +237,6 @@ void __fastcall TMainForm::autoBtnClick(TObject *Sender)
 		int servo_dccl_speed = teachForm->dcclSpeedEdit->Text.ToInt();
 		robostar->req_Speed(servo_speed, servo_accl_speed, servo_dccl_speed);
 		if(manualBtn->Down == true){
-			EcsMod->SendMsg("H1DIF01A", "00", "01", "00");//EcsMod->SendMsg("0");	// empty
 			equipMode = modeAutoStop;
 			autoBtn->Down = true;
 			manualBtn->Down = false;
@@ -312,7 +267,6 @@ void __fastcall TMainForm::manualBtnClick(TObject *Sender)
 			autoBtn->Down = false;
 			manualBtn->Down = true;
 			EnableButton_auto(false);
-			EcsMod->SendMsg("H1DIF01A", "90", "00", "00");//EcsMod->SendMsg("3");
 		}
 		else
 		{
@@ -327,7 +281,6 @@ void __fastcall TMainForm::manualBtnClick(TObject *Sender)
 				autoBtn->Down = false;
 				manualBtn->Down = true;
 				EnableButton_auto(false);
-				EcsMod->SendMsg("H1DIF01A", "30", "00", "00");
 
 			}else{
 				autoBtn->Down = true;
@@ -522,7 +475,6 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 			case 0:
 				if(plcInput.SRC_ARRIVE){
 					NotifyEquipStatus("PROCESS");
-					EcsMod->SendMsg("H1DIF01A", "10", "00", "00");//EcsMod->SendMsg("1");
 					if(chkBypass->Checked == false){
 						pTrayid_source->Caption = "";       // test
 						pTrayid_source2->Caption = "";      // test
@@ -548,7 +500,6 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 				if(plcInput.SRC_READY){
 					memoMainLineAdd("선별 트레이 센터링 완료.");
 					NotifyTransferIn(pTrayid_source->Caption);	// 작업3. 센터링을 치면 작업시작 보고를 한다.
-					EcsMod->SendMsg("H1DIF01A", "10", "00", "00");
 					step[0].step += 1;
 				}else{
 					memoMainLineAdd("선별 트레이 센터링.");
@@ -560,7 +511,6 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 					pTrayid_target->Caption = "";       // test
 					pTrayid_target2->Caption = "";      // test
 					comBcr[1]->GetBarcode();		// 작업4. 센터링이 되어 있으면 바코드를 읽고 -> DisplayTrayInfo 	// test
-                    EcsMod->SendMsg("H1DIF01A", "01", "00", "00");
 					step[0].step += 1;
 					step[1].step = 1;
 				}else{
@@ -586,82 +536,7 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 		}
 	}
 }
-
-
-
-
 //---------------------------------------------------------------------------
-// for TEST
-//void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
-//{
-//
-//	if(equipMode != modeAuto){
-//		memoMainLineAdd("It is not automatic.");
-//		return;
-//	}
-//	if(plcInput.SRC_ARRIVE == 0)
-//		InitStep(&step[0]);             // test
-//	if(plcInput.TARGET_READY == 0)
-//		InitStep(&step[1]);           // test
-//
-//	if(!gripper->pauseStatus && !robostar->pauseStatus)
-//	{
-//		switch(step[0].step){
-//			case 0:
-//				NotifyEquipStatus("PROCESS");
-//				EcsMod->SendMsg("1");
-//				if(chkBypass->Checked == false){
-//					pTrayid_source->Caption = "5A02320";       // test
-//					pTrayid_source2->Caption = "5A02320";      // test
-//					memoMainLineAdd("Source Tray barcode scan.");
-//					step[0].step += 1;
-//					plcInput.SRC_ARRIVE = 1;
-//				}else{
-//					memoMainLineAdd("Tray out with equipment BYPASS setting.");
-//					CmdTrayOut(0);
-//					step[0].step += 100;
-//				}
-//				break;
-//			case 1:
-//				memoMainLineAdd("Source Tray Centering is complete.");
-//				DisplayTranserIn(pTrayid_target->Caption);
-////				NotifyTransferIn(pTrayid_source->Caption);	// 작업3. 센터링을 치면 작업시작 보고를 한다.
-//				step[0].step += 1;
-//				break;
-//			case 2:
-//				memoMainLineAdd("Target Tray Centering is complete.");
-//				pTrayid_target->Caption = "NG50012";       // test
-//				pTrayid_target2->Caption = "NG50012";      // test
-//				DisplayTranserIn(pTrayid_target->Caption);
-//				step[0].step += 1;
-//				step[1].step = 1;
-//			default:
-//				break;
-//		}
-//
-//
-//		 switch(step[1].step){
-//			case 0:
-//				MainForm->DisplayTranserIn(mes->mes_rx.LOT_ID);
-////				memoMainLineAdd("More target trays arrived.");
-//				pTrayid_target->Caption = "NG50012";
-//				pTrayid_target2->Caption = "NG50012";
-//				step[1].step += 1;
-//                plcInput.TARGET_READY = 1;
-//			default:
-//				break;
-//		}
-//	}
-//}
-
-
-
-//---------------------------------------------------------------------------
-
-
-
-
-
 void __fastcall TMainForm::chkBypassClick(TObject *Sender)
 {
 	if(chkBypass->Checked)this->InitStep(&step[0]);	
@@ -681,17 +556,6 @@ void __fastcall TMainForm::homeBtnClick(TObject *Sender)
     UnicodeString msg1 = "[C_Maint] 대기상태로 이동 후 다시 시작하세요. \r\n부하율 : 58%, z축 위치 : 55000";
     MainForm->memoRobostarLineAdd("Z 축 이동실패" + msg1);
     AlarmForm->ShowError("[C_Maint] Z 축 이동실패", msg1);
-//	if(robostar->getCellDetectStatus()){
-//		if(MessageBox(Handle, L"Would you like to switch all cylinders to HOME?", L"HOME", MB_YESNO|MB_ICONQUESTION) == ID_YES){
-//			for(int i=1; i<=6; ++i){
-//				robostar->GripperChuck(i, true, false);
-//				robostar->GripperDown(i, false, true);
-//			}
-//		}
-//	}else{
-//		MessageBox(Handle, L"The gripper is detecting a cell.\r\nPlease check.", L"Warning", MB_OK|MB_ICONWARNING);
-//	}
-
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::senTimerTimer(TObject *Sender)
@@ -733,9 +597,6 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		robostar->req_JogMove(-1);
 		AlarmForm->ShowError("[B_Ignition] No." + IntToStr(flowValue) + " 그리퍼 쿠션 센서가 감지되었습니다.", "확인하고 재시작 해주세요.");
 	}
-
-//	if(!robostar->input.SERVO_POWER) robostar->gripper.LAMP_RESET = !robostar->gripper.LAMP_RESET;
-//	else robostar->gripper.LAMP_RESET = 0;
 
 	if(robostar->mr2.system_status == SSC_STS_CODE_RUNNING) popen->Color = clLime;
 	else popen->Color = clSilver;
@@ -864,42 +725,30 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 
 		teachForm->popen->Color = popen->Color;
 		teachForm->pOnX1->Color = pOnX1->Color;
-		teachForm->pOnX2->Color = pOnX2->Color;
 		teachForm->pOnY->Color = pOnY->Color;
 		teachForm->pOnZ->Color = pOnZ->Color;
 		teachForm->pOnG1->Color = pOnG1->Color;
-		teachForm->pOnG2->Color = pOnG2->Color;
 		teachForm->pOrgX1->Color = pOrgX1->Color;
-		teachForm->pOrgX2->Color = pOrgX2->Color;
 		teachForm->pOrgY->Color = pOrgY->Color;
 		teachForm->pOrgZ->Color = pOrgY->Color;
 		teachForm->pOrgG1->Color = pOrgG1->Color;
-		teachForm->pOrgG2->Color = pOrgG2->Color;
 		teachForm->pErrorX1->Color = pErrorX1->Color;
-		teachForm->pErrorX2->Color = pErrorX2->Color;
 		teachForm->pErrorY->Color = pErrorY->Color;
 		teachForm->pErrorZ->Color = pErrorZ->Color;
 		teachForm->pErrorG1->Color = pErrorG1->Color;
-		teachForm->pErrorG2->Color = pErrorG2->Color;
 		teachForm->pLspX1->Color = pLspX1->Color;
-		teachForm->pLspX2->Color = pLspX2->Color;
 		teachForm->pLspY->Color = pLspY->Color;
 		teachForm->pLspZ->Color = pLspZ->Color;
 		teachForm->pLspG1->Color = pLspG1->Color;
-		teachForm->pLspG2->Color = pLspG2->Color;
 		teachForm->pLsnX1->Color = pLsnX1->Color;
-		teachForm->pLsnX2->Color = pLsnX2->Color;
 		teachForm->pLsnY->Color = pLsnY->Color;
 		teachForm->pLsnZ->Color = pLsnZ->Color;
 		teachForm->pLsnG1->Color = pLsnG1->Color;
-		teachForm->pLsnG2->Color = pLsnG2->Color;
 
 		teachForm->px1->Caption = px1->Caption;
-		teachForm->px2->Caption = px2->Caption;
 		teachForm->py->Caption = py->Caption;
 		teachForm->pz->Caption = pz->Caption;
 		teachForm->pg1->Caption = pg1->Caption;
-		teachForm->pg2->Caption = pg2->Caption;
 		teachForm->pspeed->Caption = pspeed->Caption;
 	}
 
@@ -1391,63 +1240,6 @@ void __fastcall TMainForm::LanguageChange(int index)
 	AdvSmoothToggleButton_InitWork->Caption = mm->Lines->Strings[53];
 }
 //---------------------------------------------------------------------------
-void __fastcall TMainForm::rdo96Click(TObject *Sender)
-{
-	ChangeTrayMap(96);
-	ChangeTrayMap_TargetTray(96);
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TMainForm::rdo48Click(TObject *Sender)
-{
-	ChangeTrayMap(48);
-	ChangeTrayMap_TargetTray(48);
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TMainForm::rdo482Click(TObject *Sender)
-{
-	ChangeTrayMap(482);
-	ChangeTrayMap_TargetTray(482);
-}
-void __fastcall TMainForm::rdoChangeTrayMap(TObject *Sender)
-{
-	// 2023 06 26 대상 트레이는 항상 2열(12채널)로 고정
-	TRadioButton *rdoType;
-	rdoType = (TRadioButton*)Sender;
-
-	switch(rdoType->Tag)
-	{
-		case 0:  // 96
-			ChangeTrayMap(96);
-			ChangeTrayMap_TargetTray(482);
-			break;
-		case 1:  // 962
-			ChangeTrayMap(96);
-			ChangeTrayMap_TargetTray(482);
-		break;
-		case 2:  // 48
-			ChangeTrayMap(48);
-			ChangeTrayMap_TargetTray(482);
-			break;
-		case 3:  // 482
-			ChangeTrayMap(482);
-			ChangeTrayMap_TargetTray(482);
-			break;
-        case 4: //* New Kind (Gamma, HKMC) 2023 06 26
-			ChangeTrayMap(242);
-            ChangeTrayMap_TargetTray(482);
-			break;
-    }
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TMainForm::Panel2Click(TObject *Sender)
-{
-    GroupBox1->Visible = !GroupBox1->Visible;
-}
-//---------------------------------------------------------------------------
-
 void __fastcall TMainForm::AdvSmoothToggleButton2Click(TObject *Sender)
 {
     plcOutput.AUTO_RUN = 1;
@@ -1538,47 +1330,6 @@ void __fastcall TMainForm::Panel70Click(TObject *Sender)
     badCode->Visible = !badCode->Visible;
 }
 //---------------------------------------------------------------------------
-
-void __fastcall TMainForm::AdvSmoothButton3Click(TObject *Sender)
-{
-	int reply;
-	if(plcInput.TARGET_READY){
-		if(MessageBox(Handle, L"대상 트레이를 배출 하시겠습니까?", L"트레이 배출", MB_YESNO|MB_ICONQUESTION) == ID_YES){
-			reply = MessageBox(Handle, L"MES에 보고 하시겠습니까?", L"MES", MB_YESNOCANCEL|MB_ICONQUESTION);
-			if(reply == ID_YES){
-				NotifyIdMatching_target("2");		// 대상 트레이 선별완료 보고하고
-				NotifyTransferOut(pTrayid_target->Caption);
-				CmdTrayOut(1);
-				pdiff2->Visible = false;
-			}else if(reply == ID_NO){
-				CmdTrayOut(1);
-				pdiff2->Visible = false;
-			}
-		}
-	}
-	BuzzerOn(false);
-	MainForm->LampModeChange(MainForm->beforeLampMode);
-}
-//---------------------------------------------------------------------------
-void __fastcall TMainForm::ShowDiffBatch()
-{
-	pdiff2->Visible = true;
-	pdiff2->BringToFront();
-	BuzzerOn(true);
-	MainForm->LampModeChange(LampAlarm);
-}
-//----------------------------------------------
-void __fastcall TMainForm::AdvSmoothToggleButton18Click(TObject *Sender)
-{
-	TAdvSmoothToggleButton *btn;
-	btn = (TAdvSmoothToggleButton*)Sender;
-	pdiff2->Visible = false;
-	BuzzerOn(false);
-	MainForm->LampModeChange(MainForm->beforeLampMode);
-}
-//---------------------------------------------------------------------------
-
-
 void __fastcall TMainForm::lblTitleClick(TObject *Sender)
 {
     CheckBox1->Visible = !CheckBox1->Visible;
