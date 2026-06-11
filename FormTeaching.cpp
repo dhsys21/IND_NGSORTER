@@ -170,19 +170,11 @@ void __fastcall TteachForm::FormCreate(TObject *Sender)
 	lblLoadFactor[2] = lblLoadFactor2;
 	lblLoadFactor[3] = lblLoadFactor3;
 	lblLoadFactor[4] = lblLoadFactor4;
-	lblLoadFactor[5] = lblLoadFactor5;
-	lblLoadFactor[6] = lblLoadFactor6;
 
 	for(int i = 0; i < 96; ++i){
 		sTray[i]->Tag = i + 1;
 		sTray[i]->OnClick = sClick;
 	}
-
-//	for(int i = 0; i < 24; ++i){
-//		tTray[i]->Visible = true;
-//		tTray[i]->Tag = i+1;
-//		tTray[i]->OnClick = tClick;
-//	}
 
 	for(int i = 0; i < 12; ++i){
         tTray[i]->Width = 280;
@@ -193,13 +185,19 @@ void __fastcall TteachForm::FormCreate(TObject *Sender)
         if(i >= 6) tTray[i]->Left = tTray[12]->Left;
 	}
 
-//	file = (AnsiString)BIN + "Teaching.csv";
-//	if(FileExists(file)){
-//    	tea_memo->Lines->LoadFromFile(file);
-//	}
-
 	LoadTeaching();
 	LoadFromFile();
+}
+//---------------------------------------------------------------------------
+void __fastcall TteachForm::FormShow(TObject *Sender)
+{
+	this->Left = 0;
+	this->Top = 0;
+
+    pnlMovingAlarm2->Align = alClient;
+    pnlMovingAlarm->Align = alClient;
+
+    robostar->io_Init();
 }
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::sClick(TObject *Sender)
@@ -620,43 +618,6 @@ void __fastcall TteachForm::speedEditKeyDown(TObject *Sender, WORD &Key,
 	}
 }
 //---------------------------------------------------------------------------
-void __fastcall TteachForm::teachingTimerTimer(TObject *Sender)
-{
-//	AnsiString str;
-//	int pos;
-//	if(robostar->output.WriteEnable == false && applyBtn->Down){
-//		str = tea_memo->Lines->Strings[teach.index];
-//		str = StringReplace(str, L"GP", L"", TReplaceFlags() << rfReplaceAll);
-//		pos = str.Pos(",");
-//		teach.point = str.SubString(1, pos-1);
-//		str.Delete(1, pos);
-//
-//		pos = str.Pos(",");
-//		teach.str_x = str.SubString(1, pos-1);
-//		str.Delete(1, pos);
-//
-//		pos = str.Pos(",");
-//		teach.str_y = str.SubString(1, pos-1);
-//		str.Delete(1, pos);
-//
-//		teach.str_z = str;
-//
-//		robostar->ww.pos[0] = teach.str_x.ToDouble() * 1000;
-//		robostar->ww.pos[1] = teach.str_y.ToDouble() * 1000;
-//		robostar->ww.pos[2] = teach.str_z.ToDouble() * 1000;
-//
-//		robostar->ww.globalPoint = teach.point.ToInt();
-//		robostar->ww.jogSpeed = 100;
-//
-//		robostar->setTx();
-//		teach.index += 1;
-//		if(tea_memo->Lines->Count <= teach.index){
-//			teachingTimer->Enabled = false;
-//			applyBtn->Down = false;
-//		}
-//	}
-}
-//---------------------------------------------------------------------------
 void __fastcall TteachForm::ApplyTeaching()
 {
 	AnsiString str;
@@ -986,78 +947,6 @@ void __fastcall TteachForm::Button2MouseDown(TObject *Sender, TMouseButton Butto
 	}
 }
 //---------------------------------------------------------------------------
-void __fastcall TteachForm::applyBtnClick(TObject *Sender)
-{
-	if(MessageBox(Handle, L"티칭 값을 저장 하시겠습니까?", L"저장", MB_YESNO|MB_ICONWARNING) == ID_YES){
-		ApplyTeaching();
-		tea_memo->Lines->SaveToFile(file);
-	}
-}
-//---------------------------------------------------------------------------
-
-
-void __fastcall TteachForm::FormShow(TObject *Sender)
-{
-	this->Left = 0;
-	this->Top = 0;
-
-    
-    robostar->io_Init();
-}
-//---------------------------------------------------------------------------
-
-
-void __fastcall TteachForm::AdvSmoothButton_CenteringDownClick(TObject *Sender)
-{
-	if(MainForm->equipMode == modeManual)
-		MainForm->plcOutput.SRC_MANUAL_WORK = !MainForm->plcOutput.SRC_MANUAL_WORK;
-}
-//---------------------------------------------------------------------------
-
-
-
-//---------------------------------------------------------------------------
-//void __fastcall TteachForm::SetTrayMaxPosition()
-//{
-//	sTray_Position.Top = 0;
-//	sTray_Position.Bottom = 0;
-//	sTray_Position.Left = 0;
-//	sTray_Position.Right = 0;
-//
-//	if(MainForm->tray->CH_GUBUN == 482)
-//	{
-//        sTray_Position.Left = teachEdit[1][0]->Text.ToInt();
-//		sTray_Position.Right = teachEdit[1][1]->Text.ToInt();
-//	}
-//	else
-//	{
-//		sTray_Position.Left = teachEdit[1][0]->Text.ToInt();
-//		sTray_Position.Right = teachEdit[1][3]->Text.ToInt();
-//	}
-//
-//	sTray_Position.Top = 1231879;
-//	sTray_Position.Bottom = teachEdit[0][0]->Text.ToInt();;
-//
-//	tTray_Position.Top = 0;
-//	tTray_Position.Bottom = 0;
-//	tTray_Position.Left = 0;
-//	tTray_Position.Right = 0;
-//
-//	if(MainForm->tray->CH_GUBUN == 482)
-//	{
-//        tTray_Position.Left = teachEdit[1][4]->Text.ToInt();
-//		tTray_Position.Right = teachEdit[1][5]->Text.ToInt();
-//	}
-//	else
-//	{
-//		tTray_Position.Left = teachEdit[1][4]->Text.ToInt();
-//		tTray_Position.Right = teachEdit[1][7]->Text.ToInt();
-//    }
-//
-//
-//	tTray_Position.Top = 2375346;
-//	tTray_Position.Bottom = teachEdit[0][4]->Text.ToInt();
-//}
 void __fastcall TteachForm::SetTrayMaxPosition()
 {
 	sTray_Position.Top = 0;
@@ -1195,8 +1084,8 @@ bool __fastcall TteachForm::CheckChuckPosition(int gripperIndex)
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::AdvSmoothButton_LoadFactorInfoClick(TObject *Sender)
 {
-	loadfactorForm->Left = AdvSmoothPanel1->Left + 120;
-	loadfactorForm->Top = AdvSmoothPanel1->Top + 200;
+	loadfactorForm->Left = pnlManualControl->Left + 120;
+	loadfactorForm->Top = pnlManualControl->Top + 200;
 	loadfactorForm->ShowModal();
 }
 //---------------------------------------------------------------------------
@@ -1212,7 +1101,6 @@ void __fastcall TteachForm::LanguageChange(int index)
 	AnsiString temp;
 
 	Label1->Caption = mm->Lines->Strings[0];
-	applyBtn->Caption = mm->Lines->Strings[1];
 	Label7->Caption = mm->Lines->Strings[2];
 	Panel28->Caption = mm->Lines->Strings[3];
 	Label2->Caption = mm->Lines->Strings[4];
@@ -1221,11 +1109,11 @@ void __fastcall TteachForm::LanguageChange(int index)
 	sCombo->Clear();
 	for(int i = 0; i < 2; i++) sCombo->Items->Add(mm->Lines->Strings[6 + i]);
 	sCombo->ItemIndex = 0;
-	Label3->Caption = mm->Lines->Strings[14];
+
 	Label5->Caption = mm->Lines->Strings[15];
 	Label4->Caption = mm->Lines->Strings[16];
 	Panel35->Caption = mm->Lines->Strings[17];
-	Panel44->Caption = mm->Lines->Strings[18];
+
 	Panel31->Caption = mm->Lines->Strings[19];
 	Panel33->Caption = mm->Lines->Strings[20];
 	Panel37->Caption = mm->Lines->Strings[21];
@@ -1241,7 +1129,6 @@ void __fastcall TteachForm::LanguageChange(int index)
 	Label8->Caption = mm->Lines->Strings[29];
 	Label9->Caption = mm->Lines->Strings[19];
 	Label10->Caption = mm->Lines->Strings[20];
-	Label11->Caption = mm->Lines->Strings[30];
 	Label29->Caption = mm->Lines->Strings[31];
 	Label30->Caption = mm->Lines->Strings[32];
 	Label31->Caption = mm->Lines->Strings[33];
@@ -1306,13 +1193,12 @@ void __fastcall TteachForm::LanguageChange(int index)
 	disableChk4->Caption = mm->Lines->Strings[44];
 	disableChk5->Caption = mm->Lines->Strings[44];
 	disableChk6->Caption = mm->Lines->Strings[44];
-	AdvSmoothButton_CenteringDown->Caption = mm->Lines->Strings[45];
 	AdvSmoothButton_LoadFactorInfo->Caption = mm->Lines->Strings[46];
 	Panel41->Caption = mm->Lines->Strings[47];
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TteachForm::AdvSmoothButton1Click(TObject *Sender)
+void __fastcall TteachForm::btnApplyTeachingClick(TObject *Sender)
 {
 	try{
         if(typeEdit1->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] KIND 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
@@ -1327,7 +1213,10 @@ void __fastcall TteachForm::AdvSmoothButton1Click(TObject *Sender)
         else if(typeEdit6->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] GRIP1 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
         else if(typeEdit11->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] GRIP2 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
         else{
-            AddList(FindList(typeEdit1->Text));
+            if(MessageBox(Handle, L"티칭 값을 저장 하시겠습니까?", L"저장", MB_YESNO|MB_ICONWARNING) == ID_YES){
+                ApplyTeaching();
+                tea_memo->Lines->SaveToFile(file);
+            }
         }
 	}catch(...){
 		MessageBox(Handle, L"[C_Maint] 정보를 입력 하세요.", L"경고", MB_OK|MB_ICONWARNING);
@@ -1335,176 +1224,24 @@ void __fastcall TteachForm::AdvSmoothButton1Click(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TteachForm::AdvSmoothButton2Click(TObject *Sender)
-{
-
-	if(searchList->ItemIndex >= 0){
-		if(MessageBox(Handle, L"삭제 하시겠습니까?", L"삭제", MB_YESNO|MB_ICONQUESTION) == ID_YES){
-			searchList->DeleteSelected();
-			SaveToFile();
-		}
-	}
-
-}
-//---------------------------------------------------------------------------
 void __fastcall TteachForm::SaveToFile()
 {
-	resultMemo->Clear();
-	for(int i= 0; i<searchList->Items->Count; ++i){
-		resultMemo->Lines->Add(searchList->Items->Item[i]->Caption);
-		for(int col=0; col< searchList->Columns->Count-1; ++col){
-			resultMemo->Lines->Add(searchList->Items->Item[i]->SubItems->Strings[col]);
-		}
-	}
-	resultMemo->Lines->SaveToFile(ExtractFilePath(Application->ExeName) + "KindTeachingFile");
+	//* 2026 06 티칭값 파일 저장
 }
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::LoadFromFile()
 {
-	searchList->Clear();
-
-	if(FileExists(ExtractFilePath(Application->ExeName) + "KindTeachingFile")){
-		resultMemo->Lines->LoadFromFile(ExtractFilePath(Application->ExeName) + "KindTeachingFile");
-		searchList->Items->BeginUpdate();
-		for(int i= 0; i<resultMemo->Lines->Count; ++i){
-			if(resultMemo->Lines->Strings[i].Trim().IsEmpty() == false){
-				ITEM = searchList->Items->Add();
-				ITEM->Caption = resultMemo->Lines->Strings[i];
-				for(int col=0; col< searchList->Columns->Count-1; ++col){
-					ITEM->SubItems->Add(resultMemo->Lines->Strings[++i]);
-				}
-			}
-		}
-		searchList->Items->EndUpdate();
-	}
+    //* 2026 06 티칭값 불러 오기
 }
 //---------------------------------------------------------------------------
-int __fastcall TteachForm::FindList(UnicodeString strName)
+void __fastcall TteachForm::AddList()
 {
-	for(int i= 0; i<searchList->Items->Count; ++i){
-		if(searchList->Items->Item[i]->Caption == strName){
-			//ChangeTeaching(i);
-			return i;
-		}
-	}
-	return -1;
-}
-//---------------------------------------------------------------------------
-void __fastcall TteachForm::AddList(int index)
-{
-
-	if(index < 0){
-		if(MessageBox(Handle, L"KIND 정보를 추가 하시겠습니까?", L"추가", MB_YESNO|MB_ICONQUESTION) == ID_NO)return;
-		searchList->Items->BeginUpdate();
-		ITEM = searchList->Items->Add();
-		ITEM->Caption = typeEdit1->Text;
-		ITEM->SubItems->Add(typeCombo->Text);
-
-        ITEM->SubItems->Add("96");
-
-		ITEM->SubItems->Add(typeEdit2->Text);
-        ITEM->SubItems->Add(typeEdit3->Text);
-        ITEM->SubItems->Add(typeEdit4->Text);
-        ITEM->SubItems->Add(typeEdit5->Text);
-
-        ITEM->SubItems->Add(typeEdit7->Text);
-        ITEM->SubItems->Add(typeEdit8->Text);
-        ITEM->SubItems->Add(typeEdit9->Text);
-        ITEM->SubItems->Add(typeEdit10->Text);
-
-        ITEM->SubItems->Add(typeEdit6->Text);
-        ITEM->SubItems->Add(typeEdit11->Text);
-		searchList->Items->EndUpdate();
-	}
-	else
-	{
-		if(MessageBox(Handle, L"KIND 정보를 업데이트 하시겠습니까?", L"Update", MB_YESNO|MB_ICONQUESTION) == ID_NO)return;
-            searchList->Items->Item[index]->SubItems->Strings[1] = "96";
-
-			searchList->Items->Item[index]->SubItems->Strings[2] = typeEdit2->Text;
-            searchList->Items->Item[index]->SubItems->Strings[3] = typeEdit3->Text;
-            searchList->Items->Item[index]->SubItems->Strings[4] = typeEdit4->Text;
-            searchList->Items->Item[index]->SubItems->Strings[5] = typeEdit5->Text;
-
-            searchList->Items->Item[index]->SubItems->Strings[6] = typeEdit7->Text;
-            searchList->Items->Item[index]->SubItems->Strings[7] = typeEdit8->Text;
-            searchList->Items->Item[index]->SubItems->Strings[8] = typeEdit9->Text;
-            searchList->Items->Item[index]->SubItems->Strings[9] = typeEdit10->Text;
-
-            searchList->Items->Item[index]->SubItems->Strings[10] = typeEdit6->Text;
-            searchList->Items->Item[index]->SubItems->Strings[11] = typeEdit11->Text;
-
-			searchList->ItemIndex = index;
-			ChangeTeaching(index);
-	}
 	SaveToFile();
 }
 //---------------------------------------------------------------------------
-void __fastcall TteachForm::searchListClick(TObject *Sender)
+void __fastcall TteachForm::ChangeTeaching()
 {
-	if(searchList->Selected == NULL)
-		return;
-	else
-		if(MessageBox(Handle, L"기종을 변경하시겠습니까?", L"", MB_YESNO|MB_ICONQUESTION) == ID_YES){
-			ConfigForm->editRecipe->Text = searchList->Selected->Index + 1;
-
-			int index;
-			index =	searchList->Selected->Index;
-
-			if(index >= 0){
-			   ChangeTeaching(index);
-			}
-		}
-}
-//---------------------------------------------------------------------------
-void __fastcall TteachForm::ChangeTeaching(int index)
-{
-	// tea_memo 추가
-	MainForm->tray->CH_GUBUN = searchList->Items->Item[index]->SubItems->Strings[1];
-		MainForm->tray_source.CH_GUBUN = searchList->Items->Item[index]->SubItems->Strings[1];
-
-
-	typeEdit9->Enabled = false;
-	typeEdit10->Enabled = false;
-
-	tea_memo->Clear();
-	tea_memo->Lines->Add("GP11," + searchList->Items->Item[index]->SubItems->Strings[2]);
-	tea_memo->Lines->Add("GP12," + searchList->Items->Item[index]->SubItems->Strings[3]);
-	tea_memo->Lines->Add("GP13," + searchList->Items->Item[index]->SubItems->Strings[4]);
-	tea_memo->Lines->Add("GP14," + searchList->Items->Item[index]->SubItems->Strings[5]);
-
-	tea_memo->Lines->Add("GP21," + searchList->Items->Item[index]->SubItems->Strings[6]);
-	tea_memo->Lines->Add("GP22," + searchList->Items->Item[index]->SubItems->Strings[7]);
-	tea_memo->Lines->Add("GP23," + searchList->Items->Item[index]->SubItems->Strings[8]);
-	tea_memo->Lines->Add("GP24," + searchList->Items->Item[index]->SubItems->Strings[9]);
-
-	tea_memo->Lines->Add("GP201," + searchList->Items->Item[index]->SubItems->Strings[10]);
-	tea_memo->Lines->Add("GP202," + searchList->Items->Item[index]->SubItems->Strings[11]);
-
-	Label34->Caption = "(현재기종 : " +  searchList->Items->Item[index]->Caption + ")";
-	ConfigForm->WriteSystemInfo("recipe");
-
-	// teachEdit 추가 - 실제 teaching 값 사용할 때 쓰임.
 	LoadTeaching();
-
-	// typeEdit 추가 (수정/등록)
-	int nindex = index;
-	typeEdit1->Text = searchList->Items->Item[nindex]->Caption;
-	typeCombo->Text = searchList->Items->Item[nindex]->SubItems->Strings[0];
-
-
-	typeEdit2->Text = searchList->Items->Item[nindex]->SubItems->Strings[2];
-	typeEdit3->Text = searchList->Items->Item[nindex]->SubItems->Strings[3];
-	typeEdit4->Text = searchList->Items->Item[nindex]->SubItems->Strings[4];
-	typeEdit5->Text = searchList->Items->Item[nindex]->SubItems->Strings[5];
-
-	typeEdit7->Text = searchList->Items->Item[nindex]->SubItems->Strings[6];
-	typeEdit8->Text = searchList->Items->Item[nindex]->SubItems->Strings[7];
-	typeEdit9->Text = searchList->Items->Item[nindex]->SubItems->Strings[8];
-	typeEdit10->Text = searchList->Items->Item[nindex]->SubItems->Strings[9];
-
-	typeEdit6->Text = searchList->Items->Item[nindex]->SubItems->Strings[10];
-	typeEdit11->Text = searchList->Items->Item[nindex]->SubItems->Strings[11];
 }
 //---------------------------------------------------------------------------
 
@@ -1555,11 +1292,6 @@ void __fastcall TteachForm::btnZAxisUpMouseUp(TObject *Sender, TMouseButton Butt
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TteachForm::Label6Click(TObject *Sender)
-{
-    GroupBox1->Visible = !GroupBox1->Visible;
-}
-//---------------------------------------------------------------------------
 
 void __fastcall TteachForm::btnKeyLockClick(TObject *Sender)
 {
@@ -1608,3 +1340,5 @@ void __fastcall TteachForm::zdown()
 	}
 }
 //---------------------------------------------------------------------------
+
+

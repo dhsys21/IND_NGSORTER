@@ -888,13 +888,10 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	if(plcInput.SRC_READY)  // gsm test 2018 09 14
 	{
 		psrcReady->Color = clLime;
-		teachForm->AdvSmoothButton_CenteringDown->Color = clLime;
 	}
 	else{
 		psrcReady->Color = clSilver;
 		psrcReady->Font->Color = clBlack;
-
-		teachForm->AdvSmoothButton_CenteringDown->Color = clWhite;
 	}
 	if(plcInput.TARGET_READY)ptargetReady->Color = clLime;
 	else{

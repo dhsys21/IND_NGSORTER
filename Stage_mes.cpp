@@ -74,27 +74,20 @@ void __fastcall TMainForm::DisplayTrayInfo()
 			this->CmdTrayOut(0);
 		}
 		else{
-			if(teachForm->FindList(tray->KIND) == -1){
-				NotifyAlarm(true, 28);
-				//ProcessError(pKIND->Caption + " Gripper position setting", "Setting value does not exist.", "Please also check the correction value.");
-			}
-			else{
-				int nIndex = teachForm->FindList(tray->KIND);
-				teachForm->ChangeTeaching(nIndex);
+            teachForm->ChangeTeaching();
 
-				loadTrayInfo(0);
-				if(checkTrayInfo(0))
-				{
-					if(pbad_sum->Caption.ToInt() <= stage.limitCnt){
-						memoMainLineAdd("[C_Maint] [PLC] 선별 트레이 센터링 요청");
-						plcOutput.SRC_WORK = 1;	// 작업2.선별을 해야 할 경우 센터링을 친다. -> stepTimer
-					}else{
-						memoMainLineAdd("[C_Maint] NG 수가 설정값을 초과 했습니다.");
-						ErrorForm_limit->ShowError();
-					}
-				}
-				else trayinfoForm->ShowError("[C_Maint] 선별 트레이 정보가 다릅니다.", "선별 트레이 정보를 확인해 주세요.", pTrayid_source->Caption, 0);
-			}
+            loadTrayInfo(0);
+            if(checkTrayInfo(0))
+            {
+                if(pbad_sum->Caption.ToInt() <= stage.limitCnt){
+                    memoMainLineAdd("[C_Maint] [PLC] 선별 트레이 센터링 요청");
+                    plcOutput.SRC_WORK = 1;	// 작업2.선별을 해야 할 경우 센터링을 친다. -> stepTimer
+                }else{
+                    memoMainLineAdd("[C_Maint] NG 수가 설정값을 초과 했습니다.");
+                    ErrorForm_limit->ShowError();
+                }
+            }
+            else trayinfoForm->ShowError("[C_Maint] 선별 트레이 정보가 다릅니다.", "선별 트레이 정보를 확인해 주세요.", pTrayid_source->Caption, 0);
 		}
 		tray = &tray_target;
 	}

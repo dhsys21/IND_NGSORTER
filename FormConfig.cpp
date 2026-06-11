@@ -113,9 +113,6 @@ bool __fastcall TConfigForm::ReadSystemInfo()
 	teachForm->acclSpeedEdit->Text = ini->ReadString("SPEED", "ACCL_SPEED", "1000");
 	teachForm->dcclSpeedEdit->Text = ini->ReadString("SPEED", "DCCL_SPEED", "1000");
 
-	if(recipe.ToInt() <= teachForm->searchList->Items->Count)
-		teachForm->ChangeTeaching(recipe.ToInt() - 1);
-
 	delete ini;
 	return true;
 }

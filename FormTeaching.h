@@ -114,8 +114,7 @@ __published:	// IDE-managed Components
 	TComboBox *sCombo;
 	TPanel *Panel20;
 	TPanel *pselect;
-	TAdvSmoothPanel *AdvSmoothPanel1;
-	TLabel *Label3;
+	TAdvSmoothPanel *pnlManualControl;
 	TAdvSmoothPanel *AdvSmoothPanel3;
 	TAdvSmoothPanel *AdvSmoothPanel2;
 	TPanel *Panel35;
@@ -132,10 +131,9 @@ __published:	// IDE-managed Components
 	TPanel *pspeed;
 	TLabel *Label4;
 	TLabel *Label5;
-	TAdvSmoothPanel *AdvSmoothPanel4;
+	TAdvSmoothPanel *pnlJogControl;
 	TLabel *Label6;
-	TAdvSmoothPanel *AdvSmoothPanel5;
-	TLabel *Label11;
+	TAdvSmoothPanel *pnlGripperControl;
 	TPanel *Panel30;
 	TImage *Image1;
 	TLabel *CLR1;
@@ -361,7 +359,6 @@ __published:	// IDE-managed Components
 	TButton *Button5;
 	TButton *Button6;
 	TAdvSmoothButton *AdvSmoothButton_ServoOn;
-	TAdvSmoothButton *applyBtn;
 	TAdvSmoothButton *AdvSmoothButton_Zup;
 	TAdvSmoothButton *homeBtn;
 	TAdvSmoothButton *stopBtn;
@@ -388,14 +385,11 @@ __published:	// IDE-managed Components
 	TPanel *pLsnX1;
 	TPanel *pLsnY;
 	TPanel *pLsnZ;
-	TPanel *Panel44;
-	TPanel *px2;
 	TLabel *Label33;
 	TPanel *Panel45;
 	TMemo *Memo_Ko;
 	TMemo *Memo_En;
 	TMemo *Memo_Hu;
-	TAdvSmoothButton *AdvSmoothButton_CenteringDown;
 	TPanel *Panel41;
 	TPanel *Panel_speedEdit;
 	TAdvSmoothButton *AdvSmoothButton_LoadFactorInfo;
@@ -406,12 +400,6 @@ __published:	// IDE-managed Components
 	TPanel *pLspG1;
 	TPanel *Panel46;
 	TPanel *pg1;
-	TPanel *Panel49;
-	TPanel *pg2;
-	TAdvSmoothPanel *AdvSmoothPanel7;
-	TLabel *Label34;
-	TListView *searchList;
-	TMemo *resultMemo;
 	TEdit *gpEdit19;
 	TPanel *Panel52;
 	TPanel *Panel53;
@@ -422,7 +410,6 @@ __published:	// IDE-managed Components
 	TEdit *typeEdit1;
 	TLabel *Label36;
 	TComboBox *typeCombo;
-	TLabel *Label37;
 	TLabel *Label38;
 	TLabel *Label48;
 	TEdit *typeEdit6;
@@ -445,8 +432,7 @@ __published:	// IDE-managed Components
 	TEdit *typeEdit8;
 	TLabel *Label47;
 	TEdit *typeEdit7;
-	TAdvSmoothButton *AdvSmoothButton1;
-	TAdvSmoothButton *AdvSmoothButton2;
+	TAdvSmoothButton *btnApplyTeaching;
 	TLabel *Label52;
 	TLabel *Label53;
 	TLabel *Label54;
@@ -454,24 +440,16 @@ __published:	// IDE-managed Components
 	TButton *Button7;
 	TButton *Button8;
 	TLabel *Label51;
-	TLabel *Label56;
-	TButton *Button9;
-	TButton *Button10;
 	TPanel *Panel73;
 	TPanel *Panel69;
 	TEdit *acclSpeedEdit;
 	TEdit *dcclSpeedEdit;
-	TLabel *lblLoadFactor5;
-	TLabel *lblLoadFactor6;
+	TLabel *lblLoadFactor4;
 	TLabel *Label58;
 	TLabel *lblLoadFactor1;
 	TLabel *Label60;
-	TLabel *lblLoadFactor4;
 	TLabel *lblLoadFactor3;
 	TLabel *lblLoadFactor2;
-	TGroupBox *GroupBox1;
-	TButton *btnZAxisUp;
-	TButton *btnZAxisDown;
 	TAdvSmoothButton *btnKeyLock;
 	TTimer *unchuckTimer;
 	TTimer *unchuckAllTimer;
@@ -495,7 +473,6 @@ __published:	// IDE-managed Components
 	void __fastcall AdvSmoothButton37Click(TObject *Sender);
 	void __fastcall AdvSmoothButton38Click(TObject *Sender);
 	void __fastcall speedEditKeyDown(TObject *Sender, WORD &Key, TShiftState Shift);
-	void __fastcall teachingTimerTimer(TObject *Sender);
 	void __fastcall AdvSmoothButton4Click(TObject *Sender);
 	void __fastcall AdvSmoothButton3Click(TObject *Sender);
 	void __fastcall disableChk1Click(TObject *Sender);
@@ -507,16 +484,12 @@ __published:	// IDE-managed Components
 	void __fastcall Button1MouseUp(TObject *Sender, TMouseButton Button, TShiftState Shift,
 		  int X, int Y);
 	void __fastcall AdvSmoothButton_ServoOnClick(TObject *Sender);
-	void __fastcall applyBtnClick(TObject *Sender);
 	void __fastcall FormShow(TObject *Sender);
 	void __fastcall AdvSmoothButton_ZupClick(TObject *Sender);
 	void __fastcall homeBtnClick(TObject *Sender);
 	void __fastcall stopBtnClick(TObject *Sender);
-	void __fastcall AdvSmoothButton_CenteringDownClick(TObject *Sender);
 	void __fastcall AdvSmoothButton_LoadFactorInfoClick(TObject *Sender);
-	void __fastcall AdvSmoothButton1Click(TObject *Sender);
-	void __fastcall AdvSmoothButton2Click(TObject *Sender);
-	void __fastcall searchListClick(TObject *Sender);
+	void __fastcall btnApplyTeachingClick(TObject *Sender);
 	void __fastcall Panel47Click(TObject *Sender);
 	void __fastcall btnZAxisDownMouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift,
           int X, int Y);
@@ -526,7 +499,6 @@ __published:	// IDE-managed Components
           int X, int Y);
 	void __fastcall btnZAxisUpMouseUp(TObject *Sender, TMouseButton Button, TShiftState Shift,
           int X, int Y);
-	void __fastcall Label6Click(TObject *Sender);
 	void __fastcall btnKeyLockClick(TObject *Sender);
 	void __fastcall AdvSmoothButton12MouseDown(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y);
@@ -557,8 +529,7 @@ private:	// User declarations
     bool __fastcall CheckChuckPosition(int gripperIndex);
     bool __fastcall CheckMoveTargetChannel(int channel);
     bool __fastcall CheckMoveSourceChannel();
-//	int __fastcall FindList(UnicodeString strName);
-	void __fastcall AddList(int index);
+	void __fastcall AddList();
 	void __fastcall SaveToFile();
 	void __fastcall LoadFromFile();
 
@@ -573,9 +544,8 @@ public:		// User declarations
     TLabel *lblLoadFactor[7];
     void __fastcall zdown();
     void __fastcall zup();
-	int __fastcall FindList(UnicodeString strName);
 	void __fastcall LanguageChange(int index);
-    void __fastcall ChangeTeaching(int index);
+    void __fastcall ChangeTeaching();
 	TRAY_POSITION sTray_Position, tTray_Position;
 
 	bool isGripperOpen1;
