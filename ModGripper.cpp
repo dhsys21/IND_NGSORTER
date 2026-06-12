@@ -335,25 +335,13 @@ void __fastcall Tgripper::Inserting()
 				}catch(...){
 					pos1 = 0;
 				}
-				div1 = (pos1-1)/6;       // 대상 트레이 1열에 6개
 
 				if(pos1 > 0 && tool[i].insert_end == false){
 					insert.pos = pos1;		// 취출 채널
 					insert.conCnt = 1;		// 연속 수량
 					insert.gripper = i+1;	// 그리퍼 번호
 
-					for(int cnt=i+1; cnt < gripCnt; ++cnt){
-						pos2 = tool[cnt].target_ch.ToInt();
-						div2 = (pos2-1)/6; // 대상 트레이 1열에 6개
-						if( pos2 - pos1 == 1 && div1 == div2){
-							insert.conCnt+= 1;
-							pos1 = pos2;
-							i++;
-						}else{
-							i = 100;
-							cnt = 100;
-						}
-					}
+					break;
 				}
 			}
 			if(insert.pos > 0){	// 삽입 시작
@@ -369,9 +357,8 @@ void __fastcall Tgripper::Inserting()
 			if(robostar->seq == seqAutoInsert || robostar->seq == seqAutoInsertComplete)
 			{
 				robostar->m_bInsertSave = false;
-				step.step += 1;        // test
+				step.step += 1;
 			}
-//            step.step += 1;
 			break;
 		case 2:	// 이재 완료 확인
 			if(robostar->seq == seqAutoInsertComplete){
@@ -386,29 +373,16 @@ void __fastcall Tgripper::Inserting()
 					MainForm->DisplayTargetCellInfo(-1, tool[i-1].target_ch.ToInt()-1);
 				}
 				step.step += 1;
-			}else if(robostar->m_bInsertSave){
-                for(int i=insert.gripper; i<insert.gripper + insert.conCnt; ++i){
-					tool[i-1].insert_end = true;
-					MainForm->tray_target.SLOT_ID[tool[i-1].target_ch.ToInt()-1] = MainForm->tray_source.SLOT_ID[tool[i-1].source_ch.ToInt()-1];
-					MainForm->tray_target.LOSS_CD[tool[i-1].target_ch.ToInt()-1] = MainForm->tray_source.LOSS_CD[tool[i-1].source_ch.ToInt()-1];
-					MainForm->tray_target.PICK[tool[i-1].target_ch.ToInt()-1] = MainForm->tray_source.PICK[tool[i-1].source_ch.ToInt()-1];
-					MainForm->tray_target.RANK[tool[i-1].target_ch.ToInt()-1] = MainForm->tray_source.RANK[tool[i-1].source_ch.ToInt()-1];
-					MainForm->DisplayTargetCell(-1, tool[i-1].target_ch.ToInt()-1);	// 화면 show
-				}
-				MainForm->setTrayInfo(1);
-				robostar->m_bInsertSave = false;
 			}else{
-				MainForm->memoGripperLineAdd("[Insert step 2] 삽입...(로봇 작동중)");
+				MainForm->memoGripperLineAdd("[Insert step 2] Inserting...(Robot in operation)");
 			}
 			break;
 		case 3:
-			MainForm->memoGripperLineAdd("[Insert step 3] 다음 삽입 대상을 확인하세요.");
-//			MainForm->setTrayInfo(1);
+			MainForm->memoGripperLineAdd("[Insert step 3] Check the next insert target.");
 			InitSequence(seqInserting);
 			break;
 		default:
-			MainForm->memoGripperLineAdd("[Insert complete] 다음 취출을 위한 초기화 준비.");
-//			MainForm->NotifyIdMatching_target("0");	// 이재 완료시마다 보고
+			MainForm->memoGripperLineAdd("[Insert complete] Prepare the initialization for the next eject.");
 			MainForm->NotifyIdMatching_target("1");	// 이재 완료시마다 보고
 			InitSequence(seqInit, seqSorting);
 			break;
