@@ -93,8 +93,8 @@ typedef struct{
 	uint8_t GRIPPER1_DOWN:1; //RX41
 	uint8_t GRIPPER1_BUFFER:1; //RX42
 	uint8_t GRIPPER1_CELL_DETECT:1; //RX43
-	uint8_t RX44:1; //RX44
-	uint8_t RX45:1; //RX45
+	uint8_t GRIPPER1_UNCHUCK:1; //RX44
+	uint8_t GRIPPER1_FLOAT:1; //RX45
 	uint8_t RX46:1; //RX46
 	uint8_t RX47:1; //RX47
 	uint8_t RX48:1; //RX48
@@ -296,18 +296,18 @@ typedef struct{
 	uint8_t RY6E:1; //RY6E
 	uint8_t RY6F:1; //RY6F
 //--------------------------
-	uint8_t RY70:1; //RY7C
-	uint8_t RY71:1; //RY7C
-	uint8_t RY72:1; //RY7C
-	uint8_t RY73:1; //RY7C
-	uint8_t RY74:1; //RY7C
-	uint8_t RY75:1; //RY7C
-	uint8_t RY76:1; //RY7C
-	uint8_t RY77:1; //RY7C
-	uint8_t RY78:1; //RY7C
-	uint8_t RY79:1; //RY7C
-	uint8_t RY7A:1; //RY7C
-	uint8_t RY7B:1; //RY7C
+	uint8_t GRIPPER1_UNCHUCK:1; //RY70
+	uint8_t GRIPPER1_CHUCK:1; //RY71
+	uint8_t RY72:1; //RY72
+	uint8_t RY73:1; //RY73
+	uint8_t RY74:1; //RY74
+	uint8_t RY75:1; //RY75
+	uint8_t RY76:1; //RY76
+	uint8_t RY77:1; //RY77
+	uint8_t RY78:1; //RY78
+	uint8_t RY79:1; //RY79
+	uint8_t RY7A:1; //RY7A
+	uint8_t RY7B:1; //RY7B
 	uint8_t RY7C:1; //RY7C
 	uint8_t RY7D:1; //RY7D
 	uint8_t RY7E:1; //RY7E

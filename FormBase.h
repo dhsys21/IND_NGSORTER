@@ -84,7 +84,6 @@ __published:	// IDE-managed Components
 	void __fastcall FormCloseQuery(TObject *Sender, bool &CanClose);
 	void __fastcall Button1Click(TObject *Sender);
 	void __fastcall FormClose(TObject *Sender, TCloseAction &Action);
-	void __fastcall FormCreate(TObject *Sender);
 	void __fastcall AdvSmoothButton2Click(TObject *Sender);
 	void __fastcall AdvSmoothButton1Click(TObject *Sender);
 	void __fastcall RadioButton1Click(TObject *Sender);

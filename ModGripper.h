@@ -58,8 +58,6 @@ private:	// User declarations
 	}STEP;
 
 	TIniFile *ini;
-
-
 	void __fastcall Initialize();
 	void __fastcall Sorting();
 	void __fastcall Inserting();
@@ -67,18 +65,11 @@ private:	// User declarations
 	WORK eject;
 	WORK insert;
 
-//	STEP step;
-
-//	gripperSequence seq;
-
-
 	void __fastcall InitSequence(gripperSequence data, gripperSequence reserve = seqIdle);
-
-
 public:		// User declarations
 
-	bool disable_gripper[3];	// 그리퍼 사용여부
-	TOOL tool[2];
+	bool disable_gripper[gripCnt+1];	// 그리퍼 사용여부
+	TOOL tool[gripCnt];
 
 	void __fastcall req_Sorting();
 	void __fastcall req_Init();

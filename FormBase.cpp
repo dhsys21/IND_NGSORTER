@@ -198,64 +198,6 @@ void __fastcall TBaseForm::FormClose(TObject *Sender, TCloseAction &Action)
 
 
 
-void __fastcall TBaseForm::FormCreate(TObject *Sender)
-{
-//	pRead[0][0] = ConfigForm->pnlPLCOUT01;
-//	pRead[0][0] = ConfigForm->pnlPLCOUT02;
-//	pRead[0][2] = ConfigForm->pnlPLCOUT03;
-//	pRead[0][3] = ConfigForm->pnlPLCOUT04;
-//	pRead[0][4] = ConfigForm->pnlPLCOUT05;
-//	pRead[0][5] = ConfigForm->pnlPLCOUT06;
-//	pRead[0][6] = ConfigForm->pnlPLCOUT07;
-//	pRead[0][7] = ConfigForm->pnlPLCOUT08;
-//
-//	pRead[1][0] = ConfigForm->pnlPLCIN01;
-//	pRead[1][1] = ConfigForm->pnlPLCIN02;
-//	pRead[1][2] = ConfigForm->pnlPLCIN03;
-//	pRead[1][3] = ConfigForm->pnlPLCIN04;
-//	pRead[1][4] = ConfigForm->pnlPLCIN05;
-//	pRead[1][5] = ConfigForm->pnlPLCIN06;
-//	pRead[1][6] = ConfigForm->pnlPLCIN07;
-//	pRead[1][7] = ConfigForm->pnlPLCIN08;
-//
-//
-//
-//
-//	int nx = 1000;
-//	int ny = 5;
-//	for(int row = 0; row < 2; row++) {
-//		for(int col = 0; col < 16; col++) {
-//			pRead[row][col] = new TPanel(Owner);
-//			//pRead[row][col]->Parent = this;
-//			pRead[row][col]->Width = 50;
-//			pRead[row][col]->Height = 25;
-//			pRead[row][col]->Color = clSilver;
-//			pRead[row][col]->Top = ny;
-//			pRead[row][col]->Left = nx;
-//			pRead[row][col]->Caption = col;
-//			pRead[row][col]->Visible = true;
-//
-//			nx = nx - 50 - 2;
-//
-//		}
-//		ny += 30;
-//		nx = 1000;
-//	}
-//	pRead[0][0]->Caption = "자동";
-//	pRead[0][1]->Caption = "비상";
-//	pRead[0][2]->Caption = "선별도착";
-//	pRead[0][3]->Caption = "선별센터";
-//	pRead[0][4]->Caption = "선별배출";
-//	pRead[0][5]->Caption = "대센터1";
-//	pRead[0][6]->Caption = "대배출1";
-//
-//	pRead[1][1]->Caption = "작업가능";
-//	pRead[1][2]->Caption = "선별작업";
-//	pRead[1][3]->Caption = "선별배출";
-//	pRead[1][5]->Caption = "대배출1";
-
-}
-//---------------------------------------------------------------------------
 
 void __fastcall TBaseForm::AdvSmoothButton2Click(TObject *Sender)
 {

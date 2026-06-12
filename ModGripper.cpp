@@ -13,7 +13,7 @@ __fastcall Tgripper::Tgripper(TComponent* Owner)
 	: TDataModule(Owner)
 {
 	seq = seqIdle;
-	tool[6].disable = false;	// 7번 그리퍼는 항상 false로 마지막 지점 체크로 사용한다.
+	tool[gripCnt].disable = false;	// 7번 그리퍼는 항상 false로 마지막 지점 체크로 사용한다.
 	pauseStatus = false;
 }
 //---------------------------------------------------------------------------
@@ -106,14 +106,14 @@ void __fastcall Tgripper::Initialize()
 
     if(MainForm->pwork1->Color != clLime)
 	{
-		AlarmForm->ShowError("[C_Maint] 선별 트레이가 준비되지 않았습니다.", "확인하고 재시작 하세요.");
+		AlarmForm->ShowError("The source tray is not ready.", "Please check and restart.");
 		return;
 	}
 
 	switch(step.step){
 		case 0:	// 그리퍼 정보 초기화
 			if(MainForm->pwork2->Color != clLime){
-				MainForm->memoGripperLineAdd("[C_Maint] [Init step 0] 대상 트레이가 준비되지 않았습니다.");
+				MainForm->memoGripperLineAdd("[Init step 0] The target tray is not ready.");
 				return;
 			}
 			if(MainForm->tray_target.remainCnt == 0){
@@ -123,7 +123,7 @@ void __fastcall Tgripper::Initialize()
 					MainForm->NotifyTransferOut(MainForm->pTrayid_target->Caption);
 					MainForm->CmdTrayOut(1);
 				}
-				MainForm->memoGripperLineAdd("[C_Maint] [Init step 0] 대상 트레이가 가득 참.");
+				MainForm->memoGripperLineAdd("[Init step 0] Target tray is full.");
 
 				waitTimer->Enabled = true;
 				return;
@@ -141,23 +141,22 @@ void __fastcall Tgripper::Initialize()
 					tool[i].target_ch = "0";
 
 					if(tool[i].disable == false && robostar->CheckEjectCell_before(i+1) == false){ 	// 그리퍼 사용하는데 셀이 있으면 알람발생
-						MainForm->memoGripperLineAdd("[B_Ignition] [Init step 0] Gripper  #" + IntToStr(i+1) + " - 셀을 감지 하여 선별을 중단 하였습니다.");
-						AlarmForm->ShowError("[B_Ignition] Gripper  #" + IntToStr(i+1) + " - 셀을 감지 하여 선별을 중단 하였습니다.", "확인하고 재시작 하세요.");
+						MainForm->memoGripperLineAdd("[Init step 0] Gripper  #" + IntToStr(i+1) + " - Cell was detected and sorting stopped.");
+						AlarmForm->ShowError("Gripper  #" + IntToStr(i+1) + " - Cell was detected and sorting stopped.", "Check and restart.");
 						return;
 					}
-
 				}
 				step.step += 1;
 			}else{
-				MainForm->memoGripperLineAdd("[Init step 0] Automatic - Stop 상태.");
+				MainForm->memoGripperLineAdd("[Init step 0] Automatic - Stop state.");
 			}
 			waitTimer->Enabled = false;
 			break;
 		case 1:
         	// 1. 선별 트레이 채널 할당
             // 2. 대상 트레이 채널 할당
-            // 3. step.chCnt는 InitSequence에서 0으로 초기화 => 그리퍼 사용변수
-			for(int j = step.chCnt; j < 2; j++)
+            // 3. step.chCnt는 InitSequence에서 0으로 초기화 => 0부터 그리퍼 갯수만큼 증가
+			for(int j = step.chCnt; j < gripCnt; j++)
 			{
 				for(int nzone = 0; nzone < 4; ++nzone)
 				{	// 1.zone 순서대로 돌면서 확인을 한다. => 현재는 zone을 사용하지 않음.
@@ -170,8 +169,8 @@ void __fastcall Tgripper::Initialize()
                         //* 1. GetZonecode는 nzone이 3일때 항상 true,  2. pick = Y이면 "NG"
 						if(MainForm->psort_ing[i]->Caption == "NG" && GetZoneCode(nzone, MainForm->tray_source.LOSS_CD[i])){	// 선별 채널의 코드와 zone을 확인한다.
 							repeatCheck = false; //* zone이 여러개 일때 이전 zone 에서 할당이 된 경우 확인.
-							for(int ch = 0; ch < step.chCnt; ++ch){		// 채널이 이미 할당 되지는 않았는지 확인한다
-								if(ch < 2)
+							for(int ch = 0; ch < step.chCnt; ++ch){// 채널이 이미 할당되어 있는지 확인.
+								if(ch < gripCnt)
 								{
 									if(tool[ch].source_ch == (i+1))
 									{
@@ -295,7 +294,7 @@ void __fastcall Tgripper::Sorting()
 	switch(step.step){
 		case 0:
 			memset(&eject, 0, sizeof(eject));
-			for(int i=0 ; i<gripCnt; ++i){	// 그리퍼 6개
+			for(int i=0 ; i<gripCnt; ++i){	// 그리퍼 1개
 				try{
 					pos1 = tool[i].source_ch.ToInt();
 				}catch(...){

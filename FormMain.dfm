@@ -6468,8 +6468,8 @@ object MainForm: TMainForm
     Visible = False
   end
   object pnlPLCTEST: TAdvSmoothPanel
-    Left = 136
-    Top = 551
+    Left = 959
+    Top = 502
     Width = 1293
     Height = 392
     Cursor = crDefault

@@ -34,32 +34,26 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	status_on[1] = pOnX1;
 	status_on[2] = pOnY;
 	status_on[3] = pOnZ;
-	status_on[4] = pOnG1;
 
 	status_org[1] = pOrgX1;
 	status_org[2] = pOrgY;
 	status_org[3] = pOrgZ;
-	status_org[4] = pOrgG1;
 
 	status_error[1] = pErrorX1;
 	status_error[2] = pErrorY;
 	status_error[3] = pErrorZ;
-	status_error[4] = pErrorG1;
 
 	status_lsp[1] = pLspX1;
 	status_lsp[2] = pLspY;
 	status_lsp[3] = pLspZ;
-	status_lsp[4] = pLspG1;
 
 	status_lsn[1] = pLsnX1;
 	status_lsn[2] = pLsnY;
 	status_lsn[3] = pLsnZ;
-	status_lsn[4] = pLsnG1;
 
 	status_pos[1] = px1;
 	status_pos[2] = py;
 	status_pos[3] = pz;
-	status_pos[4] = pg1;
 
 
 	m_ServoOpen = false;
@@ -594,7 +588,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		if(robostar->mr2.speed[Axis_x] < 0) robostar->mr2.speed[Axis_x] *= -1;
 		if(robostar->mr2.speed[Axis_y] < 0) robostar->mr2.speed[Axis_y] *= -1;
 		pspeed->Caption = FloatToStr(robostar->mr2.speed[Axis_x]) + " / " + FloatToStr(robostar->mr2.speed[Axis_y]);
-        //* servoCnt = 4, X, Y, Z, G ÃÑ4°³
+        //* servoCnt = 3, X, Y, Z ÃÑ3°³
 		for(int i = 1; i <= servoCnt; ++i){
 			loadfactorForm->Panel_Position[i]->Caption = FormatFloat("0 %", robostar->mr2.mondata[i][0]);
 			teachForm->lblLoadFactor[i]->Caption = FormatFloat("0 %", robostar->mr2.mondata[i][0]);
@@ -656,12 +650,12 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		m_ServoOpen = true;
 
 		if(status_on[Axis_x]->Color == clLime && status_on[Axis_y]->Color == clLime
-			&& status_on[Axis_z]->Color == clLime && status_on[Axis_g]->Color == clLime)
+			&& status_on[Axis_z]->Color == clLime)
 		{
 			m_ServoON = true;
 
 			if(status_org[Axis_x]->Color == clLime && status_org[Axis_y]->Color == clLime
-				&& status_org[Axis_z]->Color == clLime && status_org[Axis_g]->Color == clLime) {
+				&& status_org[Axis_z]->Color == clLime) {
 				m_ServoHome = true;
 			}
 			else {
@@ -778,18 +772,12 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		ErrorForm_insert->pclose2->Color = pclose2->Color;
 	}
 
-	pcode1->Caption = gripper->tool[0].code;
-	pcode2->Caption = gripper->tool[1].code;
-
-	psource_ch1->Caption = gripper->tool[0].source_ch;
-	psource_ch2->Caption = gripper->tool[1].source_ch;
-
-	ptarget_ch1->Caption = gripper->tool[0].target_ch;
-	ptarget_ch2->Caption = gripper->tool[1].target_ch;
-
-	puse1->Visible = gripper->tool[0].disable;
-	puse2->Visible = gripper->tool[1].disable;
-
+    for(int i = 0; i < gripCnt; i++){
+        pcode1->Caption = gripper->tool[i].code;
+        psource_ch1->Caption = gripper->tool[i].source_ch;
+        ptarget_ch1->Caption = gripper->tool[i].target_ch;
+        puse1->Visible = gripper->tool[i].disable;
+    }
 
 	if( robostar->input.SAFETY_DOOR_1)pdoor_left->Color = clRed;
 	else pdoor_left->Color = clSilver;

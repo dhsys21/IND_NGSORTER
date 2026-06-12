@@ -127,15 +127,16 @@ const int ETC = 3;
 
 const char nAuto 	= 0;
 const char nLocal 	= 1;
-const int servoCnt 	= 4;  //* X, Y, Z, G1 총 4개
+const int servoCnt 	= 3;  //* X, Y, Z 3개. 헝가리는 X1, X2, Y, Z 총 4개
 const int gripCnt 	= 1;  //* gripper 1개
 
 const int Axis_x = 1;
 const int Axis_y = 2;
 const int Axis_z = 3;
-const int Axis_g = 4;
 const int Axis_zUp = 0;
-const int AxisCnt = 5;  //* 서보에서 값이 1부터 들어옴. 0은? X=1, Y=2, Z=3, G=4
+const int AxisCnt = 4;  //* System=0, X=1, Y=2, Z=3
+const int Wait_xAxis = 0; //* 원점센서 위치에 따라 대기 장소가 달라짐.
+const int Wait_yAxis = 0;
 
 typedef struct{
 	int arl;

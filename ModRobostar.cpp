@@ -30,19 +30,14 @@ __fastcall Trobostar::Trobostar(TComponent* Owner)
 int __fastcall Trobostar::io_Init()
 {
     short num[4] = {0x024E, 0, 0, 0};
-	for(int i = 1; i <= 6; i++) sscSetMonitor(board_id, channel_id, i, &num[0]);
+	for(int i = 1; i <= servoCnt; i++) sscSetMonitor(board_id, channel_id, i, &num[0]);
 
 	senTimer->Enabled = true;
 
 	short size = sizeof(gripper);
 	mdReceive(config.path, config.stno, DevY, 0x0020, &size, &gripper);	// IO 상태는 초기 상태를 불러온다 : 셀을 놓을 수 있기 때문에
-	for(int i=1; i<=2; ++i)GripperDown(i, false, true);	// 그리퍼는 모두 상승시킨다.
+	for(int i = 1; i <= gripCnt; ++i)GripperDown(i, false, true);	// 그리퍼는 모두 상승시킨다.
 
-//    move.pallet = pallet;
-//	move.type = type;
-//	move.tool = tool;
-//	move.channel = channel;
-//	move.cnt = cnt;
 	SetPositionValue(); // gsm 2018 09 14
 }
 //---------------------------------------------------------------------------
@@ -216,26 +211,7 @@ void __fastcall Trobostar::Home()
 			if(input.GRIPPER1_CELL_DETECT == true)
 			{
 				MainForm->memoRobostarLineAdd("[B_Ignition] 그리퍼에 셀이 있습니다. 셀을 제거 후 원점으로 이동 해 주세요");
-                step.step = 13;
-			}
-			else
-			{
-				step.step += 1;
-			}
-			break;
-		case 9: // 그리퍼1 원점
-			sts = sscHomeReturnStart(board_id, channel_id, Axis_g);
-			WriteLog(sts, "Gripper 1 Servo Home - Request");
-			step.step += 1;
-			break;
-		case 10:
-			sts = sscGetStatusBitSignalEx(board_id, channel_id, Axis_g, SSC_STSBIT_AX_ZREQ, &bitInfo);
-			if(bitInfo){
-				MainForm->memoRobostarLineAdd("Gripper 1 Servo Home - Moving");
-			}
-			else{
-				MainForm->memoRobostarLineAdd("Gripper 1 Servo Home - Complete");
-				step.step += 1;
+                step.step = 99;
 			}
 			break;
 		default:
@@ -248,7 +224,7 @@ void __fastcall Trobostar::Home()
 void __fastcall Trobostar::ServoOn()
 {
 	int sts = 0;
-	for(int i=1; i<=6; ++i){
+	for(int i=1; i<=servoCnt; ++i){
 		sts = sscSetCommandBitSignalEx(board_id, channel_id, i, SSC_CMDBIT_AX_SON, SSC_BIT_ON);
 		WriteLog(sts, "[" + IntToStr(i) +  "] 서보 ON");
 	}
@@ -258,7 +234,7 @@ void __fastcall Trobostar::ServoOn()
 void __fastcall Trobostar::ServoOff()
 {
 	int sts = 0;
-	for(int i=1; i<=6; ++i){
+	for(int i=1; i<=servoCnt; ++i){
 		sts = sscSetCommandBitSignalEx(board_id, channel_id, i, SSC_CMDBIT_AX_SON, SSC_BIT_OFF);
 		WriteLog(sts, "[" + IntToStr(i) +  "] 서보 OFF");
 	}
@@ -307,22 +283,11 @@ void __fastcall Trobostar::MoveJog(int ntype)
 			sts = sscJogStart(board_id, channel_id, axnum_id, speed_id, actime_id, dctime_id, SSC_DIR_MINUS);
 			WriteLog(sts, "[" + IntToStr(axnum_id) +  "] JOG MINUS");
 			break;
-		case 6:
-			axnum_id = Axis_g;
-			sts = sscJogStart(board_id, channel_id, axnum_id, speed_id, actime_id, dctime_id, SSC_DIR_PLUS);
-			WriteLog(sts, "[" + IntToStr(axnum_id) +  "] JOG PLUS");
-			break;
-		case 7:
-			axnum_id = Axis_g;
-			sts = sscJogStart(board_id, channel_id, axnum_id, speed_id, actime_id, dctime_id, SSC_DIR_MINUS);
-			WriteLog(sts, "[" + IntToStr(axnum_id) +  "] JOG MINUS");
-			break;
 		default:
 			sts = sscJogStop(board_id, channel_id, Axis_x);
 			sts = sscJogStop(board_id, channel_id, Axis_y);
 			sts = sscJogStop(board_id, channel_id, Axis_z);
-			sts = sscJogStop(board_id, channel_id, Axis_g);
-    			WriteLog(sts, "[" + IntToStr(axnum_id) +  "] JOG STOP");
+    		WriteLog(sts, "[" + IntToStr(axnum_id) +  "] JOG STOP");
 			break;
 	}
     InitSequence(seqIdle);
@@ -389,29 +354,29 @@ void __fastcall Trobostar::AutoMove()
 	UnicodeString msg = "";
 	if(output.CYLINDER_Z == false)
 	{
-		MainForm->memoRobostarLineAdd("[C_Maint] 실린더 / 도어 상태 비정상");
+		MainForm->memoRobostarLineAdd("Cylinder / Door condition abnormal");
 		InitSequence(seqIdle);
 		return;
 	}
 	if(!MainForm->m_ServoOpen)
 	{
 		InitSequence(seqIdle);
-		MainForm->memoRobostarLineAdd("[C_Maint] 서보 연결 상태를 확인하세요.");
-		AlarmForm->ShowError("[C_Maint] 서보가 연결되지 않았습니다.", "확인하고 재시작 하세요.");
+		MainForm->memoRobostarLineAdd("Check the servo connection status.");
+		AlarmForm->ShowError("The servo is not connected.", "Please check and restart.");
 		return;
 	}
 	else if(!MainForm->m_ServoON)
 	{
 		InitSequence(seqIdle);
-		MainForm->memoRobostarLineAdd("[C_Maint] 서보 ON 상태를 확인하세요.");
-		AlarmForm->ShowError("[C_Maint] 서보가 켜지지 않았습니다.", "확인하고 재시작 하세요.");
+		MainForm->memoRobostarLineAdd("Check the servo ON status.");
+		AlarmForm->ShowError("The servo is not turned ON.", "Please check and restart.");
 		return;
 	}
 	else if(!MainForm->m_ServoHome)
 	{
 		InitSequence(seqIdle);
-		MainForm->memoRobostarLineAdd("[C_Maint] 서보 HOME 상태를 확인하세요.");
-		AlarmForm->ShowError("[C_Maint] 서보가 HOME 상태가 아닙니다.", "확인하고 재시작 하세요.");
+		MainForm->memoRobostarLineAdd("Please check servo HOME status.");
+		AlarmForm->ShowError("The servo is not HOME.", "Please check and restart.");
 		return;
 	}
 
@@ -423,6 +388,7 @@ void __fastcall Trobostar::AutoMove()
 			//ch24 : 1231900
             bSetPoint = false;
 			if(ConfigForm->chkZAxisUp->Checked == true){
+                //* 2026 06 z축을 0위치까지 이동. => 헝가리는 티칭값만큼만 이동.
 				bSetPoint = setPoint(Axis_zUp, 0);
 
 				MainForm->memoRobostarLineAdd("[Z Axis Up] 0");
@@ -465,9 +431,9 @@ void __fastcall Trobostar::AutoMove()
 			if(zUpCount > 200){
 				loadfactor = teachForm->lblLoadFactor4->Caption;
 				zpoint = MainForm->pz->Caption;
-				msg1 = "[C_Maint] 대기상태로 이동 후 다시 시작하세요. \r\n(부하율 : " + loadfactor	+ ", z축 위치 : " + zpoint + ")";
+				msg1 = "대기상태로 이동 후 다시 시작하세요. \r\n(부하율 : " + loadfactor	+ ", z축 위치 : " + zpoint + ")";
 				MainForm->memoRobostarLineAdd("Z 축 이동실패" + msg1);
-				AlarmForm->ShowError("[C_Maint] Z 축 이동실패", msg1);
+				AlarmForm->ShowError("Z 축 이동실패", msg1);
 				zUpCount = 0;
 			}
 			if(rangeCheck(Axis_zUp))step.step = 10;
@@ -509,7 +475,7 @@ void __fastcall Trobostar::AutoMove()
 void __fastcall Trobostar::WaitPosition()
 {
 	if(output.CYLINDER_Z == false){
-		MainForm->memoRobostarLineAdd("[C_Maint] 실린더 / 도어 상태 비정상");
+		MainForm->memoRobostarLineAdd("Cylinder / Door condition abnormal");
 		InitSequence(seqIdle);
 		return;
 	}
@@ -517,22 +483,22 @@ void __fastcall Trobostar::WaitPosition()
 	if(!MainForm->m_ServoOpen)
 	{
 		InitSequence(seqIdle);
-		MainForm->memoRobostarLineAdd("[C_Maint] 서보 연결 상태를 확인하세요.");
-		AlarmForm->ShowError("[C_Maint] 서보가 연결되지 않았습니다.", "확인하고 재시작 하세요.");
+		MainForm->memoRobostarLineAdd("Check the servo connection status.");
+		AlarmForm->ShowError("The servo is not connected.", "Please check and restart.");
 		return;
 	}
 	else if(!MainForm->m_ServoON)
 	{
 		InitSequence(seqIdle);
-		MainForm->memoRobostarLineAdd("[C_Maint] 서보 ON 상태를 확인하세요.");
-		AlarmForm->ShowError("[C_Maint] 서보가 켜지지 않았습니다.", "확인하고 재시작 하세요.");
+		MainForm->memoRobostarLineAdd("Check the servo ON status.");
+		AlarmForm->ShowError("The servo is not turned ON.", "Please check and restart.");
 		return;
 	}
 	else if(!MainForm->m_ServoHome)
 	{
 		InitSequence(seqIdle);
-		MainForm->memoRobostarLineAdd("[C_Maint] 서보 HOME 상태를 확인하세요.");
-		AlarmForm->ShowError("[C_Maint] 서보가 HOME 상태가 아닙니다.", "확인하고 재시작 하세요.");
+		MainForm->memoRobostarLineAdd("Please check servo HOME status.");
+		AlarmForm->ShowError("The servo is not HOME.", "Please check and restart.");
 		return;
 	}
 
@@ -549,8 +515,8 @@ void __fastcall Trobostar::WaitPosition()
 			rangeCheck(Axis_zUp);
 			break;
 		case 2:
-			setPoint(Axis_x, 0);   // x 위치 이동
-			setPoint(Axis_y, 0);   // y 위치이동
+			setPoint(Axis_x, Wait_xAxis);   // x 위치 이동
+			setPoint(Axis_y, Wait_yAxis);   // y 위치이동
 			step.step += 1;
 			MainForm->memoRobostarLineAdd("[MOVE] X and Y");
 			break;
@@ -565,19 +531,10 @@ void __fastcall Trobostar::WaitPosition()
 		case 5:
             teachForm->pnlMovingAlarm->Visible = false;
 			teachForm->pnlMovingAlarm2->Visible = false;
-			if(input.GRIPPER1_CELL_DETECT == false)
-				setPoint(Axis_g, 0);   // Gripper 1 위치 이동
-			step.step += 1;
-			break;
-		case 6:
 			if(input.GRIPPER1_CELL_DETECT == true)
 				step.step = 9;
 			else
 				step.step += 1;
-			break;
-		case 7:
-			rangeCheck(Axis_g);
-			MainForm->memoRobostarLineAdd("[CHECK] Gripper 1");
 			break;
 		default:
 			InitSequence(seqIdle);
@@ -630,10 +587,6 @@ void __fastcall Trobostar::req_JogMove(int ntype)
 		case 3: InitSequence(seqJOGy_Minus);break;
 		case 4: InitSequence(seqJOGz_Plus);break;
 		case 5: InitSequence(seqJOGz_Minus);break;
-		case 6: InitSequence(seqJOGg1_Plus);break;
-		case 7: InitSequence(seqJOGg1_Minus);break;
-		case 8: InitSequence(seqJOGg2_Plus);break;
-		case 9: InitSequence(seqJOGg2_Minus);break;
 		default: InitSequence(seqJogStop);break;
 	}
 }
@@ -652,74 +605,44 @@ void __fastcall Trobostar::req_Reset()
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::SetPositionValue()
 {
-	unsigned long int pos[10];
+	unsigned long int pos[AxisCnt];
 
 	int index;
 	int xPosition = 0;
 
 	if(move.pallet == 1)
 	{
-		//* New Kind (Gamma, HKMC - T1A) 2023 06 26
-        //* 2025 12 T3A(XV1) 모델 추가
-		if(MainForm->tray_source.CH_GUBUN == 242){
-			if(move.channel >= 37) index = 3;
-			else if(move.channel >= 25) index = 2;
-			else if(move.channel >= 13) index = 1;
-			else index = 0;
-		}
-		else{
-			if(move.channel >= 73) index = 3;
-			else if(move.channel >= 49) index = 2;
-			else if(move.channel >= 25) index = 1;
-			else index = 0;
-		}
+		if(move.channel >= 73) index = 3;
+        else if(move.channel >= 49) index = 2;
+        else if(move.channel >= 25) index = 1;
+        else index = 0;
 
-		//* 2023 07 06 HKMC
-		//if(MainForm->tray->CH_GUBUN == 242){
-		if(MainForm->tray_source.CH_GUBUN == 242){
-			if(((move.channel - 1) / 6) % 2)
-				xPosition = 76000 + 45000;
-		}
-		else{
-			if(((move.channel - 1) / 12) % 2)
-			{
-				if(MainForm->tray_source.CH_GUBUN == 482)
-					xPosition = 76000;
-				else if(MainForm->tray_source.CH_GUBUN == 48)
-					xPosition = 76000;
-				else if(MainForm->tray_source.CH_GUBUN == 96)
-					xPosition = 76000;
-				else if(MainForm->tray_source.CH_GUBUN == 962)
-					xPosition = 76000;
-			}
-        }
-
+		if(((move.channel - 1) / 12) % 2) xPosition = 48000;
 
 		int xPos = teachForm->teachEdit[0][index]->Text.ToInt();
 
-		int chPos = 0;
-		if(MainForm->tray_source.CH_GUBUN == 242) chPos = ((move.channel - 1) % 12) * (45000 * 2);
-		else chPos = ((move.channel - 1) % 24) * 45000;
+		int chPos = ((move.channel - 1) % 24) * 45000;
 		int toolPos = (move.tool - 1) * 90000;
 		pos[Axis_x] = xPos + xPosition + chPos - toolPos;
 		pos[Axis_y] = teachForm->teachEdit[1][index]->Text.ToInt();
 		pos[Axis_z] = teachForm->teachEdit_z[0]->Text.ToInt();
-		pos[5] = teachForm->teachEdit_CHUCK[0]->Text.ToInt();
-		pos[6] = teachForm->teachEdit_CHUCK[1]->Text.ToInt();
 	}
 	else if(move.pallet == 2)
 	{
-		if(move.channel >= 19) index = 7;
-		else if(move.channel >= 13) index = 6;
-		else if(move.channel >= 7) index = 5;
-		else index = 4;
+		if(move.channel >= 73) index = 7;
+        else if(move.channel >= 49) index = 6;
+        else if(move.channel >= 25) index = 5;
+        else index = 4;
 
-		pos[1] = teachForm->teachEdit[0][index]->Text.ToInt()
-					+ (((move.channel - 1) % 6) * 79000) - ((move.tool - 1) * 90000);
-		pos[3] = teachForm->teachEdit[1][index]->Text.ToInt();
-		pos[4] = teachForm->teachEdit_z[1]->Text.ToInt();
-		pos[5] = teachForm->teachEdit_CHUCK[0]->Text.ToInt();
-		pos[6] = teachForm->teachEdit_CHUCK[1]->Text.ToInt();
+		if(((move.channel - 1) / 12) % 2) xPosition = 48000;
+
+		int xPos = teachForm->teachEdit[0][index]->Text.ToInt();
+
+		int chPos = ((move.channel - 1) % 24) * 45000;
+		int toolPos = (move.tool - 1) * 90000;
+		pos[Axis_x] = xPos + xPosition + chPos - toolPos;
+		pos[Axis_y] = teachForm->teachEdit[1][index]->Text.ToInt();
+		pos[Axis_z] = teachForm->teachEdit_z[1]->Text.ToInt();
 	}
 
 	for(int i=1; i<=servoCnt; ++i){
@@ -821,15 +744,9 @@ void __fastcall Trobostar::GripperDown(int num, bool down, bool up)
 void __fastcall Trobostar::GripperChuck(int num, bool open, bool close)
 {
 	switch(num){
-		case 1: // SETPOINT
-			if(open == true){
-                point[Axis_g].position = teachForm->gpEdit19->Text.ToInt(); // unchuck
-				setPoint(Axis_g, point[Axis_g].position);
-            }
-			if(close == true){
-                point[Axis_g].position = teachForm->gpEdit20->Text.ToInt(); // chuck
-				setPoint(Axis_g, point[Axis_g].position);
-            }
+		case 1:
+			gripper.GRIPPER1_CHUCK = close;
+			gripper.GRIPPER1_UNCHUCK = open;
 			break;
 	}
 }
@@ -937,7 +854,7 @@ void __fastcall Trobostar::AutoRun()
 
 	int sts = 0;
 	int bitInfo = 0;
-
+    short num[4] = {0x024E, 0, 0, 0};
 	switch(step.step){
 		case 0: //  서보 OPEN
 			sts = sscOpen(board_id);
@@ -951,12 +868,14 @@ void __fastcall Trobostar::AutoRun()
 			sts = sscSystemStart(board_id, channel_id, timeout);
 			WriteLog(sts, "SERVO START");
 
+            for(int i = 1; i <= servoCnt; i++) sscSetMonitor(board_id, channel_id, i, &num[0]);
+
 			step.step += 1;
 			break;
 		case 1: //  서보 ON
-			for(int i=1; i<=6; ++i){
+			for(int i = 1; i <= servoCnt; ++i){
 				sts = sscSetCommandBitSignalEx(board_id, channel_id, i, SSC_CMDBIT_AX_SON, SSC_BIT_ON);
-				WriteLog(sts, "[" + IntToStr(i) +  "] 서보 ON");
+				WriteLog(sts, "[" + IntToStr(i) +  "] Servo ON");
 			}
 			step.delay = 0;
 			step.step += 1;
@@ -1024,21 +943,6 @@ void __fastcall Trobostar::AutoRun()
 			}
 			else
 			{
-				step.step += 1;
-			}
-			break;
-		case 12: // 5축 원점
-			sts = sscHomeReturnStart(board_id, channel_id, Axis_g);
-			WriteLog(sts, "Gripper Axis Servo Home - Request");
-			step.step += 1;
-			break;
-		case 13:
-			sts = sscGetStatusBitSignalEx(board_id, channel_id, Axis_g, SSC_STSBIT_AX_ZREQ, &bitInfo);
-			if(bitInfo){
-				MainForm->memoRobostarLineAdd("Gripper Axis Servo Home - Moving");
-			}
-			else{
-				MainForm->memoRobostarLineAdd("Gripper Axis Servo Home - Complete");
 				step.step += 1;
 			}
 			break;
@@ -1177,7 +1081,7 @@ void __fastcall Trobostar::AutoEject()
 	AnsiString msg;
 
 	if(nresult == 0){
-		msg = "그리퍼 #" + IntToStr(move.tool);
+		msg = "Gripper #" + IntToStr(move.tool);
 
 		switch(step.step){
 			case 0:
@@ -1190,9 +1094,9 @@ void __fastcall Trobostar::AutoEject()
 				else{
 					step.timeout += 1;
 					if(step.timeout == errCnt){
-						ErrorForm_eject->ShowError("[B_Ignition] " + msg + " 셀이 있습니다.", "취출 1단계. 셀 체크 에러", move.tool, 20);
+						ErrorForm_eject->ShowError(msg + " has a cell.", "Eject step 1. Cell check error", move.tool, 20);
 					}
-					MainForm->memoRobostarLineAdd("[C_Maint] 취출1. 셀체크");
+					MainForm->memoRobostarLineAdd("Eject step 1. Cell check");
 				}
 				break;
 			case 1:
@@ -1468,9 +1372,6 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 	this->io_Read();
 	// 그리퍼가 모두 상승되어 있을때 ON : 안전관련 추가사항
 	output.CYLINDER_Z = input.GRIPPER1_UP;
-    //* gpEdit20->Text -> chuck
-	output.GRIPPER1_CHUCK = mr2.pos[Axis_g] >= teachForm->gpEdit20->Text.ToInt() ? true : false;
-
 	this->io_WriteGripper();
 	mr2Sensing();
 
@@ -1494,8 +1395,6 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 	else if(seq == seqJOGy_Minus)MoveJog(3);
 	else if(seq == seqJOGz_Plus)MoveJog(4);
 	else if(seq == seqJOGz_Minus)MoveJog(5);
-	else if(seq == seqJOGg1_Plus)MoveJog(6);
-	else if(seq == seqJOGg1_Minus)MoveJog(7);
 	else if(seq == seqJogStop)MoveJog(10);
 //	else MainForm->memoRobostarLineAdd("[로보트] 대기상태");
 }
@@ -1553,12 +1452,15 @@ bool __fastcall Trobostar::CheckEjectCell_before(int pos)
 bool __fastcall Trobostar::CheckEjectUnchuck(int pos)
 {
 	// 2. 언척하고
-	point[Axis_g].position = teachForm->gpEdit19->Text.ToInt();  // unchuck
 	bool bresult = false;
 	switch(pos){
 		case 1:
-			setPoint(Axis_g, point[Axis_g].position);
-			bresult = true;
+			if(input.GRIPPER1_UNCHUCK){
+				bresult = true;
+			}else{
+				gripper.GRIPPER1_CHUCK = false;
+				gripper.GRIPPER1_UNCHUCK = true;
+			}
 			break;
 	}
 	return bresult;
@@ -1568,16 +1470,14 @@ bool __fastcall Trobostar::CheckEjectChuck(int pos)
 {
 	// 4. 척하고
 	bool bresult = false;
-    point[Axis_g].position = teachForm->gpEdit20->Text.ToInt();  // chuck
-	switch(pos){  //setpoint
+	switch(pos){
 		case 1:
-			if(input.GRIPPER1_DOWN == true)
-			{
-				setPoint(Axis_g, point[Axis_g].position);
+			if(input.GRIPPER1_UNCHUCK == false){
 				bresult = true;
+			}else{
+				gripper.GRIPPER1_CHUCK = true;
+				gripper.GRIPPER1_UNCHUCK = false;
 			}
-			else
-				bresult = false;
 			break;
 	}
 	return bresult;
@@ -1587,19 +1487,14 @@ bool __fastcall Trobostar::CheckEjectDown(int pos)
 {
 	// 3. 그리퍼 내리고
 	bool bresult = false;
-    point[Axis_g].position = teachForm->gpEdit19->Text.ToInt();  // unchuck
-	switch(pos){  //setpoint
+	switch(pos){
 		case 1:
 			if(input.GRIPPER1_DOWN){
 				bresult = true;
 			}else{
-				if(robostar->mr2.pos[Axis_g] == point[Axis_g].position)
-				{
-					gripper.GRIPPER1_DOWN_SOL = true;
-					gripper.GRIPPER1_UP_SOL = false;
-				}
+				gripper.GRIPPER1_DOWN_SOL = true;
+				gripper.GRIPPER1_UP_SOL = false;
 			}
-			setPoint(Axis_z, point[Axis_z].position);
 			break;
 	}
 	return bresult;
@@ -1609,19 +1504,14 @@ bool __fastcall Trobostar::CheckEjectUp(int pos)
 {
 	// 5. 그리퍼 올리고
 	bool bresult = false;
-	point[Axis_g].position = teachForm->gpEdit20->Text.ToInt(); // chcunk
-	switch(pos){ //setpoint
+	switch(pos){
 		case 1:
 			if(input.GRIPPER1_UP){
 				bresult = true;
 			}else{
-				if(robostar->mr2.pos[Axis_g] == point[Axis_g].position)
-				{
-					gripper.GRIPPER1_DOWN_SOL = false;
-					gripper.GRIPPER1_UP_SOL = true;
-				}
+				gripper.GRIPPER1_DOWN_SOL = false;
+				gripper.GRIPPER1_UP_SOL = true;
 			}
-			setPoint(Axis_z, point[Axis_z].position);
 			break;
 	}
 	return bresult;
@@ -1631,17 +1521,13 @@ bool __fastcall Trobostar::CheckEjectUp(int pos)
 bool __fastcall Trobostar::CheckInsertDown(int pos)
 {
 	bool bresult = false;
-	point[Axis_g].position = teachForm->gpEdit20->Text.ToInt(); // chuck
-	switch(pos){  //setpoint
+	switch(pos){
 		case 1:
 			if(input.GRIPPER1_DOWN == true){
 				bresult = true;
 			}else{
-				if(robostar->mr2.pos[Axis_g] == point[Axis_g].position)
-				{
-					gripper.GRIPPER1_DOWN_SOL = true;
-					gripper.GRIPPER1_UP_SOL = false;
-				}
+				gripper.GRIPPER1_DOWN_SOL = true;
+				gripper.GRIPPER1_UP_SOL = false;
 			}
 			break;
 	}
@@ -1652,11 +1538,14 @@ bool __fastcall Trobostar::CheckInsertUnchuck(int pos)
 {
 	// 셀이 없으면 언척
 	bool bresult = false;
-	point[Axis_g].position = teachForm->gpEdit19->Text.ToInt(); // unchuck
-	switch(pos){  //setpoint
+	switch(pos){
 		case 1:
-			setPoint(Axis_g, point[Axis_g].position);
-			bresult = true;
+			if(input.GRIPPER1_UNCHUCK == true){
+					bresult = true;
+			}else{
+				gripper.GRIPPER1_CHUCK = false;
+				gripper.GRIPPER1_UNCHUCK = true;
+			}
 			break;
 	}
 	return bresult;
@@ -1666,18 +1555,14 @@ bool __fastcall Trobostar::CheckInsertUp(int pos)
 {
 	// 언척이 아니면 실린더 상승
 	bool bresult = false;
-    point[Axis_g].position = teachForm->gpEdit19->Text.ToInt(); // unchuck
-	switch(pos){  // setpoint
+	switch(pos){
 		case 1:
 			if(input.GRIPPER1_UP){
 				bresult = true;
 			}
 			else{
-				if(robostar->mr2.pos[Axis_g] == point[Axis_g].position)
-				{
-					gripper.GRIPPER1_DOWN_SOL = false;
-					gripper.GRIPPER1_UP_SOL = true;
-				}
+				gripper.GRIPPER1_DOWN_SOL = false;
+				gripper.GRIPPER1_UP_SOL = true;
 			}
 			break;
 	}
