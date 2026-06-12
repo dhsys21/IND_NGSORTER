@@ -250,14 +250,14 @@ void __fastcall Tgripper::Sorting()
 
     if(MainForm->pwork1->Color != clLime)
 	{
-		AlarmForm->ShowError("[C_Maint] 선별 트레이가 준비되지 않았습니다.", "확인하고 재시작 하세요.");
+		AlarmForm->ShowError("The source tray is not ready.", "Please check and restart.");
 		return;
 	}
 
 	switch(step.step){
 		case 0:
 			memset(&eject, 0, sizeof(eject));
-			for(int i=0 ; i<gripCnt; ++i){	// 그리퍼 1개
+			for(int i = 0 ; i < gripCnt; ++i){	// 그리퍼 1개
 				try{
 					pos1 = tool[i].source_ch.ToInt();
 				}catch(...){
@@ -270,16 +270,6 @@ void __fastcall Tgripper::Sorting()
 					eject.conCnt = 1;		// 연속 수량
 					eject.gripper = i+1;	// 그리퍼 번호
 
-					i+=1;	// 취출 그리퍼 다음 그리퍼부터 확인을 하는데
-					if(MainForm->tray_source.SLOT_COUNT == 48 && MainForm->tray->CH_GUBUN != 482){		// 48채널 트레이일 경우 한번에 여러셀 뽑기 확인한다.
-						for(; i<gripCnt; ++i){							// 선별 선택된 그리퍼를 기준으로
-							try{
-								pos2 = tool[i].source_ch.ToInt();
-							}catch(...){
-								pos2 = 0;
-							}
-						}
-					}
 					break;
 				}
 			}
@@ -288,38 +278,39 @@ void __fastcall Tgripper::Sorting()
 				if(MainForm->tray_source.SLOT_COUNT == 96){
 					 MainForm->memoGripperLineAdd("[Eject step 0] 96 Tray / Gripper #" + IntToStr(eject.gripper) + " / Channel #" + IntToStr(eject.pos) + " / Continuous eject #" + IntToStr(eject.conCnt));
 					 robostar->req_AutoEject(1, eject.gripper , MainForm->mapSort[0][eject.pos-1], eject.conCnt, 962);
-					 MainForm->memoGripperLineAdd("[Eject step 0] 96 Channel 취출시작");
+					 MainForm->memoGripperLineAdd("[Eject step 0] 96 Channel start ejecting");
 					 step.step += 1;
 				}else{
-					MainForm->memoGripperLineAdd("[MES] 등록되지 않은 트레이.");
+					MainForm->memoGripperLineAdd("[MES] This is a tray that does not support sorting.");
+					ErrorForm->ShowError("Can not work", "This is a tray that does not support sorting.");
 				}
 			}else{
 				step.step = 5;
 			}
 			break;
 		case 1:	// 취출중 확인
-			MainForm->memoGripperLineAdd("[Eject step 1] 취출...(로봇 작동중)");
+			MainForm->memoGripperLineAdd("[Eject step 1] Ejecting...(Robot in operation)");
 			if(robostar->seq == seqAutoEject || robostar->seq == seqAutoEjectComplete)step.step += 1;
 
 			break;
 		case 2:	// 취출 완료 확인
 			if(robostar->seq == seqAutoEjectComplete){
-				MainForm->memoGripperLineAdd("[Eject step 2] 취출 완료.");
+				MainForm->memoGripperLineAdd("[Eject step 2] Eject completed.");
 				for(int i=eject.gripper; i<eject.gripper + eject.conCnt; ++i){
 					tool[i-1].eject_end = true;
 					MainForm->DisplaySourceCell(-1, tool[i-1].source_ch.ToInt()-1);	// 화면 show
 				}
 				step.step += 1;
 			}else{
-				MainForm->memoGripperLineAdd("[Eject step 2] 취출...(로봇 작동중)");
+				MainForm->memoGripperLineAdd("[Eject step 2] Ejecting...(Robot in operation)");
 			}
 			break;
 		case 3:
-			MainForm->memoGripperLineAdd("[Eject step 3] 다음 취출 대상 확인.");
+			MainForm->memoGripperLineAdd("[Eject step 3] Check the next eject target.");
 			InitSequence(seqSorting);
 			break;
 		default:
-			MainForm->memoGripperLineAdd("[Eject complete] 삽입 준비.");
+			MainForm->memoGripperLineAdd("[Eject complete] Prepare the insert work.");
 			InitSequence(seqInserting);
 			break;
 	}
@@ -329,7 +320,7 @@ void __fastcall Tgripper::Inserting()
 {
 	if(MainForm->pwork2->Color != clLime)
 	{
-		AlarmForm->ShowError("[C_Maint] 대상 트레이가 준비되지 않았습니다.", "확인 하고 재시작 하세요.");
+		AlarmForm->ShowError("The target tray is not ready.", "Please check and restart.");
 		return;
 	}
 
@@ -338,7 +329,7 @@ void __fastcall Tgripper::Inserting()
 	switch(step.step){
 		case 0:
 			memset(&insert, 0, sizeof(insert));
-			for(int i=0; i < gripCnt; ++i){		// 그리퍼 6개
+			for(int i=0; i < gripCnt; ++i){
 				try{
 					pos1 = tool[i].target_ch.ToInt();
 				}catch(...){
