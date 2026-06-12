@@ -188,66 +188,29 @@ void __fastcall Tgripper::Initialize()
 							else if(step.chCnt < gripCnt && (MainForm->tray_target.remainCnt > 0) ){	// 대상트레이에 투입가능한 수량만큼 2개의 그리퍼에 선별 채널 할당한다.
 								step.badCnt += 1;	// 잔여 불량 수량을 확인한다.
 
-                                //* 2026 03 06 대상 트레이 바깥쪽 부터 채운다.
-                                //* 기존 1 -> 6, 7 -> 12 ==> 6 -> 1, 12 -> 7 순으로 변경
-                                for(int tch = 11; tch >= 0; --tch){
-//								for(int tch=0; tch<12; ++tch){
+                                for(int tch = 0; tch < 96; ++tch){
                                     //* 4번째(nzone == 3) zone 색상이 white.
                                     //* 현재 대상 채널 모두 white 색이기때문에 nzone = 3만 동작 => white가 아니면(이미 셀이 담겨있으면) false.
 									if(MainForm->GetZoneChannel(nzone, tch)){
-                                        //* 불량셀이 2개 이상, 대상트레이 빈곳 2개 이상인 경우
-                                        //* 불량셀이 1개면 아래 코드 건너뛰고 모든 그리퍼 가능.
-                                        if(MainForm->tray_source.remainCnt >= 2 && MainForm->tray_target.remainCnt >= 2){
-                                            bcheck = true; 	// 모든 그리퍼 가능
-                                        	if(MainForm->tray_target.remainCnt % 2 == 0){
-                                                switch(tch % 2){
-                                                    case 0: //* tch = ch - 1, 홀수채널
-                                                        if(step.chCnt < 0)
-                                                            bcheck = false;
-                                                        break;
-                                                    case 1: //* tch = ch - 1, 짝수채널,
-                                                        if(step.chCnt < 1)
-                                                            bcheck = false;
-                                                        break;
-                                                }
-                                            } else if(MainForm->tray_target.remainCnt % 2 == 1){
-                                                switch(tch % 2){
-                                                    case 0: //* tch = ch - 1, 홀수채널, 1번 그리퍼 불가
-                                                        if(step.chCnt < 1)
-                                                            bcheck = false;
-                                                        break;
-                                                    case 1: //* tch = ch - 1, 짝수채널, 모든 그리퍼 가능
-                                                        if(step.chCnt < 0)
-                                                            bcheck = false;
-                                                        break;
-                                                }
-                                            }
+                                        tool[step.chCnt].code = MainForm->psort_bad[i]->Caption;
+                                        tool[step.chCnt].source_ch = MainForm->psort_ch[i]->Caption;
+                                        MainForm->DisplaySourceCell(step.chCnt, i);	// 화면 show
 
-                                        }
-										if(bcheck){
-											tool[step.chCnt].code = MainForm->psort_bad[i]->Caption;
-											tool[step.chCnt].source_ch = MainForm->psort_ch[i]->Caption;
-											MainForm->DisplaySourceCell(step.chCnt, i);	// 화면 show
-
-											MainForm->tray_source.remainCnt -= 1;
-											MainForm->tray_target.remainCnt -= 1;
-											tool[step.chCnt].target_ch = tch+1;
-											MainForm->tray_target.PICK[tch] = "R";
-											MainForm->DisplayTargetCell(step.chCnt, tch);	// 화면 show
-											MainForm->DisplayTargetCellInfo(step.chCnt, tch);
-											step.ejectCnt += 1;	// 취출 예정 수량
-											step.chCnt += 1;
-											MainForm->memoGripperLineAdd("[Init step 1] 선별 채널 : "
-												+ MainForm->psort_ch[i]->Caption + " / 대상 채널 : " + IntToStr(tch+1));
-											break;
-										}
+                                        MainForm->tray_source.remainCnt -= 1;
+                                        MainForm->tray_target.remainCnt -= 1;
+                                        tool[step.chCnt].target_ch = tch+1;
+                                        MainForm->tray_target.PICK[tch] = "R";
+                                        MainForm->DisplayTargetCell(step.chCnt, tch);	// 화면 show
+                                        MainForm->DisplayTargetCellInfo(step.chCnt, tch);
+                                        step.ejectCnt += 1;	// 취출 예정 수량
+                                        step.chCnt += 1;
+                                        MainForm->memoGripperLineAdd("[Init step 1] Sorting channel : "
+                                            + MainForm->psort_ch[i]->Caption + " / Target channel : " + IntToStr(tch+1));
+                                        break;
 									}
-
 								}
-
 							}
 						}
-
 					}
 				}
 				if(j == step.chCnt)
@@ -259,16 +222,16 @@ void __fastcall Tgripper::Initialize()
 			if(step.badCnt > 0){
 				if(step.ejectCnt > 0){
 					InitSequence(step.reserve);	// 선별시작
-					MainForm->memoGripperLineAdd("[Init step 2] 취출 시작.");
+					MainForm->memoGripperLineAdd("[Init step 2] Eject start.");
 				}else{
-					MainForm->memoGripperLineAdd("[Init step 2] 취출 할 수 없습니다. : 그리퍼 설정을 확인 하세요.");
-					AlarmForm->ShowError("[C_Maint] 선별 트레이를 취출 할 수 없습니다.", "그리퍼 설정을 확인 하세요.");
+					MainForm->memoGripperLineAdd("[Init step 2] Cannot be ejected out : Check the gripper usage setting.");
+					AlarmForm->ShowError("Cannot eject the source tray", "Check the gripper usage setting.");
 					req_Init();
 
 				}
 			}
 			else{
-				MainForm->memoGripperLineAdd("[Init step 2] 선별 종료.");
+				MainForm->memoGripperLineAdd("[Init step 2] Sorting has ended.");
 				InitSequence(seqIdle);						// 선별종료
 				MainForm->NotifyIdMatching_source();		// 선별 트레이 선별완료 보고하고
 				MainForm->NotifyIdMatching_target("1");		// 대상 트레이 선별완료 보고하고
