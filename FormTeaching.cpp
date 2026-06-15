@@ -17,128 +17,6 @@ __fastcall TteachForm::TteachForm(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::FormCreate(TObject *Sender)
 {
-	sTray[0] = s1;
-	sTray[1] = s2;
-	sTray[2] = s3;
-	sTray[3] = s4;
-	sTray[4] = s5;
-	sTray[5] = s6;
-	sTray[6] = s7;
-	sTray[7] = s8;
-	sTray[8] = s9;
-	sTray[9] = s10;
-	sTray[10] = s11;
-	sTray[11] = s12;
-	sTray[12] = s13;
-	sTray[13] = s14;
-	sTray[14] = s15;
-	sTray[15] = s16;
-	sTray[16] = s17;
-	sTray[17] = s18;
-	sTray[18] = s19;
-	sTray[19] = s20;
-	sTray[20] = s21;
-	sTray[21] = s22;
-	sTray[22] = s23;
-	sTray[23] = s24;
-	sTray[24] = s25;
-	sTray[25] = s26;
-	sTray[26] = s27;
-	sTray[27] = s28;
-	sTray[28] = s29;
-	sTray[29] = s30;
-	sTray[30] = s31;
-	sTray[31] = s32;
-	sTray[32] = s33;
-	sTray[33] = s34;
-	sTray[34] = s35;
-	sTray[35] = s36;
-	sTray[36] = s37;
-	sTray[37] = s38;
-	sTray[38] = s39;
-	sTray[39] = s40;
-	sTray[40] = s41;
-	sTray[41] = s42;
-	sTray[42] = s43;
-	sTray[43] = s44;
-	sTray[44] = s45;
-	sTray[45] = s46;
-	sTray[46] = s47;
-	sTray[47] = s48;
-	sTray[48] = s49;
-	sTray[49] = s50;
-	sTray[50] = s51;
-	sTray[51] = s52;
-	sTray[52] = s53;
-	sTray[53] = s54;
-	sTray[54] = s55;
-	sTray[55] = s56;
-	sTray[56] = s57;
-	sTray[57] = s58;
-	sTray[58] = s59;
-	sTray[59] = s60;
-	sTray[60] = s61;
-	sTray[61] = s62;
-	sTray[62] = s63;
-	sTray[63] = s64;
-	sTray[64] = s65;
-	sTray[65] = s66;
-	sTray[66] = s67;
-	sTray[67] = s68;
-	sTray[68] = s69;
-	sTray[69] = s70;
-	sTray[70] = s71;
-	sTray[71] = s72;
-	sTray[72] = s73;
-	sTray[73] = s74;
-	sTray[74] = s75;
-	sTray[75] = s76;
-	sTray[76] = s77;
-	sTray[77] = s78;
-	sTray[78] = s79;
-	sTray[79] = s80;
-	sTray[80] = s81;
-	sTray[81] = s82;
-	sTray[82] = s83;
-	sTray[83] = s84;
-	sTray[84] = s85;
-	sTray[85] = s86;
-	sTray[86] = s87;
-	sTray[87] = s88;
-	sTray[88] = s89;
-	sTray[89] = s90;
-	sTray[90] = s91;
-	sTray[91] = s92;
-	sTray[92] = s93;
-	sTray[93] = s94;
-	sTray[94] = s95;
-	sTray[95] = s96;
-
-	tTray[0] = t1;
-	tTray[1] = t2;
-	tTray[2] = t3;
-	tTray[3] = t4;
-	tTray[4] = t5;
-	tTray[5] = t6;
-	tTray[6] = t7;
-	tTray[7] = t8;
-	tTray[8] = t9;
-	tTray[9] = t10;
-	tTray[10] = t11;
-	tTray[11] = t12;
-	tTray[12] = t13;
-	tTray[13] = t14;
-	tTray[14] = t15;
-	tTray[15] = t16;
-	tTray[16] = t17;
-	tTray[17] = t18;
-	tTray[18] = t19;
-	tTray[19] = t20;
-	tTray[20] = t21;
-	tTray[21] = t22;
-	tTray[22] = t23;
-	tTray[23] = t24;
-
 	// source tray teaching
 	teachEdit[0][0] = gpEdit1;
 	teachEdit[1][0] = gpEdit2;	// gp11
@@ -171,19 +49,7 @@ void __fastcall TteachForm::FormCreate(TObject *Sender)
 	lblLoadFactor[3] = lblLoadFactor3;
 	lblLoadFactor[4] = lblLoadFactor4;
 
-	for(int i = 0; i < 96; ++i){
-		sTray[i]->Tag = i + 1;
-		sTray[i]->OnClick = sClick;
-	}
-
-	for(int i = 0; i < 96; ++i){
-        //tTray[i]->Width = 280;
-		tTray[i]->Visible = true;
-		tTray[i]->Tag = i+1;
-		tTray[i]->OnClick = tClick;
-
-        //if(i >= 6) tTray[i]->Left = tTray[12]->Left;
-	}
+    MakePanel();
 
 	LoadTeaching();
 	LoadFromFile();
@@ -198,6 +64,57 @@ void __fastcall TteachForm::FormShow(TObject *Sender)
     pnlMovingAlarm->Align = alClient;
 
     robostar->io_Init();
+}
+//---------------------------------------------------------------------------
+void __fastcall TteachForm::MakePanel()
+{
+    int x = 0, y = 0;
+    for(int i = 0; i < 96; i++)
+    {
+        x = s1->Left;
+        y = s1->Top;
+
+        sTray[i] = new TAdvSmoothPanel(this);
+        sTray[i]->Parent = pnlSourceBase;
+        sTray[i]->Width = s1->Width;
+        sTray[i]->Height = s1->Height;
+        sTray[i]->Fill->Color = s1->Fill->Color;
+        sTray[i]->Fill->ColorMirror = s1->Fill->ColorMirror;
+        sTray[i]->Fill->ColorMirrorTo = s1->Fill->ColorMirrorTo;
+        sTray[i]->Fill->ColorTo = s1->Fill->ColorTo;
+        sTray[i]->Fill->BorderWidth = s1->Fill->BorderWidth;
+        sTray[i]->Fill->Rounding = s1->Fill->Rounding;
+        sTray[i]->Fill->BorderColor = s1->Fill->BorderColor;
+
+        sTray[i]->Caption->Assign(s1->Caption);
+        sTray[i]->Caption->Text = IntToStr(i + 1);
+        sTray[i]->Tag = i;
+        sTray[i]->Left = s1->Left;
+        sTray[i]->Top = s1->Top;
+        sTray[i]->OnClick = sClick;
+
+
+        x = t1->Left;
+        y = t1->Top;
+        tTray[i] = new TAdvSmoothPanel(this);
+        tTray[i]->Parent = pnlTargetBase;
+        tTray[i]->Width = t1->Width;
+        tTray[i]->Height = t1->Height;
+        tTray[i]->Fill->Color = t1->Fill->Color;
+        tTray[i]->Fill->ColorMirror = t1->Fill->ColorMirror;
+        tTray[i]->Fill->ColorMirrorTo = t1->Fill->ColorMirrorTo;
+        tTray[i]->Fill->ColorTo = t1->Fill->ColorTo;
+        tTray[i]->Fill->BorderWidth = t1->Fill->BorderWidth;
+        tTray[i]->Fill->Rounding = t1->Fill->Rounding;
+        tTray[i]->Fill->BorderColor = t1->Fill->BorderColor;
+
+        tTray[i]->Caption->Assign(t1->Caption);
+        tTray[i]->Caption->Text = IntToStr(i + 1);
+        tTray[i]->Tag = i;
+        tTray[i]->Left = t1->Left;
+        tTray[i]->Top = t1->Top;
+        tTray[i]->OnClick = tClick;
+    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::sClick(TObject *Sender)
@@ -529,7 +446,6 @@ void __fastcall TteachForm::AdvSmoothButton37MouseDown(TObject *Sender, TMouseBu
     unchuckAllTimer->Enabled = true;
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TteachForm::AdvSmoothButton37MouseUp(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y)
 {
@@ -576,7 +492,6 @@ void __fastcall TteachForm::unchuckAllTimerTimer(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TteachForm::AdvSmoothButton38Click(TObject *Sender)
 {
 	for(int i=1; i<=gripCnt; ++i)
@@ -678,7 +593,6 @@ void __fastcall TteachForm::AdvSmoothButton4Click(TObject *Sender)
 	}
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TteachForm::AdvSmoothButton3Click(TObject *Sender)
 {
 	ApplyTeaching();
@@ -687,10 +601,6 @@ void __fastcall TteachForm::AdvSmoothButton3Click(TObject *Sender)
 	}
 }
 //---------------------------------------------------------------------------
-
-
-
-
 void __fastcall TteachForm::disableChk1Click(TObject *Sender)
 {
 	TCheckBox *chk;
@@ -699,7 +609,6 @@ void __fastcall TteachForm::disableChk1Click(TObject *Sender)
 	gripper->disable_gripper[chk->Tag-1] = chk->Checked;	
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TteachForm::waitBtnClick(TObject *Sender)
 {
 	UnicodeString msg;
@@ -797,7 +706,6 @@ void __fastcall TteachForm::ChangeTrayMap(int channel)
 	}
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TteachForm::Button1MouseDown(TObject *Sender, TMouseButton Button,
 		  TShiftState Shift, int X, int Y)
 {
@@ -836,7 +744,6 @@ void __fastcall TteachForm::Button1MouseDown(TObject *Sender, TMouseButton Butto
 	}
 }
 //---------------------------------------------------------------------------
-
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::Button1MouseUp(TObject *Sender, TMouseButton Button, TShiftState Shift,
 		  int X, int Y)
@@ -1005,7 +912,6 @@ void __fastcall TteachForm::AdvSmoothButton_LoadFactorInfoClick(TObject *Sender)
 	loadfactorForm->ShowModal();
 }
 //---------------------------------------------------------------------------
-
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::LanguageChange(int index)
 {
@@ -1113,7 +1019,6 @@ void __fastcall TteachForm::LanguageChange(int index)
 	Panel41->Caption = mm->Lines->Strings[47];
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TteachForm::btnApplyTeachingClick(TObject *Sender)
 {
 	try{
@@ -1139,7 +1044,6 @@ void __fastcall TteachForm::btnApplyTeachingClick(TObject *Sender)
 	}
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TteachForm::SaveToFile()
 {
 	//* 2026 06 티칭값 파일 저장
@@ -1160,7 +1064,6 @@ void __fastcall TteachForm::ChangeTeaching()
 	LoadTeaching();
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TteachForm::Panel47Click(TObject *Sender)
 {
     tea_memo->Visible = !tea_memo->Visible;
@@ -1177,7 +1080,6 @@ void __fastcall TteachForm::btnZAxisDownMouseDown(TObject *Sender, TMouseButton 
 	}
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TteachForm::btnZAxisDownMouseUp(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y)
 {
@@ -1186,7 +1088,6 @@ void __fastcall TteachForm::btnZAxisDownMouseUp(TObject *Sender, TMouseButton Bu
 	}
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TteachForm::btnZAxisUpMouseDown(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y)
 {
@@ -1198,7 +1099,6 @@ void __fastcall TteachForm::btnZAxisUpMouseDown(TObject *Sender, TMouseButton Bu
 	}
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TteachForm::btnZAxisUpMouseUp(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y)
 {
@@ -1207,8 +1107,6 @@ void __fastcall TteachForm::btnZAxisUpMouseUp(TObject *Sender, TMouseButton Butt
 	}
 }
 //---------------------------------------------------------------------------
-
-
 void __fastcall TteachForm::btnKeyLockClick(TObject *Sender)
 {
 	if(BaseForm->btnKeyLock->Caption == "키락 해제")
@@ -1256,6 +1154,3 @@ void __fastcall TteachForm::zdown()
 	}
 }
 //---------------------------------------------------------------------------
-
-
-
