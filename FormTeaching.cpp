@@ -68,12 +68,16 @@ void __fastcall TteachForm::FormShow(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::MakePanel()
 {
-    int x = 0, y = 0;
-    for(int i = 0; i < 96; i++)
-    {
-        x = s1->Left;
-        y = s1->Top;
+    int sx = 0, sy = 0, tx = 0, ty = 0;
+    int nh = s1->Height;
+    int nw = s1->Width;
+    sx = s1->Left;
+    sy = s1->Top;
+    tx = t1->Left;
+    ty = t1->Top;
 
+    for(int i = 0; i < 96;)
+    {
         sTray[i] = new TAdvSmoothPanel(this);
         sTray[i]->Parent = pnlSourceBase;
         sTray[i]->Width = s1->Width;
@@ -89,13 +93,21 @@ void __fastcall TteachForm::MakePanel()
         sTray[i]->Caption->Assign(s1->Caption);
         sTray[i]->Caption->Text = IntToStr(i + 1);
         sTray[i]->Tag = i;
-        sTray[i]->Left = s1->Left;
-        sTray[i]->Top = s1->Top;
+        sTray[i]->Left = sx;
+        sTray[i]->Top = sy;
         sTray[i]->OnClick = sClick;
 
+        sy = sy - nh - 1;
+		i += 1;
+        if(i % 12 == 0) sy -= 3;
+		if(i % 24 == 0){
+			sx = sx + nw + 1;
+			sy = s1->Top;
+		}
+    }
 
-        x = t1->Left;
-        y = t1->Top;
+    for(int i = 0; i < 96;)
+    {
         tTray[i] = new TAdvSmoothPanel(this);
         tTray[i]->Parent = pnlTargetBase;
         tTray[i]->Width = t1->Width;
@@ -111,9 +123,17 @@ void __fastcall TteachForm::MakePanel()
         tTray[i]->Caption->Assign(t1->Caption);
         tTray[i]->Caption->Text = IntToStr(i + 1);
         tTray[i]->Tag = i;
-        tTray[i]->Left = t1->Left;
-        tTray[i]->Top = t1->Top;
+        tTray[i]->Left = tx;
+        tTray[i]->Top = ty;
         tTray[i]->OnClick = tClick;
+
+        ty = ty - nh - 1;
+		i += 1;
+        if(i % 12 == 0) ty -= 3;
+		if(i % 24 == 0){
+			tx = tx + nw + 1;
+			ty = t1->Top;
+		}
     }
 }
 //---------------------------------------------------------------------------
