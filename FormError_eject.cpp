@@ -44,13 +44,7 @@ void __fastcall TErrorForm_eject::retryBtnClick(TObject *Sender)
 	int map = 0;
 
 	MainForm->memoMainLineAdd("Retry");
-
-	if(MainForm->tray_source.SLOT_COUNT == 96){
-		map = psource_ch1->Caption.ToInt();
-	}
-	else if(MainForm->tray_source.SLOT_COUNT == 48){
-		map = MainForm->mapSort[1][psource_ch1->Caption.ToInt()-1];
-	}
+    map = psource_ch1->Caption.ToInt();
 
 	if(robostar->move.pallet == 1 && robostar->move.channel == map){
 		gripper->req_Pause(false);
@@ -119,19 +113,12 @@ void __fastcall TErrorForm_eject::AdvSmoothButton11Click(TObject *Sender)
 	robostar->GripperChuck(btn->Tag, false, true);	
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TErrorForm_eject::AdvSmoothButton1Click(TObject *Sender)
 {
 	int map = 0;
 
-	if(MainForm->tray_source.SLOT_COUNT == 96){
-		map = psource_ch1->Caption.ToInt();
-		robostar->req_AutoMove(1, toolNum+1, map, 96);
-	}
-	else if(MainForm->tray_source.SLOT_COUNT == 48){
-		map = MainForm->mapSort[1][psource_ch1->Caption.ToInt()-1];
-		robostar->req_AutoMove(1, toolNum+1, map, 48);
-	}
+	map = psource_ch1->Caption.ToInt();
+	robostar->req_AutoMove(1, toolNum+1, map, 96);
 }
 //---------------------------------------------------------------------------
 
@@ -140,14 +127,11 @@ void __fastcall TErrorForm_eject::AdvSmoothButton2Click(TObject *Sender)
 	robostar->req_AutoMove(2, toolNum+1, ptarget_ch1->Caption.ToInt(), 96);
 }
 //---------------------------------------------------------------------------
-
-
 void __fastcall TErrorForm_eject::AdvSmoothButton5Click(TObject *Sender)
 {
 	MainForm->BuzzerOn(false);
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TErrorForm_eject::FormHide(TObject *Sender)
 {
 	MainForm->NotifyAlarm(false, this->Tag);
@@ -155,15 +139,6 @@ void __fastcall TErrorForm_eject::FormHide(TObject *Sender)
     MainForm->LampModeChange(MainForm->beforeLampMode);
 }
 //---------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
 //---------------------------------------------------------------------------
 void __fastcall TErrorForm_eject::LanguageChange(int index)
 {

@@ -1040,7 +1040,6 @@ int __fastcall TMainForm::GetZoneCount(int zone)
 	}
 
 	if(ntotal == 0)ncnt = -1;
-//	zoneBtn[zone]->Caption = ncnt;
 	return ncnt;
 }
 //---------------------------------------------------------------------------
@@ -1207,7 +1206,7 @@ void __fastcall TMainForm::LanguageChange(int index)
 	Panel2->Caption = mm->Lines->Strings[49];
 	Panel70->Caption = mm->Lines->Strings[50];
 	Panel3->Caption = mm->Lines->Strings[51];
-	Panel67->Caption = mm->Lines->Strings[52];
+//	Panel67->Caption = mm->Lines->Strings[52];
 	AdvSmoothToggleButton_InitWork->Caption = mm->Lines->Strings[53];
 }
 //---------------------------------------------------------------------------
@@ -1308,4 +1307,5 @@ void __fastcall TMainForm::lblTitleClick(TObject *Sender)
         CheckBox1->Checked = false;
 }
 //---------------------------------------------------------------------------
+
 

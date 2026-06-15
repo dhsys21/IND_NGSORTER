@@ -80,8 +80,8 @@ __published:	// IDE-managed Components
 	TAdvSmoothPanel *AdvSmoothPanel3;
 	TPanel *popen;
 	TAdvSmoothPanel *AdvSmoothPanel4;
-	TAdvSmoothPanel *grp_process;
-	TAdvSmoothPanel *AdvSmoothPanel6;
+	TAdvSmoothPanel *pnlTargetTray;
+	TAdvSmoothPanel *pnlSourceTray;
 	TPanel *pBase;
 	TAdvSmoothPanel *AdvSmoothPanel9;
 	TPanel *Panel27;
@@ -143,7 +143,6 @@ __published:	// IDE-managed Components
 	TStringGrid *targetGrid;
 	TPanel *Panel2;
 	TPanel *Panel3;
-	TPanel *Panel67;
 	TPanel *Panel70;
 	TPanel *pTrayid_target;
 	TPanel *Panel20;
@@ -301,6 +300,8 @@ __published:	// IDE-managed Components
 	TMemo *Memo2;
 	TCheckBox *CheckBox1;
 	TPanel *pRun;
+	TAdvSmoothPanel *pnlSourceTrayHeader;
+	TAdvSmoothPanel *pnlTargetTrayHeader;
 	void __fastcall FormShow(TObject *Sender);
 	void __fastcall targetGridDrawCell(TObject *Sender, int ACol, int ARow,
 		  TRect &Rect, TGridDrawState State);
@@ -412,11 +413,11 @@ public:		// User declarations
 	TPanel *psort_bad[96];
 	TPanel *psort_rank[96];
 
-	TPanel *pTarget_ch[24];
-	TPanel *pTarget_bad[24];
+	TPanel *pTarget_ch[96];
+	TPanel *pTarget_bad[96];
 
-	TColor color_target[4][6];
-    TColor color_target2[24];
+	TColor color_target[4][24];
+    TColor color_target2[96];
 	int mapSort[2][96];		// 96채널 48채널 맵핑
 
 	TAdvSmoothPanel *pt_ch[24];

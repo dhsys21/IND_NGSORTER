@@ -176,35 +176,9 @@ void __fastcall TMainForm::DisplayStatus(int status)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::setMapping()
 {
-	int index48 = 0;
-	int index24 = 0;
 	for(int i = 0; i < 96; ++i){
 		mapSort[0][i] = i + 1;	// 1~96
-
-		if( (i / 12) % 2 == 0)
-		{
-			if((i % 2) == 0){
-				mapSort[1][index48++] = i + 1; // i =             0, 2, 4, 6, 8, 10
-			}                                  // mapSort[1][0] = 1, 3, 5, 7, 9, 11
-		}
-		else{
-			if((i % 2) == 1){                  // i =             13, 15, 17, 19, 21, 23
-				mapSort[1][index48++] = i + 1; // mapSort[1][7] = 14, 16, 18, 20, 22, 24
-			}
-		}
 	}
-//	for(int i = 0; i < 24; i++){
-//		if((i / 6) % 2 == 0){
-//			if((i % 2) == 0){
-//				mapSort[2][index24++] = i + 1;
-//			}
-//		}
-//		else {
-//			if((i % 2) == 1){
-//                mapSort[2][index24++] = i + 1;
-//			}
-//        }
-//	}
 }
 //---------------------------------------------------------------------------
 // 메인화면 패널 만들기
@@ -212,10 +186,10 @@ void __fastcall TMainForm::MakePanel()
 {
 	int nx, ny, nw, nh;
 
-	nx = 2;
-	ny = 490;
-	nw = 196;
-	nh = 20;
+	nw = 146; // 196 -> 146
+	nh = 16;
+    nx = 2;
+	ny = pBase->Height - nh - 3;//490;
 
 	for(int index = 0; index < 96;){
 		psort_ch[index] = new TPanel(this);
@@ -230,15 +204,15 @@ void __fastcall TMainForm::MakePanel()
 		psort_bad[index] = new TPanel(this);
 		SetOption(psort_bad[index], nx + 80 + 2, ny, 95, nh, clWhite, index);
 
-		psort_rank[index] = new TPanel(this);
-		SetOption(psort_rank[index], nx + 175 + 3, ny, 50, nh, clWhite, index);
+//		psort_rank[index] = new TPanel(this);
+//		SetOption(psort_rank[index], nx + 175 + 3, ny, 50, nh, clWhite, index);
 		ny = ny - nh - 1;
 		index += 1;
 
-		if(index % 12 == 0) ny -= 5;
+		if(index % 12 == 0) ny -= 3;
 		if(index % 24 == 0){
 			nx = nx + 30 + nw + 3;
-			ny = 490;
+			ny = pBase->Height - nh - 3;
 		}
 	}
 //	pBase->Color = clWhite;
@@ -414,12 +388,12 @@ void __fastcall TMainForm::MakePanel_TargetTray()
 {
     int nx, ny, nw, nh;
 
+    nw = 145;
+	nh = 16;
 	nx = 2;
-	ny = 284;
-	nw = 194;
-	nh = 56;
+	ny = pTargetBase->Height - nh - 3;
 
-	for(int index = 0; index < 24;){
+	for(int index = 0; index < 96;){
 		pTarget_ch[index] = new TPanel(this);
 		SetOption_TargetTray(pTarget_ch[index], nx, ny, 30, nh, psample->Color, index);
 		pTarget_ch[index]->Font->Color = psample->Font->Color;
@@ -427,14 +401,14 @@ void __fastcall TMainForm::MakePanel_TargetTray()
 		pTarget_ch[index]->Caption = index+1;
 
 		pTarget_bad[index] = new TPanel(this);
-		SetOption_TargetTray(pTarget_bad[index], nx + 30 + 1, ny, 193, nh, clWhite, index);
+		SetOption_TargetTray(pTarget_bad[index], nx + 30 + 2, ny, nw, nh, clWhite, index);
 
 		ny = ny - nh - 1;
 		index += 1;
-
-		if(index % 6 == 0){
-			nx = nx + 30 + nw + 3;
-			ny = 284;
+        if(index % 12 == 0) ny -= 3;
+		if(index % 24 == 0){
+			nx = nx + 30 + nw + 4;
+			ny = pTargetBase->Height - nh - 3;
 		}
 	}
 }

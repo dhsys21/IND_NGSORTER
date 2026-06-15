@@ -265,6 +265,7 @@ void __fastcall TdoorForm::btnKeyUnlockClick(TObject *Sender)
 void __fastcall TdoorForm::Label3DblClick(TObject *Sender)
 {
     pPassword->Visible = !pPassword->Visible;
+    PassEdit->SetFocus();
 }
 //---------------------------------------------------------------------------
 
@@ -280,6 +281,20 @@ void __fastcall TdoorForm::PasswordBtnClick(TObject *Sender)
         MainForm->CheckBox1->Visible = true;
 	    MainForm->CheckBox1->Checked = true;
     	this->Visible = false;
+    }
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TdoorForm::PassEditKeyUp(TObject *Sender, WORD &Key, TShiftState Shift)
+
+{
+    if(Key == VK_RETURN)
+    {
+        if(PassEdit->Text == "9090"){
+            MainForm->CheckBox1->Visible = true;
+            MainForm->CheckBox1->Checked = true;
+            this->Visible = false;
+        }
     }
 }
 //---------------------------------------------------------------------------

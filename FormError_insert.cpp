@@ -55,13 +55,7 @@ void __fastcall TErrorForm_insert::retryBtnClick(TObject *Sender)
 	int map = 0;
 
 	MainForm->memoMainLineAdd("Retry");
-
-	if(MainForm->tray_source.SLOT_COUNT == 96){
-		map = psource_ch1->Caption.ToInt();
-	}
-	else if(MainForm->tray_source.SLOT_COUNT == 48){
-		map = MainForm->mapSort[1][psource_ch1->Caption.ToInt()-1];
-	}
+	map = psource_ch1->Caption.ToInt();
 
 	if(robostar->move.pallet == 2 && robostar->move.channel == map){
 		gripper->req_Pause(false);
@@ -96,36 +90,8 @@ void __fastcall TErrorForm_insert::AdvSmoothButton2Click(TObject *Sender)
 {
 	int map = 0;
 
-	if(MainForm->tray_source.SLOT_COUNT == 96){
-		map = psource_ch1->Caption.ToInt();
-		robostar->req_AutoMove(1, toolNum+1, map, 96);
-	}
-	else if(MainForm->tray_source.SLOT_COUNT == 48){
-        map = psource_ch1->Caption.ToInt();
-		robostar->req_AutoMove(1, toolNum+1, map, 48);
-	}
-	else if(MainForm->tray_source.SLOT_COUNT == 24){
-		map = psource_ch1->Caption.ToInt();
-		robostar->req_AutoMove(1, toolNum+1, map, 24);
-	}
-
-//	if(MainForm->tray_source.SLOT_COUNT == 96 && MainForm->tray->CH_GUBUN != 962){
-//		map = psource_ch1->Caption.ToInt();
-//		robostar->req_AutoMove(1, toolNum+1, map, 96);
-//	}
-//	else if(MainForm->tray_source.SLOT_COUNT == 96 && MainForm->tray->CH_GUBUN == 962){
-//		map = MainForm->mapSort[1][psource_ch1->Caption.ToInt()-1];
-//		robostar->req_AutoMove(1, toolNum+1, map, 962);
-//	}
-//	else if(MainForm->tray_source.SLOT_COUNT == 48 && MainForm->tray->CH_GUBUN != 482){
-//		map = MainForm->mapSort[1][psource_ch1->Caption.ToInt()-1];
-//		robostar->req_AutoMove(1, toolNum+1, map, 48);
-//	}
-//	else if(MainForm->tray_source.SLOT_COUNT == 48 && MainForm->tray->CH_GUBUN == 482)
-//	{
-//        map = MainForm->mapSort[1][psource_ch1->Caption.ToInt()-1];
-//		robostar->req_AutoMove(1, toolNum+1, map, 482);
-//    }
+	map = psource_ch1->Caption.ToInt();
+	robostar->req_AutoMove(1, toolNum+1, map, 96);
 }
 //---------------------------------------------------------------------------
 

@@ -75,6 +75,7 @@ __published:	// IDE-managed Components
 	void __fastcall Label3DblClick(TObject *Sender);
 	void __fastcall cancelBtn2Click(TObject *Sender);
 	void __fastcall PasswordBtnClick(TObject *Sender);
+	void __fastcall PassEditKeyUp(TObject *Sender, WORD &Key, TShiftState Shift);
 private:	// User declarations
 	TStaticText *text[5];
 	TPanel *perr[5];

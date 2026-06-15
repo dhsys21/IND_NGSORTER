@@ -5779,6 +5779,7 @@ object doorForm: TdoorForm
         ParentFont = False
         PasswordChar = '*'
         TabOrder = 1
+        OnKeyUp = PassEditKeyUp
       end
       object cancelBtn2: TAdvSmoothButton
         Left = 116
