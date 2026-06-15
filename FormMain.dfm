@@ -30,9 +30,9 @@ object MainForm: TMainForm
     ParentFont = False
   end
   object AdvSmoothPanel9: TAdvSmoothPanel
-    Left = 136
-    Top = 387
-    Width = 521
+    Left = 1019
+    Top = 0
+    Width = 140
     Height = 392
     Cursor = crDefault
     Caption.HTMLFont.Charset = DEFAULT_CHARSET
@@ -77,7 +77,7 @@ object MainForm: TMainForm
       TabOrder = 0
     end
     object Panel16: TPanel
-      Left = 90
+      Left = 5
       Top = 7
       Width = 130
       Height = 379
@@ -1799,7 +1799,7 @@ object MainForm: TMainForm
   object pback: TAdvSmoothPanel
     Left = 0
     Top = 0
-    Width = 936
+    Width = 736
     Height = 99
     Cursor = crDefault
     Caption.HTMLFont.Charset = DEFAULT_CHARSET
@@ -2166,8 +2166,8 @@ object MainForm: TMainForm
       OnClick = chkBypassClick
     end
     object pdoor_left: TPanel
-      Left = 760
-      Top = 56
+      Left = 570
+      Top = 58
       Width = 80
       Height = 30
       BevelKind = bkFlat
@@ -2186,8 +2186,8 @@ object MainForm: TMainForm
       TabOrder = 8
     end
     object pdoor_right: TPanel
-      Left = 841
-      Top = 56
+      Left = 651
+      Top = 58
       Width = 80
       Height = 30
       BevelKind = bkFlat
@@ -2206,8 +2206,8 @@ object MainForm: TMainForm
       TabOrder = 9
     end
     object pemergency: TPanel
-      Left = 760
-      Top = 25
+      Left = 570
+      Top = 27
       Width = 161
       Height = 30
       BevelKind = bkFlat
@@ -2246,8 +2246,8 @@ object MainForm: TMainForm
       TabOrder = 11
     end
     object Button1: TButton
-      Left = 592
-      Top = 16
+      Left = 336
+      Top = -4
       Width = 75
       Height = 25
       Caption = 'Button1'
@@ -2256,21 +2256,12 @@ object MainForm: TMainForm
       WordWrap = True
     end
     object Button2: TButton
-      Left = 673
-      Top = 16
+      Left = 417
+      Top = 3
       Width = 75
       Height = 25
       Caption = 'Button2'
       TabOrder = 13
-      Visible = False
-    end
-    object Memo1: TMemo
-      Left = 556
-      Top = 9
-      Width = 185
-      Height = 89
-      ScrollBars = ssBoth
-      TabOrder = 14
       Visible = False
     end
     object AdvSmoothToggleButton_InitWork: TAdvSmoothToggleButton
@@ -2312,7 +2303,7 @@ object MainForm: TMainForm
       Status.Appearance.Font.Name = 'Tahoma'
       Status.Appearance.Font.Style = []
       ParentFont = False
-      TabOrder = 15
+      TabOrder = 14
       OnClick = AdvSmoothToggleButton_InitWorkClick
       TMSStyle = 0
     end
@@ -2355,19 +2346,9 @@ object MainForm: TMainForm
       Status.Appearance.Font.Name = 'Tahoma'
       Status.Appearance.Font.Style = []
       ParentFont = False
-      TabOrder = 16
+      TabOrder = 15
       OnClick = pause_startBtnClick
       TMSStyle = 0
-    end
-    object Memo2: TMemo
-      Left = 739
-      Top = 7
-      Width = 185
-      Height = 89
-      Lines.Strings = (
-        'Memo2')
-      TabOrder = 17
-      Visible = False
     end
     object CheckBox1: TCheckBox
       Left = 116
@@ -2383,7 +2364,7 @@ object MainForm: TMainForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 18
+      TabOrder = 16
       Visible = False
       OnClick = chkBypassClick
     end
@@ -2391,8 +2372,8 @@ object MainForm: TMainForm
   object AdvSmoothPanel2: TAdvSmoothPanel
     Left = 136
     Top = 104
-    Width = 521
-    Height = 280
+    Width = 600
+    Height = 288
     Cursor = crDefault
     Caption.HTMLFont.Charset = DEFAULT_CHARSET
     Caption.HTMLFont.Color = clWindowText
@@ -2435,8 +2416,8 @@ object MainForm: TMainForm
       Transparent = True
     end
     object Label1: TLabel
-      Left = 269
-      Top = 10
+      Left = 350
+      Top = 11
       Width = 103
       Height = 21
       Caption = #45824#49345' TRAY '#51221#48372
@@ -2702,7 +2683,7 @@ object MainForm: TMainForm
       TabOrder = 12
     end
     object pTrayid_target2: TPanel
-      Left = 360
+      Left = 441
       Top = 68
       Width = 150
       Height = 86
@@ -2721,7 +2702,7 @@ object MainForm: TMainForm
       TabOrder = 13
     end
     object pPROCESS_target: TPanel
-      Left = 360
+      Left = 441
       Top = 155
       Width = 150
       Height = 28
@@ -2740,7 +2721,7 @@ object MainForm: TMainForm
       TabOrder = 14
     end
     object pKIND_target: TPanel
-      Left = 360
+      Left = 441
       Top = 213
       Width = 150
       Height = 28
@@ -2759,7 +2740,7 @@ object MainForm: TMainForm
       TabOrder = 15
     end
     object pDATE_target: TPanel
-      Left = 360
+      Left = 441
       Top = 184
       Width = 150
       Height = 28
@@ -2778,7 +2759,7 @@ object MainForm: TMainForm
       TabOrder = 16
     end
     object Panel30: TPanel
-      Left = 269
+      Left = 350
       Top = 68
       Width = 90
       Height = 86
@@ -2798,7 +2779,7 @@ object MainForm: TMainForm
       TabOrder = 17
     end
     object Panel37: TPanel
-      Left = 269
+      Left = 350
       Top = 155
       Width = 90
       Height = 28
@@ -2818,7 +2799,7 @@ object MainForm: TMainForm
       TabOrder = 18
     end
     object pSLOT_COUNT_target: TPanel
-      Left = 360
+      Left = 441
       Top = 242
       Width = 150
       Height = 28
@@ -2837,7 +2818,7 @@ object MainForm: TMainForm
       TabOrder = 19
     end
     object Panel39: TPanel
-      Left = 269
+      Left = 350
       Top = 213
       Width = 90
       Height = 28
@@ -2857,7 +2838,7 @@ object MainForm: TMainForm
       TabOrder = 20
     end
     object Panel40: TPanel
-      Left = 269
+      Left = 350
       Top = 242
       Width = 90
       Height = 28
@@ -2877,7 +2858,7 @@ object MainForm: TMainForm
       TabOrder = 21
     end
     object Panel50: TPanel
-      Left = 269
+      Left = 350
       Top = 184
       Width = 90
       Height = 28
@@ -2936,9 +2917,9 @@ object MainForm: TMainForm
       TabOrder = 24
     end
     object psrcReady: TPanel
-      Left = 98
+      Left = 70
       Top = 45
-      Width = 50
+      Width = 59
       Height = 20
       BevelOuter = bvNone
       Caption = #49468#53552#47553
@@ -2955,9 +2936,9 @@ object MainForm: TMainForm
       TabOrder = 25
     end
     object psrcArrive: TPanel
-      Left = 32
+      Left = 10
       Top = 45
-      Width = 65
+      Width = 59
       Height = 20
       BevelOuter = bvNone
       Caption = #46020#52265
@@ -2974,9 +2955,9 @@ object MainForm: TMainForm
       TabOrder = 26
     end
     object ptargetReady: TPanel
-      Left = 358
+      Left = 350
       Top = 46
-      Width = 50
+      Width = 78
       Height = 20
       BevelOuter = bvNone
       Caption = #49468#53552#47553
@@ -2993,9 +2974,9 @@ object MainForm: TMainForm
       TabOrder = 27
     end
     object psrcOut: TPanel
-      Left = 200
+      Left = 192
       Top = 45
-      Width = 50
+      Width = 59
       Height = 20
       BevelOuter = bvNone
       Caption = #48176#52636
@@ -3012,9 +2993,9 @@ object MainForm: TMainForm
       TabOrder = 28
     end
     object ptargetOut: TPanel
-      Left = 460
+      Left = 512
       Top = 46
-      Width = 50
+      Width = 78
       Height = 20
       BevelOuter = bvNone
       Caption = #48176#52636
@@ -3031,9 +3012,9 @@ object MainForm: TMainForm
       TabOrder = 29
     end
     object pwork1: TPanel
-      Left = 149
+      Left = 132
       Top = 45
-      Width = 50
+      Width = 59
       Height = 20
       BevelOuter = bvNone
       Caption = #51456#48708
@@ -3050,9 +3031,9 @@ object MainForm: TMainForm
       TabOrder = 30
     end
     object pwork2: TPanel
-      Left = 409
+      Left = 431
       Top = 46
-      Width = 50
+      Width = 78
       Height = 20
       BevelOuter = bvNone
       Caption = #51456#48708
@@ -4208,9 +4189,9 @@ object MainForm: TMainForm
   end
   object AdvSmoothPanel4: TAdvSmoothPanel
     Left = 136
-    Top = 785
-    Width = 800
-    Height = 156
+    Top = 398
+    Width = 1023
+    Height = 543
     Cursor = crDefault
     Caption.HTMLFont.Charset = DEFAULT_CHARSET
     Caption.HTMLFont.Color = clWindowText
@@ -4355,7 +4336,7 @@ object MainForm: TMainForm
     end
   end
   object pnlTargetTray: TAdvSmoothPanel
-    Left = 952
+    Left = 1164
     Top = 0
     Width = 734
     Height = 456
@@ -5854,7 +5835,7 @@ object MainForm: TMainForm
     end
   end
   object pnlSourceTray: TAdvSmoothPanel
-    Left = 952
+    Left = 1164
     Top = 485
     Width = 734
     Height = 456
@@ -6141,10 +6122,10 @@ object MainForm: TMainForm
     end
   end
   object AdvSmoothPanel1: TAdvSmoothPanel
-    Left = 663
-    Top = 103
+    Left = 742
+    Top = 0
     Width = 273
-    Height = 676
+    Height = 392
     Cursor = crDefault
     Caption.HTMLFont.Charset = DEFAULT_CHARSET
     Caption.HTMLFont.Color = clWindowText
@@ -6207,7 +6188,7 @@ object MainForm: TMainForm
       Left = 15
       Top = 102
       Width = 242
-      Height = 563
+      Height = 280
       Columns = <
         item
           Caption = 'No.'
@@ -6419,7 +6400,7 @@ object MainForm: TMainForm
     Visible = False
   end
   object Memo_En: TMemo
-    Left = 975
+    Left = 1396
     Top = 533
     Width = 200
     Height = 89
@@ -6483,8 +6464,8 @@ object MainForm: TMainForm
     Visible = False
   end
   object Memo_Hu: TMemo
-    Left = 975
-    Top = 628
+    Left = 1602
+    Top = 533
     Width = 200
     Height = 89
     Lines.Strings = (
@@ -6547,8 +6528,8 @@ object MainForm: TMainForm
     Visible = False
   end
   object pnlPLCTEST: TAdvSmoothPanel
-    Left = 530
-    Top = 264
+    Left = 1382
+    Top = 43
     Width = 384
     Height = 392
     Cursor = crDefault
@@ -7210,6 +7191,25 @@ object MainForm: TMainForm
       TMSStyle = 0
     end
   end
+  object Memo1: TMemo
+    Left = 794
+    Top = 263
+    Width = 185
+    Height = 89
+    ScrollBars = ssBoth
+    TabOrder = 12
+    Visible = False
+  end
+  object Memo2: TMemo
+    Left = 794
+    Top = 162
+    Width = 185
+    Height = 89
+    Lines.Strings = (
+      'Memo2')
+    TabOrder = 13
+    Visible = False
+  end
   object Client: TClientSocket
     Active = False
     ClientType = ctNonBlocking
@@ -7222,34 +7222,34 @@ object MainForm: TMainForm
     DefaultExt = '*.csv'
     Filter = 'Result File(*.csv)|*.csv'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
-    Left = 628
-    Top = 7
+    Left = 604
+    Top = 199
   end
   object OpenDialog: TOpenDialog
     DefaultExt = '*.csv'
     Filter = #50724#54532#49483' '#54028#51068'(*.csv)|*.csv'
-    Left = 568
-    Top = 8
+    Left = 664
+    Top = 200
   end
   object stepTimer: TTimer
     Enabled = False
     Interval = 500
     OnTimer = stepTimerTimer
-    Left = 704
-    Top = 64
+    Left = 424
+    Top = 160
   end
   object senTimer: TTimer
     Enabled = False
     Interval = 500
     OnTimer = senTimerTimer
-    Left = 776
-    Top = 40
+    Left = 416
+    Top = 264
   end
   object mesTimer: TTimer
     Enabled = False
     Interval = 10000
     OnTimer = mesTimerTimer
-    Left = 592
-    Top = 64
+    Left = 424
+    Top = 208
   end
 end

@@ -264,7 +264,6 @@ __published:	// IDE-managed Components
 	TMemo *Memo_Ko;
 	TMemo *Memo_En;
 	TMemo *Memo_Hu;
-	TMemo *Memo1;
 	TAdvSmoothToggleButton *AdvSmoothToggleButton_InitWork;
 	TAdvSmoothToggleButton *pause_startBtn;
 	TPanel *pOnG1;
@@ -297,11 +296,12 @@ __published:	// IDE-managed Components
 	TPanel *Panel31;
 	TPanel *pflow3;
 	TPanel *pflow4;
-	TMemo *Memo2;
 	TCheckBox *CheckBox1;
 	TPanel *pRun;
 	TAdvSmoothPanel *pnlSourceTrayHeader;
 	TAdvSmoothPanel *pnlTargetTrayHeader;
+	TMemo *Memo1;
+	TMemo *Memo2;
 	void __fastcall FormShow(TObject *Sender);
 	void __fastcall targetGridDrawCell(TObject *Sender, int ACol, int ARow,
 		  TRect &Rect, TGridDrawState State);
