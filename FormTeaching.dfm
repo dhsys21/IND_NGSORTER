@@ -1290,9 +1290,9 @@ object teachForm: TteachForm
       Text = 'Edit1'
     end
     object pnlSeperator1: TPanel
-      Left = 15
-      Top = 351
-      Width = 563
+      Left = 5
+      Top = 385
+      Width = 583
       Height = 1
       BevelOuter = bvNone
       Color = clRed
@@ -2115,9 +2115,9 @@ object teachForm: TteachForm
       Text = 'Edit1'
     end
     object pnlSeperator2: TPanel
-      Left = 15
-      Top = 351
-      Width = 563
+      Left = 5
+      Top = 385
+      Width = 583
       Height = 1
       BevelOuter = bvNone
       Color = clRed
