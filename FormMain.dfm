@@ -2401,7 +2401,7 @@ object MainForm: TMainForm
     TMSStyle = 0
     object Label9: TLabel
       Left = 10
-      Top = 11
+      Top = 10
       Width = 103
       Height = 21
       Caption = #49440#48324' TRAY '#51221#48372
@@ -2417,7 +2417,7 @@ object MainForm: TMainForm
     end
     object Label1: TLabel
       Left = 350
-      Top = 11
+      Top = 10
       Width = 103
       Height = 21
       Caption = #45824#49345' TRAY '#51221#48372
@@ -4188,11 +4188,15 @@ object MainForm: TMainForm
     end
   end
   object AdvSmoothPanel4: TAdvSmoothPanel
-    Left = 136
-    Top = 398
+    Left = 138
+    Top = 400
     Width = 1023
     Height = 543
     Cursor = crDefault
+    Margins.Left = 5
+    Margins.Top = 5
+    Margins.Right = 5
+    Margins.Bottom = 5
     Caption.HTMLFont.Charset = DEFAULT_CHARSET
     Caption.HTMLFont.Color = clWindowText
     Caption.HTMLFont.Height = -11
@@ -4216,10 +4220,14 @@ object MainForm: TMainForm
     Fill.Glow = gmNone
     Version = '1.5.2.1'
     TabOrder = 3
+    Padding.Left = 5
+    Padding.Top = 5
+    Padding.Right = 5
+    Padding.Bottom = 5
     TMSStyle = 0
     object pmainMsg: TPanel
-      Left = 311
-      Top = 9
+      Left = 385
+      Top = 137
       Width = 477
       Height = 45
       BevelKind = bkFlat
@@ -4237,8 +4245,8 @@ object MainForm: TMainForm
       TabOrder = 0
     end
     object Panel5: TPanel
-      Left = 9
-      Top = 9
+      Left = 83
+      Top = 137
       Width = 300
       Height = 45
       BevelKind = bkFlat
@@ -4257,8 +4265,8 @@ object MainForm: TMainForm
       TabOrder = 1
     end
     object Panel7: TPanel
-      Left = 9
-      Top = 56
+      Left = 83
+      Top = 184
       Width = 300
       Height = 45
       BevelKind = bkFlat
@@ -4277,8 +4285,8 @@ object MainForm: TMainForm
       TabOrder = 2
     end
     object pgripperMsg: TPanel
-      Left = 311
-      Top = 57
+      Left = 385
+      Top = 185
       Width = 477
       Height = 45
       BevelKind = bkFlat
@@ -4296,8 +4304,8 @@ object MainForm: TMainForm
       TabOrder = 3
     end
     object probostarMsg: TPanel
-      Left = 311
-      Top = 104
+      Left = 385
+      Top = 232
       Width = 477
       Height = 45
       BevelKind = bkFlat
@@ -4315,8 +4323,8 @@ object MainForm: TMainForm
       TabOrder = 4
     end
     object Panel17: TPanel
-      Left = 9
-      Top = 103
+      Left = 83
+      Top = 231
       Width = 300
       Height = 45
       BevelKind = bkFlat
@@ -4333,6 +4341,78 @@ object MainForm: TMainForm
       ParentShowHint = False
       ShowHint = False
       TabOrder = 5
+    end
+    object memoLog: TMemo
+      Left = 5
+      Top = 37
+      Width = 1013
+      Height = 501
+      Margins.Left = 5
+      Margins.Top = 5
+      Margins.Right = 5
+      Margins.Bottom = 5
+      Align = alClient
+      ScrollBars = ssBoth
+      TabOrder = 6
+    end
+    object pnlLogTitle: TAdvSmoothPanel
+      Left = 5
+      Top = 5
+      Width = 1013
+      Height = 32
+      Cursor = crDefault
+      CanMove = True
+      Caption.HTMLFont.Charset = DEFAULT_CHARSET
+      Caption.HTMLFont.Color = clWindowText
+      Caption.HTMLFont.Height = -11
+      Caption.HTMLFont.Name = 'Tahoma'
+      Caption.HTMLFont.Style = []
+      Caption.Font.Charset = DEFAULT_CHARSET
+      Caption.Font.Color = clWindowText
+      Caption.Font.Height = -16
+      Caption.Font.Name = 'Tahoma'
+      Caption.Font.Style = []
+      Fill.Color = clWhite
+      Fill.ColorTo = clWhite
+      Fill.ColorMirror = clWhite
+      Fill.ColorMirrorTo = clWhite
+      Fill.GradientType = gtVertical
+      Fill.GradientMirrorType = gtVertical
+      Fill.BorderColor = 52377
+      Fill.BorderWidth = 0
+      Fill.Rounding = 0
+      Fill.ShadowOffset = 0
+      Fill.Glow = gmNone
+      Version = '1.5.2.1'
+      Align = alTop
+      TabOrder = 7
+      Padding.Left = 3
+      Padding.Top = 3
+      Padding.Right = 3
+      Padding.Bottom = 3
+      ExplicitLeft = 8
+      ExplicitWidth = 718
+      TMSStyle = 0
+      object lblLogTitle: TLabel
+        Left = 1
+        Top = 1
+        Width = 129
+        Height = 21
+        Margins.Left = 5
+        Margins.Top = 5
+        Margins.Right = 5
+        Margins.Bottom = 5
+        Caption = 'Equipment Log'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = 13204573
+        Font.Height = -17
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ParentFont = False
+        ParentShowHint = False
+        ShowHint = False
+        Transparent = True
+      end
     end
   end
   object pnlTargetTray: TAdvSmoothPanel

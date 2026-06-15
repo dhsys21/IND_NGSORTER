@@ -513,7 +513,7 @@ __published:	// IDE-managed Components
 private:	// User declarations
     TListItem	*ITEM;
 	TAdvSmoothPanel *sTray[96];
-	TAdvSmoothPanel *tTray[24];
+	TAdvSmoothPanel *tTray[96];
 	void __fastcall ChangeTrayMap(int channel);
 
 	TEACHING teach;

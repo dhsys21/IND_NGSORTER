@@ -302,6 +302,9 @@ __published:	// IDE-managed Components
 	TAdvSmoothPanel *pnlTargetTrayHeader;
 	TMemo *Memo1;
 	TMemo *Memo2;
+	TMemo *memoLog;
+	TAdvSmoothPanel *pnlLogTitle;
+	TLabel *lblLogTitle;
 	void __fastcall FormShow(TObject *Sender);
 	void __fastcall targetGridDrawCell(TObject *Sender, int ACol, int ARow,
 		  TRect &Rect, TGridDrawState State);

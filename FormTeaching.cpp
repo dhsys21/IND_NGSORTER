@@ -176,13 +176,13 @@ void __fastcall TteachForm::FormCreate(TObject *Sender)
 		sTray[i]->OnClick = sClick;
 	}
 
-	for(int i = 0; i < 12; ++i){
-        tTray[i]->Width = 280;
+	for(int i = 0; i < 96; ++i){
+        //tTray[i]->Width = 280;
 		tTray[i]->Visible = true;
 		tTray[i]->Tag = i+1;
 		tTray[i]->OnClick = tClick;
 
-        if(i >= 6) tTray[i]->Left = tTray[12]->Left;
+        //if(i >= 6) tTray[i]->Left = tTray[12]->Left;
 	}
 
 	LoadTeaching();
@@ -264,7 +264,7 @@ void __fastcall TteachForm::tClick(TObject *Sender)
 			str = "[" + sCombo->Text + "] 대상 트레이 채널 " + pnl->Caption->Text + " 으로 이동하시겠습니까?";
             if(MessageBox(Handle, str.c_str(), L"이동", MB_YESNO|MB_ICONQUESTION) == ID_YES){
                 robostar->req_AutoMove(2, sCombo->ItemIndex + 1 , pnl->Tag, 96);
-                for(int i = 0; i < 24; ++i){
+                for(int i = 0; i < 96; ++i){
                     tTray[i]->Fill->Color = clWhite;
                     tTray[i]->Fill->ColorTo = clWhite;
                     tTray[i]->Fill->ColorMirror = clWhite;

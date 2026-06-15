@@ -4617,9 +4617,9 @@ object teachForm: TteachForm
     end
     object t2: TAdvSmoothPanel
       Left = 15
-      Top = 223
+      Top = 564
       Width = 140
-      Height = 30
+      Height = 20
       Cursor = crDefault
       Caption.Text = '2'
       Caption.Location = plCenterCenter
@@ -4630,7 +4630,7 @@ object teachForm: TteachForm
       Caption.HTMLFont.Style = []
       Caption.Font.Charset = DEFAULT_CHARSET
       Caption.Font.Color = clWindowText
-      Caption.Font.Height = -17
+      Caption.Font.Height = -13
       Caption.Font.Name = 'Tahoma'
       Caption.Font.Style = [fsBold]
       Caption.Line = False
@@ -4654,9 +4654,9 @@ object teachForm: TteachForm
     end
     object t3: TAdvSmoothPanel
       Left = 15
-      Top = 192
+      Top = 543
       Width = 140
-      Height = 30
+      Height = 20
       Cursor = crDefault
       Caption.Text = '3'
       Caption.Location = plCenterCenter
@@ -4667,7 +4667,7 @@ object teachForm: TteachForm
       Caption.HTMLFont.Style = []
       Caption.Font.Charset = DEFAULT_CHARSET
       Caption.Font.Color = clWindowText
-      Caption.Font.Height = -17
+      Caption.Font.Height = -13
       Caption.Font.Name = 'Tahoma'
       Caption.Font.Style = [fsBold]
       Caption.Line = False
@@ -4691,9 +4691,9 @@ object teachForm: TteachForm
     end
     object t20: TAdvSmoothPanel
       Left = 438
-      Top = 223
+      Top = 564
       Width = 140
-      Height = 30
+      Height = 20
       Cursor = crDefault
       Caption.Text = '20'
       Caption.Location = plCenterCenter
@@ -4704,7 +4704,7 @@ object teachForm: TteachForm
       Caption.HTMLFont.Style = []
       Caption.Font.Charset = DEFAULT_CHARSET
       Caption.Font.Color = clWindowText
-      Caption.Font.Height = -17
+      Caption.Font.Height = -13
       Caption.Font.Name = 'Tahoma'
       Caption.Font.Style = [fsBold]
       Caption.Line = False
@@ -4728,9 +4728,9 @@ object teachForm: TteachForm
     end
     object t17: TAdvSmoothPanel
       Left = 297
-      Top = 130
+      Top = 501
       Width = 140
-      Height = 30
+      Height = 20
       Cursor = crDefault
       Caption.Text = '17'
       Caption.Location = plCenterCenter
@@ -4741,7 +4741,7 @@ object teachForm: TteachForm
       Caption.HTMLFont.Style = []
       Caption.Font.Charset = DEFAULT_CHARSET
       Caption.Font.Color = clWindowText
-      Caption.Font.Height = -17
+      Caption.Font.Height = -13
       Caption.Font.Name = 'Tahoma'
       Caption.Font.Style = [fsBold]
       Caption.Line = False
@@ -4765,9 +4765,9 @@ object teachForm: TteachForm
     end
     object t18: TAdvSmoothPanel
       Left = 297
-      Top = 99
+      Top = 480
       Width = 140
-      Height = 30
+      Height = 20
       Cursor = crDefault
       Caption.Text = '18'
       Caption.Location = plCenterCenter
@@ -4778,7 +4778,7 @@ object teachForm: TteachForm
       Caption.HTMLFont.Style = []
       Caption.Font.Charset = DEFAULT_CHARSET
       Caption.Font.Color = clWindowText
-      Caption.Font.Height = -17
+      Caption.Font.Height = -13
       Caption.Font.Name = 'Tahoma'
       Caption.Font.Style = [fsBold]
       Caption.Line = False
@@ -4802,9 +4802,9 @@ object teachForm: TteachForm
     end
     object t16: TAdvSmoothPanel
       Left = 297
-      Top = 161
+      Top = 522
       Width = 140
-      Height = 30
+      Height = 20
       Cursor = crDefault
       Caption.Text = '16'
       Caption.Location = plCenterCenter
@@ -4815,7 +4815,7 @@ object teachForm: TteachForm
       Caption.HTMLFont.Style = []
       Caption.Font.Charset = DEFAULT_CHARSET
       Caption.Font.Color = clWindowText
-      Caption.Font.Height = -17
+      Caption.Font.Height = -13
       Caption.Font.Name = 'Tahoma'
       Caption.Font.Style = [fsBold]
       Caption.Line = False
@@ -4839,9 +4839,9 @@ object teachForm: TteachForm
     end
     object t14: TAdvSmoothPanel
       Left = 297
-      Top = 223
+      Top = 564
       Width = 140
-      Height = 30
+      Height = 20
       Cursor = crDefault
       Caption.Text = '14'
       Caption.Location = plCenterCenter
@@ -4852,7 +4852,7 @@ object teachForm: TteachForm
       Caption.HTMLFont.Style = []
       Caption.Font.Charset = DEFAULT_CHARSET
       Caption.Font.Color = clWindowText
-      Caption.Font.Height = -17
+      Caption.Font.Height = -13
       Caption.Font.Name = 'Tahoma'
       Caption.Font.Style = [fsBold]
       Caption.Line = False
@@ -4876,9 +4876,9 @@ object teachForm: TteachForm
     end
     object t15: TAdvSmoothPanel
       Left = 297
-      Top = 192
+      Top = 543
       Width = 140
-      Height = 30
+      Height = 20
       Cursor = crDefault
       Caption.Text = '15'
       Caption.Location = plCenterCenter
@@ -4889,7 +4889,7 @@ object teachForm: TteachForm
       Caption.HTMLFont.Style = []
       Caption.Font.Charset = DEFAULT_CHARSET
       Caption.Font.Color = clWindowText
-      Caption.Font.Height = -17
+      Caption.Font.Height = -13
       Caption.Font.Name = 'Tahoma'
       Caption.Font.Style = [fsBold]
       Caption.Line = False
@@ -4913,9 +4913,9 @@ object teachForm: TteachForm
     end
     object t12: TAdvSmoothPanel
       Left = 156
-      Top = 99
+      Top = 480
       Width = 140
-      Height = 30
+      Height = 20
       Cursor = crDefault
       Caption.Text = '12'
       Caption.Location = plCenterCenter
@@ -4926,7 +4926,7 @@ object teachForm: TteachForm
       Caption.HTMLFont.Style = []
       Caption.Font.Charset = DEFAULT_CHARSET
       Caption.Font.Color = clWindowText
-      Caption.Font.Height = -17
+      Caption.Font.Height = -13
       Caption.Font.Name = 'Tahoma'
       Caption.Font.Style = [fsBold]
       Caption.Line = False
@@ -4950,9 +4950,9 @@ object teachForm: TteachForm
     end
     object t9: TAdvSmoothPanel
       Left = 156
-      Top = 192
+      Top = 543
       Width = 140
-      Height = 30
+      Height = 20
       Cursor = crDefault
       Caption.Text = '9'
       Caption.Location = plCenterCenter
@@ -4963,7 +4963,7 @@ object teachForm: TteachForm
       Caption.HTMLFont.Style = []
       Caption.Font.Charset = DEFAULT_CHARSET
       Caption.Font.Color = clWindowText
-      Caption.Font.Height = -17
+      Caption.Font.Height = -13
       Caption.Font.Name = 'Tahoma'
       Caption.Font.Style = [fsBold]
       Caption.Line = False
@@ -4987,9 +4987,9 @@ object teachForm: TteachForm
     end
     object t10: TAdvSmoothPanel
       Left = 156
-      Top = 161
+      Top = 522
       Width = 140
-      Height = 30
+      Height = 20
       Cursor = crDefault
       Caption.Text = '10'
       Caption.Location = plCenterCenter
@@ -5000,7 +5000,7 @@ object teachForm: TteachForm
       Caption.HTMLFont.Style = []
       Caption.Font.Charset = DEFAULT_CHARSET
       Caption.Font.Color = clWindowText
-      Caption.Font.Height = -17
+      Caption.Font.Height = -13
       Caption.Font.Name = 'Tahoma'
       Caption.Font.Style = [fsBold]
       Caption.Line = False
@@ -5024,9 +5024,9 @@ object teachForm: TteachForm
     end
     object t11: TAdvSmoothPanel
       Left = 156
-      Top = 130
+      Top = 501
       Width = 140
-      Height = 30
+      Height = 20
       Cursor = crDefault
       Caption.Text = '11'
       Caption.Location = plCenterCenter
@@ -5037,7 +5037,7 @@ object teachForm: TteachForm
       Caption.HTMLFont.Style = []
       Caption.Font.Charset = DEFAULT_CHARSET
       Caption.Font.Color = clWindowText
-      Caption.Font.Height = -17
+      Caption.Font.Height = -13
       Caption.Font.Name = 'Tahoma'
       Caption.Font.Style = [fsBold]
       Caption.Line = False
@@ -5061,9 +5061,9 @@ object teachForm: TteachForm
     end
     object t8: TAdvSmoothPanel
       Left = 156
-      Top = 223
+      Top = 564
       Width = 140
-      Height = 30
+      Height = 20
       Cursor = crDefault
       Caption.Text = '8'
       Caption.Location = plCenterCenter
@@ -5074,7 +5074,7 @@ object teachForm: TteachForm
       Caption.HTMLFont.Style = []
       Caption.Font.Charset = DEFAULT_CHARSET
       Caption.Font.Color = clWindowText
-      Caption.Font.Height = -17
+      Caption.Font.Height = -13
       Caption.Font.Name = 'Tahoma'
       Caption.Font.Style = [fsBold]
       Caption.Line = False
@@ -5098,9 +5098,9 @@ object teachForm: TteachForm
     end
     object t5: TAdvSmoothPanel
       Left = 15
-      Top = 130
+      Top = 501
       Width = 140
-      Height = 30
+      Height = 20
       Cursor = crDefault
       Caption.Text = '5'
       Caption.Location = plCenterCenter
@@ -5111,7 +5111,7 @@ object teachForm: TteachForm
       Caption.HTMLFont.Style = []
       Caption.Font.Charset = DEFAULT_CHARSET
       Caption.Font.Color = clWindowText
-      Caption.Font.Height = -17
+      Caption.Font.Height = -13
       Caption.Font.Name = 'Tahoma'
       Caption.Font.Style = [fsBold]
       Caption.Line = False
@@ -5135,9 +5135,9 @@ object teachForm: TteachForm
     end
     object t6: TAdvSmoothPanel
       Left = 15
-      Top = 99
+      Top = 480
       Width = 140
-      Height = 30
+      Height = 20
       Cursor = crDefault
       Caption.Text = '6'
       Caption.Location = plCenterCenter
@@ -5148,7 +5148,7 @@ object teachForm: TteachForm
       Caption.HTMLFont.Style = []
       Caption.Font.Charset = DEFAULT_CHARSET
       Caption.Font.Color = clWindowText
-      Caption.Font.Height = -17
+      Caption.Font.Height = -13
       Caption.Font.Name = 'Tahoma'
       Caption.Font.Style = [fsBold]
       Caption.Line = False
@@ -5172,9 +5172,9 @@ object teachForm: TteachForm
     end
     object t4: TAdvSmoothPanel
       Left = 15
-      Top = 161
+      Top = 522
       Width = 140
-      Height = 30
+      Height = 20
       Cursor = crDefault
       Caption.Text = '4'
       Caption.Location = plCenterCenter
@@ -5185,7 +5185,7 @@ object teachForm: TteachForm
       Caption.HTMLFont.Style = []
       Caption.Font.Charset = DEFAULT_CHARSET
       Caption.Font.Color = clWindowText
-      Caption.Font.Height = -17
+      Caption.Font.Height = -13
       Caption.Font.Name = 'Tahoma'
       Caption.Font.Style = [fsBold]
       Caption.Line = False
@@ -5209,9 +5209,9 @@ object teachForm: TteachForm
     end
     object t21: TAdvSmoothPanel
       Left = 438
-      Top = 192
+      Top = 543
       Width = 140
-      Height = 30
+      Height = 20
       Cursor = crDefault
       Caption.Text = '21'
       Caption.Location = plCenterCenter
@@ -5222,7 +5222,7 @@ object teachForm: TteachForm
       Caption.HTMLFont.Style = []
       Caption.Font.Charset = DEFAULT_CHARSET
       Caption.Font.Color = clWindowText
-      Caption.Font.Height = -17
+      Caption.Font.Height = -13
       Caption.Font.Name = 'Tahoma'
       Caption.Font.Style = [fsBold]
       Caption.Line = False
@@ -5246,9 +5246,9 @@ object teachForm: TteachForm
     end
     object t22: TAdvSmoothPanel
       Left = 438
-      Top = 161
+      Top = 522
       Width = 140
-      Height = 30
+      Height = 20
       Cursor = crDefault
       Caption.Text = '22'
       Caption.Location = plCenterCenter
@@ -5259,7 +5259,7 @@ object teachForm: TteachForm
       Caption.HTMLFont.Style = []
       Caption.Font.Charset = DEFAULT_CHARSET
       Caption.Font.Color = clWindowText
-      Caption.Font.Height = -17
+      Caption.Font.Height = -13
       Caption.Font.Name = 'Tahoma'
       Caption.Font.Style = [fsBold]
       Caption.Line = False
@@ -5283,9 +5283,9 @@ object teachForm: TteachForm
     end
     object t23: TAdvSmoothPanel
       Left = 438
-      Top = 130
+      Top = 501
       Width = 140
-      Height = 30
+      Height = 20
       Cursor = crDefault
       Caption.Text = '23'
       Caption.Location = plCenterCenter
@@ -5296,7 +5296,7 @@ object teachForm: TteachForm
       Caption.HTMLFont.Style = []
       Caption.Font.Charset = DEFAULT_CHARSET
       Caption.Font.Color = clWindowText
-      Caption.Font.Height = -17
+      Caption.Font.Height = -13
       Caption.Font.Name = 'Tahoma'
       Caption.Font.Style = [fsBold]
       Caption.Line = False
@@ -5320,9 +5320,9 @@ object teachForm: TteachForm
     end
     object t24: TAdvSmoothPanel
       Left = 438
-      Top = 99
+      Top = 480
       Width = 140
-      Height = 30
+      Height = 20
       Cursor = crDefault
       Caption.Text = '24'
       Caption.Location = plCenterCenter
@@ -5333,7 +5333,7 @@ object teachForm: TteachForm
       Caption.HTMLFont.Style = []
       Caption.Font.Charset = DEFAULT_CHARSET
       Caption.Font.Color = clWindowText
-      Caption.Font.Height = -17
+      Caption.Font.Height = -13
       Caption.Font.Name = 'Tahoma'
       Caption.Font.Style = [fsBold]
       Caption.Line = False
@@ -5781,9 +5781,9 @@ object teachForm: TteachForm
     end
     object t1: TAdvSmoothPanel
       Left = 15
-      Top = 254
+      Top = 585
       Width = 140
-      Height = 30
+      Height = 20
       Cursor = crDefault
       Caption.Text = 'CH 1'
       Caption.Location = plCenterCenter
@@ -5794,7 +5794,7 @@ object teachForm: TteachForm
       Caption.HTMLFont.Style = []
       Caption.Font.Charset = DEFAULT_CHARSET
       Caption.Font.Color = clWindowText
-      Caption.Font.Height = -17
+      Caption.Font.Height = -13
       Caption.Font.Name = 'Tahoma'
       Caption.Font.Style = [fsBold]
       Caption.Line = False
@@ -5818,9 +5818,9 @@ object teachForm: TteachForm
     end
     object t7: TAdvSmoothPanel
       Left = 156
-      Top = 254
+      Top = 585
       Width = 140
-      Height = 30
+      Height = 20
       Cursor = crDefault
       Caption.Text = 'CH 7'
       Caption.Location = plCenterCenter
@@ -5831,7 +5831,7 @@ object teachForm: TteachForm
       Caption.HTMLFont.Style = []
       Caption.Font.Charset = DEFAULT_CHARSET
       Caption.Font.Color = clWindowText
-      Caption.Font.Height = -17
+      Caption.Font.Height = -13
       Caption.Font.Name = 'Tahoma'
       Caption.Font.Style = [fsBold]
       Caption.Line = False
@@ -5854,9 +5854,9 @@ object teachForm: TteachForm
     end
     object t13: TAdvSmoothPanel
       Left = 297
-      Top = 254
+      Top = 585
       Width = 140
-      Height = 30
+      Height = 20
       Cursor = crDefault
       Caption.Text = 'CH 13'
       Caption.Location = plCenterCenter
@@ -5867,7 +5867,7 @@ object teachForm: TteachForm
       Caption.HTMLFont.Style = []
       Caption.Font.Charset = DEFAULT_CHARSET
       Caption.Font.Color = clWindowText
-      Caption.Font.Height = -17
+      Caption.Font.Height = -13
       Caption.Font.Name = 'Tahoma'
       Caption.Font.Style = [fsBold]
       Caption.Line = False
@@ -5891,9 +5891,9 @@ object teachForm: TteachForm
     end
     object t19: TAdvSmoothPanel
       Left = 438
-      Top = 254
+      Top = 585
       Width = 140
-      Height = 30
+      Height = 20
       Cursor = crDefault
       Caption.Text = 'CH 19'
       Caption.Location = plCenterCenter
@@ -5904,7 +5904,7 @@ object teachForm: TteachForm
       Caption.HTMLFont.Style = []
       Caption.Font.Charset = DEFAULT_CHARSET
       Caption.Font.Color = clWindowText
-      Caption.Font.Height = -17
+      Caption.Font.Height = -13
       Caption.Font.Name = 'Tahoma'
       Caption.Font.Style = [fsBold]
       Caption.Line = False
@@ -14180,7 +14180,7 @@ object teachForm: TteachForm
       end
       object Label35: TLabel
         Left = 120
-        Top = 11
+        Top = 12
         Width = 30
         Height = 16
         Alignment = taCenter
@@ -14452,7 +14452,7 @@ object teachForm: TteachForm
       end
       object typeEdit1: TEdit
         Left = 165
-        Top = 7
+        Top = 8
         Width = 61
         Height = 24
         CharCase = ecUpperCase
@@ -14467,7 +14467,7 @@ object teachForm: TteachForm
       end
       object typeCombo: TComboBox
         Left = 285
-        Top = 10
+        Top = 8
         Width = 61
         Height = 24
         Style = csDropDownList
@@ -14669,8 +14669,8 @@ object teachForm: TteachForm
     end
   end
   object tea_memo: TMemo
-    Left = 877
-    Top = 719
+    Left = 942
+    Top = 567
     Width = 185
     Height = 176
     ImeName = 'Microsoft IME 2010'
@@ -14769,8 +14769,8 @@ object teachForm: TteachForm
     TMSStyle = 8
   end
   object Memo_Ko: TMemo
-    Left = 372
-    Top = 549
+    Left = 616
+    Top = 551
     Width = 200
     Height = 89
     Lines.Strings = (
@@ -14827,8 +14827,8 @@ object teachForm: TteachForm
     Visible = False
   end
   object Memo_En: TMemo
-    Left = 372
-    Top = 644
+    Left = 628
+    Top = 646
     Width = 200
     Height = 89
     Lines.Strings = (
@@ -14887,8 +14887,8 @@ object teachForm: TteachForm
     Visible = False
   end
   object Memo_Hu: TMemo
-    Left = 372
-    Top = 739
+    Left = 647
+    Top = 741
     Width = 200
     Height = 89
     Lines.Strings = (
