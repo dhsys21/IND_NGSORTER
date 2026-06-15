@@ -264,17 +264,6 @@ void __fastcall TBaseForm::btnKeyLockClick(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TBaseForm::pecsClick(TObject *Sender)
-{
-	if(MainForm->Memo2->Visible == false)
-	{
-		MainForm->Memo2->Visible = true;
-		MainForm->Memo2->BringToFront();
-	}
-	else
-    MainForm->Memo2->Visible = false;
-}
-//---------------------------------------------------------------------------
 int __fastcall TBaseForm::StringToInt(UnicodeString str, int def)
 {
 	int iVal;

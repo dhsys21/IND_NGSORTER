@@ -2245,25 +2245,6 @@ object MainForm: TMainForm
       ShowHint = False
       TabOrder = 11
     end
-    object Button1: TButton
-      Left = 336
-      Top = -4
-      Width = 75
-      Height = 25
-      Caption = 'Button1'
-      TabOrder = 12
-      Visible = False
-      WordWrap = True
-    end
-    object Button2: TButton
-      Left = 417
-      Top = 3
-      Width = 75
-      Height = 25
-      Caption = 'Button2'
-      TabOrder = 13
-      Visible = False
-    end
     object AdvSmoothToggleButton_InitWork: TAdvSmoothToggleButton
       Tag = 2
       Left = 214
@@ -2303,7 +2284,7 @@ object MainForm: TMainForm
       Status.Appearance.Font.Name = 'Tahoma'
       Status.Appearance.Font.Style = []
       ParentFont = False
-      TabOrder = 14
+      TabOrder = 12
       OnClick = AdvSmoothToggleButton_InitWorkClick
       TMSStyle = 0
     end
@@ -2346,7 +2327,7 @@ object MainForm: TMainForm
       Status.Appearance.Font.Name = 'Tahoma'
       Status.Appearance.Font.Style = []
       ParentFont = False
-      TabOrder = 15
+      TabOrder = 13
       OnClick = pause_startBtnClick
       TMSStyle = 0
     end
@@ -2364,7 +2345,7 @@ object MainForm: TMainForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 16
+      TabOrder = 14
       Visible = False
       OnClick = chkBypassClick
     end
@@ -3331,7 +3312,7 @@ object MainForm: TMainForm
     end
     object teachingBtn: TAdvSmoothButton
       Left = 15
-      Top = 491
+      Top = 493
       Width = 100
       Height = 41
       Appearance.PictureAlignment = taCenter
@@ -4390,8 +4371,6 @@ object MainForm: TMainForm
       Padding.Top = 3
       Padding.Right = 3
       Padding.Bottom = 3
-      ExplicitLeft = 8
-      ExplicitWidth = 718
       TMSStyle = 0
       object lblLogTitle: TLabel
         Left = 1
@@ -4784,10 +4763,6 @@ object MainForm: TMainForm
       ParentFont = False
       TabOrder = 0
       OnDrawCell = targetGridDrawCell
-      ExplicitLeft = 9
-      ExplicitTop = 34
-      ExplicitWidth = 908
-      ExplicitHeight = 342
       ColWidths = (
         225
         225
@@ -5703,9 +5678,6 @@ object MainForm: TMainForm
       Version = '1.5.2.1'
       Align = alClient
       TabOrder = 26
-      ExplicitTop = 277
-      ExplicitWidth = 922
-      ExplicitHeight = 98
       TMSStyle = 0
       object Panel31: TPanel
         Left = 117
@@ -5726,8 +5698,8 @@ object MainForm: TMainForm
       end
     end
     object badCode: TMemo
-      Left = 729
-      Top = 41
+      Left = 537
+      Top = 53
       Width = 165
       Height = 334
       ImeName = 'Microsoft IME 2010'
@@ -5964,10 +5936,6 @@ object MainForm: TMainForm
       ParentBackground = False
       ParentFont = False
       TabOrder = 0
-      ExplicitLeft = 7
-      ExplicitTop = 35
-      ExplicitWidth = 919
-      ExplicitHeight = 512
     end
     object pnlSourceTrayHeader: TAdvSmoothPanel
       Left = 8
@@ -6608,7 +6576,7 @@ object MainForm: TMainForm
     Visible = False
   end
   object pnlPLCTEST: TAdvSmoothPanel
-    Left = 1382
+    Left = 1190
     Top = 43
     Width = 384
     Height = 392
@@ -7280,23 +7248,13 @@ object MainForm: TMainForm
     TabOrder = 12
     Visible = False
   end
-  object Memo2: TMemo
-    Left = 794
-    Top = 162
-    Width = 185
-    Height = 89
-    Lines.Strings = (
-      'Memo2')
-    TabOrder = 13
-    Visible = False
-  end
   object Client: TClientSocket
     Active = False
     ClientType = ctNonBlocking
     Host = 'localhost'
     Port = 45000
-    Left = 117
-    Top = 25
+    Left = 325
+    Top = 9
   end
   object SaveDialog: TSaveDialog
     DefaultExt = '*.csv'

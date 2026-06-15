@@ -1,10 +1,10 @@
 object teachForm: TteachForm
   Left = 659
   Top = 31
-  BorderStyle = bsDialog
+  BorderStyle = bsNone
   Caption = 'Teaching'
-  ClientHeight = 1010
-  ClientWidth = 1291
+  ClientHeight = 1045
+  ClientWidth = 1297
   Color = clWhite
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -21,7 +21,7 @@ object teachForm: TteachForm
   object Image12: TImage
     Left = 0
     Top = 0
-    Width = 1291
+    Width = 1297
     Height = 68
     Align = alTop
     AutoSize = True
@@ -475,10 +475,10 @@ object teachForm: TteachForm
     ParentFont = False
   end
   object pnlSourceBase: TAdvSmoothPanel
-    Left = 9
-    Top = 390
+    Left = 8
+    Top = 388
     Width = 593
-    Height = 612
+    Height = 644
     Cursor = crDefault
     Caption.HTMLFont.Charset = DEFAULT_CHARSET
     Caption.HTMLFont.Color = clWindowText
@@ -505,14 +505,14 @@ object teachForm: TteachForm
     TabOrder = 0
     TMSStyle = 0
     object Label2: TLabel
-      Left = 7
-      Top = 10
-      Width = 59
-      Height = 16
+      Left = 15
+      Top = 4
+      Width = 86
+      Height = 25
       Caption = #49440#48324' '#53944#47112#51060
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 13204573
-      Font.Height = -13
+      Font.Height = -21
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False
@@ -522,7 +522,7 @@ object teachForm: TteachForm
     end
     object gpEdit7: TEdit
       Left = 505
-      Top = 54
+      Top = 80
       Width = 73
       Height = 21
       Font.Charset = DEFAULT_CHARSET
@@ -537,7 +537,7 @@ object teachForm: TteachForm
     end
     object gpEdit8: TEdit
       Left = 505
-      Top = 74
+      Top = 100
       Width = 73
       Height = 21
       Font.Charset = DEFAULT_CHARSET
@@ -552,7 +552,7 @@ object teachForm: TteachForm
     end
     object Panel24: TPanel
       Left = 438
-      Top = 54
+      Top = 80
       Width = 36
       Height = 40
       BevelOuter = bvNone
@@ -571,7 +571,7 @@ object teachForm: TteachForm
     end
     object Panel25: TPanel
       Left = 475
-      Top = 54
+      Top = 80
       Width = 30
       Height = 19
       BevelOuter = bvNone
@@ -590,7 +590,7 @@ object teachForm: TteachForm
     end
     object Panel26: TPanel
       Left = 475
-      Top = 74
+      Top = 100
       Width = 30
       Height = 20
       BevelOuter = bvNone
@@ -608,8 +608,8 @@ object teachForm: TteachForm
       TabOrder = 4
     end
     object gpEdit18: TEdit
-      Left = 55
-      Top = 30
+      Left = 505
+      Top = 7
       Width = 72
       Height = 21
       Font.Charset = DEFAULT_CHARSET
@@ -623,9 +623,9 @@ object teachForm: TteachForm
       Text = 'Edit1'
     end
     object Panel27: TPanel
-      Left = 4
-      Top = 30
-      Width = 50
+      Left = 438
+      Top = 7
+      Width = 67
       Height = 21
       BevelKind = bkFlat
       BevelOuter = bvNone
@@ -642,41 +642,9 @@ object teachForm: TteachForm
       ShowHint = False
       TabOrder = 6
     end
-    object sCombo: TComboBox
-      Left = 478
-      Top = 30
-      Width = 100
-      Height = 21
-      Style = csDropDownList
-      ImeName = 'Microsoft IME 2010'
-      TabOrder = 7
-      Items.Strings = (
-        '1'#48264' '#44536#47532#54140
-        '2'#48264' '#44536#47532#54140)
-    end
-    object Panel20: TPanel
-      Left = 394
-      Top = 30
-      Width = 80
-      Height = 21
-      BevelKind = bkFlat
-      BevelOuter = bvNone
-      Caption = #44536#47532#54140' '#49440#53469
-      Color = 15269887
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clRed
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentBackground = False
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = False
-      TabOrder = 8
-    end
     object gpEdit1: TEdit
       Left = 83
-      Top = 54
+      Top = 80
       Width = 72
       Height = 21
       Font.Charset = DEFAULT_CHARSET
@@ -686,12 +654,12 @@ object teachForm: TteachForm
       Font.Style = []
       ImeName = 'Microsoft IME 2010'
       ParentFont = False
-      TabOrder = 9
+      TabOrder = 7
       Text = 'Edit1'
     end
     object gpEdit2: TEdit
       Left = 83
-      Top = 74
+      Top = 100
       Width = 72
       Height = 21
       Font.Charset = DEFAULT_CHARSET
@@ -701,12 +669,12 @@ object teachForm: TteachForm
       Font.Style = []
       ImeName = 'Microsoft IME 2010'
       ParentFont = False
-      TabOrder = 10
+      TabOrder = 8
       Text = 'Edit1'
     end
     object Panel14: TPanel
       Left = 15
-      Top = 54
+      Top = 80
       Width = 36
       Height = 40
       BevelOuter = bvNone
@@ -721,11 +689,11 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 11
+      TabOrder = 9
     end
     object Panel15: TPanel
       Left = 52
-      Top = 54
+      Top = 80
       Width = 30
       Height = 19
       BevelOuter = bvNone
@@ -740,11 +708,11 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 12
+      TabOrder = 10
     end
     object Panel16: TPanel
       Left = 52
-      Top = 74
+      Top = 100
       Width = 30
       Height = 20
       BevelOuter = bvNone
@@ -759,11 +727,11 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 13
+      TabOrder = 11
     end
     object gpEdit3: TEdit
       Left = 223
-      Top = 54
+      Top = 80
       Width = 73
       Height = 21
       Font.Charset = DEFAULT_CHARSET
@@ -773,12 +741,12 @@ object teachForm: TteachForm
       Font.Style = []
       ImeName = 'Microsoft IME 2010'
       ParentFont = False
-      TabOrder = 14
+      TabOrder = 12
       Text = 'Edit1'
     end
     object gpEdit4: TEdit
       Left = 223
-      Top = 74
+      Top = 100
       Width = 73
       Height = 21
       Font.Charset = DEFAULT_CHARSET
@@ -788,12 +756,12 @@ object teachForm: TteachForm
       Font.Style = []
       ImeName = 'Microsoft IME 2010'
       ParentFont = False
-      TabOrder = 15
+      TabOrder = 13
       Text = 'Edit1'
     end
     object Panel17: TPanel
       Left = 156
-      Top = 54
+      Top = 80
       Width = 36
       Height = 40
       BevelOuter = bvNone
@@ -808,11 +776,11 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 16
+      TabOrder = 14
     end
     object Panel18: TPanel
       Left = 193
-      Top = 54
+      Top = 80
       Width = 30
       Height = 19
       BevelOuter = bvNone
@@ -827,11 +795,11 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 17
+      TabOrder = 15
     end
     object Panel19: TPanel
       Left = 193
-      Top = 74
+      Top = 100
       Width = 30
       Height = 20
       BevelOuter = bvNone
@@ -846,11 +814,11 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 18
+      TabOrder = 16
     end
     object gpEdit5: TEdit
       Left = 364
-      Top = 54
+      Top = 80
       Width = 73
       Height = 21
       Font.Charset = DEFAULT_CHARSET
@@ -860,12 +828,12 @@ object teachForm: TteachForm
       Font.Style = []
       ImeName = 'Microsoft IME 2010'
       ParentFont = False
-      TabOrder = 19
+      TabOrder = 17
       Text = 'Edit1'
     end
     object gpEdit6: TEdit
       Left = 364
-      Top = 74
+      Top = 100
       Width = 73
       Height = 21
       Font.Charset = DEFAULT_CHARSET
@@ -875,12 +843,12 @@ object teachForm: TteachForm
       Font.Style = []
       ImeName = 'Microsoft IME 2010'
       ParentFont = False
-      TabOrder = 20
+      TabOrder = 18
       Text = 'Edit1'
     end
     object Panel21: TPanel
       Left = 297
-      Top = 54
+      Top = 80
       Width = 36
       Height = 40
       BevelOuter = bvNone
@@ -895,11 +863,11 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 21
+      TabOrder = 19
     end
     object Panel22: TPanel
       Left = 334
-      Top = 54
+      Top = 80
       Width = 30
       Height = 19
       BevelOuter = bvNone
@@ -914,11 +882,11 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 22
+      TabOrder = 20
     end
     object Panel23: TPanel
       Left = 334
-      Top = 74
+      Top = 100
       Width = 30
       Height = 20
       BevelOuter = bvNone
@@ -933,11 +901,11 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 23
+      TabOrder = 21
     end
     object s1: TAdvSmoothPanel
       Left = 15
-      Top = 585
+      Top = 618
       Width = 140
       Height = 20
       Cursor = crDefault
@@ -970,10 +938,358 @@ object teachForm: TteachForm
       Fill.Glow = gmNone
       Version = '1.5.2.1'
       OnClick = sClick
-      TabOrder = 24
+      TabOrder = 22
       TMSStyle = 0
     end
-    object Panel45: TPanel
+    object Panel20: TPanel
+      Left = 15
+      Top = 34
+      Width = 36
+      Height = 40
+      BevelOuter = bvNone
+      Caption = 'CH 1'
+      Color = 13996080
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 24
+    end
+    object Panel30: TPanel
+      Left = 52
+      Top = 34
+      Width = 30
+      Height = 19
+      BevelOuter = bvNone
+      Caption = 'X'
+      Color = 13996080
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 25
+    end
+    object Panel44: TPanel
+      Left = 52
+      Top = 54
+      Width = 30
+      Height = 20
+      BevelOuter = bvNone
+      Caption = 'Y'
+      Color = 13996080
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 26
+    end
+    object Edit9: TEdit
+      Left = 83
+      Top = 34
+      Width = 72
+      Height = 21
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ImeName = 'Microsoft IME 2010'
+      ParentFont = False
+      TabOrder = 27
+      Text = 'Edit1'
+    end
+    object Edit10: TEdit
+      Left = 83
+      Top = 54
+      Width = 72
+      Height = 21
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ImeName = 'Microsoft IME 2010'
+      ParentFont = False
+      TabOrder = 28
+      Text = 'Edit1'
+    end
+    object Panel48: TPanel
+      Left = 156
+      Top = 34
+      Width = 36
+      Height = 40
+      BevelOuter = bvNone
+      Caption = 'CH 25'
+      Color = 13996080
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 29
+    end
+    object Panel49: TPanel
+      Left = 193
+      Top = 34
+      Width = 30
+      Height = 19
+      BevelOuter = bvNone
+      Caption = 'X'
+      Color = 13996080
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 30
+    end
+    object Panel50: TPanel
+      Left = 193
+      Top = 54
+      Width = 30
+      Height = 20
+      BevelOuter = bvNone
+      Caption = 'Y'
+      Color = 13996080
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 31
+    end
+    object Edit11: TEdit
+      Left = 223
+      Top = 34
+      Width = 73
+      Height = 21
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ImeName = 'Microsoft IME 2010'
+      ParentFont = False
+      TabOrder = 32
+      Text = 'Edit1'
+    end
+    object Edit12: TEdit
+      Left = 223
+      Top = 54
+      Width = 73
+      Height = 21
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ImeName = 'Microsoft IME 2010'
+      ParentFont = False
+      TabOrder = 33
+      Text = 'Edit1'
+    end
+    object Panel51: TPanel
+      Left = 297
+      Top = 34
+      Width = 36
+      Height = 40
+      BevelOuter = bvNone
+      Caption = 'CH 49'
+      Color = 13996080
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 34
+    end
+    object Panel52: TPanel
+      Left = 334
+      Top = 34
+      Width = 30
+      Height = 19
+      BevelOuter = bvNone
+      Caption = 'X'
+      Color = 13996080
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 35
+    end
+    object Panel53: TPanel
+      Left = 334
+      Top = 54
+      Width = 30
+      Height = 20
+      BevelOuter = bvNone
+      Caption = 'Y'
+      Color = 13996080
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 36
+    end
+    object Edit13: TEdit
+      Left = 364
+      Top = 34
+      Width = 73
+      Height = 21
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ImeName = 'Microsoft IME 2010'
+      ParentFont = False
+      TabOrder = 37
+      Text = 'Edit1'
+    end
+    object Edit14: TEdit
+      Left = 364
+      Top = 54
+      Width = 73
+      Height = 21
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ImeName = 'Microsoft IME 2010'
+      ParentFont = False
+      TabOrder = 38
+      Text = 'Edit1'
+    end
+    object Panel55: TPanel
+      Left = 438
+      Top = 34
+      Width = 36
+      Height = 40
+      BevelOuter = bvNone
+      Caption = 'CH 73'
+      Color = 13996080
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 39
+    end
+    object Panel56: TPanel
+      Left = 475
+      Top = 34
+      Width = 30
+      Height = 19
+      BevelOuter = bvNone
+      Caption = 'X'
+      Color = 13996080
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 40
+    end
+    object Panel57: TPanel
+      Left = 475
+      Top = 54
+      Width = 30
+      Height = 20
+      BevelOuter = bvNone
+      Caption = 'Y'
+      Color = 13996080
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 41
+    end
+    object Edit15: TEdit
+      Left = 505
+      Top = 34
+      Width = 73
+      Height = 21
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ImeName = 'Microsoft IME 2010'
+      ParentFont = False
+      TabOrder = 42
+      Text = 'Edit1'
+    end
+    object Edit16: TEdit
+      Left = 505
+      Top = 54
+      Width = 73
+      Height = 21
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ImeName = 'Microsoft IME 2010'
+      ParentFont = False
+      TabOrder = 43
+      Text = 'Edit1'
+    end
+    object pnlSeperator1: TPanel
       Left = 15
       Top = 351
       Width = 563
@@ -981,84 +1297,14 @@ object teachForm: TteachForm
       BevelOuter = bvNone
       Color = clRed
       ParentBackground = False
-      TabOrder = 25
-    end
-    object gpEdit19: TEdit
-      Left = 321
-      Top = 30
-      Width = 72
-      Height = 21
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ImeName = 'Microsoft IME 2010'
-      ParentFont = False
-      TabOrder = 26
-      Text = '46320'
-    end
-    object Panel52: TPanel
-      Left = 261
-      Top = 30
-      Width = 60
-      Height = 21
-      BevelKind = bkFlat
-      BevelOuter = bvNone
-      Caption = 'UNCHUCK'
-      Color = 15269887
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = 13996080
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentBackground = False
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = False
-      TabOrder = 27
-    end
-    object Panel53: TPanel
-      Left = 128
-      Top = 30
-      Width = 60
-      Height = 21
-      BevelKind = bkFlat
-      BevelOuter = bvNone
-      Caption = 'CHUCK'
-      Color = 15269887
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = 13996080
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentBackground = False
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = False
-      TabOrder = 28
-    end
-    object gpEdit20: TEdit
-      Left = 188
-      Top = 30
-      Width = 72
-      Height = 21
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ImeName = 'Microsoft IME 2010'
-      ParentFont = False
-      TabOrder = 29
-      Text = '56120'
+      TabOrder = 23
     end
   end
   object pnlTargetBase: TAdvSmoothPanel
-    Left = 690
+    Left = 696
     Top = 390
     Width = 593
-    Height = 612
+    Height = 644
     Cursor = crDefault
     Caption.HTMLFont.Charset = DEFAULT_CHARSET
     Caption.HTMLFont.Color = clWindowText
@@ -1085,14 +1331,14 @@ object teachForm: TteachForm
     TabOrder = 1
     TMSStyle = 0
     object Label7: TLabel
-      Left = 7
-      Top = 10
-      Width = 59
-      Height = 16
+      Left = 15
+      Top = 4
+      Width = 86
+      Height = 25
       Caption = #45824#49345' '#53944#47112#51060
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 13204573
-      Font.Height = -13
+      Font.Height = -21
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False
@@ -1102,7 +1348,7 @@ object teachForm: TteachForm
     end
     object gpEdit9: TEdit
       Left = 83
-      Top = 57
+      Top = 80
       Width = 73
       Height = 21
       Font.Charset = DEFAULT_CHARSET
@@ -1117,7 +1363,7 @@ object teachForm: TteachForm
     end
     object gpEdit10: TEdit
       Left = 83
-      Top = 77
+      Top = 100
       Width = 73
       Height = 21
       Font.Charset = DEFAULT_CHARSET
@@ -1132,7 +1378,7 @@ object teachForm: TteachForm
     end
     object Panel2: TPanel
       Left = 15
-      Top = 57
+      Top = 80
       Width = 36
       Height = 40
       BevelOuter = bvNone
@@ -1151,7 +1397,7 @@ object teachForm: TteachForm
     end
     object Panel1: TPanel
       Left = 52
-      Top = 57
+      Top = 80
       Width = 30
       Height = 19
       BevelOuter = bvNone
@@ -1170,7 +1416,7 @@ object teachForm: TteachForm
     end
     object Panel3: TPanel
       Left = 52
-      Top = 77
+      Top = 100
       Width = 30
       Height = 20
       BevelOuter = bvNone
@@ -1188,9 +1434,9 @@ object teachForm: TteachForm
       TabOrder = 5
     end
     object Panel28: TPanel
-      Left = 15
-      Top = 34
-      Width = 140
+      Left = 438
+      Top = 8
+      Width = 67
       Height = 21
       BevelKind = bkFlat
       BevelOuter = bvNone
@@ -1208,9 +1454,9 @@ object teachForm: TteachForm
       TabOrder = 6
     end
     object gpEdit17: TEdit
-      Left = 156
-      Top = 34
-      Width = 140
+      Left = 505
+      Top = 8
+      Width = 73
       Height = 21
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -1222,50 +1468,9 @@ object teachForm: TteachForm
       TabOrder = 7
       Text = 'Edit1'
     end
-    object tCombo: TComboBox
-      Left = 438
-      Top = 34
-      Width = 141
-      Height = 21
-      Style = csDropDownList
-      Color = clWhite
-      ImeName = 'Microsoft IME 2010'
-      ItemIndex = 0
-      TabOrder = 8
-      Text = '1'#48264' '#44536#47532#54140
-      Visible = False
-      Items.Strings = (
-        '1'#48264' '#44536#47532#54140
-        '2'#48264' '#44536#47532#54140
-        '3'#48264' '#44536#47532#54140
-        '4'#48264' '#44536#47532#54140
-        '5'#48264' '#44536#47532#54140
-        '6'#48264' '#44536#47532#54140)
-    end
-    object Panel10: TPanel
-      Left = 297
-      Top = 34
-      Width = 140
-      Height = 21
-      BevelKind = bkFlat
-      BevelOuter = bvNone
-      Caption = #44536#47532#54140' '#49440#53469
-      Color = 15269887
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clRed
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentBackground = False
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = False
-      TabOrder = 9
-      Visible = False
-    end
     object Panel9: TPanel
       Left = 334
-      Top = 77
+      Top = 100
       Width = 30
       Height = 20
       BevelOuter = bvNone
@@ -1280,11 +1485,11 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 10
+      TabOrder = 8
     end
     object Panel8: TPanel
       Left = 334
-      Top = 57
+      Top = 80
       Width = 30
       Height = 19
       BevelOuter = bvNone
@@ -1299,11 +1504,11 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 11
+      TabOrder = 9
     end
     object Panel7: TPanel
       Left = 297
-      Top = 57
+      Top = 80
       Width = 36
       Height = 40
       BevelOuter = bvNone
@@ -1318,11 +1523,41 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 12
+      TabOrder = 10
     end
     object gpEdit14: TEdit
       Left = 364
-      Top = 77
+      Top = 100
+      Width = 73
+      Height = 21
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ImeName = 'Microsoft IME 2010'
+      ParentFont = False
+      TabOrder = 11
+      Text = 'Edit1'
+    end
+    object gpEdit13: TEdit
+      Left = 364
+      Top = 80
+      Width = 73
+      Height = 21
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ImeName = 'Microsoft IME 2010'
+      ParentFont = False
+      TabOrder = 12
+      Text = 'Edit1'
+    end
+    object gpEdit11: TEdit
+      Left = 223
+      Top = 80
       Width = 73
       Height = 21
       Font.Charset = DEFAULT_CHARSET
@@ -1335,9 +1570,9 @@ object teachForm: TteachForm
       TabOrder = 13
       Text = 'Edit1'
     end
-    object gpEdit13: TEdit
-      Left = 364
-      Top = 57
+    object gpEdit12: TEdit
+      Left = 223
+      Top = 100
       Width = 73
       Height = 21
       Font.Charset = DEFAULT_CHARSET
@@ -1350,39 +1585,9 @@ object teachForm: TteachForm
       TabOrder = 14
       Text = 'Edit1'
     end
-    object gpEdit11: TEdit
-      Left = 223
-      Top = 57
-      Width = 73
-      Height = 21
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ImeName = 'Microsoft IME 2010'
-      ParentFont = False
-      TabOrder = 15
-      Text = 'Edit1'
-    end
-    object gpEdit12: TEdit
-      Left = 223
-      Top = 77
-      Width = 73
-      Height = 21
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ImeName = 'Microsoft IME 2010'
-      ParentFont = False
-      TabOrder = 16
-      Text = 'Edit1'
-    end
     object Panel4: TPanel
       Left = 156
-      Top = 57
+      Top = 80
       Width = 36
       Height = 40
       BevelOuter = bvNone
@@ -1397,11 +1602,11 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 17
+      TabOrder = 15
     end
     object Panel5: TPanel
       Left = 193
-      Top = 57
+      Top = 80
       Width = 30
       Height = 19
       BevelOuter = bvNone
@@ -1416,11 +1621,11 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 18
+      TabOrder = 16
     end
     object Panel6: TPanel
       Left = 193
-      Top = 77
+      Top = 100
       Width = 30
       Height = 20
       BevelOuter = bvNone
@@ -1435,11 +1640,11 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 19
+      TabOrder = 17
     end
     object Panel11: TPanel
       Left = 438
-      Top = 57
+      Top = 80
       Width = 36
       Height = 40
       BevelOuter = bvNone
@@ -1454,11 +1659,11 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 20
+      TabOrder = 18
     end
     object Panel12: TPanel
       Left = 475
-      Top = 57
+      Top = 80
       Width = 30
       Height = 19
       BevelOuter = bvNone
@@ -1473,11 +1678,11 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 21
+      TabOrder = 19
     end
     object Panel13: TPanel
       Left = 475
-      Top = 77
+      Top = 100
       Width = 30
       Height = 20
       BevelOuter = bvNone
@@ -1492,11 +1697,11 @@ object teachForm: TteachForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 22
+      TabOrder = 20
     end
     object gpEdit16: TEdit
       Left = 505
-      Top = 77
+      Top = 100
       Width = 73
       Height = 21
       Font.Charset = DEFAULT_CHARSET
@@ -1506,12 +1711,12 @@ object teachForm: TteachForm
       Font.Style = []
       ImeName = 'Microsoft IME 2010'
       ParentFont = False
-      TabOrder = 23
+      TabOrder = 21
       Text = 'Edit1'
     end
     object gpEdit15: TEdit
       Left = 505
-      Top = 57
+      Top = 80
       Width = 73
       Height = 21
       Font.Charset = DEFAULT_CHARSET
@@ -1521,12 +1726,12 @@ object teachForm: TteachForm
       Font.Style = []
       ImeName = 'Microsoft IME 2010'
       ParentFont = False
-      TabOrder = 24
+      TabOrder = 22
       Text = 'Edit1'
     end
     object t1: TAdvSmoothPanel
       Left = 15
-      Top = 585
+      Top = 618
       Width = 140
       Height = 20
       Cursor = crDefault
@@ -1560,6 +1765,364 @@ object teachForm: TteachForm
       OnClick = tClick
       TabOrder = 0
       TMSStyle = 0
+    end
+    object Panel58: TPanel
+      Left = 15
+      Top = 34
+      Width = 36
+      Height = 40
+      BevelOuter = bvNone
+      Caption = 'CH 1'
+      Color = 13996080
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 23
+    end
+    object Panel59: TPanel
+      Left = 52
+      Top = 34
+      Width = 30
+      Height = 19
+      BevelOuter = bvNone
+      Caption = 'X'
+      Color = 13996080
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 24
+    end
+    object Panel60: TPanel
+      Left = 52
+      Top = 54
+      Width = 30
+      Height = 20
+      BevelOuter = bvNone
+      Caption = 'Y'
+      Color = 13996080
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 25
+    end
+    object Edit17: TEdit
+      Left = 83
+      Top = 34
+      Width = 73
+      Height = 21
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ImeName = 'Microsoft IME 2010'
+      ParentFont = False
+      TabOrder = 26
+      Text = 'Edit1'
+    end
+    object Edit18: TEdit
+      Left = 83
+      Top = 54
+      Width = 73
+      Height = 21
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ImeName = 'Microsoft IME 2010'
+      ParentFont = False
+      TabOrder = 27
+      Text = 'gpEdit10'
+    end
+    object Panel62: TPanel
+      Left = 156
+      Top = 34
+      Width = 36
+      Height = 40
+      BevelOuter = bvNone
+      Caption = 'CH 7'
+      Color = 13996080
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 28
+    end
+    object Panel63: TPanel
+      Left = 193
+      Top = 34
+      Width = 30
+      Height = 19
+      BevelOuter = bvNone
+      Caption = 'X'
+      Color = 13996080
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 29
+    end
+    object Panel64: TPanel
+      Left = 193
+      Top = 54
+      Width = 30
+      Height = 20
+      BevelOuter = bvNone
+      Caption = 'Y'
+      Color = 13996080
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 30
+    end
+    object Edit19: TEdit
+      Left = 223
+      Top = 34
+      Width = 73
+      Height = 21
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ImeName = 'Microsoft IME 2010'
+      ParentFont = False
+      TabOrder = 31
+      Text = 'Edit1'
+    end
+    object Edit20: TEdit
+      Left = 223
+      Top = 54
+      Width = 73
+      Height = 21
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ImeName = 'Microsoft IME 2010'
+      ParentFont = False
+      TabOrder = 32
+      Text = 'Edit1'
+    end
+    object Panel65: TPanel
+      Left = 297
+      Top = 34
+      Width = 36
+      Height = 40
+      BevelOuter = bvNone
+      Caption = 'CH 13'
+      Color = 13996080
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 33
+    end
+    object Panel66: TPanel
+      Left = 334
+      Top = 34
+      Width = 30
+      Height = 19
+      BevelOuter = bvNone
+      Caption = 'X'
+      Color = 13996080
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 34
+    end
+    object Panel67: TPanel
+      Left = 334
+      Top = 54
+      Width = 30
+      Height = 20
+      BevelOuter = bvNone
+      Caption = 'Y'
+      Color = 13996080
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 35
+    end
+    object Edit21: TEdit
+      Left = 364
+      Top = 34
+      Width = 73
+      Height = 21
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ImeName = 'Microsoft IME 2010'
+      ParentFont = False
+      TabOrder = 36
+      Text = 'Edit1'
+    end
+    object Edit22: TEdit
+      Left = 364
+      Top = 54
+      Width = 73
+      Height = 21
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ImeName = 'Microsoft IME 2010'
+      ParentFont = False
+      TabOrder = 37
+      Text = 'Edit1'
+    end
+    object Panel70: TPanel
+      Left = 438
+      Top = 34
+      Width = 36
+      Height = 40
+      BevelOuter = bvNone
+      Caption = 'CH 19'
+      Color = 13996080
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 38
+    end
+    object Panel71: TPanel
+      Left = 475
+      Top = 34
+      Width = 30
+      Height = 19
+      BevelOuter = bvNone
+      Caption = 'X'
+      Color = 13996080
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 39
+    end
+    object Panel72: TPanel
+      Left = 475
+      Top = 54
+      Width = 30
+      Height = 20
+      BevelOuter = bvNone
+      Caption = 'Y'
+      Color = 13996080
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 40
+    end
+    object Edit23: TEdit
+      Left = 505
+      Top = 34
+      Width = 73
+      Height = 21
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ImeName = 'Microsoft IME 2010'
+      ParentFont = False
+      TabOrder = 41
+      Text = 'Edit1'
+    end
+    object Edit24: TEdit
+      Left = 505
+      Top = 54
+      Width = 73
+      Height = 21
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ImeName = 'Microsoft IME 2010'
+      ParentFont = False
+      TabOrder = 42
+      Text = 'Edit1'
+    end
+    object pnlSeperator2: TPanel
+      Left = 15
+      Top = 351
+      Width = 563
+      Height = 1
+      BevelOuter = bvNone
+      Color = clRed
+      ParentBackground = False
+      TabOrder = 43
     end
   end
   object pselect: TPanel
@@ -2936,7 +3499,7 @@ object teachForm: TteachForm
     end
     object pnlJogControl: TAdvSmoothPanel
       Left = 390
-      Top = 107
+      Top = 105
       Width = 235
       Height = 180
       Cursor = crDefault
@@ -3065,7 +3628,7 @@ object teachForm: TteachForm
         Transparent = True
       end
       object lblLoadFactor1: TLabel
-        Left = 217
+        Left = 208
         Top = 43
         Width = 13
         Height = 13
@@ -3081,7 +3644,7 @@ object teachForm: TteachForm
         Transparent = True
       end
       object lblLoadFactor2: TLabel
-        Left = 217
+        Left = 208
         Top = 75
         Width = 13
         Height = 13
@@ -3097,7 +3660,7 @@ object teachForm: TteachForm
         Transparent = True
       end
       object lblLoadFactor3: TLabel
-        Left = 217
+        Left = 208
         Top = 109
         Width = 13
         Height = 13
@@ -3113,7 +3676,7 @@ object teachForm: TteachForm
         Transparent = True
       end
       object lblLoadFactor4: TLabel
-        Left = 217
+        Left = 208
         Top = 145
         Width = 13
         Height = 13
@@ -3211,8 +3774,8 @@ object teachForm: TteachForm
         end
       end
       object Button1: TButton
-        Left = 44
-        Top = 34
+        Left = 42
+        Top = 33
         Width = 70
         Height = 32
         Caption = #8593'(+)'
@@ -3347,9 +3910,9 @@ object teachForm: TteachForm
       end
     end
     object pnlGripperControl: TAdvSmoothPanel
-      Left = 1071
+      Left = 1096
       Top = 6
-      Width = 197
+      Width = 174
       Height = 280
       Cursor = crDefault
       Caption.HTMLFont.Charset = DEFAULT_CHARSET
@@ -3375,6 +3938,10 @@ object teachForm: TteachForm
       Fill.Glow = gmNone
       Version = '1.5.2.1'
       TabOrder = 3
+      Padding.Left = 5
+      Padding.Top = 5
+      Padding.Right = 5
+      Padding.Bottom = 5
       TMSStyle = 0
       object Label29: TLabel
         Left = 425
@@ -3507,18 +4074,31 @@ object teachForm: TteachForm
           Visible = False
         end
       end
-      object Panel30: TPanel
-        Left = 6
+      object pnlGripper: TPanel
+        Left = 5
         Top = 5
-        Width = 185
+        Width = 164
         Height = 270
+        Margins.Left = 5
+        Margins.Top = 5
+        Margins.Right = 5
+        Margins.Bottom = 5
+        Align = alClient
         BevelKind = bkFlat
         BevelOuter = bvNone
         Color = clWhite
+        Padding.Left = 5
+        Padding.Top = 5
+        Padding.Right = 5
+        Padding.Bottom = 5
         TabOrder = 0
+        ExplicitLeft = 2
+        ExplicitTop = -4
+        ExplicitWidth = 174
+        ExplicitHeight = 280
         object Image1: TImage
           Tag = 1
-          Left = 20
+          Left = 16
           Top = 42
           Width = 50
           Height = 148
@@ -3774,7 +4354,7 @@ object teachForm: TteachForm
         end
         object Label12: TLabel
           Tag = 1
-          Left = 126
+          Left = 108
           Top = 119
           Width = 50
           Height = 13
@@ -3792,7 +4372,7 @@ object teachForm: TteachForm
         end
         object Label13: TLabel
           Tag = 1
-          Left = 126
+          Left = 108
           Top = 183
           Width = 50
           Height = 13
@@ -3810,7 +4390,7 @@ object teachForm: TteachForm
         end
         object pdn1: TPanel
           Tag = 1
-          Left = 53
+          Left = 49
           Top = 166
           Width = 30
           Height = 15
@@ -3830,7 +4410,7 @@ object teachForm: TteachForm
         end
         object pup1: TPanel
           Tag = 1
-          Left = 46
+          Left = 42
           Top = 28
           Width = 30
           Height = 15
@@ -3850,7 +4430,7 @@ object teachForm: TteachForm
         end
         object pflow1: TPanel
           Tag = 1
-          Left = 24
+          Left = 20
           Top = 92
           Width = 30
           Height = 15
@@ -3870,7 +4450,7 @@ object teachForm: TteachForm
         end
         object pclose1: TPanel
           Tag = 1
-          Left = 38
+          Left = 34
           Top = 128
           Width = 30
           Height = 15
@@ -3890,7 +4470,7 @@ object teachForm: TteachForm
         end
         object pcell1: TPanel
           Tag = 1
-          Left = 22
+          Left = 18
           Top = 187
           Width = 30
           Height = 15
@@ -3910,7 +4490,7 @@ object teachForm: TteachForm
         end
         object popen1: TPanel
           Tag = 1
-          Left = 7
+          Left = 3
           Top = 128
           Width = 30
           Height = 15
@@ -3930,7 +4510,7 @@ object teachForm: TteachForm
         end
         object AdvSmoothButton12: TAdvSmoothButton
           Tag = 1
-          Left = 105
+          Left = 87
           Top = 198
           Width = 35
           Height = 30
@@ -4061,7 +4641,7 @@ object teachForm: TteachForm
         end
         object AdvSmoothButton11: TAdvSmoothButton
           Tag = 1
-          Left = 141
+          Left = 123
           Top = 198
           Width = 35
           Height = 30
@@ -4190,7 +4770,7 @@ object teachForm: TteachForm
         end
         object AdvSmoothButton13: TAdvSmoothButton
           Tag = 1
-          Left = 105
+          Left = 87
           Top = 134
           Width = 35
           Height = 30
@@ -4319,7 +4899,7 @@ object teachForm: TteachForm
         end
         object AdvSmoothButton14: TAdvSmoothButton
           Tag = 1
-          Left = 141
+          Left = 123
           Top = 134
           Width = 35
           Height = 30
@@ -4448,7 +5028,7 @@ object teachForm: TteachForm
         end
         object disableChk1: TCheckBox
           Tag = 1
-          Left = 121
+          Left = 103
           Top = 243
           Width = 51
           Height = 17
@@ -4462,6 +5042,7 @@ object teachForm: TteachForm
           ParentColor = False
           ParentFont = False
           TabOrder = 10
+          Visible = False
           OnClick = disableChk1Click
         end
       end
@@ -9770,7 +10351,7 @@ object teachForm: TteachForm
     object AdvSmoothPanel8: TAdvSmoothPanel
       Left = 631
       Top = 6
-      Width = 434
+      Width = 460
       Height = 280
       Cursor = crDefault
       Caption.HTMLFont.Charset = DEFAULT_CHARSET
@@ -9844,7 +10425,7 @@ object teachForm: TteachForm
         Transparent = True
       end
       object Label38: TLabel
-        Left = 12
+        Left = 4
         Top = 90
         Width = 29
         Height = 16
@@ -9874,8 +10455,8 @@ object teachForm: TteachForm
         Transparent = True
       end
       object Label39: TLabel
-        Left = 12
-        Top = 136
+        Left = 4
+        Top = 120
         Width = 37
         Height = 16
         Alignment = taCenter
@@ -9889,8 +10470,8 @@ object teachForm: TteachForm
         Transparent = True
       end
       object Label40: TLabel
-        Left = 12
-        Top = 166
+        Left = 4
+        Top = 150
         Width = 37
         Height = 16
         Alignment = taCenter
@@ -9904,8 +10485,8 @@ object teachForm: TteachForm
         Transparent = True
       end
       object Label41: TLabel
-        Left = 12
-        Top = 196
+        Left = 4
+        Top = 180
         Width = 37
         Height = 16
         Alignment = taCenter
@@ -9919,12 +10500,12 @@ object teachForm: TteachForm
         Transparent = True
       end
       object Label42: TLabel
-        Left = 12
-        Top = 226
-        Width = 30
+        Left = 4
+        Top = 210
+        Width = 38
         Height = 16
         Alignment = taCenter
-        Caption = 'GRIP'
+        Caption = 'Z Axis'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clGray
         Font.Height = -13
@@ -9949,7 +10530,7 @@ object teachForm: TteachForm
         Transparent = True
       end
       object Label43: TLabel
-        Left = 236
+        Left = 240
         Top = 90
         Width = 29
         Height = 16
@@ -9964,12 +10545,12 @@ object teachForm: TteachForm
         Transparent = True
       end
       object Label44: TLabel
-        Left = 236
-        Top = 136
-        Width = 29
+        Left = 240
+        Top = 120
+        Width = 37
         Height = 16
         Alignment = taCenter
-        Caption = 'CH 7'
+        Caption = 'CH 25'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clGray
         Font.Height = -13
@@ -9979,12 +10560,12 @@ object teachForm: TteachForm
         Transparent = True
       end
       object Label45: TLabel
-        Left = 236
-        Top = 166
+        Left = 240
+        Top = 150
         Width = 37
         Height = 16
         Alignment = taCenter
-        Caption = 'CH 13'
+        Caption = 'CH 49'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clGray
         Font.Height = -13
@@ -9992,15 +10573,14 @@ object teachForm: TteachForm
         Font.Style = [fsBold]
         ParentFont = False
         Transparent = True
-        Visible = False
       end
       object Label46: TLabel
-        Left = 236
-        Top = 196
+        Left = 240
+        Top = 180
         Width = 37
         Height = 16
         Alignment = taCenter
-        Caption = 'CH 19'
+        Caption = 'CH 73'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clGray
         Font.Height = -13
@@ -10008,11 +10588,10 @@ object teachForm: TteachForm
         Font.Style = [fsBold]
         ParentFont = False
         Transparent = True
-        Visible = False
       end
       object Label47: TLabel
-        Left = 236
-        Top = 226
+        Left = 240
+        Top = 210
         Width = 30
         Height = 16
         Alignment = taCenter
@@ -10025,13 +10604,13 @@ object teachForm: TteachForm
         ParentFont = False
         Transparent = True
       end
-      object Label52: TLabel
-        Left = 58
-        Top = 249
-        Width = 157
+      object Label37: TLabel
+        Left = 110
+        Top = 90
+        Width = 37
         Height = 16
         Alignment = taCenter
-        Caption = '(Unchuck, Chuck, Z Axis)'
+        Caption = 'CH 13'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clGray
         Font.Height = -13
@@ -10040,13 +10619,13 @@ object teachForm: TteachForm
         ParentFont = False
         Transparent = True
       end
-      object Label53: TLabel
-        Left = 79
-        Top = 111
-        Width = 116
+      object Label34: TLabel
+        Left = 110
+        Top = 120
+        Width = 37
         Height = 16
         Alignment = taCenter
-        Caption = '(X Axis, Y Axis, 0)'
+        Caption = 'CH 37'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clGray
         Font.Height = -13
@@ -10055,13 +10634,13 @@ object teachForm: TteachForm
         ParentFont = False
         Transparent = True
       end
-      object Label54: TLabel
-        Left = 287
-        Top = 111
-        Width = 116
+      object Label11: TLabel
+        Left = 110
+        Top = 150
+        Width = 37
         Height = 16
         Alignment = taCenter
-        Caption = '(X Axis, Y Axis, 0)'
+        Caption = 'CH 61'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clGray
         Font.Height = -13
@@ -10070,13 +10649,73 @@ object teachForm: TteachForm
         ParentFont = False
         Transparent = True
       end
-      object Label55: TLabel
-        Left = 266
-        Top = 249
-        Width = 157
+      object Label3: TLabel
+        Left = 110
+        Top = 180
+        Width = 37
         Height = 16
         Alignment = taCenter
-        Caption = '(Unchuck, Chuck, Z Axis)'
+        Caption = 'CH 85'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clGray
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ParentFont = False
+        Transparent = True
+      end
+      object Label56: TLabel
+        Left = 345
+        Top = 97
+        Width = 37
+        Height = 16
+        Alignment = taCenter
+        Caption = 'CH 13'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clGray
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ParentFont = False
+        Transparent = True
+      end
+      object Label62: TLabel
+        Left = 345
+        Top = 127
+        Width = 37
+        Height = 16
+        Alignment = taCenter
+        Caption = 'CH 37'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clGray
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ParentFont = False
+        Transparent = True
+      end
+      object Label63: TLabel
+        Left = 345
+        Top = 157
+        Width = 37
+        Height = 16
+        Alignment = taCenter
+        Caption = 'CH 61'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clGray
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ParentFont = False
+        Transparent = True
+      end
+      object Label64: TLabel
+        Left = 345
+        Top = 187
+        Width = 37
+        Height = 16
+        Alignment = taCenter
+        Caption = 'CH 85'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clGray
         Font.Height = -13
@@ -10122,9 +10761,9 @@ object teachForm: TteachForm
           'NUDE')
       end
       object typeEdit6: TEdit
-        Left = 72
-        Top = 221
-        Width = 130
+        Left = 45
+        Top = 205
+        Width = 60
         Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -10136,9 +10775,9 @@ object teachForm: TteachForm
         TabOrder = 2
       end
       object typeEdit5: TEdit
-        Left = 72
-        Top = 191
-        Width = 130
+        Left = 45
+        Top = 175
+        Width = 60
         Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -10150,9 +10789,9 @@ object teachForm: TteachForm
         TabOrder = 3
       end
       object typeEdit4: TEdit
-        Left = 72
-        Top = 161
-        Width = 130
+        Left = 45
+        Top = 145
+        Width = 60
         Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -10164,9 +10803,9 @@ object teachForm: TteachForm
         TabOrder = 4
       end
       object typeEdit3: TEdit
-        Left = 72
-        Top = 131
-        Width = 130
+        Left = 45
+        Top = 115
+        Width = 60
         Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -10178,9 +10817,9 @@ object teachForm: TteachForm
         TabOrder = 5
       end
       object typeEdit2: TEdit
-        Left = 72
-        Top = 87
-        Width = 130
+        Left = 45
+        Top = 85
+        Width = 60
         Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -10192,9 +10831,9 @@ object teachForm: TteachForm
         TabOrder = 6
       end
       object typeEdit11: TEdit
-        Left = 279
-        Top = 221
-        Width = 130
+        Left = 281
+        Top = 205
+        Width = 60
         Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -10206,9 +10845,9 @@ object teachForm: TteachForm
         TabOrder = 7
       end
       object typeEdit10: TEdit
-        Left = 279
-        Top = 191
-        Width = 130
+        Left = 281
+        Top = 175
+        Width = 60
         Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -10218,12 +10857,11 @@ object teachForm: TteachForm
         ImeName = 'Microsoft Office IME 2007'
         ParentFont = False
         TabOrder = 8
-        Visible = False
       end
       object typeEdit9: TEdit
-        Left = 279
-        Top = 161
-        Width = 130
+        Left = 281
+        Top = 145
+        Width = 60
         Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -10233,12 +10871,11 @@ object teachForm: TteachForm
         ImeName = 'Microsoft Office IME 2007'
         ParentFont = False
         TabOrder = 9
-        Visible = False
       end
       object typeEdit8: TEdit
-        Left = 279
-        Top = 131
-        Width = 130
+        Left = 281
+        Top = 115
+        Width = 60
         Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -10250,9 +10887,9 @@ object teachForm: TteachForm
         TabOrder = 10
       end
       object typeEdit7: TEdit
-        Left = 279
-        Top = 87
-        Width = 130
+        Left = 281
+        Top = 85
+        Width = 60
         Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -10300,6 +10937,153 @@ object teachForm: TteachForm
         Version = '2.1.1.5'
         OnClick = btnApplyTeachingClick
         TMSStyle = 8
+      end
+      object Edit3: TEdit
+        Left = 151
+        Top = 145
+        Width = 57
+        Height = 24
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ImeName = 'Microsoft Office IME 2007'
+        ParentFont = False
+        TabOrder = 13
+      end
+      object Edit4: TEdit
+        Left = 151
+        Top = 175
+        Width = 57
+        Height = 24
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ImeName = 'Microsoft Office IME 2007'
+        ParentFont = False
+        TabOrder = 14
+      end
+      object Edit2: TEdit
+        Left = 151
+        Top = 115
+        Width = 57
+        Height = 24
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ImeName = 'Microsoft Office IME 2007'
+        ParentFont = False
+        TabOrder = 15
+      end
+      object Edit1: TEdit
+        Left = 151
+        Top = 85
+        Width = 57
+        Height = 24
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ImeName = 'Microsoft Office IME 2007'
+        ParentFont = False
+        TabOrder = 16
+      end
+      object Edit5: TEdit
+        Left = 391
+        Top = 122
+        Width = 60
+        Height = 24
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ImeName = 'Microsoft Office IME 2007'
+        ParentFont = False
+        TabOrder = 17
+      end
+      object Edit6: TEdit
+        Left = 391
+        Top = 92
+        Width = 60
+        Height = 24
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ImeName = 'Microsoft Office IME 2007'
+        ParentFont = False
+        TabOrder = 18
+      end
+      object Edit7: TEdit
+        Left = 391
+        Top = 152
+        Width = 60
+        Height = 24
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ImeName = 'Microsoft Office IME 2007'
+        ParentFont = False
+        TabOrder = 19
+      end
+      object Edit8: TEdit
+        Left = 391
+        Top = 182
+        Width = 60
+        Height = 24
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ImeName = 'Microsoft Office IME 2007'
+        ParentFont = False
+        TabOrder = 20
+      end
+      object Panel10: TPanel
+        Left = 163
+        Top = 249
+        Width = 140
+        Height = 21
+        BevelKind = bkFlat
+        BevelOuter = bvNone
+        Caption = #44536#47532#54140' '#49440#53469
+        Color = 15269887
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clRed
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ParentBackground = False
+        ParentFont = False
+        ParentShowHint = False
+        ShowHint = False
+        TabOrder = 21
+        Visible = False
+      end
+      object sCombo: TComboBox
+        Left = 305
+        Top = 249
+        Width = 141
+        Height = 21
+        Style = csDropDownList
+        Color = clWhite
+        ImeName = 'Microsoft IME 2010'
+        TabOrder = 22
+        Visible = False
+        Items.Strings = (
+          'Gripper #1'
+          'Gripper #2')
       end
     end
   end
@@ -10404,8 +11188,8 @@ object teachForm: TteachForm
     TMSStyle = 8
   end
   object Memo_Ko: TMemo
-    Left = 616
-    Top = 551
+    Left = 698
+    Top = 535
     Width = 200
     Height = 89
     Lines.Strings = (
@@ -10462,7 +11246,7 @@ object teachForm: TteachForm
     Visible = False
   end
   object Memo_En: TMemo
-    Left = 628
+    Left = 698
     Top = 646
     Width = 200
     Height = 89
@@ -10522,8 +11306,8 @@ object teachForm: TteachForm
     Visible = False
   end
   object Memo_Hu: TMemo
-    Left = 647
-    Top = 741
+    Left = 697
+    Top = 765
     Width = 200
     Height = 89
     Lines.Strings = (
@@ -10617,6 +11401,45 @@ object teachForm: TteachForm
     Visible = False
     Version = '2.1.1.5'
     OnClick = btnKeyLockClick
+    TMSStyle = 8
+  end
+  object btnClose: TAdvSmoothButton
+    Left = 1199
+    Top = 15
+    Width = 90
+    Height = 38
+    Appearance.GlowPercentage = 50
+    Appearance.PictureAlignment = taCenter
+    Appearance.Font.Charset = DEFAULT_CHARSET
+    Appearance.Font.Color = clBlack
+    Appearance.Font.Height = -13
+    Appearance.Font.Name = 'Tahoma'
+    Appearance.Font.Style = [fsBold]
+    Appearance.Spacing = 0
+    Appearance.Rounding = 3
+    Appearance.WordWrapping = False
+    Status.Caption = '0'
+    Status.Appearance.Fill.Color = clRed
+    Status.Appearance.Fill.ColorMirror = clNone
+    Status.Appearance.Fill.ColorMirrorTo = clNone
+    Status.Appearance.Fill.GradientType = gtSolid
+    Status.Appearance.Fill.GradientMirrorType = gtSolid
+    Status.Appearance.Fill.BorderColor = clGray
+    Status.Appearance.Fill.Rounding = 0
+    Status.Appearance.Fill.ShadowOffset = 0
+    Status.Appearance.Fill.Glow = gmNone
+    Status.Appearance.Font.Charset = DEFAULT_CHARSET
+    Status.Appearance.Font.Color = clWhite
+    Status.Appearance.Font.Height = -11
+    Status.Appearance.Font.Name = 'Tahoma'
+    Status.Appearance.Font.Style = []
+    BevelColor = clBlack
+    Caption = 'CLOSE'
+    Color = clWhite
+    ParentFont = False
+    TabOrder = 11
+    Version = '2.1.1.5'
+    OnClick = btnCloseClick
     TMSStyle = 8
   end
   object teachingTimer: TTimer

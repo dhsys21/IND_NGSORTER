@@ -259,8 +259,6 @@ __published:	// IDE-managed Components
 	TAdvSmoothButton *openBtn;
 	TLabel *Label4;
 	TPanel *px2;
-	TButton *Button1;
-	TButton *Button2;
 	TMemo *Memo_Ko;
 	TMemo *Memo_En;
 	TMemo *Memo_Hu;
@@ -301,7 +299,6 @@ __published:	// IDE-managed Components
 	TAdvSmoothPanel *pnlSourceTrayHeader;
 	TAdvSmoothPanel *pnlTargetTrayHeader;
 	TMemo *Memo1;
-	TMemo *Memo2;
 	TMemo *memoLog;
 	TAdvSmoothPanel *pnlLogTitle;
 	TLabel *lblLogTitle;

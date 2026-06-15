@@ -62,10 +62,6 @@ __published:	// IDE-managed Components
 	TLabel *Label7;
 	TLabel *Label2;
 	TLabel *Label1;
-	TComboBox *tCombo;
-	TPanel *Panel10;
-	TComboBox *sCombo;
-	TPanel *Panel20;
 	TPanel *pselect;
 	TAdvSmoothPanel *pnlManualControl;
 	TAdvSmoothPanel *AdvSmoothPanel3;
@@ -87,7 +83,7 @@ __published:	// IDE-managed Components
 	TAdvSmoothPanel *pnlJogControl;
 	TLabel *Label6;
 	TAdvSmoothPanel *pnlGripperControl;
-	TPanel *Panel30;
+	TPanel *pnlGripper;
 	TImage *Image1;
 	TLabel *CLR1;
 	TPanel *pdn1;
@@ -268,7 +264,7 @@ __published:	// IDE-managed Components
 	TPanel *pLsnY;
 	TPanel *pLsnZ;
 	TLabel *Label33;
-	TPanel *Panel45;
+	TPanel *pnlSeperator1;
 	TMemo *Memo_Ko;
 	TMemo *Memo_En;
 	TMemo *Memo_Hu;
@@ -282,10 +278,6 @@ __published:	// IDE-managed Components
 	TPanel *pLspG1;
 	TPanel *Panel46;
 	TPanel *pg1;
-	TEdit *gpEdit19;
-	TPanel *Panel52;
-	TPanel *Panel53;
-	TEdit *gpEdit20;
 	TAdvSmoothPanel *AdvSmoothPanel8;
 	TLabel *Label50;
 	TLabel *Label35;
@@ -315,10 +307,6 @@ __published:	// IDE-managed Components
 	TLabel *Label47;
 	TEdit *typeEdit7;
 	TAdvSmoothButton *btnApplyTeaching;
-	TLabel *Label52;
-	TLabel *Label53;
-	TLabel *Label54;
-	TLabel *Label55;
 	TButton *Button7;
 	TButton *Button8;
 	TLabel *Label51;
@@ -341,6 +329,66 @@ __published:	// IDE-managed Components
 	TAdvSmoothPanel *pnlMovingAlarm2;
 	TLabel *Label59;
 	TLabel *Label61;
+	TEdit *Edit3;
+	TLabel *Label37;
+	TLabel *Label34;
+	TLabel *Label11;
+	TLabel *Label3;
+	TEdit *Edit4;
+	TEdit *Edit2;
+	TEdit *Edit1;
+	TLabel *Label56;
+	TLabel *Label62;
+	TLabel *Label63;
+	TEdit *Edit5;
+	TEdit *Edit6;
+	TEdit *Edit7;
+	TLabel *Label64;
+	TEdit *Edit8;
+	TPanel *Panel10;
+	TComboBox *sCombo;
+	TAdvSmoothButton *btnClose;
+	TPanel *Panel20;
+	TPanel *Panel30;
+	TPanel *Panel44;
+	TEdit *Edit9;
+	TEdit *Edit10;
+	TPanel *Panel48;
+	TPanel *Panel49;
+	TPanel *Panel50;
+	TEdit *Edit11;
+	TEdit *Edit12;
+	TPanel *Panel51;
+	TPanel *Panel52;
+	TPanel *Panel53;
+	TEdit *Edit13;
+	TEdit *Edit14;
+	TPanel *Panel55;
+	TPanel *Panel56;
+	TPanel *Panel57;
+	TEdit *Edit15;
+	TEdit *Edit16;
+	TPanel *Panel58;
+	TPanel *Panel59;
+	TPanel *Panel60;
+	TEdit *Edit17;
+	TEdit *Edit18;
+	TPanel *Panel62;
+	TPanel *Panel63;
+	TPanel *Panel64;
+	TEdit *Edit19;
+	TEdit *Edit20;
+	TPanel *Panel65;
+	TPanel *Panel66;
+	TPanel *Panel67;
+	TEdit *Edit21;
+	TEdit *Edit22;
+	TPanel *Panel70;
+	TPanel *Panel71;
+	TPanel *Panel72;
+	TEdit *Edit23;
+	TEdit *Edit24;
+	TPanel *pnlSeperator2;
 	void __fastcall FormCreate(TObject *Sender);
 	void __fastcall sClick(TObject *Sender);
 	void __fastcall tClick(TObject *Sender);
@@ -392,6 +440,7 @@ __published:	// IDE-managed Components
 	void __fastcall AdvSmoothButton37MouseUp(TObject *Sender, TMouseButton Button, TShiftState Shift,
           int X, int Y);
 	void __fastcall unchuckAllTimerTimer(TObject *Sender);
+	void __fastcall btnCloseClick(TObject *Sender);
 private:	// User declarations
     TListItem	*ITEM;
 	TAdvSmoothPanel *sTray[96];
@@ -422,7 +471,6 @@ private:	// User declarations
 public:		// User declarations
 
 	TEdit *teachEdit[2][8], *teachEdit_z[2];        //  [X / Y][Source / Target]
-	TEdit *teachEdit_CHUCK[2];
     TLabel *lblLoadFactor[7];
     void __fastcall zdown();
     void __fastcall zup();

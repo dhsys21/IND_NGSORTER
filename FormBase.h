@@ -90,7 +90,6 @@ __published:	// IDE-managed Components
 	void __fastcall AdvSmoothButton3Click(TObject *Sender);
 	void __fastcall pplcClick(TObject *Sender);
 	void __fastcall btnKeyLockClick(TObject *Sender);
-	void __fastcall pecsClick(TObject *Sender);
 	void __fastcall btnKeyUnLockClick(TObject *Sender);
 
 private:	// User declarations

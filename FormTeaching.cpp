@@ -40,9 +40,6 @@ void __fastcall TteachForm::FormCreate(TObject *Sender)
 	teachEdit_z[0] = gpEdit18;
 	teachEdit_z[1] = gpEdit17;
 
-	teachEdit_CHUCK[0] = gpEdit19; // unchuck
-	teachEdit_CHUCK[1] = gpEdit20; // chuck
-
 	//* Load Factor
 	lblLoadFactor[1] = lblLoadFactor1;
 	lblLoadFactor[2] = lblLoadFactor2;
@@ -386,7 +383,7 @@ void __fastcall TteachForm::unchuckTimerTimer(TObject *Sender)
 				if(!gripper->disable_gripper[nCurrentTag - 1])
 					robostar->GripperChuck(nCurrentTag, true, false);
             }else{
-                int pos_z = robostar->mr2.pos[4];
+                int pos_z = robostar->mr2.pos[Axis_z];
                 if(pos_z >= 20000 || MainForm->m_ServoHome)
                 {
                     if(MessageBox(Handle, ("[B_Ignition] 셀이 감지 되었습니다.\r\nGripper #" + IntToStr(nCurrentTag) + " 을 [열기] 하시겠습니까?").c_str(),
@@ -594,8 +591,6 @@ void __fastcall TteachForm::LoadTeaching()
 			teachEdit[1][channel]->Text = teach.str_y;
 		}else if(channel == 201){ // GP 201     대상 z 축, chuck, unchuck
 			teachEdit_z[0]->Text = teach.str_z;
-			gpEdit19->Text = teach.str_x;
-            gpEdit20->Text = teach.str_y;
 		}else if(channel == 202){ // GP 202     선별 z 축, chuck, unchuck
 			teachEdit_z[1]->Text = teach.str_z;
 		}
@@ -743,7 +738,7 @@ void __fastcall TteachForm::Button1MouseDown(TObject *Sender, TMouseButton Butto
 		else
 		if(!robostar->getGripperUpStatus())
 			ShowMessage("[C_Maint] 그리퍼가 상승하지 않았습니다. 상승(UP) 후에 이동하세요.");
-		else if((btn->Tag < 4) && robostar->mr2.pos[4] != 0)
+		else if((btn->Tag < 4) && robostar->mr2.pos[Axis_z] != 0)
 			ShowMessage("Z 축 위치가 0이 아닙니다. Z 축을 상승(UP) 한 후에 이동하세요.");
 		else if(btn->Tag == 4)
 		{
@@ -814,7 +809,7 @@ void __fastcall TteachForm::Button2MouseDown(TObject *Sender, TMouseButton Butto
 		// 2019 07 05 btn->Tag 6,7,8,9 일때 (gripper 1, 2 => +, -) 셀 있으면 z축이 내려가 있을 때만 동작.
 		else if(btn->Tag == 6 || btn->Tag == 7)
 		{
-			int pos_z = robostar->mr2.pos[4];
+			int pos_z = robostar->mr2.pos[Axis_z];
 			if(robostar->input.GRIPPER1_CELL_DETECT == true && (pos_z < 20000 && !MainForm->m_ServoHome))
 			{
 				ShowMessage("[B_Ignition] 그리퍼 1에 셀이 있습니다. Z축을 이동 시킨 후 그리퍼를 움직 일 수 있습니다.");
@@ -881,7 +876,7 @@ void __fastcall TteachForm::SetTrayMaxPosition()
 bool __fastcall TteachForm::CheckPositionDown(int gripperIndex)
 {
 	int pos_x = robostar->mr2.pos[1];
-	int pos_y = robostar->mr2.pos[3];
+	int pos_y = robostar->mr2.pos[2];
 
 	if(((pos_x + (gripperIndex) * 90000) <= sTray_Position.Top
 		&& (pos_x + (gripperIndex) * 90000) >= sTray_Position.Bottom
@@ -895,31 +890,29 @@ bool __fastcall TteachForm::CheckPositionDown(int gripperIndex)
 bool __fastcall TteachForm::CheckUnchuckPosition(int gripperIndex)
 {
 	int gripper_position = robostar->mr2.pos[gripperIndex + 5];
-	int chuck_position = teachEdit_CHUCK[1]->Text.ToIntDef(0);    // chuck
-	int unchuck_position = teachEdit_CHUCK[0]->Text.ToIntDef(0);    // Unchuck
 
 	int pos_x = robostar->mr2.pos[1];
-	int pos_y = robostar->mr2.pos[3];
+	int pos_y = robostar->mr2.pos[2];
 
     if(((pos_x + (gripperIndex) * 90000) <= sTray_Position.Top && (pos_x + (gripperIndex) * 90000) >= sTray_Position.Bottom
-		&& gripper_position == unchuck_position )
-		|| (pos_x + (gripperIndex * 90000) <= tTray_Position.Top && pos_x + (gripperIndex * 90000) >= tTray_Position.Bottom && gripper_position == chuck_position)
+		/*&& gripper_position == unchuck_position */)
+		|| (pos_x + (gripperIndex * 90000) <= tTray_Position.Top && pos_x + (gripperIndex * 90000) >= tTray_Position.Bottom
+        /*&& gripper_position == chuck_position*/)
 		)
 		return true;
 
 	return false;
 }
+//---------------------------------------------------------------------------
 bool __fastcall TteachForm::CheckChuckPosition(int gripperIndex)
 {
 	int gripper_position = robostar->mr2.pos[gripperIndex + 5];
-	int chuck_position = teachEdit_CHUCK[1]->Text.ToIntDef(0);    // chuck
-	int unchuck_position = teachEdit_CHUCK[0]->Text.ToIntDef(0);    // Unchuck
 
 	int pos_x = robostar->mr2.pos[1];
-	int pos_y = robostar->mr2.pos[3];
+	int pos_y = robostar->mr2.pos[2];
 
 	if(pos_x <= tTray_Position.Top && pos_x >= tTray_Position.Bottom
-		&& gripper_position == chuck_position)
+		/*&& gripper_position == chuck_position*/)
 		return true;
 
 	return false;
@@ -947,7 +940,6 @@ void __fastcall TteachForm::LanguageChange(int index)
 	Panel28->Caption = mm->Lines->Strings[3];
 	Label2->Caption = mm->Lines->Strings[4];
 	Panel27->Caption = mm->Lines->Strings[3];
-	Panel20->Caption = mm->Lines->Strings[5];
 	sCombo->Clear();
 	for(int i = 0; i < 2; i++) sCombo->Items->Add(mm->Lines->Strings[6 + i]);
 	sCombo->ItemIndex = 0;
@@ -1174,3 +1166,10 @@ void __fastcall TteachForm::zdown()
 	}
 }
 //---------------------------------------------------------------------------
+
+void __fastcall TteachForm::btnCloseClick(TObject *Sender)
+{
+    this->Close();
+}
+//---------------------------------------------------------------------------
+
