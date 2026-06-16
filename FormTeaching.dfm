@@ -467,7 +467,7 @@ object teachForm: TteachForm
     Font.Style = [fsBold]
     ParentFont = False
   end
-  object Label1: TLabel
+  object lblMsgRobot: TLabel
     Left = 8
     Top = 371
     Width = 256
@@ -504,7 +504,7 @@ object teachForm: TteachForm
     Version = '1.5.2.1'
     TabOrder = 0
     TMSStyle = 0
-    object Label2: TLabel
+    object lblSourceTray: TLabel
       Left = 15
       Top = 4
       Width = 86
@@ -622,7 +622,7 @@ object teachForm: TteachForm
       TabOrder = 5
       Text = '0'
     end
-    object Panel27: TPanel
+    object pnlSourceZAxis: TPanel
       Left = 438
       Top = 7
       Width = 67
@@ -1313,7 +1313,7 @@ object teachForm: TteachForm
         'Gripper #1'
         'Gripper #2')
     end
-    object Panel10: TPanel
+    object pnlSelectGripper: TPanel
       Left = 156
       Top = 7
       Width = 80
@@ -1365,7 +1365,7 @@ object teachForm: TteachForm
     Version = '1.5.2.1'
     TabOrder = 1
     TMSStyle = 0
-    object Label7: TLabel
+    object lblTargetTray: TLabel
       Left = 15
       Top = 4
       Width = 86
@@ -1468,7 +1468,7 @@ object teachForm: TteachForm
       ShowHint = False
       TabOrder = 5
     end
-    object Panel28: TPanel
+    object pnlTargetZAxis: TPanel
       Left = 438
       Top = 8
       Width = 67
@@ -2231,7 +2231,7 @@ object teachForm: TteachForm
       Version = '1.5.2.1'
       TabOrder = 0
       TMSStyle = 0
-      object Label5: TLabel
+      object lblServoSetting: TLabel
         Left = 7
         Top = 5
         Width = 68
@@ -2456,7 +2456,7 @@ object teachForm: TteachForm
         ShowHint = False
         TabOrder = 5
       end
-      object Panel32: TPanel
+      object pnlServo: TPanel
         Left = 12
         Top = 30
         Width = 38
@@ -2476,7 +2476,7 @@ object teachForm: TteachForm
         ShowHint = False
         TabOrder = 6
       end
-      object Panel34: TPanel
+      object pnlOn: TPanel
         Left = 12
         Top = 51
         Width = 38
@@ -2553,7 +2553,7 @@ object teachForm: TteachForm
         ShowHint = False
         TabOrder = 10
       end
-      object Panel36: TPanel
+      object pnlHome: TPanel
         Left = 12
         Top = 72
         Width = 38
@@ -2630,7 +2630,7 @@ object teachForm: TteachForm
         ShowHint = False
         TabOrder = 14
       end
-      object Panel38: TPanel
+      object pnlError: TPanel
         Left = 147
         Top = 30
         Width = 38
@@ -2707,7 +2707,7 @@ object teachForm: TteachForm
         ShowHint = False
         TabOrder = 18
       end
-      object Panel42: TPanel
+      object pnlLimitPlus: TPanel
         Left = 147
         Top = 51
         Width = 38
@@ -2784,7 +2784,7 @@ object teachForm: TteachForm
         ShowHint = False
         TabOrder = 22
       end
-      object Panel43: TPanel
+      object pnlLimitMinus: TPanel
         Left = 147
         Top = 72
         Width = 38
@@ -2987,7 +2987,7 @@ object teachForm: TteachForm
       Version = '1.5.2.1'
       TabOrder = 1
       TMSStyle = 0
-      object Label4: TLabel
+      object lblServoInfo: TLabel
         Left = 7
         Top = 5
         Width = 90
@@ -3003,7 +3003,7 @@ object teachForm: TteachForm
         ShowHint = False
         Transparent = True
       end
-      object Panel35: TPanel
+      object pnlXAxis: TPanel
         Left = 12
         Top = 33
         Width = 95
@@ -3057,7 +3057,7 @@ object teachForm: TteachForm
         Text = '1000'
         OnKeyDown = speedEditKeyDown
       end
-      object Panel39: TPanel
+      object pnlSpeed: TPanel
         Left = 189
         Top = 113
         Width = 107
@@ -3076,7 +3076,7 @@ object teachForm: TteachForm
         ShowHint = False
         TabOrder = 3
       end
-      object Panel31: TPanel
+      object pnlYAxis: TPanel
         Left = 12
         Top = 52
         Width = 95
@@ -3114,7 +3114,7 @@ object teachForm: TteachForm
         ShowHint = False
         TabOrder = 5
       end
-      object Panel33: TPanel
+      object pnlZAxis: TPanel
         Left = 12
         Top = 71
         Width = 95
@@ -3152,7 +3152,7 @@ object teachForm: TteachForm
         ShowHint = False
         TabOrder = 7
       end
-      object Panel37: TPanel
+      object pnlSpeedXY: TPanel
         Left = 12
         Top = 113
         Width = 95
@@ -3172,7 +3172,7 @@ object teachForm: TteachForm
         ShowHint = False
         TabOrder = 8
       end
-      object Panel29: TPanel
+      object pnlErrCode: TPanel
         Left = 189
         Top = 154
         Width = 107
@@ -3343,7 +3343,7 @@ object teachForm: TteachForm
         OnClick = stopBtnClick
         TMSStyle = 8
       end
-      object Panel41: TPanel
+      object pnlSettingSpeed: TPanel
         Left = 12
         Top = 154
         Width = 95
@@ -3421,7 +3421,7 @@ object teachForm: TteachForm
         OnClick = AdvSmoothButton_LoadFactorInfoClick
         TMSStyle = 8
       end
-      object Panel46: TPanel
+      object pnlGripper1: TPanel
         Left = 12
         Top = 90
         Width = 95
@@ -3459,7 +3459,7 @@ object teachForm: TteachForm
         ShowHint = False
         TabOrder = 19
       end
-      object Panel73: TPanel
+      object pnlDcc: TPanel
         Left = 189
         Top = 132
         Width = 107
@@ -3478,7 +3478,7 @@ object teachForm: TteachForm
         ShowHint = False
         TabOrder = 20
       end
-      object Panel69: TPanel
+      object pnlAcc: TPanel
         Left = 12
         Top = 132
         Width = 95
@@ -3579,7 +3579,7 @@ object teachForm: TteachForm
         ShowHint = False
         Transparent = True
       end
-      object Label58: TLabel
+      object lblLoadFactorTitle: TLabel
         Left = 195
         Top = 10
         Width = 33
@@ -3595,7 +3595,7 @@ object teachForm: TteachForm
         ShowHint = False
         Transparent = True
       end
-      object Label6: TLabel
+      object lblJogControl: TLabel
         Left = 7
         Top = 10
         Width = 49
@@ -3628,7 +3628,7 @@ object teachForm: TteachForm
         Transparent = True
         Visible = False
       end
-      object Label8: TLabel
+      object lblXAxis: TLabel
         Left = 12
         Top = 46
         Width = 24
@@ -3645,7 +3645,7 @@ object teachForm: TteachForm
         ShowHint = False
         Transparent = True
       end
-      object Label9: TLabel
+      object lblYAxis: TLabel
         Left = 12
         Top = 78
         Width = 24
@@ -3726,7 +3726,7 @@ object teachForm: TteachForm
         ShowHint = False
         Transparent = True
       end
-      object Label10: TLabel
+      object lblZAxis: TLabel
         Left = 14
         Top = 110
         Width = 22
@@ -3978,7 +3978,7 @@ object teachForm: TteachForm
       Padding.Right = 5
       Padding.Bottom = 5
       TMSStyle = 0
-      object Label29: TLabel
+      object lblUpAllGripper: TLabel
         Left = 425
         Top = 2
         Width = 47
@@ -3994,7 +3994,7 @@ object teachForm: TteachForm
         ShowHint = False
         Transparent = True
       end
-      object Label30: TLabel
+      object lblDownAllGripper: TLabel
         Left = 499
         Top = 2
         Width = 47
@@ -4011,7 +4011,7 @@ object teachForm: TteachForm
         ShowHint = False
         Transparent = True
       end
-      object Label31: TLabel
+      object lblOpenAllGripper: TLabel
         Left = 427
         Top = 52
         Width = 47
@@ -4027,7 +4027,7 @@ object teachForm: TteachForm
         ShowHint = False
         Transparent = True
       end
-      object Label32: TLabel
+      object lblCloseAllGripper: TLabel
         Left = 504
         Top = 52
         Width = 47
@@ -4043,71 +4043,6 @@ object teachForm: TteachForm
         ParentShowHint = False
         ShowHint = False
         Transparent = True
-      end
-      object pnlMovingAlarm2: TAdvSmoothPanel
-        Left = 31
-        Top = 37
-        Width = 80
-        Height = 27
-        Cursor = crDefault
-        Caption.HTMLFont.Charset = DEFAULT_CHARSET
-        Caption.HTMLFont.Color = clWindowText
-        Caption.HTMLFont.Height = -11
-        Caption.HTMLFont.Name = 'Tahoma'
-        Caption.HTMLFont.Style = []
-        Caption.Font.Charset = DEFAULT_CHARSET
-        Caption.Font.Color = clWindowText
-        Caption.Font.Height = -16
-        Caption.Font.Name = 'Tahoma'
-        Caption.Font.Style = []
-        Fill.Color = clWhite
-        Fill.ColorTo = clWhite
-        Fill.ColorMirror = clWhite
-        Fill.ColorMirrorTo = clWhite
-        Fill.GradientType = gtVertical
-        Fill.GradientMirrorType = gtVertical
-        Fill.BorderColor = clSilver
-        Fill.BorderWidth = 2
-        Fill.Rounding = 10
-        Fill.ShadowOffset = 0
-        Fill.Glow = gmNone
-        Version = '1.5.2.1'
-        Visible = False
-        TabOrder = 10
-        TMSStyle = 0
-        object Label59: TLabel
-          Left = 220
-          Top = 139
-          Width = 96
-          Height = 16
-          Caption = #49436#48372' '#51060#46041#51473#51077#45768#45796'.'
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clRed
-          Font.Height = -13
-          Font.Name = 'Tahoma'
-          Font.Style = [fsBold]
-          ParentFont = False
-          ParentShowHint = False
-          ShowHint = False
-          Transparent = True
-        end
-        object Label61: TLabel
-          Left = 142
-          Top = -255
-          Width = 13
-          Height = 13
-          Caption = '%'
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = 13204573
-          Font.Height = -11
-          Font.Name = 'Tahoma'
-          Font.Style = [fsBold]
-          ParentFont = False
-          ParentShowHint = False
-          ShowHint = False
-          Transparent = True
-          Visible = False
-        end
       end
       object pnlGripper: TPanel
         Left = 5
@@ -4127,10 +4062,6 @@ object teachForm: TteachForm
         Padding.Right = 5
         Padding.Bottom = 5
         TabOrder = 0
-        ExplicitLeft = 2
-        ExplicitTop = -4
-        ExplicitWidth = 174
-        ExplicitHeight = 280
         object Image1: TImage
           Tag = 1
           Left = 23
@@ -4387,7 +4318,7 @@ object teachForm: TteachForm
           ShowHint = False
           Transparent = True
         end
-        object Label12: TLabel
+        object lblUpDown: TLabel
           Tag = 1
           Left = 130
           Top = 119
@@ -4405,7 +4336,7 @@ object teachForm: TteachForm
           ShowHint = False
           Transparent = True
         end
-        object Label13: TLabel
+        object lblOpenClose: TLabel
           Tag = 1
           Left = 130
           Top = 183
@@ -4543,7 +4474,7 @@ object teachForm: TteachForm
           ShowHint = False
           TabOrder = 5
         end
-        object AdvSmoothButton12: TAdvSmoothButton
+        object btnOpenGripper: TAdvSmoothButton
           Tag = 1
           Left = 109
           Top = 198
@@ -4669,12 +4600,12 @@ object teachForm: TteachForm
             000049454E44AE426082}
           TabOrder = 6
           Version = '2.1.1.5'
-          OnMouseDown = AdvSmoothButton12MouseDown
-          OnMouseUp = AdvSmoothButton12MouseUp
-          OnClick = AdvSmoothButton12Click
+          OnMouseDown = btnOpenGripperMouseDown
+          OnMouseUp = btnOpenGripperMouseUp
+          OnClick = btnOpenGripperClick
           TMSStyle = 8
         end
-        object AdvSmoothButton11: TAdvSmoothButton
+        object btnCloseGripper: TAdvSmoothButton
           Tag = 1
           Left = 145
           Top = 198
@@ -4800,10 +4731,10 @@ object teachForm: TteachForm
             000049454E44AE426082}
           TabOrder = 7
           Version = '2.1.1.5'
-          OnClick = AdvSmoothButton11Click
+          OnClick = btnCloseGripperClick
           TMSStyle = 8
         end
-        object AdvSmoothButton13: TAdvSmoothButton
+        object btnUpGripper: TAdvSmoothButton
           Tag = 1
           Left = 109
           Top = 134
@@ -4929,10 +4860,10 @@ object teachForm: TteachForm
             44AE426082}
           TabOrder = 8
           Version = '2.1.1.5'
-          OnClick = AdvSmoothButton13Click
+          OnClick = btnUpGripperClick
           TMSStyle = 8
         end
-        object AdvSmoothButton14: TAdvSmoothButton
+        object btnDownGripper: TAdvSmoothButton
           Tag = 1
           Left = 145
           Top = 134
@@ -5058,7 +4989,7 @@ object teachForm: TteachForm
             426082}
           TabOrder = 9
           Version = '2.1.1.5'
-          OnClick = AdvSmoothButton14Click
+          OnClick = btnDownGripperClick
           TMSStyle = 8
         end
         object disableChk1: TCheckBox
@@ -5081,7 +5012,7 @@ object teachForm: TteachForm
           OnClick = disableChk1Click
         end
       end
-      object Panel40: TPanel
+      object pnlGripper2: TPanel
         Left = 216
         Top = 79
         Width = 85
@@ -5628,9 +5559,9 @@ object teachForm: TteachForm
             000049454E44AE426082}
           TabOrder = 6
           Version = '2.1.1.5'
-          OnMouseDown = AdvSmoothButton12MouseDown
-          OnMouseUp = AdvSmoothButton12MouseUp
-          OnClick = AdvSmoothButton12Click
+          OnMouseDown = btnOpenGripperMouseDown
+          OnMouseUp = btnOpenGripperMouseUp
+          OnClick = btnOpenGripperClick
           TMSStyle = 8
         end
         object AdvSmoothButton16: TAdvSmoothButton
@@ -5759,7 +5690,7 @@ object teachForm: TteachForm
             000049454E44AE426082}
           TabOrder = 7
           Version = '2.1.1.5'
-          OnClick = AdvSmoothButton11Click
+          OnClick = btnCloseGripperClick
           TMSStyle = 8
         end
         object AdvSmoothButton17: TAdvSmoothButton
@@ -5888,7 +5819,7 @@ object teachForm: TteachForm
             44AE426082}
           TabOrder = 8
           Version = '2.1.1.5'
-          OnClick = AdvSmoothButton13Click
+          OnClick = btnUpGripperClick
           TMSStyle = 8
         end
         object AdvSmoothButton18: TAdvSmoothButton
@@ -6017,7 +5948,7 @@ object teachForm: TteachForm
             426082}
           TabOrder = 9
           Version = '2.1.1.5'
-          OnClick = AdvSmoothButton14Click
+          OnClick = btnDownGripperClick
           TMSStyle = 8
         end
         object disableChk2: TCheckBox
@@ -6039,7 +5970,7 @@ object teachForm: TteachForm
           OnClick = disableChk1Click
         end
       end
-      object Panel47: TPanel
+      object pnlGripper3: TPanel
         Left = 201
         Top = 8
         Width = 85
@@ -6587,7 +6518,7 @@ object teachForm: TteachForm
             000049454E44AE426082}
           TabOrder = 6
           Version = '2.1.1.5'
-          OnClick = AdvSmoothButton12Click
+          OnClick = btnOpenGripperClick
           TMSStyle = 8
         end
         object AdvSmoothButton20: TAdvSmoothButton
@@ -6716,7 +6647,7 @@ object teachForm: TteachForm
             000049454E44AE426082}
           TabOrder = 7
           Version = '2.1.1.5'
-          OnClick = AdvSmoothButton11Click
+          OnClick = btnCloseGripperClick
           TMSStyle = 8
         end
         object AdvSmoothButton21: TAdvSmoothButton
@@ -6845,7 +6776,7 @@ object teachForm: TteachForm
             44AE426082}
           TabOrder = 8
           Version = '2.1.1.5'
-          OnClick = AdvSmoothButton13Click
+          OnClick = btnUpGripperClick
           TMSStyle = 8
         end
         object AdvSmoothButton22: TAdvSmoothButton
@@ -6974,7 +6905,7 @@ object teachForm: TteachForm
             426082}
           TabOrder = 9
           Version = '2.1.1.5'
-          OnClick = AdvSmoothButton14Click
+          OnClick = btnDownGripperClick
           TMSStyle = 8
         end
         object disableChk3: TCheckBox
@@ -6996,7 +6927,7 @@ object teachForm: TteachForm
           OnClick = disableChk1Click
         end
       end
-      object Panel54: TPanel
+      object pnlGripper4: TPanel
         Left = 292
         Top = 100
         Width = 85
@@ -7544,7 +7475,7 @@ object teachForm: TteachForm
             000049454E44AE426082}
           TabOrder = 6
           Version = '2.1.1.5'
-          OnClick = AdvSmoothButton12Click
+          OnClick = btnOpenGripperClick
           TMSStyle = 8
         end
         object AdvSmoothButton24: TAdvSmoothButton
@@ -7673,7 +7604,7 @@ object teachForm: TteachForm
             000049454E44AE426082}
           TabOrder = 7
           Version = '2.1.1.5'
-          OnClick = AdvSmoothButton11Click
+          OnClick = btnCloseGripperClick
           TMSStyle = 8
         end
         object AdvSmoothButton25: TAdvSmoothButton
@@ -7802,7 +7733,7 @@ object teachForm: TteachForm
             44AE426082}
           TabOrder = 8
           Version = '2.1.1.5'
-          OnClick = AdvSmoothButton13Click
+          OnClick = btnUpGripperClick
           TMSStyle = 8
         end
         object AdvSmoothButton26: TAdvSmoothButton
@@ -7931,7 +7862,7 @@ object teachForm: TteachForm
             426082}
           TabOrder = 9
           Version = '2.1.1.5'
-          OnClick = AdvSmoothButton14Click
+          OnClick = btnDownGripperClick
           TMSStyle = 8
         end
         object disableChk4: TCheckBox
@@ -7953,7 +7884,7 @@ object teachForm: TteachForm
           OnClick = disableChk1Click
         end
       end
-      object Panel61: TPanel
+      object pnlGripper5: TPanel
         Left = 386
         Top = 100
         Width = 85
@@ -8501,7 +8432,7 @@ object teachForm: TteachForm
             000049454E44AE426082}
           TabOrder = 6
           Version = '2.1.1.5'
-          OnClick = AdvSmoothButton12Click
+          OnClick = btnOpenGripperClick
           TMSStyle = 8
         end
         object AdvSmoothButton28: TAdvSmoothButton
@@ -8630,7 +8561,7 @@ object teachForm: TteachForm
             000049454E44AE426082}
           TabOrder = 7
           Version = '2.1.1.5'
-          OnClick = AdvSmoothButton11Click
+          OnClick = btnCloseGripperClick
           TMSStyle = 8
         end
         object AdvSmoothButton29: TAdvSmoothButton
@@ -8759,7 +8690,7 @@ object teachForm: TteachForm
             44AE426082}
           TabOrder = 8
           Version = '2.1.1.5'
-          OnClick = AdvSmoothButton13Click
+          OnClick = btnUpGripperClick
           TMSStyle = 8
         end
         object AdvSmoothButton30: TAdvSmoothButton
@@ -8888,7 +8819,7 @@ object teachForm: TteachForm
             426082}
           TabOrder = 9
           Version = '2.1.1.5'
-          OnClick = AdvSmoothButton14Click
+          OnClick = btnDownGripperClick
           TMSStyle = 8
         end
         object disableChk5: TCheckBox
@@ -8910,7 +8841,7 @@ object teachForm: TteachForm
           OnClick = disableChk1Click
         end
       end
-      object Panel68: TPanel
+      object pnlGripper6: TPanel
         Left = 480
         Top = 100
         Width = 85
@@ -9458,7 +9389,7 @@ object teachForm: TteachForm
             000049454E44AE426082}
           TabOrder = 6
           Version = '2.1.1.5'
-          OnClick = AdvSmoothButton12Click
+          OnClick = btnOpenGripperClick
           TMSStyle = 8
         end
         object AdvSmoothButton32: TAdvSmoothButton
@@ -9587,7 +9518,7 @@ object teachForm: TteachForm
             000049454E44AE426082}
           TabOrder = 7
           Version = '2.1.1.5'
-          OnClick = AdvSmoothButton11Click
+          OnClick = btnCloseGripperClick
           TMSStyle = 8
         end
         object AdvSmoothButton33: TAdvSmoothButton
@@ -9716,7 +9647,7 @@ object teachForm: TteachForm
             44AE426082}
           TabOrder = 8
           Version = '2.1.1.5'
-          OnClick = AdvSmoothButton13Click
+          OnClick = btnUpGripperClick
           TMSStyle = 8
         end
         object AdvSmoothButton34: TAdvSmoothButton
@@ -9845,7 +9776,7 @@ object teachForm: TteachForm
             426082}
           TabOrder = 9
           Version = '2.1.1.5'
-          OnClick = AdvSmoothButton14Click
+          OnClick = btnDownGripperClick
           TMSStyle = 8
         end
         object disableChk6: TCheckBox
@@ -9867,7 +9798,7 @@ object teachForm: TteachForm
           OnClick = disableChk1Click
         end
       end
-      object AdvSmoothButton35: TAdvSmoothButton
+      object btnDownAllGripper: TAdvSmoothButton
         Left = 488
         Top = 16
         Width = 75
@@ -9992,10 +9923,10 @@ object teachForm: TteachForm
           426082}
         TabOrder = 6
         Version = '2.1.1.5'
-        OnClick = AdvSmoothButton35Click
+        OnClick = btnDownAllGripperClick
         TMSStyle = 8
       end
-      object AdvSmoothButton36: TAdvSmoothButton
+      object btnUpAllGripper: TAdvSmoothButton
         Left = 410
         Top = 16
         Width = 75
@@ -10120,10 +10051,10 @@ object teachForm: TteachForm
           44AE426082}
         TabOrder = 7
         Version = '2.1.1.5'
-        OnClick = AdvSmoothButton36Click
+        OnClick = btnUpAllGripperClick
         TMSStyle = 8
       end
-      object AdvSmoothButton37: TAdvSmoothButton
+      object btnOpenAllGripper: TAdvSmoothButton
         Left = 412
         Top = 66
         Width = 75
@@ -10248,12 +10179,12 @@ object teachForm: TteachForm
           000049454E44AE426082}
         TabOrder = 8
         Version = '2.1.1.5'
-        OnMouseDown = AdvSmoothButton37MouseDown
-        OnMouseUp = AdvSmoothButton37MouseUp
-        OnClick = AdvSmoothButton37Click
+        OnMouseDown = btnOpenAllGripperMouseDown
+        OnMouseUp = btnOpenAllGripperMouseUp
+        OnClick = btnOpenAllGripperClick
         TMSStyle = 8
       end
-      object AdvSmoothButton38: TAdvSmoothButton
+      object btnCloseAllGripper: TAdvSmoothButton
         Left = 491
         Top = 66
         Width = 75
@@ -10378,8 +10309,73 @@ object teachForm: TteachForm
           000049454E44AE426082}
         TabOrder = 9
         Version = '2.1.1.5'
-        OnClick = AdvSmoothButton38Click
+        OnClick = btnCloseAllGripperClick
         TMSStyle = 8
+      end
+      object pnlMovingAlarm2: TAdvSmoothPanel
+        Left = 103
+        Top = 19
+        Width = 80
+        Height = 27
+        Cursor = crDefault
+        Caption.HTMLFont.Charset = DEFAULT_CHARSET
+        Caption.HTMLFont.Color = clWindowText
+        Caption.HTMLFont.Height = -11
+        Caption.HTMLFont.Name = 'Tahoma'
+        Caption.HTMLFont.Style = []
+        Caption.Font.Charset = DEFAULT_CHARSET
+        Caption.Font.Color = clWindowText
+        Caption.Font.Height = -16
+        Caption.Font.Name = 'Tahoma'
+        Caption.Font.Style = []
+        Fill.Color = clWhite
+        Fill.ColorTo = clWhite
+        Fill.ColorMirror = clWhite
+        Fill.ColorMirrorTo = clWhite
+        Fill.GradientType = gtVertical
+        Fill.GradientMirrorType = gtVertical
+        Fill.BorderColor = clSilver
+        Fill.BorderWidth = 2
+        Fill.Rounding = 10
+        Fill.ShadowOffset = 0
+        Fill.Glow = gmNone
+        Version = '1.5.2.1'
+        Visible = False
+        TabOrder = 10
+        TMSStyle = 0
+        object Label59: TLabel
+          Left = 220
+          Top = 139
+          Width = 96
+          Height = 16
+          Caption = #49436#48372' '#51060#46041#51473#51077#45768#45796'.'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clRed
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = [fsBold]
+          ParentFont = False
+          ParentShowHint = False
+          ShowHint = False
+          Transparent = True
+        end
+        object Label61: TLabel
+          Left = 142
+          Top = -255
+          Width = 13
+          Height = 13
+          Caption = '%'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = 13204573
+          Font.Height = -11
+          Font.Name = 'Tahoma'
+          Font.Style = [fsBold]
+          ParentFont = False
+          ParentShowHint = False
+          ShowHint = False
+          Transparent = True
+          Visible = False
+        end
       end
     end
     object AdvSmoothPanel8: TAdvSmoothPanel
@@ -10427,6 +10423,7 @@ object teachForm: TteachForm
         ParentShowHint = False
         ShowHint = False
         Transparent = True
+        Visible = False
       end
       object btnApplyTeaching: TAdvSmoothButton
         Left = 108

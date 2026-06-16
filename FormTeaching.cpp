@@ -238,7 +238,7 @@ void __fastcall TteachForm::AdvSmoothButton_ServoOffClick(TObject *Sender)
 	robostar->req_ServoOff();
 }
 //---------------------------------------------------------------------------
-void __fastcall TteachForm::AdvSmoothButton13Click(TObject *Sender)
+void __fastcall TteachForm::btnUpGripperClick(TObject *Sender)
 {
 	TAdvSmoothButton *btn;
 	btn = (TAdvSmoothButton*)Sender;
@@ -247,7 +247,7 @@ void __fastcall TteachForm::AdvSmoothButton13Click(TObject *Sender)
 		robostar->GripperDown(btn->Tag, false, true);
 }
 //---------------------------------------------------------------------------
-void __fastcall TteachForm::AdvSmoothButton14Click(TObject *Sender)
+void __fastcall TteachForm::btnDownGripperClick(TObject *Sender)
 {
 	TAdvSmoothButton *btn;
 	btn = (TAdvSmoothButton*)Sender;
@@ -275,7 +275,7 @@ void __fastcall TteachForm::AdvSmoothButton14Click(TObject *Sender)
 	}
 }
 //---------------------------------------------------------------------------
-void __fastcall TteachForm::AdvSmoothButton12Click(TObject *Sender)
+void __fastcall TteachForm::btnOpenGripperClick(TObject *Sender)
 {
 	//* delay 3초로 수정
     //* uncheck start
@@ -301,7 +301,7 @@ void __fastcall TteachForm::AdvSmoothButton12Click(TObject *Sender)
 	//* unchuck end
 }
 //---------------------------------------------------------------------------
-void __fastcall TteachForm::AdvSmoothButton12MouseDown(TObject *Sender, TMouseButton Button,
+void __fastcall TteachForm::btnOpenGripperMouseDown(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y)
 {
     TAdvSmoothButton *btn;
@@ -312,7 +312,7 @@ void __fastcall TteachForm::AdvSmoothButton12MouseDown(TObject *Sender, TMouseBu
     unchuckTimer->Enabled = true;
 }
 //---------------------------------------------------------------------------
-void __fastcall TteachForm::AdvSmoothButton12MouseUp(TObject *Sender, TMouseButton Button,
+void __fastcall TteachForm::btnOpenGripperMouseUp(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y)
 {
     unchuckTimer->Enabled = false;
@@ -354,7 +354,7 @@ void __fastcall TteachForm::unchuckTimerTimer(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
-void __fastcall TteachForm::AdvSmoothButton11Click(TObject *Sender)
+void __fastcall TteachForm::btnCloseGripperClick(TObject *Sender)
 {
 	TAdvSmoothButton *btn;
 	btn = (TAdvSmoothButton*)Sender;
@@ -363,7 +363,7 @@ void __fastcall TteachForm::AdvSmoothButton11Click(TObject *Sender)
 		robostar->GripperChuck(btn->Tag, false, true);
 }
 //---------------------------------------------------------------------------
-void __fastcall TteachForm::AdvSmoothButton36Click(TObject *Sender)
+void __fastcall TteachForm::btnUpAllGripperClick(TObject *Sender)
 {
 	for(int i=1; i<=gripCnt; ++i)
 	{
@@ -372,7 +372,7 @@ void __fastcall TteachForm::AdvSmoothButton36Click(TObject *Sender)
 	}
 }
 //---------------------------------------------------------------------------
-void __fastcall TteachForm::AdvSmoothButton35Click(TObject *Sender)
+void __fastcall TteachForm::btnDownAllGripperClick(TObject *Sender)
 {
     if(MainForm->psrcReady->Color != clLime)
 	{
@@ -405,12 +405,12 @@ void __fastcall TteachForm::AdvSmoothButton35Click(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
-void __fastcall TteachForm::AdvSmoothButton37Click(TObject *Sender)
+void __fastcall TteachForm::btnOpenAllGripperClick(TObject *Sender)
 {
     // delay 3초로 수정
 }
 //---------------------------------------------------------------------------
-void __fastcall TteachForm::AdvSmoothButton37MouseDown(TObject *Sender, TMouseButton Button,
+void __fastcall TteachForm::btnOpenAllGripperMouseDown(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y)
 {
     downTime = Now();
@@ -418,7 +418,7 @@ void __fastcall TteachForm::AdvSmoothButton37MouseDown(TObject *Sender, TMouseBu
     unchuckAllTimer->Enabled = true;
 }
 //---------------------------------------------------------------------------
-void __fastcall TteachForm::AdvSmoothButton37MouseUp(TObject *Sender, TMouseButton Button,
+void __fastcall TteachForm::btnOpenAllGripperMouseUp(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y)
 {
     unchuckAllTimer->Enabled = false;
@@ -464,7 +464,7 @@ void __fastcall TteachForm::unchuckAllTimerTimer(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
-void __fastcall TteachForm::AdvSmoothButton38Click(TObject *Sender)
+void __fastcall TteachForm::btnCloseAllGripperClick(TObject *Sender)
 {
 	for(int i=1; i<=gripCnt; ++i)
 	{
@@ -1086,99 +1086,59 @@ void __fastcall TteachForm::LanguageChange(int index)
 
 	AnsiString temp;
 
-	Label1->Caption = mm->Lines->Strings[0];
-	Label7->Caption = mm->Lines->Strings[2];
-	Panel28->Caption = mm->Lines->Strings[3];
-	Label2->Caption = mm->Lines->Strings[4];
-	Panel27->Caption = mm->Lines->Strings[3];
-	sCombo->Clear();
-	for(int i = 0; i < 2; i++) sCombo->Items->Add(mm->Lines->Strings[6 + i]);
-	sCombo->ItemIndex = 0;
-
-	Label5->Caption = mm->Lines->Strings[15];
-	Label4->Caption = mm->Lines->Strings[16];
-	Panel35->Caption = mm->Lines->Strings[17];
-
-	Panel31->Caption = mm->Lines->Strings[19];
-	Panel33->Caption = mm->Lines->Strings[20];
-	Panel37->Caption = mm->Lines->Strings[21];
-	Panel29->Caption = mm->Lines->Strings[22];
-	temp = mm->Lines->Strings[23];
-	waitBtn->Caption = temp.SubString(1, temp.Pos(" ")) + "\n" + temp.SubString(temp.Pos(" ") + 1, temp.Length());
-	AdvSmoothButton_Zup->Caption = mm->Lines->Strings[24];
-	temp = mm->Lines->Strings[25];
-	stopBtn->Caption = temp.SubString(1, temp.Pos(" ")) + "\n" + temp.SubString(temp.Pos(" ") + 1, temp.Length());
-	Panel39->Caption = mm->Lines->Strings[26];
-	Panel41->Caption = mm->Lines->Strings[27];
-	Label6->Caption = mm->Lines->Strings[28];
-	Label8->Caption = mm->Lines->Strings[29];
-	Label9->Caption = mm->Lines->Strings[19];
-	Label10->Caption = mm->Lines->Strings[20];
-	Label29->Caption = mm->Lines->Strings[31];
-	Label30->Caption = mm->Lines->Strings[32];
-	Label31->Caption = mm->Lines->Strings[33];
-	Label32->Caption = mm->Lines->Strings[34];
-	CLR1->Caption = mm->Lines->Strings[35] + " #1";
-	Label14->Caption = mm->Lines->Strings[35] + " #2";
-	Label17->Caption = mm->Lines->Strings[35] + " #3";
-	Label20->Caption = mm->Lines->Strings[35] + " #4";
-	Label23->Caption = mm->Lines->Strings[35] + " #5";
-	Label26->Caption = mm->Lines->Strings[35] + " #6";
-	pup1->Caption = mm->Lines->Strings[36];
-	pup2->Caption = mm->Lines->Strings[36];
-	pup3->Caption = mm->Lines->Strings[36];
-	pup4->Caption = mm->Lines->Strings[36];
-	pup5->Caption = mm->Lines->Strings[36];
-	pup6->Caption = mm->Lines->Strings[36];
-	pflow1->Caption = mm->Lines->Strings[37];
-	pflow2->Caption = mm->Lines->Strings[37];
-	pflow3->Caption = mm->Lines->Strings[37];
-	pflow4->Caption = mm->Lines->Strings[37];
-	pflow5->Caption = mm->Lines->Strings[37];
-	pflow6->Caption = mm->Lines->Strings[37];
-	popen1->Caption = mm->Lines->Strings[38];
-	popen2->Caption = mm->Lines->Strings[38];
-	popen3->Caption = mm->Lines->Strings[38];
-	popen4->Caption = mm->Lines->Strings[38];
-	popen5->Caption = mm->Lines->Strings[38];
-	popen6->Caption = mm->Lines->Strings[38];
-	pclose1->Caption = mm->Lines->Strings[39];
-	pclose2->Caption = mm->Lines->Strings[39];
-	pclose3->Caption = mm->Lines->Strings[39];
-	pclose4->Caption = mm->Lines->Strings[39];
-	pclose5->Caption = mm->Lines->Strings[39];
-	pclose6->Caption = mm->Lines->Strings[39];
-	pdn1->Caption = mm->Lines->Strings[40];
-	pdn2->Caption = mm->Lines->Strings[40];
-	pdn3->Caption = mm->Lines->Strings[40];
-	pdn4->Caption = mm->Lines->Strings[40];
-	pdn5->Caption = mm->Lines->Strings[40];
-	pdn6->Caption = mm->Lines->Strings[40];
-	pcell1->Caption = mm->Lines->Strings[41];
-	pcell2->Caption = mm->Lines->Strings[41];
-	pcell3->Caption = mm->Lines->Strings[41];
-	pcell4->Caption = mm->Lines->Strings[41];
-	pcell5->Caption = mm->Lines->Strings[41];
-	pcell6->Caption = mm->Lines->Strings[41];
-	Label12->Caption = mm->Lines->Strings[42];
-	Label15->Caption = mm->Lines->Strings[42];
-	Label18->Caption = mm->Lines->Strings[42];
-	Label21->Caption = mm->Lines->Strings[42];
-	Label24->Caption = mm->Lines->Strings[42];
-	Label27->Caption = mm->Lines->Strings[42];
-	Label13->Caption = mm->Lines->Strings[43];
-	Label16->Caption = mm->Lines->Strings[43];
-	Label19->Caption = mm->Lines->Strings[43];
-	Label22->Caption = mm->Lines->Strings[43];
-	Label25->Caption = mm->Lines->Strings[43];
-	Label28->Caption = mm->Lines->Strings[43];
-	disableChk1->Caption = mm->Lines->Strings[44];
-	disableChk2->Caption = mm->Lines->Strings[44];
-	disableChk3->Caption = mm->Lines->Strings[44];
-	disableChk4->Caption = mm->Lines->Strings[44];
-	disableChk5->Caption = mm->Lines->Strings[44];
-	disableChk6->Caption = mm->Lines->Strings[44];
-	AdvSmoothButton_LoadFactorInfo->Caption = mm->Lines->Strings[46];
-	Panel41->Caption = mm->Lines->Strings[47];
+//	lblMsgRobot->Caption = mm->Lines->Strings[0];
+//	Label7->Caption = mm->Lines->Strings[2];
+//	Panel28->Caption = mm->Lines->Strings[3];
+//	Label2->Caption = mm->Lines->Strings[4];
+//	Panel27->Caption = mm->Lines->Strings[3];
+//	sCombo->Clear();
+//	for(int i = 0; i < 2; i++) sCombo->Items->Add(mm->Lines->Strings[6 + i]);
+//	sCombo->ItemIndex = 0;
+//
+//	Label5->Caption = mm->Lines->Strings[15];
+//	Label4->Caption = mm->Lines->Strings[16];
+//	Panel35->Caption = mm->Lines->Strings[17];
+//
+//	Panel31->Caption = mm->Lines->Strings[19];
+//	Panel33->Caption = mm->Lines->Strings[20];
+//	Panel37->Caption = mm->Lines->Strings[21];
+//	Panel29->Caption = mm->Lines->Strings[22];
+//	temp = mm->Lines->Strings[23];
+//	waitBtn->Caption = temp.SubString(1, temp.Pos(" ")) + "\n" + temp.SubString(temp.Pos(" ") + 1, temp.Length());
+//	AdvSmoothButton_Zup->Caption = mm->Lines->Strings[24];
+//	temp = mm->Lines->Strings[25];
+//	stopBtn->Caption = temp.SubString(1, temp.Pos(" ")) + "\n" + temp.SubString(temp.Pos(" ") + 1, temp.Length());
+//	Panel39->Caption = mm->Lines->Strings[26];
+//	Panel41->Caption = mm->Lines->Strings[27];
+//	Label6->Caption = mm->Lines->Strings[28];
+//	Label8->Caption = mm->Lines->Strings[29];
+//	Label9->Caption = mm->Lines->Strings[19];
+//	Label10->Caption = mm->Lines->Strings[20];
+//	Label29->Caption = mm->Lines->Strings[31];
+//	Label30->Caption = mm->Lines->Strings[32];
+//	Label31->Caption = mm->Lines->Strings[33];
+//	Label32->Caption = mm->Lines->Strings[34];
+//	CLR1->Caption = mm->Lines->Strings[35] + " #1";
+//	Label14->Caption = mm->Lines->Strings[35] + " #2";
+//	Label17->Caption = mm->Lines->Strings[35] + " #3";
+//	Label20->Caption = mm->Lines->Strings[35] + " #4";
+//	Label23->Caption = mm->Lines->Strings[35] + " #5";
+//	Label26->Caption = mm->Lines->Strings[35] + " #6";
+//
+//	Label12->Caption = mm->Lines->Strings[42];
+//	Label15->Caption = mm->Lines->Strings[42];
+//	Label18->Caption = mm->Lines->Strings[42];
+//	Label21->Caption = mm->Lines->Strings[42];
+//	Label24->Caption = mm->Lines->Strings[42];
+//	Label27->Caption = mm->Lines->Strings[42];
+//	Label13->Caption = mm->Lines->Strings[43];
+//	Label16->Caption = mm->Lines->Strings[43];
+//	Label19->Caption = mm->Lines->Strings[43];
+//	Label22->Caption = mm->Lines->Strings[43];
+//	Label25->Caption = mm->Lines->Strings[43];
+//	Label28->Caption = mm->Lines->Strings[43];
+//
+//	AdvSmoothButton_LoadFactorInfo->Caption = mm->Lines->Strings[46];
+//	Panel41->Caption = mm->Lines->Strings[47];
 }
 //---------------------------------------------------------------------------

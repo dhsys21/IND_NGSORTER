@@ -17,6 +17,7 @@ void __fastcall TMainForm::LanguageChange(AnsiString newLang)
     std::unique_ptr<TResourceStream> res(new TResourceStream((NativeUInt)HInstance, newLang + L"_DATA", RT_RCDATA));
     LangDict->LoadFromStream(res.get(), TEncoding::UTF8);
 
+    //* Main Form
 	lblTitle->Caption = GetLangStr("CAP_TITLE");
 	autoBtn->Caption = GetLangStr("CAP_AUTO");
 	playBtn->Caption = GetLangStr("CAP_START");
@@ -53,26 +54,18 @@ void __fastcall TMainForm::LanguageChange(AnsiString newLang)
 	CLR1->Caption = GetLangStr("CAP_GRIPPER") + " #1";
 	CLR2->Caption = GetLangStr("CAP_GRIPPER") + " #2";
 	pup1->Caption = GetLangStr("CAP_UP");
-//	pup2->Caption = mm->Lines->Strings[31];
 	pflow1->Caption = GetLangStr("CAP_FLOW");
-//	pflow2->Caption = mm->Lines->Strings[32];
 	popen1->Caption = GetLangStr("CAP_OPEN");
-//	popen2->Caption = mm->Lines->Strings[33];
 	pclose1->Caption = GetLangStr("CAP_CLOSE");
-//	pclose2->Caption = mm->Lines->Strings[34];
 	pdn1->Caption = GetLangStr("CAP_DOWN");
-//	pdn2->Caption = mm->Lines->Strings[35];
 	pcell1->Caption = GetLangStr("CAP_CELL");
-//	pcell2->Caption = mm->Lines->Strings[36];
 	puse1->Caption = GetLangStr("CAP_STOP_USING");
-//	puse2->Caption = mm->Lines->Strings[37];
 	pnlCode->Caption = GetLangStr("CAP_CODE");
 	pnlTarget->Caption = GetLangStr("CAP_TARGET");
 	pnlSource->Caption = GetLangStr("CAP_SOURCE");
     lblLogTitle->Caption = GetLangStr("CAP_EQUIPMENT_LOG");
 
 	pnlTargetTrayTitle->Caption = GetLangStr("CAP_TARGET_TRAY");
-//	zone4->Caption = mm->Lines->Strings[45];
 	pnlTargetRemaining->Caption = GetLangStr("CAP_REMAINING_COUNT");
 	pnlSourceTrayTitle->Caption = GetLangStr("CAP_SOURCE_TRAY");
 	pnlSourceRemaining->Caption = GetLangStr("CAP_EJECTING_COUNT");
@@ -80,6 +73,20 @@ void __fastcall TMainForm::LanguageChange(AnsiString newLang)
 	pnlSource2->Caption = GetLangStr("CAP_SOURCE");
 	pnlNgCode->Caption = GetLangStr("CAP_NG_CODE");
 	AdvSmoothToggleButton_InitWork->Caption = GetLangStr("CAP_INIT");
+
+    //* Teaching Form
+    teachForm->lblMsgRobot->Caption = GetLangStr("MSG_ROBOT_INFO");
+    teachForm->lblServoSetting->Caption = GetLangStr("CAP_SERVO_SETTING");
+    teachForm->lblServoInfo->Caption = GetLangStr("CAP_SERVO_STATUS");
+    teachForm->btnApplyTeaching->Caption = GetLangStr("CAP_APPLY_TEACHING");
+    teachForm->pnlSelectGripper->Caption = GetLangStr("CAP_SELECT_GRIPPER");
+    teachForm->lblJogControl->Caption = GetLangStr("CAP_JOG_CONTROL");
+    teachForm->lblXAxis->Caption = GetLangStr("CAP_X_AXIS");
+    teachForm->lblYAxis->Caption = GetLangStr("CAP_Y_AXIS");
+    teachForm->lblZAxis->Caption = GetLangStr("CAP_Z_AXIS");
+    teachForm->pnlSpeedXY->Caption = GetLangStr("CAP_SPEED_XY");
+    teachForm->pnlErrCode->Caption = GetLangStr("CAP_ERR_CODE");
+    teachForm->waitBtn->Caption = GetLangStr("CAP_WAIT_POS");
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::WriteProgLog(AnsiString msg)
