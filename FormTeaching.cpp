@@ -17,29 +17,6 @@ __fastcall TteachForm::TteachForm(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::FormCreate(TObject *Sender)
 {
-	// source tray teaching
-	teachEdit[0][0] = gpEdit1;
-	teachEdit[1][0] = gpEdit2;	// gp11
-	teachEdit[0][1] = gpEdit3;
-	teachEdit[1][1] = gpEdit4;	// gp12
-	teachEdit[0][2] = gpEdit5;
-	teachEdit[1][2] = gpEdit6;	// gp13
-	teachEdit[0][3] = gpEdit7;
-	teachEdit[1][3] = gpEdit8;	// gp14
-
-    // target tray teaching
-	teachEdit[0][4] = gpEdit9;
-	teachEdit[1][4] = gpEdit10;	// gp21
-	teachEdit[0][5] = gpEdit11;
-	teachEdit[1][5] = gpEdit12;	// gp22
-	teachEdit[0][6] = gpEdit13;
-	teachEdit[1][6] = gpEdit14;	// gp23
-	teachEdit[0][7] = gpEdit15;
-	teachEdit[1][7] = gpEdit16;	// gp24
-
-	teachEdit_z[0] = gpEdit18;
-	teachEdit_z[1] = gpEdit17;
-
 	//* Load Factor
 	lblLoadFactor[1] = lblLoadFactor1;
 	lblLoadFactor[2] = lblLoadFactor2;
@@ -48,8 +25,8 @@ void __fastcall TteachForm::FormCreate(TObject *Sender)
 
     MakePanel();
 
-	LoadTeaching();
-	LoadFromFile();
+	teachingFilePath = (AnsiString)BIN + "KindTeaching.ini";
+	LoadTeaching(teachingFilePath);
 }
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::FormShow(TObject *Sender)
@@ -134,6 +111,9 @@ void __fastcall TteachForm::MakePanel()
     }
 }
 //---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+//                  Event Handler
+//---------------------------------------------------------------------------
 void __fastcall TteachForm::sClick(TObject *Sender)
 {
 	TAdvSmoothPanel *pnl;
@@ -211,31 +191,6 @@ void __fastcall TteachForm::tClick(TObject *Sender)
             }
         }
 	}
-}
-//---------------------------------------------------------------------------
-bool __fastcall TteachForm::CheckMoveTargetChannel(int channel)
-{
-    //* 2026 06 96채널로 변경해야 함.
-    bool isPossible = true;
-
-    if(MainForm->color_target[channel/6][5-(channel%6)] == clInactiveCaption
-    	|| MainForm->color_target[channel/6][5-(channel%6)] == clSilver)
-    {
-        if(sCombo->ItemIndex == 0 && robostar->input.GRIPPER1_CELL_DETECT)
-            isPossible = false;
-    }
-
-    return isPossible;
-}
-//---------------------------------------------------------------------------
-bool __fastcall TteachForm::CheckMoveSourceChannel()
-{
-    bool isPossible = true;
-
-    if(sCombo->ItemIndex == 0 && robostar->input.GRIPPER1_CELL_DETECT)
-    	isPossible = false;
-
-    return isPossible;
 }
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::openBtnClick(TObject *Sender)
@@ -541,87 +496,12 @@ void __fastcall TteachForm::speedEditKeyDown(TObject *Sender, WORD &Key,
 	}
 }
 //---------------------------------------------------------------------------
-void __fastcall TteachForm::ApplyTeaching()
-{
-	AnsiString str;
-	tea_memo->Clear();
-	for(int i=0; i<4; ++i){
-		str = "GP1" + IntToStr(i+1) + "," + teachEdit[0][i]->Text + "," + teachEdit[1][i]->Text + ",0";
-		tea_memo->Lines->Add(str);
-	}
-
-	for(int i=4; i<8; ++i){
-		str = "GP2" + IntToStr(i-3) + "," +  teachEdit[0][i]->Text + "," + teachEdit[1][i]->Text + ",0";
-		tea_memo->Lines->Add(str);
-	}
-	tea_memo->Lines->Add("GP201,0,0," + teachEdit_z[0]->Text);	// 선별 z좌표
-	tea_memo->Lines->Add("GP202,0,0," + teachEdit_z[1]->Text);	// 대상 z좌표
-
-	SetTrayMaxPosition();
-}
-//---------------------------------------------------------------------------
-void __fastcall TteachForm::LoadTeaching()
-{
-	int pos;
-	int channel;
-	AnsiString  str;
-	for(int i=0; i< tea_memo->Lines->Count; ++i){
-		str = tea_memo->Lines->Strings[i];
-		str = StringReplace(str, "GP", "", TReplaceFlags() << rfReplaceAll);
-
-		pos = str.Pos(",");
-		teach.point = str.SubString(1, pos-1);
-		str.Delete(1, pos);
-		pos = str.Pos(",");
-		teach.str_x = str.SubString(1, pos-1);
-		str.Delete(1, pos);
-		pos = str.Pos(",");
-		teach.str_y = str.SubString(1, pos-1);
-		str.Delete(1, pos);
-		teach.str_z = str;
-
-		channel = teach.point.ToInt();
-		if(channel > 10 && channel < 20){
-			channel -= 11; // GP 11, 12, 13, 14
-			teachEdit[0][channel]->Text = teach.str_x;
-			teachEdit[1][channel]->Text = teach.str_y;
-		}else if(channel > 20 && channel < 30){
-			channel -= 17; // GP 21, 22, 23, 24
-			teachEdit[0][channel]->Text = teach.str_x;
-			teachEdit[1][channel]->Text = teach.str_y;
-		}else if(channel == 201){ // GP 201     대상 z 축, chuck, unchuck
-			teachEdit_z[0]->Text = teach.str_z;
-		}else if(channel == 202){ // GP 202     선별 z 축, chuck, unchuck
-			teachEdit_z[1]->Text = teach.str_z;
-		}
-	}
-
-	SetTrayMaxPosition();
-}
-//---------------------------------------------------------------------------
-void __fastcall TteachForm::AdvSmoothButton4Click(TObject *Sender)
-{
-
-	if(OpenDialog->Execute()){
-		tea_memo->Lines->LoadFromFile(OpenDialog->FileName);
-		LoadTeaching();
-	}
-}
-//---------------------------------------------------------------------------
-void __fastcall TteachForm::AdvSmoothButton3Click(TObject *Sender)
-{
-	ApplyTeaching();
-	if(SaveDialog->Execute()){
-		tea_memo->Lines->SaveToFile(SaveDialog->FileName);
-	}
-}
-//---------------------------------------------------------------------------
 void __fastcall TteachForm::disableChk1Click(TObject *Sender)
 {
 	TCheckBox *chk;
 	chk = (TCheckBox*)Sender;
 
-	gripper->disable_gripper[chk->Tag-1] = chk->Checked;	
+	gripper->disable_gripper[chk->Tag-1] = chk->Checked;
 }
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::waitBtnClick(TObject *Sender)
@@ -656,70 +536,6 @@ void __fastcall TteachForm::stopBtnClick(TObject *Sender)
 	teachForm->pnlMovingAlarm2->Visible = false;
 }
 //---------------------------------------------------------------------------
-//---------------------------------------------------------------------------
-void __fastcall TteachForm::ChangeTrayMap(int channel)
-{
-    int nx, ny, nw, nh;
-	nx = 15;
-	ny = 585;
-	nw = 140;
-
-	if(channel == 96){
-		// Source Tray Map
-		nh = 20;
-		for(int index=0; index<96;){
-			sTray[index]->Caption->Text = MainForm->mapSort[0][index];
-			sTray[index]->Tag = MainForm->mapSort[0][index];
-
-			if(index < 48){
-				sTray[index]->Left = nx;
-				sTray[index]->Top = ny;
-				sTray[index]->Height = nh;
-				sTray[index]->Width = nw;
-				sTray[index]->Fill->Color = clWhite;
-				sTray[index]->Fill->ColorTo = clWhite;
-				sTray[index]->Fill->ColorMirror = clWhite;
-				sTray[index]->Fill->ColorMirrorTo = clWhite;
-                sTray[index]->Visible = true;
-
-				ny = ny - nh - 1;
-				index += 1;
-
-				if(index % 12 == 0) ny -= 4;
-				if(index % 24 == 0){
-					nx = nx + nw + 1;
-					ny = 585;
-				}
-			}else{
-				sTray[index]->Visible = true;
-				index += 1;
-			}
-		}
-
-        for(int i = 0; i < 12; i++)
-			tTray[i]->Width = 140;
-
-		for(int i = 6; i < 12; i++)
-		{
-			tTray[i]->Left = 156;
-			tTray[i]->BringToFront();
-		}
-
-		Panel14->Caption = "CH 1";
-		Panel17->Caption = "CH 25";
-		Panel21->Caption = "CH 49";
-		Panel24->Caption = "CH 73";
-
-		Panel7->Caption = "CH 13";
-		Panel11->Caption = "CH 19";
-
-		for(int i = 0; i < 7; i++)
-		{
-			teachEdit[0][i]->Text = "";
-			teachEdit[1][i]->Text = "";
-		}
-	}
-}
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::Button1MouseDown(TObject *Sender, TMouseButton Button,
 		  TShiftState Shift, int X, int Y)
@@ -834,49 +650,108 @@ void __fastcall TteachForm::Button2MouseDown(TObject *Sender, TMouseButton Butto
 	}
 }
 //---------------------------------------------------------------------------
-void __fastcall TteachForm::SetTrayMaxPosition()
+void __fastcall TteachForm::AdvSmoothButton_LoadFactorInfoClick(TObject *Sender)
 {
-	sTray_Position.Top = 0;
-	sTray_Position.Bottom = 0;
-	sTray_Position.Left = 0;
-	sTray_Position.Right = 0;
-
-    sTray_Position.Left = teachEdit[1][0]->Text.ToInt();
-    sTray_Position.Right = teachEdit[1][3]->Text.ToInt();
-
-    for(int i = 0; i < 4; i++)   // 선별트레이 4열
-    {
-        if(sTray_Position.Bottom == 0 || sTray_Position.Bottom > teachEdit[0][i]->Text.ToInt())
-            sTray_Position.Bottom = teachEdit[0][i]->Text.ToInt();
-        if(sTray_Position.Top < teachEdit[0][i]->Text.ToInt())
-            sTray_Position.Top = teachEdit[0][i]->Text.ToInt();
-    }
-
-	sTray_Position.Top += 1111000; // 선별 1열 X + 24열 X
-
-	tTray_Position.Top = 0;
-	tTray_Position.Bottom = 0;
-	tTray_Position.Left = 0;
-	tTray_Position.Right = 0;
-
-	tTray_Position.Left = teachEdit[1][4]->Text.ToInt();
-    tTray_Position.Right = teachEdit[1][7]->Text.ToInt();
-
-    for(int i = 4; i < 8; i++)    // 대상트레이 2열
-    {
-        if(tTray_Position.Bottom == 0 || tTray_Position.Bottom > teachEdit[0][i]->Text.ToInt())
-            tTray_Position.Bottom = teachEdit[0][i]->Text.ToInt();
-        if(tTray_Position.Top < teachEdit[0][i]->Text.ToInt())
-            tTray_Position.Top = teachEdit[0][i]->Text.ToInt();
-    }
-
-	tTray_Position.Top += 395000; // 대상 1열 X + 6열 X
+	loadfactorForm->Left = pnlManualControl->Left + 120;
+	loadfactorForm->Top = pnlManualControl->Top + 200;
+	loadfactorForm->ShowModal();
 }
 //---------------------------------------------------------------------------
+void __fastcall TteachForm::btnCloseClick(TObject *Sender)
+{
+    this->Close();
+}
+//---------------------------------------------------------------------------
+void __fastcall TteachForm::btnApplyTeachingClick(TObject *Sender)
+{
+	ApplyTeaching();
+}
+//---------------------------------------------------------------------------
+void __fastcall TteachForm::btnZAxisDownMouseDown(TObject *Sender, TMouseButton Button,
+          TShiftState Shift, int X, int Y)
+{
+    TButton *btn;
+	btn = (TButton*)Sender;
+
+	if(Button == mbLeft){
+		robostar->req_JogMove(btn->Tag);
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TteachForm::btnZAxisDownMouseUp(TObject *Sender, TMouseButton Button,
+          TShiftState Shift, int X, int Y)
+{
+	if(Button == mbLeft){
+		robostar->req_JogMove(-1);
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TteachForm::btnZAxisUpMouseDown(TObject *Sender, TMouseButton Button,
+          TShiftState Shift, int X, int Y)
+{
+    TButton *btn;
+	btn = (TButton*)Sender;
+
+	if(Button == mbLeft){
+		robostar->req_JogMove(btn->Tag);
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TteachForm::btnZAxisUpMouseUp(TObject *Sender, TMouseButton Button,
+          TShiftState Shift, int X, int Y)
+{
+    if(Button == mbLeft){
+		robostar->req_JogMove(-1);
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TteachForm::btnKeyLockClick(TObject *Sender)
+{
+	if(BaseForm->btnKeyLock->Caption == "키락 해제")
+		 {
+			BaseForm->btnKeyLock->Caption = "키락 설정";
+			robostar->KeyLock(2);
+		 }
+		 else
+		 {
+			BaseForm->btnKeyLock->Caption = "키락 해제";
+			robostar->KeyLock(1);
+		 }
+}
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+//                  Method
+//---------------------------------------------------------------------------
+bool __fastcall TteachForm::CheckMoveTargetChannel(int channel)
+{
+    //* 2026 06 96채널로 변경해야 함.
+    bool isPossible = true;
+
+    if(MainForm->color_target[channel/24][23-(channel%24)] == clInactiveCaption
+    	|| MainForm->color_target[channel/24][23-(channel%24)] == clSilver)
+    {
+        if(sCombo->ItemIndex == 0 && robostar->input.GRIPPER1_CELL_DETECT)
+            isPossible = false;
+    }
+
+    return isPossible;
+}
+//---------------------------------------------------------------------------
+bool __fastcall TteachForm::CheckMoveSourceChannel()
+{
+    bool isPossible = true;
+
+    if(sCombo->ItemIndex == 0 && robostar->input.GRIPPER1_CELL_DETECT)
+    	isPossible = false;
+
+    return isPossible;
+}
+//---------------------------------------------------------------------------
+
 bool __fastcall TteachForm::CheckPositionDown(int gripperIndex)
 {
-	int pos_x = robostar->mr2.pos[1];
-	int pos_y = robostar->mr2.pos[2];
+	int pos_x = robostar->mr2.pos[Axis_x];
+	int pos_y = robostar->mr2.pos[Axis_y];
 
 	if(((pos_x + (gripperIndex) * 90000) <= sTray_Position.Top
 		&& (pos_x + (gripperIndex) * 90000) >= sTray_Position.Bottom
@@ -889,15 +764,13 @@ bool __fastcall TteachForm::CheckPositionDown(int gripperIndex)
 //---------------------------------------------------------------------------
 bool __fastcall TteachForm::CheckUnchuckPosition(int gripperIndex)
 {
-	int gripper_position = robostar->mr2.pos[gripperIndex + 5];
+	int pos_x = robostar->mr2.pos[Axis_x];
+	int pos_y = robostar->mr2.pos[Axis_y];
 
-	int pos_x = robostar->mr2.pos[1];
-	int pos_y = robostar->mr2.pos[2];
-
-    if(((pos_x + (gripperIndex) * 90000) <= sTray_Position.Top && (pos_x + (gripperIndex) * 90000) >= sTray_Position.Bottom
-		/*&& gripper_position == unchuck_position */)
-		|| (pos_x + (gripperIndex * 90000) <= tTray_Position.Top && pos_x + (gripperIndex * 90000) >= tTray_Position.Bottom
-        /*&& gripper_position == chuck_position*/)
+    if(((pos_x + (gripperIndex) * 90000) <= sTray_Position.Top
+    	&& (pos_x + (gripperIndex) * 90000) >= sTray_Position.Bottom)
+		|| (pos_x + (gripperIndex * 90000) <= tTray_Position.Top
+        && pos_x + (gripperIndex * 90000) >= tTray_Position.Bottom)
 		)
 		return true;
 
@@ -906,23 +779,301 @@ bool __fastcall TteachForm::CheckUnchuckPosition(int gripperIndex)
 //---------------------------------------------------------------------------
 bool __fastcall TteachForm::CheckChuckPosition(int gripperIndex)
 {
-	int gripper_position = robostar->mr2.pos[gripperIndex + 5];
+	int pos_x = robostar->mr2.pos[Axis_x];
+	int pos_y = robostar->mr2.pos[Axis_y];
 
-	int pos_x = robostar->mr2.pos[1];
-	int pos_y = robostar->mr2.pos[2];
-
-	if(pos_x <= tTray_Position.Top && pos_x >= tTray_Position.Bottom
-		/*&& gripper_position == chuck_position*/)
+	if(pos_x <= tTray_Position.Top && pos_x >= tTray_Position.Bottom)
 		return true;
 
 	return false;
 }
 //---------------------------------------------------------------------------
-void __fastcall TteachForm::AdvSmoothButton_LoadFactorInfoClick(TObject *Sender)
+void __fastcall TteachForm::ApplyTeaching()
 {
-	loadfactorForm->Left = pnlManualControl->Left + 120;
-	loadfactorForm->Top = pnlManualControl->Top + 200;
-	loadfactorForm->ShowModal();
+    try{
+        //* source tray teaching value
+        if(editCh01_SX->Text.Trim().IsEmpty() || editCh01_SY->Text.Trim().IsEmpty()
+        	|| editCh13_SX->Text.Trim().IsEmpty() || editCh13_SY->Text.Trim().IsEmpty()){
+        	MessageBox(Handle, L"Please check Source Tray Ch01 or Ch13 value.", L"Warning", MB_OK|MB_ICONWARNING);
+            return;
+        }
+        else if(editCh25_SX->Text.Trim().IsEmpty() || editCh25_SY->Text.Trim().IsEmpty()
+        	|| editCh37_SX->Text.Trim().IsEmpty() || editCh37_SY->Text.Trim().IsEmpty()){
+        	MessageBox(Handle, L"Please check Source Tray Ch25 or Ch37 value.", L"Warning", MB_OK|MB_ICONWARNING);
+            return;
+        }
+        else if(editCh49_SX->Text.Trim().IsEmpty() || editCh49_SY->Text.Trim().IsEmpty()
+        	|| editCh61_SX->Text.Trim().IsEmpty() || editCh61_SY->Text.Trim().IsEmpty()){
+        	MessageBox(Handle, L"Please check Source Tray Ch49 or Ch61 value.", L"Warning", MB_OK|MB_ICONWARNING);
+            return;
+        }
+        else if(editCh73_SX->Text.Trim().IsEmpty() || editCh73_SY->Text.Trim().IsEmpty()
+        	|| editCh85_SX->Text.Trim().IsEmpty() || editCh85_SY->Text.Trim().IsEmpty()){
+        	MessageBox(Handle, L"Please check Source Tray Ch73 or Ch85 value.", L"Warning", MB_OK|MB_ICONWARNING);
+            return;
+        }
+
+        //* target tray teaching value
+        if(editCh01_TX->Text.Trim().IsEmpty() || editCh01_TY->Text.Trim().IsEmpty()
+        	|| editCh13_TX->Text.Trim().IsEmpty() || editCh13_TY->Text.Trim().IsEmpty()){
+        	MessageBox(Handle, L"Please check Target Tray Ch01 or Ch13 value.", L"Warning", MB_OK|MB_ICONWARNING);
+            return;
+        }
+        else if(editCh25_TX->Text.Trim().IsEmpty() || editCh25_TY->Text.Trim().IsEmpty()
+        	|| editCh37_TX->Text.Trim().IsEmpty() || editCh37_TY->Text.Trim().IsEmpty()){
+        	MessageBox(Handle, L"Please check Target Tray Ch25 or Ch37 value.", L"Warning", MB_OK|MB_ICONWARNING);
+            return;
+        }
+        else if(editCh49_TX->Text.Trim().IsEmpty() || editCh49_TY->Text.Trim().IsEmpty()
+        	|| editCh61_TX->Text.Trim().IsEmpty() || editCh61_TY->Text.Trim().IsEmpty()){
+        	MessageBox(Handle, L"Please check Target Tray Ch49 or Ch61 value.", L"Warning", MB_OK|MB_ICONWARNING);
+            return;
+        }
+        else if(editCh73_TX->Text.Trim().IsEmpty() || editCh73_TY->Text.Trim().IsEmpty()
+        	|| editCh85_TX->Text.Trim().IsEmpty() || editCh85_TY->Text.Trim().IsEmpty()){
+        	MessageBox(Handle, L"Please check Target Tray Ch73 or Ch85 value.", L"Warning", MB_OK|MB_ICONWARNING);
+            return;
+        }
+
+        //* 파일에 저장
+        if(MessageBox(Handle, L"Do you want to save the teaching value?", L"SAVE", MB_YESNO|MB_ICONWARNING) == ID_YES){
+
+            SaveTeaching(teachingFilePath);
+
+            SetTrayMaxPosition();
+        }
+	}catch(...){
+		MessageBox(Handle, L"[C_Maint] 정보를 입력 하세요.", L"경고", MB_OK|MB_ICONWARNING);
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TteachForm::SaveTeaching(AnsiString filePath)
+{
+    std::unique_ptr<TIniFile> ini(new TIniFile(filePath));
+
+    // 1. 공통 설정 저장
+    ini->WriteString("COMMON", "KIND", "STANDARD");
+    ini->WriteString("COMMON", "SLOT_COUNT", "96");
+
+    // 2. Source Tray 티칭값 저장
+    for(int i = 0; i < 8; i++){
+        ini->WriteString("SOURCE_TRAY", "XAxis_CH" + IntToStr(i * 12 + 1), IntToStr(GetTrayPosValue(i * 12 + 1, asSourceX)));
+        ini->WriteString("SOURCE_TRAY", "YAxis_CH" + IntToStr(i * 12 + 1), IntToStr(GetTrayPosValue(i * 12 + 1, asSourceY)));
+    }
+    ini->WriteString("SOURCE_TRAY", "ZAxis", edit_SZ->Text);
+
+    //3. Target Tray 티칭값 저장
+    for(int i = 0; i < 8; i++){
+        ini->WriteString("TARGET_TRAY", "XAxis_CH" + IntToStr(i * 12 + 1), IntToStr(GetTrayPosValue(i * 12 + 1, asTargetX)));
+        ini->WriteString("TARGET_TRAY", "YAxis_CH" + IntToStr(i * 12 + 1), IntToStr(GetTrayPosValue(i * 12 + 1, asTargetY)));
+    }
+    ini->WriteString("TARGET_TRAY", "ZAxis", edit_TZ->Text);
+}
+//---------------------------------------------------------------------------
+void __fastcall TteachForm::LoadTeaching(AnsiString filePath)
+{
+	if (!FileExists(filePath)) return;
+    std::unique_ptr<TIniFile> ini(new TIniFile(filePath));
+
+    edit_SZ->Text = ini->ReadString("SOURCE_TRAY", "ZAxis", "0");
+    editCh01_SX->Text = ini->ReadString("SOURCE_TRAY", "XAxis_CH1", "0");
+    editCh01_SY->Text = ini->ReadString("SOURCE_TRAY", "YAxis_CH1", "0");
+    editCh13_SX->Text = ini->ReadString("SOURCE_TRAY", "XAxis_CH13", "0");
+    editCh13_SY->Text = ini->ReadString("SOURCE_TRAY", "YAxis_CH13", "0");
+    editCh25_SX->Text = ini->ReadString("SOURCE_TRAY", "XAxis_CH25", "0");
+    editCh25_SY->Text = ini->ReadString("SOURCE_TRAY", "YAxis_CH25", "0");
+    editCh37_SX->Text = ini->ReadString("SOURCE_TRAY", "XAxis_CH37", "0");
+    editCh37_SY->Text = ini->ReadString("SOURCE_TRAY", "YAxis_CH37", "0");
+    editCh49_SX->Text = ini->ReadString("SOURCE_TRAY", "XAxis_CH49", "0");
+    editCh49_SY->Text = ini->ReadString("SOURCE_TRAY", "YAxis_CH49", "0");
+    editCh61_SX->Text = ini->ReadString("SOURCE_TRAY", "XAxis_CH61", "0");
+    editCh61_SY->Text = ini->ReadString("SOURCE_TRAY", "YAxis_CH61", "0");
+    editCh73_SX->Text = ini->ReadString("SOURCE_TRAY", "XAxis_CH73", "0");
+    editCh73_SY->Text = ini->ReadString("SOURCE_TRAY", "YAxis_CH73", "0");
+    editCh85_SX->Text = ini->ReadString("SOURCE_TRAY", "XAxis_CH85", "0");
+    editCh85_SY->Text = ini->ReadString("SOURCE_TRAY", "YAxis_CH85", "0");
+
+    edit_TZ->Text = ini->ReadString("TARGET_TRAY", "ZAxis", "0");
+    editCh01_TX->Text = ini->ReadString("TARGET_TRAY", "XAxis_CH1", "0");
+    editCh01_TY->Text = ini->ReadString("TARGET_TRAY", "YAxis_CH1", "0");
+    editCh13_TX->Text = ini->ReadString("TARGET_TRAY", "XAxis_CH13", "0");
+    editCh13_TY->Text = ini->ReadString("TARGET_TRAY", "YAxis_CH13", "0");
+    editCh25_TX->Text = ini->ReadString("TARGET_TRAY", "XAxis_CH25", "0");
+    editCh25_TY->Text = ini->ReadString("TARGET_TRAY", "YAxis_CH25", "0");
+    editCh37_TX->Text = ini->ReadString("TARGET_TRAY", "XAxis_CH37", "0");
+    editCh37_TY->Text = ini->ReadString("TARGET_TRAY", "YAxis_CH37", "0");
+    editCh49_TX->Text = ini->ReadString("TARGET_TRAY", "XAxis_CH49", "0");
+    editCh49_TY->Text = ini->ReadString("TARGET_TRAY", "YAxis_CH49", "0");
+    editCh61_TX->Text = ini->ReadString("TARGET_TRAY", "XAxis_CH61", "0");
+    editCh61_TY->Text = ini->ReadString("TARGET_TRAY", "YAxis_CH61", "0");
+    editCh73_TX->Text = ini->ReadString("TARGET_TRAY", "XAxis_CH73", "0");
+    editCh73_TY->Text = ini->ReadString("TARGET_TRAY", "YAxis_CH73", "0");
+    editCh85_TX->Text = ini->ReadString("TARGET_TRAY", "XAxis_CH85", "0");
+    editCh85_TY->Text = ini->ReadString("TARGET_TRAY", "YAxis_CH85", "0");
+
+	SetTrayMaxPosition();
+}
+//---------------------------------------------------------------------------
+void __fastcall TteachForm::SetTrayMaxPosition()
+{
+	sTray_Position.Top = 0;
+	sTray_Position.Bottom = 0;
+	sTray_Position.Left = 0;
+	sTray_Position.Right = 0;
+
+    //* Source Tray 최대값 저장
+    sTray_Position.Left = editCh01_SY->Text.ToIntDef(0);//teachEdit[1][0]->Text.ToInt();
+    sTray_Position.Right = editCh73_SY->Text.ToIntDef(0);//teachEdit[1][3]->Text.ToInt();
+
+	sTray_Position.Top = editCh13_SX->Text.ToIntDef(0) + (12 - 1) * 45000; // 선별 1열 X + 11열 X
+    sTray_Position.Bottom = editCh01_SX->Text.ToIntDef(0);
+
+	tTray_Position.Top = 0;
+	tTray_Position.Bottom = 0;
+	tTray_Position.Left = 0;
+	tTray_Position.Right = 0;
+
+    //* Target Tray 최대값 저장
+	tTray_Position.Left = editCh01_TY->Text.ToIntDef(0);// teachEdit[1][4]->Text.ToInt();
+    tTray_Position.Right = editCh73_TY->Text.ToIntDef(0);//teachEdit[1][7]->Text.ToInt();
+
+	tTray_Position.Top = editCh13_TX->Text.ToIntDef(0) + (12 - 1) * 45000; // 대상 13열 X + 11열 X
+    tTray_Position.Bottom = editCh01_TX->Text.ToIntDef(0);
+}
+//---------------------------------------------------------------------------
+void __fastcall TteachForm::zup()
+{
+	if(!gripper->disable_gripper[1 - 1])
+		robostar->GripperDown(1, false, true);
+}
+//---------------------------------------------------------------------------
+void __fastcall TteachForm::zdown()
+{
+
+    if(MainForm->psrcReady->Color != clLime)
+	{
+		if(MessageBox(Handle, L"선별 트레이가 DOWN 상태가 아닙니다. down 하시겠습니까?",
+			L"Centering DOWN", MB_YESNO|MB_ICONQUESTION) == ID_YES){
+				MainForm->plcOutput.SRC_MANUAL_WORK = 1;
+			}
+	}
+	else
+	{
+		if(CheckPositionDown(1 - 1))
+		{
+            //* 2022 04 20 선별 트레이는 unchuck 상태에서, 대상 트레이는 chuck 상태에서만 그리퍼 다운 가능
+			if(CheckUnchuckPosition(1 - 1)){
+				if(!gripper->disable_gripper[1 - 1])
+					robostar->GripperDown(1, true, false);
+			}
+			else
+				ShowMessage("[C_Maint] 그리퍼 Chuck/Unchuck 상태를 확인 해 주세요.");
+		}
+		else ShowMessage("[C_Maint] 현재위치에서 그리퍼를 DOWN 시킬 수 없습니다. 위치를 확인 해 주세요.");
+	}
+}
+//---------------------------------------------------------------------------
+int __fastcall TteachForm::GetTrayPosValue(int channel, TrayAxisEdit editType)
+{
+    TEdit* edt = GetTrayEdit(channel, editType);
+
+    if (edt == NULL)
+        return 0;
+
+    return edt->Text.ToIntDef(0);
+}
+//---------------------------------------------------------------------------
+TEdit* __fastcall TteachForm::GetTrayEdit(int channel, TrayAxisEdit editType)
+{
+    if (channel < 1 || channel > 96)
+        return NULL;
+
+    int group = (channel - 1) / 12;
+
+    switch (group)
+    {
+        case 0: // 1 ~ 12
+            switch (editType)
+            {
+                case asSourceX: return editCh01_SX;
+                case asSourceY: return editCh01_SY;
+                case asTargetX: return editCh01_TX;
+                case asTargetY: return editCh01_TY;
+            }
+            break;
+
+        case 1: // 13 ~ 24
+            switch (editType)
+            {
+                case asSourceX: return editCh13_SX;
+                case asSourceY: return editCh13_SY;
+                case asTargetX: return editCh13_TX;
+                case asTargetY: return editCh13_TY;
+            }
+            break;
+
+        case 2: // 25 ~ 36
+            switch (editType)
+            {
+                case asSourceX: return editCh25_SX;
+                case asSourceY: return editCh25_SY;
+                case asTargetX: return editCh25_TX;
+                case asTargetY: return editCh25_TY;
+            }
+            break;
+
+        case 3: // 37 ~ 48
+            switch (editType)
+            {
+                case asSourceX: return editCh37_SX;
+                case asSourceY: return editCh37_SY;
+                case asTargetX: return editCh37_TX;
+                case asTargetY: return editCh37_TY;
+            }
+            break;
+
+        case 4: // 49 ~ 60
+            switch (editType)
+            {
+                case asSourceX: return editCh49_SX;
+                case asSourceY: return editCh49_SY;
+                case asTargetX: return editCh49_TX;
+                case asTargetY: return editCh49_TY;
+            }
+            break;
+
+        case 5: // 61 ~ 72
+            switch (editType)
+            {
+                case asSourceX: return editCh61_SX;
+                case asSourceY: return editCh61_SY;
+                case asTargetX: return editCh61_TX;
+                case asTargetY: return editCh61_TY;
+            }
+            break;
+
+        case 6: // 73 ~ 84
+            switch (editType)
+            {
+                case asSourceX: return editCh73_SX;
+                case asSourceY: return editCh73_SY;
+                case asTargetX: return editCh73_TX;
+                case asTargetY: return editCh73_TY;
+            }
+            break;
+
+        case 7: // 85 ~ 96
+            switch (editType)
+            {
+                case asSourceX: return editCh85_SX;
+                case asSourceY: return editCh85_SY;
+                case asTargetX: return editCh85_TX;
+                case asTargetY: return editCh85_TY;
+            }
+            break;
+    }
+
+    return NULL;
 }
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
@@ -1031,145 +1182,3 @@ void __fastcall TteachForm::LanguageChange(int index)
 	Panel41->Caption = mm->Lines->Strings[47];
 }
 //---------------------------------------------------------------------------
-void __fastcall TteachForm::btnApplyTeachingClick(TObject *Sender)
-{
-	try{
-        if(typeEdit1->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] KIND 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-        else if(typeEdit2->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 선별 트레이 CH1 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-        else if(typeEdit3->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 선별 트레이 CH25 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-        else if(typeEdit4->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 선별 트레이 CH49 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-        else if(typeEdit5->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 선별 트레이 CH73 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-        else if(typeEdit7->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 대상 트레이 CH1 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-        else if(typeEdit8->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 대상 트레이 CH7 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-        else if(typeEdit9->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 대상 트레이 CH13 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-        else if(typeEdit10->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] 대상 트레이 CH19 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-        else if(typeEdit6->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] GRIP1 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-        else if(typeEdit11->Text.Trim().IsEmpty())MessageBox(Handle, L"[C_Maint] GRIP2 정보를 확인하세요.", L"경고", MB_OK|MB_ICONWARNING);
-        else{
-            if(MessageBox(Handle, L"티칭 값을 저장 하시겠습니까?", L"저장", MB_YESNO|MB_ICONWARNING) == ID_YES){
-                ApplyTeaching();
-                tea_memo->Lines->SaveToFile(file);
-            }
-        }
-	}catch(...){
-		MessageBox(Handle, L"[C_Maint] 정보를 입력 하세요.", L"경고", MB_OK|MB_ICONWARNING);
-	}
-}
-//---------------------------------------------------------------------------
-void __fastcall TteachForm::SaveToFile()
-{
-	//* 2026 06 티칭값 파일 저장
-}
-//---------------------------------------------------------------------------
-void __fastcall TteachForm::LoadFromFile()
-{
-    //* 2026 06 티칭값 불러 오기
-}
-//---------------------------------------------------------------------------
-void __fastcall TteachForm::AddList()
-{
-	SaveToFile();
-}
-//---------------------------------------------------------------------------
-void __fastcall TteachForm::ChangeTeaching()
-{
-	LoadTeaching();
-}
-//---------------------------------------------------------------------------
-void __fastcall TteachForm::Panel47Click(TObject *Sender)
-{
-    tea_memo->Visible = !tea_memo->Visible;
-}
-//---------------------------------------------------------------------------
-void __fastcall TteachForm::btnZAxisDownMouseDown(TObject *Sender, TMouseButton Button,
-          TShiftState Shift, int X, int Y)
-{
-    TButton *btn;
-	btn = (TButton*)Sender;
-
-	if(Button == mbLeft){
-		robostar->req_JogMove(btn->Tag);
-	}
-}
-//---------------------------------------------------------------------------
-void __fastcall TteachForm::btnZAxisDownMouseUp(TObject *Sender, TMouseButton Button,
-          TShiftState Shift, int X, int Y)
-{
-	if(Button == mbLeft){
-		robostar->req_JogMove(-1);
-	}
-}
-//---------------------------------------------------------------------------
-void __fastcall TteachForm::btnZAxisUpMouseDown(TObject *Sender, TMouseButton Button,
-          TShiftState Shift, int X, int Y)
-{
-    TButton *btn;
-	btn = (TButton*)Sender;
-
-	if(Button == mbLeft){
-		robostar->req_JogMove(btn->Tag);
-	}
-}
-//---------------------------------------------------------------------------
-void __fastcall TteachForm::btnZAxisUpMouseUp(TObject *Sender, TMouseButton Button,
-          TShiftState Shift, int X, int Y)
-{
-    if(Button == mbLeft){
-		robostar->req_JogMove(-1);
-	}
-}
-//---------------------------------------------------------------------------
-void __fastcall TteachForm::btnKeyLockClick(TObject *Sender)
-{
-	if(BaseForm->btnKeyLock->Caption == "키락 해제")
-		 {
-			BaseForm->btnKeyLock->Caption = "키락 설정";
-			robostar->KeyLock(2);
-		 }
-		 else
-		 {
-			BaseForm->btnKeyLock->Caption = "키락 해제";
-			robostar->KeyLock(1);
-		 }
-}
-//---------------------------------------------------------------------------
-void __fastcall TteachForm::zup()
-{
-
-	if(!gripper->disable_gripper[1 - 1])
-		robostar->GripperDown(1, false, true);
-}
-//---------------------------------------------------------------------------
-void __fastcall TteachForm::zdown()
-{
-
-    if(MainForm->psrcReady->Color != clLime)
-	{
-		if(MessageBox(Handle, L"선별 트레이가 DOWN 상태가 아닙니다. down 하시겠습니까?",
-			L"Centering DOWN", MB_YESNO|MB_ICONQUESTION) == ID_YES){
-				MainForm->plcOutput.SRC_MANUAL_WORK = 1;
-			}
-	}
-	else
-	{
-		if(CheckPositionDown(1 - 1))
-		{
-            //* 2022 04 20 선별 트레이는 unchuck 상태에서, 대상 트레이는 chuck 상태에서만 그리퍼 다운 가능
-			if(CheckUnchuckPosition(1 - 1)){
-				if(!gripper->disable_gripper[1 - 1])
-					robostar->GripperDown(1, true, false);
-			}
-			else
-				ShowMessage("[C_Maint] 그리퍼 Chuck/Unchuck 상태를 확인 해 주세요.");
-		}
-		else ShowMessage("[C_Maint] 현재위치에서 그리퍼를 DOWN 시킬 수 없습니다. 위치를 확인 해 주세요.");
-	}
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TteachForm::btnCloseClick(TObject *Sender)
-{
-    this->Close();
-}
-//---------------------------------------------------------------------------
-

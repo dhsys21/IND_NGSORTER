@@ -4464,7 +4464,7 @@ object MainForm: TMainForm
       Padding.Right = 3
       Padding.Bottom = 3
       TMSStyle = 0
-      object AdvSmoothToggleButton1: TAdvSmoothToggleButton
+      object btnScanSourceTray: TAdvSmoothToggleButton
         Tag = 2
         Left = 241
         Top = 2
@@ -4505,7 +4505,7 @@ object MainForm: TMainForm
         Status.Appearance.Font.Style = []
         ParentFont = False
         TabOrder = 0
-        OnClick = AdvSmoothToggleButton1Click
+        OnClick = btnScanSourceTrayClick
         TMSStyle = 0
       end
       object Panel18: TPanel
@@ -6123,7 +6123,7 @@ object MainForm: TMainForm
         ShowHint = False
         TabOrder = 6
       end
-      object AdvSmoothToggleButton15: TAdvSmoothToggleButton
+      object btnScanTargetTray: TAdvSmoothToggleButton
         Tag = 2
         Left = 242
         Top = 2
@@ -6164,7 +6164,7 @@ object MainForm: TMainForm
         Status.Appearance.Font.Style = []
         ParentFont = False
         TabOrder = 7
-        OnClick = AdvSmoothToggleButton15Click
+        OnClick = btnScanTargetTrayClick
         TMSStyle = 0
       end
     end
@@ -6338,7 +6338,7 @@ object MainForm: TMainForm
       ShowHint = False
       TabOrder = 5
     end
-    object AdvSmoothToggleButton4: TAdvSmoothToggleButton
+    object btnApplyNgLimitCount: TAdvSmoothToggleButton
       Tag = 2
       Left = 191
       Top = 61
@@ -6379,7 +6379,7 @@ object MainForm: TMainForm
       Status.Appearance.Font.Style = []
       ParentFont = False
       TabOrder = 6
-      OnClick = AdvSmoothToggleButton4Click
+      OnClick = btnApplyNgLimitCountClick
       TMSStyle = 0
     end
   end

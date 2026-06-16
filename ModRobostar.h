@@ -435,7 +435,6 @@ private:	// User declarations
 	bool __fastcall rangeCheck(int axnum_id);
 	void __fastcall mr2Sensing();
 
-
 	void __fastcall SetPositionValue();
 
 

@@ -606,50 +606,35 @@ void __fastcall Trobostar::req_Reset()
 void __fastcall Trobostar::SetPositionValue()
 {
 	unsigned long int pos[AxisCnt];
-
 	int index;
-	int xPosition = 0;
 
-	if(move.pallet == 1)
+	if(move.pallet == 1) //* source tray
 	{
-		if(move.channel >= 73) index = 3;
-        else if(move.channel >= 49) index = 2;
-        else if(move.channel >= 25) index = 1;
-        else index = 0;
+		int xPos = teachForm->GetTrayPosValue(move.channel, asSourceX);//teachForm-> teachForm->teachEdit[0][index]->Text.ToInt();
 
-		if(((move.channel - 1) / 12) % 2) xPosition = 48000;
-
-		int xPos = teachForm->teachEdit[0][index]->Text.ToInt();
-
-		int chPos = ((move.channel - 1) % 24) * 45000;
-		int toolPos = (move.tool - 1) * 90000;
-		pos[Axis_x] = xPos + xPosition + chPos - toolPos;
-		pos[Axis_y] = teachForm->teachEdit[1][index]->Text.ToInt();
-		pos[Axis_z] = teachForm->teachEdit_z[0]->Text.ToInt();
+		int chPos = ((move.channel - 1) % 12) * 45000; // 24 -> 12, 12개씩 묶어서 사용
+		int toolPos = (move.tool - 1) * 90000;         // 그리퍼간 간격
+		pos[Axis_x] = xPos + chPos - toolPos;          //chPos: 채널 방향에 따라 +/- 바뀜. toolPos : 1 -> 6 순서에 따라 +/- 바뀜
+		pos[Axis_y] = teachForm->GetTrayPosValue(move.channel, asSourceY);//teachForm->teachEdit[1][index]->Text.ToInt();
+		pos[Axis_z] = teachForm->edit_SZ->Text.ToIntDef(0);//teachForm->teachEdit_z[0]->Text.ToInt();
 	}
-	else if(move.pallet == 2)
+	else if(move.pallet == 2) //* target tray
 	{
-		if(move.channel >= 73) index = 7;
-        else if(move.channel >= 49) index = 6;
-        else if(move.channel >= 25) index = 5;
-        else index = 4;
+		int xPos = teachForm->GetTrayPosValue(move.channel, asTargetX);//teachForm->teachEdit[0][index]->Text.ToInt();
 
-		if(((move.channel - 1) / 12) % 2) xPosition = 48000;
-
-		int xPos = teachForm->teachEdit[0][index]->Text.ToInt();
-
-		int chPos = ((move.channel - 1) % 24) * 45000;
+		int chPos = ((move.channel - 1) % 12) * 45000;
 		int toolPos = (move.tool - 1) * 90000;
-		pos[Axis_x] = xPos + xPosition + chPos - toolPos;
-		pos[Axis_y] = teachForm->teachEdit[1][index]->Text.ToInt();
-		pos[Axis_z] = teachForm->teachEdit_z[1]->Text.ToInt();
+		pos[Axis_x] = xPos + chPos - toolPos;
+		pos[Axis_y] = teachForm->GetTrayPosValue(move.channel, asTargetY);//teachForm->teachEdit[1][index]->Text.ToInt();
+		pos[Axis_z] = teachForm->edit_TZ->Text.ToIntDef(0);//teachForm->teachEdit_z[1]->Text.ToInt();
 	}
 
-	for(int i=1; i<=servoCnt; ++i){
+	for(int i = 1; i <= servoCnt; ++i){
 		point[i].position = pos[i];
 	}
 }
 //---------------------------------------------------------------------------
+
 void __fastcall Trobostar::req_AutoRun()
 {
 	InitSequence(seqAutoRun);

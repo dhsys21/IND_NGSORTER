@@ -149,11 +149,11 @@ void __fastcall TMainForm::DisplaySourceCell(int toolNum, int ch)
 void __fastcall TMainForm::DisplayTargetCell(int toolNum, int ch)
 {
 	if(toolNum >= 0){
-		color_target[ch/6][5-(ch%6)] = clYellow;
-		targetGrid->Cells[ch/6][5-(ch%6)] = "Gripper #" + IntToStr(toolNum+1) + " 예약";
+		color_target[ch / 24][23 - (ch % 24)] = clYellow;
+		targetGrid->Cells[ch / 24][23 - (ch % 24)] = "Gripper #" + IntToStr(toolNum+1) + " 예약";
 	}else{
-		color_target[ch/6][5-(ch%6)] = clInactiveCaption;
-		targetGrid->Cells[ch/6][5-(ch%6)] = tray_target.LOSS_CD[ch] + "-" + getCodeName(tray_target.LOSS_CD[ch].Trim());
+		color_target[ch / 24][23 - (ch % 24)] = clInactiveCaption;
+		targetGrid->Cells[ch / 24][23 - (ch % 24)] = tray_target.LOSS_CD[ch] + "-" + getCodeName(tray_target.LOSS_CD[ch].Trim());
 	}
 }
 //---------------------------------------------------------------------------

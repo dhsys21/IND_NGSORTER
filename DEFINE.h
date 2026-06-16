@@ -149,7 +149,13 @@ typedef struct{
 	int limitCnt;
 }STAGE_INFO;
 
-
+enum TrayAxisEdit
+{
+    asSourceX,
+    asSourceY,
+    asTargetX,
+    asTargetY
+};
 
 
 #endif

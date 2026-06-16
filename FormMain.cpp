@@ -162,18 +162,18 @@ void __fastcall TMainForm::pause_stopBtnClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::teachingBtnClick(TObject *Sender)
 {
-    
+    teachForm->Left = 300;
 	teachForm->ShowModal();
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TMainForm::AdvSmoothToggleButton15Click(TObject *Sender)
+void __fastcall TMainForm::btnScanTargetTrayClick(TObject *Sender)
 {
 	pTrayid_source->Caption = "½ºÄµÁß...";
 	comBcr[0]->GetBarcode();
 }
 //---------------------------------------------------------------------------
-void __fastcall TMainForm::AdvSmoothToggleButton1Click(TObject *Sender)
+void __fastcall TMainForm::btnScanSourceTrayClick(TObject *Sender)
 {
 	pTrayid_target->Caption = "½ºÄµÁß...";
 	comBcr[1]->GetBarcode();
@@ -918,7 +918,7 @@ void __fastcall TMainForm::LampModeChange(LampMode mode)
 //---------------------------------------------------------------------------
 
 
-void __fastcall TMainForm::AdvSmoothToggleButton4Click(TObject *Sender)
+void __fastcall TMainForm::btnApplyNgLimitCountClick(TObject *Sender)
 {
 	try{
 		stage.limitCnt = limitEdit->Text.ToInt();
@@ -1172,7 +1172,7 @@ void __fastcall TMainForm::LanguageChange(int index)
 	Label5->Caption = mm->Lines->Strings[26];
 	Panel13->Caption = mm->Lines->Strings[27];
 	Panel8->Caption = mm->Lines->Strings[28];
-	AdvSmoothToggleButton4->Caption = mm->Lines->Strings[29];
+	btnApplyNgLimitCount->Caption = mm->Lines->Strings[29];
 	CLR1->Caption = mm->Lines->Strings[30] + " #1";
 	CLR2->Caption = mm->Lines->Strings[30] + " #2";
 	pup1->Caption = mm->Lines->Strings[31];

@@ -199,8 +199,8 @@ __published:	// IDE-managed Components
 	TLabel *Label8;
 	TLabel *Label3;
 	TTimer *stepTimer;
-	TAdvSmoothToggleButton *AdvSmoothToggleButton15;
-	TAdvSmoothToggleButton *AdvSmoothToggleButton1;
+	TAdvSmoothToggleButton *btnScanTargetTray;
+	TAdvSmoothToggleButton *btnScanSourceTray;
 	TTimer *senTimer;
 	TTimer *mesTimer;
 	TEdit *target_idEdit;
@@ -220,7 +220,7 @@ __published:	// IDE-managed Components
 	TMemo *badCode;
 	TEdit *limitEdit;
 	TPanel *Panel8;
-	TAdvSmoothToggleButton *AdvSmoothToggleButton4;
+	TAdvSmoothToggleButton *btnApplyNgLimitCount;
 	TMemo *zoneCode;
 	TAdvSmoothButton *zone1;
 	TAdvSmoothButton *zone2;
@@ -308,8 +308,8 @@ __published:	// IDE-managed Components
 	void __fastcall pause_startBtnClick(TObject *Sender);
 	void __fastcall pause_stopBtnClick(TObject *Sender);
 	void __fastcall teachingBtnClick(TObject *Sender);
-	void __fastcall AdvSmoothToggleButton1Click(TObject *Sender);
-	void __fastcall AdvSmoothToggleButton15Click(TObject *Sender);
+	void __fastcall btnScanSourceTrayClick(TObject *Sender);
+	void __fastcall btnScanTargetTrayClick(TObject *Sender);
 	void __fastcall senTimerTimer(TObject *Sender);
 	void __fastcall mesTimerTimer(TObject *Sender);
 	void __fastcall autoBtnClick(TObject *Sender);
@@ -329,7 +329,7 @@ __published:	// IDE-managed Components
 	void __fastcall chkBypassClick(TObject *Sender);
 	void __fastcall resetBtnClick(TObject *Sender);
 	void __fastcall homeBtnClick(TObject *Sender);
-	void __fastcall AdvSmoothToggleButton4Click(TObject *Sender);
+	void __fastcall btnApplyNgLimitCountClick(TObject *Sender);
 	void __fastcall zone1Click(TObject *Sender);
 	void __fastcall openBtnClick(TObject *Sender);
 	void __fastcall AdvSmoothToggleButton_InitWorkClick(TObject *Sender);

@@ -15,6 +15,7 @@
 #include "AdvSmoothToggleButton.hpp"
 #include <Vcl.ComCtrls.hpp>
 #include <DateUtils.hpp>
+#include <IniFiles.hpp>
 
 //---------------------------------------------------------------------------
 typedef struct{
@@ -45,23 +46,22 @@ __published:	// IDE-managed Components
 	TAdvSmoothPanel *pnlSourceBase;
 	TAdvSmoothPanel *pnlTargetBase;
 	TAdvSmoothPanel *t1;
-	TEdit *gpEdit9;
-	TEdit *gpEdit10;
+	TEdit *editCh13_TX;
+	TEdit *editCh13_TY;
 	TPanel *Panel2;
 	TPanel *Panel1;
 	TPanel *Panel3;
-	TEdit *gpEdit7;
-	TEdit *gpEdit8;
+	TEdit *editCh85_SX;
+	TEdit *editCh85_SY;
 	TPanel *Panel24;
 	TPanel *Panel25;
 	TPanel *Panel26;
 	TPanel *Panel28;
-	TEdit *gpEdit17;
-	TEdit *gpEdit18;
+	TEdit *edit_TZ;
+	TEdit *edit_SZ;
 	TPanel *Panel27;
 	TLabel *Label7;
 	TLabel *Label2;
-	TLabel *Label1;
 	TPanel *pselect;
 	TAdvSmoothPanel *pnlManualControl;
 	TAdvSmoothPanel *AdvSmoothPanel3;
@@ -187,10 +187,7 @@ __published:	// IDE-managed Components
 	TAdvSmoothButton *AdvSmoothButton38;
 	TLabel *Label31;
 	TLabel *Label32;
-	TMemo *tea_memo;
 	TTimer *teachingTimer;
-	TAdvSmoothButton *AdvSmoothButton4;
-	TAdvSmoothButton *AdvSmoothButton3;
 	TOpenDialog *OpenDialog;
 	TSaveDialog *SaveDialog;
 	TAdvSmoothButton *AdvSmoothButton_ServoOff;
@@ -198,30 +195,30 @@ __published:	// IDE-managed Components
 	TPanel *Panel9;
 	TPanel *Panel8;
 	TPanel *Panel7;
-	TEdit *gpEdit14;
-	TEdit *gpEdit13;
-	TEdit *gpEdit11;
-	TEdit *gpEdit12;
+	TEdit *editCh61_TY;
+	TEdit *editCh61_TX;
+	TEdit *editCh37_TX;
+	TEdit *editCh37_TY;
 	TPanel *Panel4;
 	TPanel *Panel5;
 	TPanel *Panel6;
 	TPanel *Panel11;
 	TPanel *Panel12;
 	TPanel *Panel13;
-	TEdit *gpEdit16;
-	TEdit *gpEdit15;
-	TEdit *gpEdit1;
-	TEdit *gpEdit2;
+	TEdit *editCh85_TY;
+	TEdit *editCh85_TX;
+	TEdit *editCh13_SX;
+	TEdit *editCh13_SY;
 	TPanel *Panel14;
 	TPanel *Panel15;
 	TPanel *Panel16;
-	TEdit *gpEdit3;
-	TEdit *gpEdit4;
+	TEdit *editCh37_SX;
+	TEdit *editCh37_SY;
 	TPanel *Panel17;
 	TPanel *Panel18;
 	TPanel *Panel19;
-	TEdit *gpEdit5;
-	TEdit *gpEdit6;
+	TEdit *editCh61_SX;
+	TEdit *editCh61_SY;
 	TPanel *Panel21;
 	TPanel *Panel22;
 	TPanel *Panel23;
@@ -280,33 +277,6 @@ __published:	// IDE-managed Components
 	TPanel *pg1;
 	TAdvSmoothPanel *AdvSmoothPanel8;
 	TLabel *Label50;
-	TLabel *Label35;
-	TEdit *typeEdit1;
-	TLabel *Label36;
-	TComboBox *typeCombo;
-	TLabel *Label38;
-	TLabel *Label48;
-	TEdit *typeEdit6;
-	TLabel *Label39;
-	TEdit *typeEdit5;
-	TLabel *Label40;
-	TEdit *typeEdit4;
-	TLabel *Label41;
-	TEdit *typeEdit3;
-	TLabel *Label42;
-	TEdit *typeEdit2;
-	TLabel *Label49;
-	TLabel *Label43;
-	TEdit *typeEdit11;
-	TLabel *Label44;
-	TEdit *typeEdit10;
-	TLabel *Label45;
-	TEdit *typeEdit9;
-	TLabel *Label46;
-	TEdit *typeEdit8;
-	TLabel *Label47;
-	TEdit *typeEdit7;
-	TAdvSmoothButton *btnApplyTeaching;
 	TButton *Button7;
 	TButton *Button8;
 	TLabel *Label51;
@@ -329,66 +299,52 @@ __published:	// IDE-managed Components
 	TAdvSmoothPanel *pnlMovingAlarm2;
 	TLabel *Label59;
 	TLabel *Label61;
-	TEdit *Edit3;
-	TLabel *Label37;
-	TLabel *Label34;
-	TLabel *Label11;
-	TLabel *Label3;
-	TEdit *Edit4;
-	TEdit *Edit2;
-	TEdit *Edit1;
-	TLabel *Label56;
-	TLabel *Label62;
-	TLabel *Label63;
-	TEdit *Edit5;
-	TEdit *Edit6;
-	TEdit *Edit7;
-	TLabel *Label64;
-	TEdit *Edit8;
-	TPanel *Panel10;
-	TComboBox *sCombo;
 	TAdvSmoothButton *btnClose;
 	TPanel *Panel20;
 	TPanel *Panel30;
 	TPanel *Panel44;
-	TEdit *Edit9;
-	TEdit *Edit10;
+	TEdit *editCh01_SX;
+	TEdit *editCh01_SY;
 	TPanel *Panel48;
 	TPanel *Panel49;
 	TPanel *Panel50;
-	TEdit *Edit11;
-	TEdit *Edit12;
+	TEdit *editCh25_SX;
+	TEdit *editCh25_SY;
 	TPanel *Panel51;
 	TPanel *Panel52;
 	TPanel *Panel53;
-	TEdit *Edit13;
-	TEdit *Edit14;
+	TEdit *editCh49_SX;
+	TEdit *editCh49_SY;
 	TPanel *Panel55;
 	TPanel *Panel56;
 	TPanel *Panel57;
-	TEdit *Edit15;
-	TEdit *Edit16;
+	TEdit *editCh73_SX;
+	TEdit *editCh73_SY;
 	TPanel *Panel58;
 	TPanel *Panel59;
 	TPanel *Panel60;
-	TEdit *Edit17;
-	TEdit *Edit18;
+	TEdit *editCh01_TX;
+	TEdit *editCh01_TY;
 	TPanel *Panel62;
 	TPanel *Panel63;
 	TPanel *Panel64;
-	TEdit *Edit19;
-	TEdit *Edit20;
+	TEdit *editCh25_TX;
+	TEdit *editCh25_TY;
 	TPanel *Panel65;
 	TPanel *Panel66;
 	TPanel *Panel67;
-	TEdit *Edit21;
-	TEdit *Edit22;
+	TEdit *editCh49_TX;
+	TEdit *editCh49_TY;
 	TPanel *Panel70;
 	TPanel *Panel71;
 	TPanel *Panel72;
-	TEdit *Edit23;
-	TEdit *Edit24;
+	TEdit *editCh73_TX;
+	TEdit *editCh73_TY;
 	TPanel *pnlSeperator2;
+	TComboBox *sCombo;
+	TPanel *Panel10;
+	TLabel *Label1;
+	TAdvSmoothButton *btnApplyTeaching;
 	void __fastcall FormCreate(TObject *Sender);
 	void __fastcall sClick(TObject *Sender);
 	void __fastcall tClick(TObject *Sender);
@@ -403,8 +359,6 @@ __published:	// IDE-managed Components
 	void __fastcall AdvSmoothButton37Click(TObject *Sender);
 	void __fastcall AdvSmoothButton38Click(TObject *Sender);
 	void __fastcall speedEditKeyDown(TObject *Sender, WORD &Key, TShiftState Shift);
-	void __fastcall AdvSmoothButton4Click(TObject *Sender);
-	void __fastcall AdvSmoothButton3Click(TObject *Sender);
 	void __fastcall disableChk1Click(TObject *Sender);
 	void __fastcall waitBtnClick(TObject *Sender);
 	void __fastcall openBtnClick(TObject *Sender);
@@ -420,7 +374,6 @@ __published:	// IDE-managed Components
 	void __fastcall stopBtnClick(TObject *Sender);
 	void __fastcall AdvSmoothButton_LoadFactorInfoClick(TObject *Sender);
 	void __fastcall btnApplyTeachingClick(TObject *Sender);
-	void __fastcall Panel47Click(TObject *Sender);
 	void __fastcall btnZAxisDownMouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift,
           int X, int Y);
 	void __fastcall btnZAxisDownMouseUp(TObject *Sender, TMouseButton Button, TShiftState Shift,
@@ -445,39 +398,33 @@ private:	// User declarations
     TListItem	*ITEM;
 	TAdvSmoothPanel *sTray[96];
 	TAdvSmoothPanel *tTray[96];
-	void __fastcall ChangeTrayMap(int channel);
 
 	TEACHING teach;
+    AnsiString teachingFilePath;
     void __fastcall MakePanel();
 	void __fastcall ApplyTeaching();
-	void __fastcall LoadTeaching();
+    void __fastcall SaveTeaching(AnsiString filePath);
+	void __fastcall LoadTeaching(AnsiString filePath);
+    void __fastcall SetTrayMaxPosition();
 
-	AnsiString file;
-
-	void __fastcall SetTrayMaxPosition();
 	bool __fastcall CheckPositionDown(int gripperIndex);
 	bool __fastcall CheckUnchuckPosition(int gripperIndex);
     bool __fastcall CheckChuckPosition(int gripperIndex);
     bool __fastcall CheckMoveTargetChannel(int channel);
     bool __fastcall CheckMoveSourceChannel();
-	void __fastcall AddList();
-	void __fastcall SaveToFile();
-	void __fastcall LoadFromFile();
-
     //* 마우스 버튼 3초이상 클릭시 UnCheck
     TDateTime downTime;
 	bool isButtonPressed;
     int nCurrentTag;
 public:		// User declarations
-
-	TEdit *teachEdit[2][8], *teachEdit_z[2];        //  [X / Y][Source / Target]
     TLabel *lblLoadFactor[7];
     void __fastcall zdown();
     void __fastcall zup();
 	void __fastcall LanguageChange(int index);
-    void __fastcall ChangeTeaching();
-	TRAY_POSITION sTray_Position, tTray_Position;
 
+	TRAY_POSITION sTray_Position, tTray_Position;
+    TEdit* __fastcall GetTrayEdit(int channel, TrayAxisEdit editType);
+    int __fastcall GetTrayPosValue(int channel, TrayAxisEdit editType);
 	bool isGripperOpen1;
     bool isGripperOpen2;
 

@@ -31,20 +31,6 @@ void __fastcall TMainForm::DisplayTrayInfo()
 		pKIND->Caption = tray->KIND + " " + tray->STOPPERTYPE;
 		pBYPASS->Caption = tray->PASS;
 		tray->startTime = Now();
-		if(tray->CH_GUBUN == 482)
-		{
-			ChangeTrayMap(482);
-		}
-        //* New Kind (Gamma, HKMC - T1A) 2023 06 26
-        //* 2025 12 T3A(XV1) 모델 추가
-		else if(tray->CH_GUBUN == 242)
-		{
-			ChangeTrayMap(242);
-		}
-		else
-		{
-			ChangeTrayMap(tray->SLOT_COUNT);
-		}
 
 		tray->remainCnt = 0;	// 대상 트레이 취출가능 수량 확인
 		tray->empTray = true;
@@ -74,8 +60,6 @@ void __fastcall TMainForm::DisplayTrayInfo()
 			this->CmdTrayOut(0);
 		}
 		else{
-            teachForm->ChangeTeaching();
-
             loadTrayInfo(0);
             if(checkTrayInfo(0))
             {
@@ -105,15 +89,15 @@ void __fastcall TMainForm::DisplayTrayInfo()
 		for(int i = 0; i < tray->TRAY_GUBUN; ++i)
 		{
 			if(tray->PICK[i] == "Y"){
-				color_target[i/6][5-(i%6)] = clSilver;
+				color_target[i/24][23 - (i%24)] = clSilver;
 				str = tray->LOSS_CD[i] + "-" + getCodeName(tray->LOSS_CD[i].Trim());
-				targetGrid->Cells[i/6][5-(i%6)] = str;
+				targetGrid->Cells[i/24][23 - (i%24)] = str;
 				pTarget_bad[i]->Caption = str;
 				pTarget_bad[i]->Color = clSilver;
 			}else{
 				tray->remainCnt += 1;
-				color_target[i/6][5-(i%6)] = clWhite;
-				targetGrid->Cells[i/6][5-(i%6)] = "";
+				color_target[i/24][23 - (i%24)] = clWhite;
+				targetGrid->Cells[i/24][23 - (i%24)] = "";
 				pTarget_bad[i]->Caption = "";
 				pTarget_bad[i]->Color = clWhite;
 			}
@@ -133,16 +117,7 @@ void __fastcall TMainForm::DisplayTrayInfo()
 			else trayinfoForm->ShowError("[C_Maint] 대상 트레이 정보가 다릅니다.", "대상 트레이 정보를 확인해 주세요.", pTrayid_target->Caption, 1);
         }
 		else Memo1->Lines->Add("gripper->getReadyStatus(ntarget, false)");
-//		loadTrayInfo(1);
-//		if(checkTrayInfo(1))
-//		{
-//			if(plcInput.SRC_READY){
-//				memoMainLineAdd("[MES] 작업 시작 요청.");
-//				NotifyTransferIn(pTrayid_target2->Caption);		// 작업5. 선별 트레이가 센터링을 치고 있으면 작업 시작 보고를 한다.
-//			}
-//		}
-//		else trayinfoForm->ShowError("대상 트레이 정보가 다릅니다.", "대상 트레이 정보를 확인해 주세요.", pTrayid_target->Caption, 1);
-	}
+    }
 }
 //---------------------------------------------------------------------------
 AnsiString __fastcall TMainForm::getCodeName(AnsiString code)
