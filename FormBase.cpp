@@ -68,7 +68,7 @@ void __fastcall TBaseForm::FormShow(TObject *Sender)
 	this->Left = 0;//Screen->Width - this->Width;
 	this->Top = 0;
 
-	RadioButton1->Checked = true;
+	RadioButton2->Checked = true;
 }
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::setColor(TAdvSmoothPanel *pnl, bool bon)

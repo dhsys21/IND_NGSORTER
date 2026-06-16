@@ -728,7 +728,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		teachForm->px1->Caption = px1->Caption;
 		teachForm->py->Caption = py->Caption;
 		teachForm->pz->Caption = pz->Caption;
-		teachForm->pg1->Caption = pg1->Caption;
+//		teachForm->pg1->Caption = pg1->Caption;
 		teachForm->pspeed->Caption = pspeed->Caption;
 	}
 
@@ -1176,7 +1176,7 @@ void __fastcall TMainForm::AdvSmoothToggleButton13Click(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TMainForm::Panel70Click(TObject *Sender)
+void __fastcall TMainForm::pnlSource2Click(TObject *Sender)
 {
     badCode->Visible = !badCode->Visible;
 }

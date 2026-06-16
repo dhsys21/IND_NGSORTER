@@ -130,8 +130,8 @@ void __fastcall TMainForm::MakePanel()
 
 	for(int index = 0; index < 96;){
 		psort_ch[index] = new TPanel(this);
-		SetOption(psort_ch[index], nx, ny, 30, nh, psample->Color, index);
-		psort_ch[index]->Font->Color = psample->Font->Color;
+		SetOption(psort_ch[index], nx, ny, 30, nh, pnlSourceTrayId->Color, index);
+		psort_ch[index]->Font->Color = pnlSourceTrayId->Font->Color;
 		psort_ch[index]->Font->Size = 13;
 		psort_ch[index]->Caption = index+1;
 
@@ -215,7 +215,7 @@ void __fastcall TMainForm::ChangeTrayMap(int channel)
 		for(int index=0; index<96;){
 			psort_ing[index]->Caption = mapSort[0][index];
 			if(index < 48){
-				SetOption(psort_ch[index], nx, ny, 30, nh, psample->Color, index);
+				SetOption(psort_ch[index], nx, ny, 30, nh, pnlSourceTrayId->Color, index);
 				SetOption(psort_ing[index], nx + 30 + 1, ny, 50, nh, clWhite, index);
 				SetOption(psort_bad[index], nx + 80 + 2, ny, 95, nh, clWhite, index);
 				SetOption(psort_rank[index], nx + 175 + 3, ny, 50, nh, clWhite, index);
@@ -236,89 +236,6 @@ void __fastcall TMainForm::ChangeTrayMap(int channel)
 			}
 		}
 	}
-	else if(channel == 48){
-		nh = 41;
-		ny = 469;
-		for(int index=0; index<96;){
-			psort_ing[index]->Caption = mapSort[1][index];
-			if(index < 48){
-				SetOption(psort_ch[index], nx, ny, 30, nh, psample->Color, index);
-				SetOption(psort_ing[index], nx + 30 + 1, ny, 50, nh, clWhite, index);
-				SetOption(psort_bad[index], nx + 80 + 2, ny, 95, nh, clWhite, index);
-				SetOption(psort_rank[index], nx + 175 + 3, ny, 50, nh, clWhite, index);
-				ny = ny - nh - 1;
-				index += 1;
-
-				if(index % 6 == 0) ny -= 5;
-				if(index % 12 == 0){
-					nx = nx + 30 + nw + 3;
-					ny = 469;
-				}
-			}else{
-				psort_ch[index]->Visible = false;
-				psort_ing[index]->Visible = false;
-				psort_bad[index]->Visible = false;
-				psort_rank[index]->Visible = false;
-				index += 1;
-			}
-		}
-	}
-	else if(channel == 482){
-		nh = 20;
-		ny = 490;
-        nw = 392;
-		for(int index=0; index<96;){
-			psort_ing[index]->Caption = mapSort[0][index];
-			if(index < 48){
-				SetOption(psort_ch[index], nx, ny, 60, nh, psample->Color, index);
-				SetOption(psort_ing[index], nx + 60 + 1, ny, 100, nh, clWhite, index);
-				SetOption(psort_bad[index], nx + 160 + 2, ny, 190, nh, clWhite, index);
-				SetOption(psort_rank[index], nx + 350 + 3, ny, 100, nh, clWhite, index);
-				ny = ny - nh - 1;
-				index += 1;
-
-				if(index % 12 == 0) ny -= 5;
-				if(index % 24 == 0){
-					nx = nx + 60 + nw + 6;
-					ny = 490;
-				}
-			}else{
-				psort_ch[index]->Visible = false;
-				psort_ing[index]->Visible = false;
-				psort_bad[index]->Visible = false;
-				psort_rank[index]->Visible = false;
-				index += 1;
-			}
-		}
-	}
-	else if(channel == 242){
-		nh = 41;
-		ny = 469;
-        nw = 392;
-		for(int index = 0; index < 96;){
-			psort_ing[index]->Caption = mapSort[0][index];
-			if(index < 24){
-				SetOption(psort_ch[index], nx, ny, 60, nh, psample->Color, index);
-				SetOption(psort_ing[index], nx + 60 + 1, ny, 100, nh, clWhite, index);
-				SetOption(psort_bad[index], nx + 160 + 2, ny, 190, nh, clWhite, index);
-				SetOption(psort_rank[index], nx + 350 + 3, ny, 100, nh, clWhite, index);
-				ny = ny - nh - 1;
-				index += 1;
-
-				if(index % 6 == 0) ny -= 5;
-				if(index % 12 == 0){
-					nx = nx + 60 + nw + 6;
-					ny = 469;
-				}
-			}else{
-				psort_ch[index]->Visible = false;
-				psort_ing[index]->Visible = false;
-				psort_bad[index]->Visible = false;
-				psort_rank[index]->Visible = false;
-				index += 1;
-			}
-		}
-	}
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::MakePanel_TargetTray()
@@ -332,8 +249,8 @@ void __fastcall TMainForm::MakePanel_TargetTray()
 
 	for(int index = 0; index < 96;){
 		pTarget_ch[index] = new TPanel(this);
-		SetOption_TargetTray(pTarget_ch[index], nx, ny, 30, nh, psample->Color, index);
-		pTarget_ch[index]->Font->Color = psample->Font->Color;
+		SetOption_TargetTray(pTarget_ch[index], nx, ny, 30, nh, pnlSourceTrayId->Color, index);
+		pTarget_ch[index]->Font->Color = pnlSourceTrayId->Font->Color;
 		pTarget_ch[index]->Font->Size = 13;
 		pTarget_ch[index]->Caption = index+1;
 

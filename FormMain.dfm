@@ -29,7 +29,7 @@ object MainForm: TMainForm
     Font.Style = [fsBold, fsUnderline]
     ParentFont = False
   end
-  object AdvSmoothPanel9: TAdvSmoothPanel
+  object pnlGripper: TAdvSmoothPanel
     Left = 1019
     Top = 0
     Width = 140
@@ -819,7 +819,7 @@ object MainForm: TMainForm
         ShowHint = False
         TabOrder = 6
       end
-      object Panel25: TPanel
+      object pnlCode: TPanel
         Left = 4
         Top = 281
         Width = 45
@@ -839,7 +839,7 @@ object MainForm: TMainForm
         ShowHint = False
         TabOrder = 7
       end
-      object Panel26: TPanel
+      object pnlSource: TPanel
         Left = 4
         Top = 343
         Width = 45
@@ -877,7 +877,7 @@ object MainForm: TMainForm
         ShowHint = False
         TabOrder = 9
       end
-      object Panel29: TPanel
+      object pnlTarget: TPanel
         Left = 4
         Top = 312
         Width = 45
@@ -2380,7 +2380,7 @@ object MainForm: TMainForm
     Version = '1.5.2.1'
     TabOrder = 1
     TMSStyle = 0
-    object Label9: TLabel
+    object lblSourceTrayInfo: TLabel
       Left = 10
       Top = 10
       Width = 103
@@ -2396,7 +2396,7 @@ object MainForm: TMainForm
       ShowHint = False
       Transparent = True
     end
-    object Label1: TLabel
+    object lblTargetTrayInfo: TLabel
       Left = 350
       Top = 10
       Width = 103
@@ -2505,7 +2505,7 @@ object MainForm: TMainForm
       ShowHint = False
       TabOrder = 4
     end
-    object psample: TPanel
+    object pnlSourceTrayId: TPanel
       Left = 10
       Top = 68
       Width = 90
@@ -2525,7 +2525,7 @@ object MainForm: TMainForm
       ShowHint = False
       TabOrder = 5
     end
-    object Panel15: TPanel
+    object pnlSouceOper: TPanel
       Left = 10
       Top = 97
       Width = 90
@@ -2545,7 +2545,7 @@ object MainForm: TMainForm
       ShowHint = False
       TabOrder = 6
     end
-    object Panel36: TPanel
+    object pnlSourceProcess: TPanel
       Left = 10
       Top = 155
       Width = 90
@@ -2584,7 +2584,7 @@ object MainForm: TMainForm
       ShowHint = False
       TabOrder = 8
     end
-    object Panel21: TPanel
+    object pnlSourceKind: TPanel
       Left = 10
       Top = 213
       Width = 90
@@ -2604,7 +2604,7 @@ object MainForm: TMainForm
       ShowHint = False
       TabOrder = 9
     end
-    object Panel46: TPanel
+    object pnlSourceSlotCount: TPanel
       Left = 10
       Top = 242
       Width = 90
@@ -2643,7 +2643,7 @@ object MainForm: TMainForm
       ShowHint = False
       TabOrder = 11
     end
-    object Panel4: TPanel
+    object pnlSourceDate: TPanel
       Left = 10
       Top = 184
       Width = 90
@@ -2739,7 +2739,7 @@ object MainForm: TMainForm
       ShowHint = False
       TabOrder = 16
     end
-    object Panel30: TPanel
+    object pnlTargetTrayId: TPanel
       Left = 350
       Top = 68
       Width = 90
@@ -2759,7 +2759,7 @@ object MainForm: TMainForm
       ShowHint = False
       TabOrder = 17
     end
-    object Panel37: TPanel
+    object pnlTargetProcess: TPanel
       Left = 350
       Top = 155
       Width = 90
@@ -2798,7 +2798,7 @@ object MainForm: TMainForm
       ShowHint = False
       TabOrder = 19
     end
-    object Panel39: TPanel
+    object pnlTargetKind: TPanel
       Left = 350
       Top = 213
       Width = 90
@@ -2818,7 +2818,7 @@ object MainForm: TMainForm
       ShowHint = False
       TabOrder = 20
     end
-    object Panel40: TPanel
+    object pnlTargetSlotCount: TPanel
       Left = 350
       Top = 242
       Width = 90
@@ -2838,7 +2838,7 @@ object MainForm: TMainForm
       ShowHint = False
       TabOrder = 21
     end
-    object Panel50: TPanel
+    object pnlTargetDate: TPanel
       Left = 350
       Top = 184
       Width = 90
@@ -2877,7 +2877,7 @@ object MainForm: TMainForm
       ShowHint = False
       TabOrder = 23
     end
-    object Panel19: TPanel
+    object pnlSourceBypass: TPanel
       Left = 10
       Top = 126
       Width = 90
@@ -3077,7 +3077,7 @@ object MainForm: TMainForm
       ShowHint = False
       Transparent = True
     end
-    object Label11: TLabel
+    object lblManualControl: TLabel
       Left = 10
       Top = 378
       Width = 48
@@ -3093,9 +3093,9 @@ object MainForm: TMainForm
       ShowHint = False
       Transparent = True
     end
-    object Label10: TLabel
+    object lblZPos: TLabel
       Left = 77
-      Top = 662
+      Top = 724
       Width = 43
       Height = 13
       Alignment = taRightJustify
@@ -3110,9 +3110,9 @@ object MainForm: TMainForm
       ShowHint = False
       Transparent = True
     end
-    object Label2: TLabel
+    object lblYPos: TLabel
       Left = 77
-      Top = 620
+      Top = 665
       Width = 43
       Height = 13
       Alignment = taRightJustify
@@ -3127,9 +3127,9 @@ object MainForm: TMainForm
       ShowHint = False
       Transparent = True
     end
-    object Label8: TLabel
+    object lblXPos: TLabel
       Left = 70
-      Top = 535
+      Top = 604
       Width = 50
       Height = 13
       Alignment = taRightJustify
@@ -3144,64 +3144,13 @@ object MainForm: TMainForm
       ShowHint = False
       Transparent = True
     end
-    object Label3: TLabel
+    object lblSpeedXY: TLabel
       Left = 69
-      Top = 792
+      Top = 781
       Width = 52
       Height = 13
       Alignment = taRightJustify
       Caption = #49549#46020'(X/Y)'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = False
-      Transparent = True
-    end
-    object Label4: TLabel
-      Left = 70
-      Top = 577
-      Width = 50
-      Height = 13
-      Alignment = taRightJustify
-      Caption = 'X2'#52629' '#50948#52824
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = False
-      Transparent = True
-    end
-    object Label12: TLabel
-      Left = 80
-      Top = 704
-      Width = 40
-      Height = 13
-      Alignment = taRightJustify
-      Caption = 'G1 '#50948#52824
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = False
-      Transparent = True
-    end
-    object Label13: TLabel
-      Left = 80
-      Top = 747
-      Width = 40
-      Height = 13
-      Alignment = taRightJustify
-      Caption = 'G2 '#50948#52824
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Height = -11
@@ -3231,7 +3180,7 @@ object MainForm: TMainForm
       ShowHint = False
       TabOrder = 0
     end
-    object Panel11: TPanel
+    object pnlErrCode: TPanel
       Left = 15
       Top = 277
       Width = 100
@@ -3273,9 +3222,9 @@ object MainForm: TMainForm
     object trayout_targetBtn: TAdvSmoothButton
       Tag = 1
       Left = 15
-      Top = 394
+      Top = 403
       Width = 100
-      Height = 51
+      Height = 60
       Appearance.PictureAlignment = taCenter
       Appearance.Font.Charset = DEFAULT_CHARSET
       Appearance.Font.Color = clBlack
@@ -3312,9 +3261,9 @@ object MainForm: TMainForm
     end
     object teachingBtn: TAdvSmoothButton
       Left = 15
-      Top = 493
+      Top = 530
       Width = 100
-      Height = 41
+      Height = 60
       Appearance.PictureAlignment = taCenter
       Appearance.Font.Charset = DEFAULT_CHARSET
       Appearance.Font.Color = clBlack
@@ -3397,7 +3346,7 @@ object MainForm: TMainForm
     end
     object px1: TPanel
       Left = 10
-      Top = 549
+      Top = 620
       Width = 110
       Height = 26
       BevelKind = bkFlat
@@ -3416,7 +3365,7 @@ object MainForm: TMainForm
     end
     object py: TPanel
       Left = 10
-      Top = 634
+      Top = 681
       Width = 110
       Height = 26
       BevelKind = bkFlat
@@ -3435,7 +3384,7 @@ object MainForm: TMainForm
     end
     object pz: TPanel
       Left = 10
-      Top = 676
+      Top = 739
       Width = 110
       Height = 26
       BevelKind = bkFlat
@@ -3454,7 +3403,7 @@ object MainForm: TMainForm
     end
     object pspeed: TPanel
       Left = 11
-      Top = 807
+      Top = 800
       Width = 110
       Height = 26
       BevelKind = bkFlat
@@ -3596,9 +3545,9 @@ object MainForm: TMainForm
     end
     object trayout_srcBtn: TAdvSmoothButton
       Left = 15
-      Top = 441
+      Top = 465
       Width = 100
-      Height = 51
+      Height = 60
       Appearance.PictureAlignment = taCenter
       Appearance.Font.Charset = DEFAULT_CHARSET
       Appearance.Font.Color = clBlack
@@ -3996,25 +3945,6 @@ object MainForm: TMainForm
       OnClick = openBtnClick
       TMSStyle = 8
     end
-    object px2: TPanel
-      Left = 10
-      Top = 591
-      Width = 110
-      Height = 26
-      BevelKind = bkFlat
-      BevelOuter = bvNone
-      Color = clWhite
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -13
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentBackground = False
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = False
-      TabOrder = 34
-    end
     object pOnG1: TPanel
       Left = 83
       Top = 95
@@ -4032,7 +3962,7 @@ object MainForm: TMainForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 35
+      TabOrder = 34
     end
     object pOrgG1: TPanel
       Left = 82
@@ -4051,7 +3981,7 @@ object MainForm: TMainForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 36
+      TabOrder = 35
     end
     object pErrorG1: TPanel
       Left = 83
@@ -4070,7 +4000,7 @@ object MainForm: TMainForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 37
+      TabOrder = 36
     end
     object pLspG1: TPanel
       Left = 84
@@ -4089,7 +4019,7 @@ object MainForm: TMainForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 38
+      TabOrder = 37
     end
     object pLsnG1: TPanel
       Left = 84
@@ -4108,45 +4038,7 @@ object MainForm: TMainForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 39
-    end
-    object pg1: TPanel
-      Left = 10
-      Top = 718
-      Width = 110
-      Height = 26
-      BevelKind = bkFlat
-      BevelOuter = bvNone
-      Color = clWhite
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -13
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentBackground = False
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = False
-      TabOrder = 40
-    end
-    object pg2: TPanel
-      Left = 10
-      Top = 761
-      Width = 110
-      Height = 26
-      BevelKind = bkFlat
-      BevelOuter = bvNone
-      Color = clWhite
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -13
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentBackground = False
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = False
-      TabOrder = 41
+      TabOrder = 38
     end
     object pRun: TPanel
       Left = 90
@@ -4165,10 +4057,10 @@ object MainForm: TMainForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 42
+      TabOrder = 39
     end
   end
-  object AdvSmoothPanel4: TAdvSmoothPanel
+  object pnlLog: TAdvSmoothPanel
     Left = 138
     Top = 400
     Width = 1023
@@ -4508,8 +4400,8 @@ object MainForm: TMainForm
         OnClick = btnScanSourceTrayClick
         TMSStyle = 0
       end
-      object Panel18: TPanel
-        Left = 464
+      object pnlTargetRemaining: TPanel
+        Left = 480
         Top = 2
         Width = 116
         Height = 25
@@ -4528,7 +4420,7 @@ object MainForm: TMainForm
         ShowHint = False
         TabOrder = 1
       end
-      object Panel20: TPanel
+      object pnlTargetTrayTitle: TPanel
         Left = 0
         Top = 2
         Width = 90
@@ -4549,9 +4441,9 @@ object MainForm: TMainForm
         TabOrder = 2
       end
       object pinsertremainCnt: TPanel
-        Left = 581
+        Left = 597
         Top = 2
-        Width = 136
+        Width = 120
         Height = 25
         BevelKind = bkFlat
         BevelOuter = bvNone
@@ -5973,7 +5865,7 @@ object MainForm: TMainForm
       Padding.Right = 3
       Padding.Bottom = 3
       TMSStyle = 0
-      object Panel10: TPanel
+      object pnlSourceTrayTitle: TPanel
         Left = 0
         Top = 2
         Width = 90
@@ -5993,13 +5885,13 @@ object MainForm: TMainForm
         ShowHint = False
         TabOrder = 0
       end
-      object Panel2: TPanel
+      object pnlCh: TPanel
         Left = 539
         Top = 2
         Width = 30
         Height = 23
         BevelOuter = bvNone
-        Caption = #52292#45328
+        Caption = 'CH'
         Color = clSilver
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWhite
@@ -6010,10 +5902,10 @@ object MainForm: TMainForm
         ParentFont = False
         TabOrder = 1
       end
-      object Panel23: TPanel
+      object pnlSourceRemaining: TPanel
         Left = 309
         Top = 2
-        Width = 80
+        Width = 116
         Height = 25
         BevelKind = bkFlat
         BevelOuter = bvNone
@@ -6069,13 +5961,13 @@ object MainForm: TMainForm
           ExplicitHeight = 26
         end
       end
-      object Panel3: TPanel
+      object pnlNgCode: TPanel
         Left = 621
         Top = 2
         Width = 95
         Height = 23
         BevelOuter = bvNone
-        Caption = #48520#47049#53076#46300
+        Caption = 'NG Code'
         Color = clSilver
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWhite
@@ -6086,13 +5978,13 @@ object MainForm: TMainForm
         ParentFont = False
         TabOrder = 4
       end
-      object Panel70: TPanel
+      object pnlSource2: TPanel
         Left = 570
         Top = 2
         Width = 50
         Height = 23
         BevelOuter = bvNone
-        Caption = #49440#48324
+        Caption = 'Source'
         Color = clSilver
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWhite
@@ -6102,10 +5994,10 @@ object MainForm: TMainForm
         ParentBackground = False
         ParentFont = False
         TabOrder = 5
-        OnClick = Panel70Click
+        OnClick = pnlSource2Click
       end
       object pejectremainCnt: TPanel
-        Left = 390
+        Left = 426
         Top = 2
         Width = 100
         Height = 25
@@ -6199,7 +6091,7 @@ object MainForm: TMainForm
     Version = '1.5.2.1'
     TabOrder = 7
     TMSStyle = 0
-    object Label5: TLabel
+    object lblNgList: TLabel
       Left = 10
       Top = 4
       Width = 65
@@ -6283,7 +6175,7 @@ object MainForm: TMainForm
       ShowHint = False
       TabOrder = 2
     end
-    object Panel13: TPanel
+    object pnlNgQuantity: TPanel
       Left = 15
       Top = 30
       Width = 90
@@ -6318,7 +6210,7 @@ object MainForm: TMainForm
       TabOrder = 4
       Text = '10'
     end
-    object Panel8: TPanel
+    object pnlNgLimit: TPanel
       Left = 15
       Top = 62
       Width = 90
