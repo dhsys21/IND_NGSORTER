@@ -162,7 +162,6 @@ void __fastcall TMainForm::pause_stopBtnClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::teachingBtnClick(TObject *Sender)
 {
-    teachForm->Left = 300;
 	teachForm->ShowModal();
 }
 //---------------------------------------------------------------------------

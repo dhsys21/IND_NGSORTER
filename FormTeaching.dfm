@@ -2204,7 +2204,7 @@ object teachForm: TteachForm
     object AdvSmoothPanel3: TAdvSmoothPanel
       Left = 7
       Top = 6
-      Width = 618
+      Width = 635
       Height = 98
       Cursor = crDefault
       Caption.HTMLFont.Charset = DEFAULT_CHARSET
@@ -3535,7 +3535,7 @@ object teachForm: TteachForm
     object pnlJogControl: TAdvSmoothPanel
       Left = 390
       Top = 105
-      Width = 235
+      Width = 252
       Height = 180
       Cursor = crDefault
       Caption.HTMLFont.Charset = DEFAULT_CHARSET
@@ -3563,7 +3563,7 @@ object teachForm: TteachForm
       TabOrder = 2
       TMSStyle = 0
       object Label51: TLabel
-        Left = 20
+        Left = 35
         Top = 142
         Width = 16
         Height = 16
@@ -3580,10 +3580,11 @@ object teachForm: TteachForm
         Transparent = True
       end
       object lblLoadFactorTitle: TLabel
-        Left = 195
+        Left = 210
         Top = 10
         Width = 33
         Height = 16
+        Alignment = taRightJustify
         Caption = #48512#54616#50984
         Font.Charset = DEFAULT_CHARSET
         Font.Color = 13204573
@@ -3629,7 +3630,7 @@ object teachForm: TteachForm
         Visible = False
       end
       object lblXAxis: TLabel
-        Left = 12
+        Left = 27
         Top = 46
         Width = 24
         Height = 16
@@ -3646,7 +3647,7 @@ object teachForm: TteachForm
         Transparent = True
       end
       object lblYAxis: TLabel
-        Left = 12
+        Left = 27
         Top = 78
         Width = 24
         Height = 16
@@ -3663,10 +3664,11 @@ object teachForm: TteachForm
         Transparent = True
       end
       object lblLoadFactor1: TLabel
-        Left = 208
+        Left = 228
         Top = 43
         Width = 13
         Height = 13
+        Alignment = taRightJustify
         Caption = '%'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = 13204573
@@ -3679,10 +3681,11 @@ object teachForm: TteachForm
         Transparent = True
       end
       object lblLoadFactor2: TLabel
-        Left = 208
+        Left = 228
         Top = 75
         Width = 13
         Height = 13
+        Alignment = taRightJustify
         Caption = '%'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = 13204573
@@ -3695,10 +3698,11 @@ object teachForm: TteachForm
         Transparent = True
       end
       object lblLoadFactor3: TLabel
-        Left = 208
+        Left = 228
         Top = 109
         Width = 13
         Height = 13
+        Alignment = taRightJustify
         Caption = '%'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = 13204573
@@ -3711,10 +3715,11 @@ object teachForm: TteachForm
         Transparent = True
       end
       object lblLoadFactor4: TLabel
-        Left = 208
+        Left = 228
         Top = 145
         Width = 13
         Height = 13
+        Alignment = taRightJustify
         Caption = '%'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = 13204573
@@ -3727,7 +3732,7 @@ object teachForm: TteachForm
         Transparent = True
       end
       object lblZAxis: TLabel
-        Left = 14
+        Left = 29
         Top = 110
         Width = 22
         Height = 16
@@ -3809,7 +3814,7 @@ object teachForm: TteachForm
         end
       end
       object Button1: TButton
-        Left = 42
+        Left = 57
         Top = 33
         Width = 70
         Height = 32
@@ -3826,7 +3831,7 @@ object teachForm: TteachForm
       end
       object Button2: TButton
         Tag = 1
-        Left = 115
+        Left = 130
         Top = 34
         Width = 70
         Height = 32
@@ -3843,7 +3848,7 @@ object teachForm: TteachForm
       end
       object Button3: TButton
         Tag = 2
-        Left = 44
+        Left = 59
         Top = 68
         Width = 70
         Height = 32
@@ -3860,7 +3865,7 @@ object teachForm: TteachForm
       end
       object Button4: TButton
         Tag = 3
-        Left = 115
+        Left = 130
         Top = 68
         Width = 70
         Height = 32
@@ -3877,7 +3882,7 @@ object teachForm: TteachForm
       end
       object Button5: TButton
         Tag = 4
-        Left = 44
+        Left = 59
         Top = 102
         Width = 70
         Height = 32
@@ -3894,7 +3899,7 @@ object teachForm: TteachForm
       end
       object Button6: TButton
         Tag = 5
-        Left = 115
+        Left = 130
         Top = 102
         Width = 70
         Height = 32
@@ -3911,7 +3916,7 @@ object teachForm: TteachForm
       end
       object Button7: TButton
         Tag = 6
-        Left = 44
+        Left = 59
         Top = 136
         Width = 70
         Height = 32
@@ -3928,7 +3933,7 @@ object teachForm: TteachForm
       end
       object Button8: TButton
         Tag = 7
-        Left = 115
+        Left = 130
         Top = 136
         Width = 70
         Height = 32
@@ -10379,9 +10384,9 @@ object teachForm: TteachForm
       end
     end
     object AdvSmoothPanel8: TAdvSmoothPanel
-      Left = 631
+      Left = 648
       Top = 6
-      Width = 370
+      Width = 353
       Height = 280
       Cursor = crDefault
       Caption.HTMLFont.Charset = DEFAULT_CHARSET
@@ -10682,7 +10687,7 @@ object teachForm: TteachForm
     TMSStyle = 8
   end
   object btnClose: TAdvSmoothButton
-    Left = 1110
+    Left = 1103
     Top = 4
     Width = 120
     Height = 60

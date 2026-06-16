@@ -420,7 +420,6 @@ public:		// User declarations
     TLabel *lblLoadFactor[7];
     void __fastcall zdown();
     void __fastcall zup();
-	void __fastcall LanguageChange(int index);
 
 	TRAY_POSITION sTray_Position, tTray_Position;
     TEdit* __fastcall GetTrayEdit(int channel, TrayAxisEdit editType);

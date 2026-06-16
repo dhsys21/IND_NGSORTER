@@ -31,7 +31,7 @@ void __fastcall TteachForm::FormCreate(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::FormShow(TObject *Sender)
 {
-	this->Left = 0;
+	this->Left = 300;
 	this->Top = 0;
 
     pnlMovingAlarm2->Align = alClient;
@@ -1076,69 +1076,4 @@ TEdit* __fastcall TteachForm::GetTrayEdit(int channel, TrayAxisEdit editType)
     return NULL;
 }
 //---------------------------------------------------------------------------
-//---------------------------------------------------------------------------
-void __fastcall TteachForm::LanguageChange(int index)
-{
-	TMemo *mm;
-	if(index == 0) mm = Memo_Ko;
-	else if(index == 1) mm = Memo_En;
-	else if(index == 2) mm = Memo_Hu;
 
-	AnsiString temp;
-
-//	lblMsgRobot->Caption = mm->Lines->Strings[0];
-//	Label7->Caption = mm->Lines->Strings[2];
-//	Panel28->Caption = mm->Lines->Strings[3];
-//	Label2->Caption = mm->Lines->Strings[4];
-//	Panel27->Caption = mm->Lines->Strings[3];
-//	sCombo->Clear();
-//	for(int i = 0; i < 2; i++) sCombo->Items->Add(mm->Lines->Strings[6 + i]);
-//	sCombo->ItemIndex = 0;
-//
-//	Label5->Caption = mm->Lines->Strings[15];
-//	Label4->Caption = mm->Lines->Strings[16];
-//	Panel35->Caption = mm->Lines->Strings[17];
-//
-//	Panel31->Caption = mm->Lines->Strings[19];
-//	Panel33->Caption = mm->Lines->Strings[20];
-//	Panel37->Caption = mm->Lines->Strings[21];
-//	Panel29->Caption = mm->Lines->Strings[22];
-//	temp = mm->Lines->Strings[23];
-//	waitBtn->Caption = temp.SubString(1, temp.Pos(" ")) + "\n" + temp.SubString(temp.Pos(" ") + 1, temp.Length());
-//	AdvSmoothButton_Zup->Caption = mm->Lines->Strings[24];
-//	temp = mm->Lines->Strings[25];
-//	stopBtn->Caption = temp.SubString(1, temp.Pos(" ")) + "\n" + temp.SubString(temp.Pos(" ") + 1, temp.Length());
-//	Panel39->Caption = mm->Lines->Strings[26];
-//	Panel41->Caption = mm->Lines->Strings[27];
-//	Label6->Caption = mm->Lines->Strings[28];
-//	Label8->Caption = mm->Lines->Strings[29];
-//	Label9->Caption = mm->Lines->Strings[19];
-//	Label10->Caption = mm->Lines->Strings[20];
-//	Label29->Caption = mm->Lines->Strings[31];
-//	Label30->Caption = mm->Lines->Strings[32];
-//	Label31->Caption = mm->Lines->Strings[33];
-//	Label32->Caption = mm->Lines->Strings[34];
-//	CLR1->Caption = mm->Lines->Strings[35] + " #1";
-//	Label14->Caption = mm->Lines->Strings[35] + " #2";
-//	Label17->Caption = mm->Lines->Strings[35] + " #3";
-//	Label20->Caption = mm->Lines->Strings[35] + " #4";
-//	Label23->Caption = mm->Lines->Strings[35] + " #5";
-//	Label26->Caption = mm->Lines->Strings[35] + " #6";
-//
-//	Label12->Caption = mm->Lines->Strings[42];
-//	Label15->Caption = mm->Lines->Strings[42];
-//	Label18->Caption = mm->Lines->Strings[42];
-//	Label21->Caption = mm->Lines->Strings[42];
-//	Label24->Caption = mm->Lines->Strings[42];
-//	Label27->Caption = mm->Lines->Strings[42];
-//	Label13->Caption = mm->Lines->Strings[43];
-//	Label16->Caption = mm->Lines->Strings[43];
-//	Label19->Caption = mm->Lines->Strings[43];
-//	Label22->Caption = mm->Lines->Strings[43];
-//	Label25->Caption = mm->Lines->Strings[43];
-//	Label28->Caption = mm->Lines->Strings[43];
-//
-//	AdvSmoothButton_LoadFactorInfo->Caption = mm->Lines->Strings[46];
-//	Panel41->Caption = mm->Lines->Strings[47];
-}
-//---------------------------------------------------------------------------

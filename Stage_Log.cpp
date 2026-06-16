@@ -87,6 +87,17 @@ void __fastcall TMainForm::LanguageChange(AnsiString newLang)
     teachForm->pnlSpeedXY->Caption = GetLangStr("CAP_SPEED_XY");
     teachForm->pnlErrCode->Caption = GetLangStr("CAP_ERR_CODE");
     teachForm->waitBtn->Caption = GetLangStr("CAP_WAIT_POS");
+    teachForm->AdvSmoothButton_Zup->Caption = GetLangStr("CAP_Z_UP");
+    teachForm->stopBtn->Caption = GetLangStr("CAP_STOP_MOVING");
+    teachForm->pnlSpeed->Caption = GetLangStr("CAP_SPEED");
+    teachForm->pnlSettingSpeed->Caption = GetLangStr("CAP_SETTING_SPEED");
+    teachForm->lblJogControl->Caption = GetLangStr("CAP_JOG_CONTROL");
+    //teachForm->pnlGripperControl->Caption = GetLangStr("CAP_GRIPPER_CONTROL");
+    teachForm->lblUpDown->Caption = GetLangStr("CAP_UP_DOWN");
+    teachForm->lblOpenClose->Caption = GetLangStr("CAP_OPEN_CLOSE");
+    teachForm->AdvSmoothButton_LoadFactorInfo->Caption = GetLangStr("CAP_LOAD_FACTOR");
+    teachForm->lblLoadFactorTitle->Caption = GetLangStr("CAP_LOAD");
+    teachForm->disableChk1->Caption = GetLangStr("CAP_USING");
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::WriteProgLog(AnsiString msg)
