@@ -4,13 +4,13 @@
 #pragma hdrstop
 #include <tchar.h>
 //---------------------------------------------------------------------------
+USEFORM("Modmes.cpp", mes); /* TDataModule: File Type */
 USEFORM("ModGripper.cpp", gripper); /* TDataModule: File Type */
 USEFORM("FormServoAlarmList.cpp", ServoAlarmListForm);
 USEFORM("FormMain.cpp", MainForm);
 USEFORM("FormTeaching.cpp", teachForm);
-USEFORM("Modplc.cpp", plc); /* TDataModule: File Type */
-USEFORM("Modmes.cpp", mes); /* TDataModule: File Type */
 USEFORM("ModRobostar.cpp", robostar); /* TDataModule: File Type */
+USEFORM("Modplc.cpp", plc); /* TDataModule: File Type */
 USEFORM("FormAlarm_TrayInfo.cpp", trayinfoForm);
 USEFORM("FormAlarm_LoadFactor.cpp", loadfactor_AlarmForm);
 USEFORM("FormConfig.cpp", ConfigForm);

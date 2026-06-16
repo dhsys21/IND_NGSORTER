@@ -16,6 +16,7 @@
 #include <Dialogs.hpp>
 #include <Grids.hpp>
 #include <System.Win.ScktComp.hpp>
+#include <System.Classes.hpp>
 #include "AdvSmoothButton.hpp"
 #include "AdvSmoothPanel.hpp"
 #include "AdvSmoothToggleButton.hpp"
@@ -420,11 +421,9 @@ public:		// User declarations
     TColor color_target2[96];
 	int mapSort[2][96];		// 96채널 48채널 맵핑
 
-	TAdvSmoothPanel *pt_ch[24];
-	
+	TAdvSmoothPanel *pt_ch[96];
 
 	STAGE_INFO stage;
-
 	TRAY_INFO tray_source;
 	TRAY_INFO tray_target;
 	TRAY_INFO *tray;
@@ -470,7 +469,10 @@ public:		// User declarations
 	void __fastcall memoGripperLineAdd(AnsiString msg);
 	void __fastcall memoRobostarLineAdd(AnsiString msg);
 
-	void __fastcall LanguageChange(int index);
+    AnsiString CurrentLanguage;
+    TStringList *LangDict;
+    UnicodeString __fastcall GetLangStr(AnsiString key);
+	void __fastcall LanguageChange(AnsiString newLang);
 
 	void __fastcall setTrayInfo(int index);
 	void __fastcall saveTrayInfo(int index);
@@ -479,7 +481,6 @@ public:		// User declarations
 	SAVE_TRAY_INFO m_saveTrayInfo[2];
 
 	bool m_ServoOpen, m_ServoON, m_ServoHome, m_ServoHomeEmg;//* 에러 났을 때 x,y,z축이 원점일 때 gripper 조그버튼 동작가능
-
     int LampCount;
 
 	__fastcall TMainForm(TComponent* Owner);

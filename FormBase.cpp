@@ -216,12 +216,14 @@ void __fastcall TBaseForm::RadioButton1Click(TObject *Sender)
    	TRadioButton *rbt = (TRadioButton *)Sender;
 	if(rbt->Checked)
 	{
-		MainForm->LanguageChange(rbt->Tag);
-		teachForm->LanguageChange(rbt->Tag);
-		ErrorForm_insert->LanguageChange(rbt->Tag);
-		ErrorForm_eject->LanguageChange(rbt->Tag);
-		ServoAlarmListForm->LanguageChange(rbt->Tag);
-		loadfactorForm->LanguageChange(rbt->Tag);
+        if(rbt->Tag == 0) MainForm->LanguageChange("KO");
+        else if(rbt->Tag == 1) MainForm->LanguageChange("EN");
+//		MainForm->LanguageChange(rbt->Tag);
+//		teachForm->LanguageChange(rbt->Tag);
+//		ErrorForm_insert->LanguageChange(rbt->Tag);
+//		ErrorForm_eject->LanguageChange(rbt->Tag);
+//		ServoAlarmListForm->LanguageChange(rbt->Tag);
+//		loadfactorForm->LanguageChange(rbt->Tag);
 	}
 }
 //---------------------------------------------------------------------------
@@ -250,16 +252,6 @@ void __fastcall TBaseForm::btnKeyLockClick(TObject *Sender)
 	}
 	else{
 		robostar->KeyLock(1);
-//		if(btnKeyLock->Caption == "키락 해제")
-//		 {
-//			btnKeyLock->Caption = "키락 설정";
-//			robostar->KeyLock(2);
-//		 }
-//		 else
-//		 {
-//			btnKeyLock->Caption = "키락 해제";
-//			robostar->KeyLock(1);
-//		 }
 	}
 }
 //---------------------------------------------------------------------------

@@ -66,69 +66,6 @@ void __fastcall TMainForm::setLamp()
 	}
 }
 //---------------------------------------------------------------------------
-//void __fastcall TMainForm::setLamp()
-//{
-//	switch(nowLampMode){
-//		case LampAuto:
-//			if(gripper->pauseStatus)
-//			{
-//                LampCount = 0;
-//				robostar->gripper.TOWER_LAMP_RED = 1;
-//				robostar->gripper.TOWER_LAMP_YELLOW = 0;
-//				robostar->gripper.TOWER_LAMP_GREEN = 0;
-//			}
-//			else if(gripper->seq == seqIdle && robostar->seq == seqIdle)
-//			{
-//
-//				LampCount ++;
-//				if(LampCount > 10)
-//				{
-//					if(LampCount > 100) LampCount = 20;
-//					robostar->gripper.TOWER_LAMP_RED = 0;
-//					robostar->gripper.TOWER_LAMP_YELLOW = 1;
-//					robostar->gripper.TOWER_LAMP_GREEN = 0;
-//
-//				}
-//				else
-//				{
-//                    robostar->gripper.TOWER_LAMP_RED = 0;
-//					robostar->gripper.TOWER_LAMP_YELLOW = 0;
-//					robostar->gripper.TOWER_LAMP_GREEN = 1;
-//				}
-//			}
-//			else
-//			{
-//				robostar->gripper.TOWER_LAMP_RED = 0;
-//				robostar->gripper.TOWER_LAMP_YELLOW = 0;
-//				robostar->gripper.TOWER_LAMP_GREEN = 1;
-//			}
-//			break;
-//		case LampManual:
-//			LampCount = 0;
-//			robostar->gripper.TOWER_LAMP_RED = 1;
-//			robostar->gripper.TOWER_LAMP_YELLOW = 0;
-//			robostar->gripper.TOWER_LAMP_GREEN = 0;
-//			break;
-//		case LampEmergency:
-//			LampCount = 0;
-//			robostar->gripper.TOWER_LAMP_RED = 1;
-//			robostar->gripper.TOWER_LAMP_YELLOW = 0;
-//			robostar->gripper.TOWER_LAMP_GREEN = 0;
-//			break;
-//		case LampAlarm:
-//			LampCount = 0;
-//			robostar->gripper.TOWER_LAMP_RED = 0;
-//			robostar->gripper.TOWER_LAMP_YELLOW = !robostar->gripper.TOWER_LAMP_YELLOW;
-//			robostar->gripper.TOWER_LAMP_GREEN = 0;
-//			break;
-//		case LampStop:
-//			LampCount = 0;
-//			robostar->gripper.TOWER_LAMP_RED = 1;
-//			robostar->gripper.TOWER_LAMP_YELLOW = 0;
-//			robostar->gripper.TOWER_LAMP_GREEN = 0;
-//			break;
-//	}
-//}
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::DisplaySourceCell(int toolNum, int ch)
 {

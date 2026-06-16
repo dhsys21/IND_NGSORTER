@@ -298,7 +298,7 @@ void __fastcall Trobostar::Reset()
 	int sts = 0;
 	sts = sscResetAlarm(board_id, channel_id, 0, SSC_ALARM_SYSTEM);
 	WriteLog(sts, "[0] SSC_ALARM_SYSTEM RESET");
-	for(int i=1; i<=servoCnt; ++i){
+	for(int i = 1; i <= servoCnt; ++i){
 		sts = sscResetAlarm(board_id, channel_id, i, SSC_ALARM_SERVO);
 		WriteLog(sts, "[" + IntToStr(i) +  "] SSC_ALARM_SERVO RESET");
 		sts = sscResetAlarm(board_id, channel_id, i, SSC_ALARM_OPERATION);
@@ -597,10 +597,9 @@ void __fastcall Trobostar::req_Reset()
 }
 //---------------------------------------------------------------------------
 /*
-* XPosition : 76,000 트레이 가운데 (12번 13번 채널 사이) 거리
 * 채널간 거리 : 45,000
 * 그리퍼간 거리 : 90,000
-* 대상 트레이 채널 간 거리 : 79,000
+* 대상 트레이 채널 간 거리 : 45,000
 */
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::SetPositionValue()
@@ -762,7 +761,7 @@ void __fastcall Trobostar::EmgAutoRun()
 			step.step += 1;
 			break;
 		case 1: //  서보 ON
-			for(int i=1; i<=6; ++i){
+			for(int i = 1; i <= servoCnt; ++i){
 				sts = sscSetCommandBitSignalEx(board_id, channel_id, i, SSC_CMDBIT_AX_SON, SSC_BIT_ON);
 				WriteLog(sts, "[" + IntToStr(i) +  "] 서보 ON");
 			}
@@ -830,6 +829,7 @@ void __fastcall Trobostar::EmgAutoRun()
 			break;
 	}
 }
+//---------------------------------------------------------------------------
 void __fastcall Trobostar::AutoRun()
 {
 	if(output.CYLINDER_Z == false){
@@ -936,130 +936,7 @@ void __fastcall Trobostar::AutoRun()
 			break;
 	}
 }
-//void __fastcall Trobostar::AutoRun()
-//{
-//    if(output.CYLINDER_Z == false){
-//		MainForm->memoRobostarLineAdd("실린더 / 도어 상태 비정상");
-//		return;
-//	}
-//
-//	int sts = 0;
-//	int bitInfo = 0;
-//
-//	switch(step.step){
-//		case 0: //  서보 OPEN
-//			sts = sscOpen(board_id);
-//			WriteLog(sts, "SSC_OPEN");
-//			sts = sscReboot(board_id, channel_id, timeout);
-//			WriteLog(sts, "REBOOT");
-//			sts = sscResetAllParameter(board_id, channel_id, timeout);
-//			WriteLog(sts, "RESET PARAMETER");
-//			sts = sscLoadAllParameterFromFlashROM(board_id, channel_id, timeout);
-//			WriteLog(sts, "LOAD PARAMETER");
-//			sts = sscSystemStart(board_id, channel_id, timeout);
-//			WriteLog(sts, "SERVO START");
-//
-//			step.step += 1;
-//			break;
-//		case 1: //  서보 ON
-//			for(int i=1; i<=6; ++i){
-//				sts = sscSetCommandBitSignalEx(board_id, channel_id, i, SSC_CMDBIT_AX_SON, SSC_BIT_ON);
-//				WriteLog(sts, "[" + IntToStr(i) +  "] 서보 ON");
-//			}
-//			step.delay = 0;
-//			step.step += 1;
-//			break;
-//		case 2:
-//			if(step.delay >= 10) step.step += 1;
-//			else step.delay += 1;
-//			break;
-//		case 3:	//  서보 HOME
-//			for(int i=1; i<=2; ++i)GripperDown(i, false, true);	// 그리퍼는 모두 상승시킨다.
-//			step.step += 1;
-//			break;
-//		case 4:
-//			sts = sscHomeReturnStart(board_id, channel_id, Axis_z);
-//			WriteLog(sts, "Z Axis Servo Home - Request");
-//			step.step += 1;
-//			break;
-//		case 5: // Z축 원점
-//			if(getGripperUpStatus())step.step += 1;
-//			break;
-//		case 6: // Z축 완료 확인
-//			sts = sscGetStatusBitSignalEx(board_id, channel_id, Axis_z, SSC_STSBIT_AX_ZREQ, &bitInfo);
-//			if(bitInfo){
-//				MainForm->memoRobostarLineAdd("Z Axis Servo Home - Moving");
-//			}
-//			else{
-//				MainForm->memoRobostarLineAdd("Z Axis Servo Home - Complete");
-//				step.step += 1;
-//			}
-//			break;
-//		case 7: // X축 원점
-//			sts = sscHomeReturnStart(board_id, channel_id, Axis_x);
-//			WriteLog(sts, "X Axis Servo Home - Request");
-//			step.step += 1;
-//			break;
-//		case 8: // Y축 원점
-//			sts = sscHomeReturnStart(board_id, channel_id, Axis_y);
-//			WriteLog(sts, "Y Axis Servo Home - Request");
-//			step.step += 1;
-//			break;
-//		case 9: // 5축 원점
-//			sts = sscHomeReturnStart(board_id, channel_id, Axis_5);
-//			WriteLog(sts, "5 Axis Servo Home - Request");
-//			step.step += 1;
-//			break;
-//		case 10: // 6축 원점
-//			sts = sscHomeReturnStart(board_id, channel_id, Axis_6);
-//			WriteLog(sts, "6 Axis Servo Home - Request");
-//			step.step += 1;
-//			break;
-//		case 11:
-//			sts = sscGetStatusBitSignalEx(board_id, channel_id, Axis_y, SSC_STSBIT_AX_ZREQ, &bitInfo);
-//			if(bitInfo){
-//				MainForm->memoRobostarLineAdd("Y Axis Servo Home - Moving");
-//			}
-//			else{
-//				MainForm->memoRobostarLineAdd("Y Axis Servo Home - Complete");
-//				step.step += 1;
-//			}
-//			break;
-//		case 12:
-//			sts = sscGetStatusBitSignalEx(board_id, channel_id, Axis_x, SSC_STSBIT_AX_ZREQ, &bitInfo);
-//			if(bitInfo){
-//				MainForm->memoRobostarLineAdd("X Axis Servo Home - Moving");
-//			}
-//			else{
-//				MainForm->memoRobostarLineAdd("X Axis Servo Home - Complete");
-//				step.step += 1;
-//			}
-//			break;
-//		case 13:
-//			sts = sscGetStatusBitSignalEx(board_id, channel_id, Axis_5, SSC_STSBIT_AX_ZREQ, &bitInfo);
-//			if(bitInfo){
-//				MainForm->memoRobostarLineAdd("5 Axis Servo Home - Moving");
-//			}
-//			else{
-//				MainForm->memoRobostarLineAdd("5 Axis Servo Home - Complete");
-//				step.step += 1;
-//			}
-//			break;
-//		case 14:
-//			sts = sscGetStatusBitSignalEx(board_id, channel_id, Axis_6, SSC_STSBIT_AX_ZREQ, &bitInfo);
-//			if(bitInfo){
-//				MainForm->memoRobostarLineAdd("6 Axis Servo Home - Moving");
-//			}
-//			else{
-//				MainForm->memoRobostarLineAdd("6 Axis Servo Home - Complete");
-//				step.step += 1;
-//			}
-//			break;
-//		default:
-//			InitSequence(seqIdle);
-//			break;
-//	}
-//}
+//---------------------------------------------------------------------------
 void __fastcall Trobostar::AutoEject()
 {
 	int nresult = CheckFlow();
@@ -1312,12 +1189,6 @@ bool __fastcall Trobostar::getGripperChuckStatus()
 void __fastcall Trobostar::mr2Sensing()
 {
 	static int seq = 0;
-
-//	long int value = 0;
-//	int bitInfo = 0;
-//	int nmove = 0;
-//	unsigned short int alarmCode = 0;
-//	unsigned short int detail = 0;
 	UnicodeString msg;
 
 	switch(seq){
@@ -1349,6 +1220,7 @@ void __fastcall Trobostar::mr2Sensing()
 	}
     seq += 1;
 }
+//---------------------------------------------------------------------------
 void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 {
 
@@ -1502,7 +1374,6 @@ bool __fastcall Trobostar::CheckEjectUp(int pos)
 	return bresult;
 }
 //---------------------------------------------------------------------------
-
 bool __fastcall Trobostar::CheckInsertDown(int pos)
 {
 	bool bresult = false;
@@ -1554,7 +1425,6 @@ bool __fastcall Trobostar::CheckInsertUp(int pos)
 	return bresult;
 }
 //---------------------------------------------------------------------------
-
 void __fastcall Trobostar::DataModuleCreate(TObject *Sender)
 {
 	int sts = 0;
@@ -1579,8 +1449,7 @@ bool __fastcall Trobostar::KeyLock(int pos)
 	}
 
 }
-
-
+//---------------------------------------------------------------------------
 void __fastcall Trobostar::Timer_zUpTestTimer(TObject *Sender)
 {
     AnsiString loadfactor = "", px = "", py = "", zpoint = "", msg = "", msg2 = "";
