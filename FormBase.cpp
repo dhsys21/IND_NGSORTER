@@ -249,9 +249,10 @@ double __fastcall TBaseForm::StringToDouble(UnicodeString str, double def)
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::btnKeyUnLockClick(TObject *Sender)
 {
+    ShowMessage(GetLangStr("MSG_UNLOCK_KEY"));
     if(MainForm->equipMode != modeManual)
 	{
-        ShowMessage("[C_Maint] 수동 모드가 아닙니다. 수동 모드로 변경하고 키락을 해제 해주세요.");
+        ShowMessage(GetLangStr("MSG_UNLOCK_KEY"));
 	}
 	else{
 		robostar->KeyLock(2);

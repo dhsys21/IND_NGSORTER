@@ -107,7 +107,7 @@ void __fastcall TMainForm::CmdTrayOut(int pos)
 
 	if(robostar->getGripperUpStatus() == false)
 	{
-		AlarmForm->ShowError("[C_Maint] 그리퍼가 DOWN 상태 입니다.", "상태를 확인하고 트레이를 배출하세요.");
+		AlarmForm->ShowError(BaseForm->GetLangStr("MSG_DOWN_STATE"), BaseForm->GetLangStr("MSG_CHECK_TRAYOUT"));
         return;
 	}
 
@@ -151,7 +151,7 @@ void __fastcall TMainForm::pause_startBtnClick(TObject *Sender)
 			robostar->req_Pause(false);
         }
 	}
-	else ShowMessage("[C_Maint] 자동-시작 모드가 아닙니다. 시작 모드로 변경하고 재시작 해주세요.");
+	else ShowMessage(BaseForm->GetLangStr("MSG_START_ALARM"));
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::pause_stopBtnClick(TObject *Sender)
@@ -168,19 +168,19 @@ void __fastcall TMainForm::teachingBtnClick(TObject *Sender)
 
 void __fastcall TMainForm::btnScanTargetTrayClick(TObject *Sender)
 {
-	pTrayid_source->Caption = "스캔중...";
+	pTrayid_source->Caption = BaseForm->GetLangStr("MSG_SCANNING");
 	comBcr[0]->GetBarcode();
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::btnScanSourceTrayClick(TObject *Sender)
 {
-	pTrayid_target->Caption = "스캔중...";
+	pTrayid_target->Caption = BaseForm->GetLangStr("MSG_SCANNING");
 	comBcr[1]->GetBarcode();
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::setBarcode(int pos, AnsiString strBcr)
 {
-	memoMainLineAdd(" 바코드 스캔 완료 : " + strBcr);
+	memoMainLineAdd(BaseForm->GetLangStr("MSG_COMPLETE_SCAN") + " : " + strBcr);
 	if(strBcr.Length() == 7)
 	{
 		switch(pos){
@@ -216,7 +216,7 @@ void __fastcall TMainForm::EnableButton_auto(bool benable)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::mesTimerTimer(TObject *Sender)
 {
-	ErrorForm_mes->ShowError(tx->LOT_ID, "[C_Maint] MES 응답 없음", tx->errMsg);
+	ErrorForm_mes->ShowError(tx->LOT_ID, "MES No response", tx->errMsg);
 	mesTimer->Enabled = false;
 }
 //---------------------------------------------------------------------------
@@ -243,7 +243,7 @@ void __fastcall TMainForm::autoBtnClick(TObject *Sender)
 	else
 	{
         autoBtn->Down = false;
-		AlarmForm->ShowError("[C_Maint] 서보가 준비되지 않았습니다.", "확인하고 재시작 해주세요.");
+		AlarmForm->ShowError(BaseForm->GetLangStr("MSG_AUTO_ALARM1"), BaseForm->GetLangStr("MSG_AUTO_ALARM2"));
 	}
 }
 //---------------------------------------------------------------------------
@@ -263,7 +263,7 @@ void __fastcall TMainForm::manualBtnClick(TObject *Sender)
 		}
 		else
 		{
-			if(MessageBox(Handle, L"[C_Maint] 모든 작업이 중단되었습니다.\r\n수동 상태로 변환 하시겠습니까?", L"수동", MB_YESNO|MB_ICONQUESTION) == ID_YES){
+			if(MessageBox(Handle, BaseForm->GetLangStr("MSG_MANUAL_ALARM").c_str(), L"Manual", MB_YESNO|MB_ICONQUESTION) == ID_YES){
 				gripper->req_Pause(true);
 				robostar->req_Pause(true);
 
@@ -418,7 +418,7 @@ void __fastcall TMainForm::plcReadData(AnsiString str, int addr)
 void __fastcall TMainForm::trayout_srcBtnClick(TObject *Sender)
 {
 	if(plcInput.SRC_ARRIVE){
-		if(MessageBox(Handle, L"선별 트레이를 배출하시겠습니까?", L"트레이 배출", MB_YESNO|MB_ICONQUESTION) == ID_YES){
+		if(MessageBox(Handle, L"", L"Tray Out", MB_YESNO|MB_ICONQUESTION) == ID_YES){
             plcOutput.SRC_MANUAL_WORK = 0;
 			CmdTrayOut(0);
 		}
@@ -430,7 +430,7 @@ void __fastcall TMainForm::trayout_targetBtnClick(TObject *Sender)
 {
 	int reply;
 	if(plcInput.TARGET_READY){
-		if(MessageBox(Handle, L"대상트레이를 배출 하시겠습니까?", L"트레이 배출", MB_YESNO|MB_ICONQUESTION) == ID_YES){
+		if(MessageBox(Handle, L"대상트레이를 배출 하시겠습니까?", L"Tray Out", MB_YESNO|MB_ICONQUESTION) == ID_YES){
 			reply = MessageBox(Handle, L"MES에 요청 하시겠습니까?", L"MES", MB_YESNOCANCEL|MB_ICONQUESTION);
 			if(reply == ID_YES){
 				NotifyTransferOut(pTrayid_target->Caption);
