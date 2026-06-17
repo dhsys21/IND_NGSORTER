@@ -13,11 +13,14 @@ __fastcall TErrorForm_insert::TErrorForm_insert(TComponent* Owner)
 	: TForm(Owner)
 {
 	this->Parent = BaseForm;
+    this->Position = poDesigned;
+    this->Height = 234;
+    this->Left = 600;
+    this->Top = 300;
 }
 //---------------------------------------------------------------------------
 void __fastcall TErrorForm_insert::ShowError(AnsiString str1, AnsiString str2, int toolNo, int mesCode)
 {
-	this->Height = 230;
 	errMsg1->Caption = "S_Maint_" + str1;
 	errMsg2->Caption = str2;
 
@@ -43,13 +46,13 @@ void __fastcall TErrorForm_insert::ShowError(AnsiString str1, AnsiString str2, i
 //---------------------------------------------------------------------------
 void __fastcall TErrorForm_insert::AdvSmoothButton1Click(TObject *Sender)
 {
+    if(this->Height < 240) this->Height = 650;
+    else this->Height = 234;
+
 	MainForm->memoMainLineAdd("Manual switching");
-	this->Height = 650;
-	MainForm->stopBtnClick(Sender);	
+	MainForm->stopBtnClick(Sender);
 }
 //---------------------------------------------------------------------------
-
-
 void __fastcall TErrorForm_insert::retryBtnClick(TObject *Sender)
 {
 	int map = 0;
@@ -67,7 +70,6 @@ void __fastcall TErrorForm_insert::retryBtnClick(TObject *Sender)
 	}
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TErrorForm_insert::ignoreBtnClick(TObject *Sender)
 {
 	MainForm->memoMainLineAdd("Insert complete");
@@ -78,8 +80,6 @@ void __fastcall TErrorForm_insert::ignoreBtnClick(TObject *Sender)
 	this->Visible = false;
 }
 //---------------------------------------------------------------------------
-
-
 void __fastcall TErrorForm_insert::AdvSmoothButton5Click(TObject *Sender)
 {
 	MainForm->BuzzerOn(false);
@@ -220,3 +220,4 @@ void __fastcall TErrorForm_insert::LanguageChange(int index)
 	Panel25->Caption = mm->Lines->Strings[14];
 }
 //---------------------------------------------------------------------------
+

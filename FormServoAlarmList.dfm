@@ -16,7 +16,7 @@ object ServoAlarmListForm: TServoAlarmListForm
   OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
-  object GroupBox1: TGroupBox
+  object gbSystemAlarm: TGroupBox
     Left = 8
     Top = 8
     Width = 313
@@ -116,7 +116,7 @@ object ServoAlarmListForm: TServoAlarmListForm
       Visible = False
     end
   end
-  object GroupBox2: TGroupBox
+  object gbServoAlarm: TGroupBox
     Left = 327
     Top = 8
     Width = 313
@@ -600,7 +600,7 @@ object ServoAlarmListForm: TServoAlarmListForm
       Visible = False
     end
   end
-  object GroupBox3: TGroupBox
+  object gbOPAlarm: TGroupBox
     Left = 8
     Top = 359
     Width = 313
@@ -1044,7 +1044,7 @@ object ServoAlarmListForm: TServoAlarmListForm
       Visible = False
     end
   end
-  object GroupBox4: TGroupBox
+  object gbSystemError: TGroupBox
     Left = 327
     Top = 359
     Width = 313

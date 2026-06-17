@@ -18,8 +18,6 @@ __fastcall TErrorForm_bcr::TErrorForm_bcr(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall TErrorForm_bcr::ShowError(AnsiString str,  bool bsuccess)
 {
-
-
 	if(bsuccess){
 		ignoreBtn->Color = pon->Color;
 		errMsg1->Caption = "S_Maint_[ " + str + " ] 바코드 리딩 완료.";

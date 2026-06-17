@@ -707,16 +707,9 @@ void __fastcall TteachForm::btnZAxisUpMouseUp(TObject *Sender, TMouseButton Butt
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::btnKeyLockClick(TObject *Sender)
 {
-	if(BaseForm->btnKeyLock->Caption == "키락 해제")
-		 {
-			BaseForm->btnKeyLock->Caption = "키락 설정";
-			robostar->KeyLock(2);
-		 }
-		 else
-		 {
-			BaseForm->btnKeyLock->Caption = "키락 해제";
-			robostar->KeyLock(1);
-		 }
+//	ErrorForm_eject->ShowError("Gripper #1 has a cell.", "Eject step 1. Cell check error", 1, 20);
+    ErrorForm_insert->Top = 100;
+    ErrorForm_insert->ShowError("Gripper #1 has a cell.", "Eject step 1. Cell check error", 1, 20);
 }
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------

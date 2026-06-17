@@ -13,11 +13,17 @@ __fastcall TErrorForm_eject::TErrorForm_eject(TComponent* Owner)
 	: TForm(Owner)
 {
 	this->Parent = BaseForm;
+
+    this->Position = poDesigned;
+    this->Height = 234;
+    this->Left = 600;
+    this->Top = 300;
 }
+//---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 void __fastcall TErrorForm_eject::ShowError(AnsiString str1, AnsiString str2, int toolNo, int mesCode)
 {
-	this->Height = 230;
+
 	errMsg1->Caption = "S_Maint_" + str1;
 	errMsg2->Caption = str2;
 
@@ -71,7 +77,9 @@ void __fastcall TErrorForm_eject::ignoreBtnClick(TObject *Sender)
 
 void __fastcall TErrorForm_eject::manualBtnClick(TObject *Sender)
 {
-	this->Height = 650;
+    if(this->Height < 240) this->Height = 650;
+    else this->Height= 234;
+
 	MainForm->stopBtnClick(Sender);
 	MainForm->memoMainLineAdd("Manual switching");
 }
@@ -210,3 +218,9 @@ void __fastcall TErrorForm_eject::LanguageChange(int index)
 	Panel25->Caption = mm->Lines->Strings[14];
 }
 //---------------------------------------------------------------------------
+
+
+//---------------------------------------------------------------------------
+
+
+

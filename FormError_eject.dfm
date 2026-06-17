@@ -1054,6 +1054,7 @@ object ErrorForm_eject: TErrorForm_eject
       BevelOuter = bvNone
       Color = clWhite
       TabOrder = 1
+      Visible = False
       object Image2: TImage
         Tag = 2
         Left = 12
@@ -1992,6 +1993,7 @@ object ErrorForm_eject: TErrorForm_eject
       BevelOuter = bvNone
       Color = clWhite
       TabOrder = 2
+      Visible = False
       object Image3: TImage
         Tag = 3
         Left = 12
@@ -2930,6 +2932,7 @@ object ErrorForm_eject: TErrorForm_eject
       BevelOuter = bvNone
       Color = clWhite
       TabOrder = 3
+      Visible = False
       object Image4: TImage
         Tag = 4
         Left = 12
@@ -3868,6 +3871,7 @@ object ErrorForm_eject: TErrorForm_eject
       BevelOuter = bvNone
       Color = clWhite
       TabOrder = 4
+      Visible = False
       object Image5: TImage
         Tag = 5
         Left = 12
@@ -4806,6 +4810,7 @@ object ErrorForm_eject: TErrorForm_eject
       BevelOuter = bvNone
       Color = clWhite
       TabOrder = 5
+      Visible = False
       object Image6: TImage
         Tag = 6
         Left = 12

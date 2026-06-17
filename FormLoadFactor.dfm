@@ -15,14 +15,14 @@ object loadfactorForm: TloadfactorForm
   Scaled = False
   PixelsPerInch = 96
   TextHeight = 13
-  object Panel35: TPanel
+  object pnlXAxis: TPanel
     Left = 12
     Top = 10
     Width = 75
     Height = 24
     BevelKind = bkFlat
     BevelOuter = bvNone
-    Caption = 'X1 '#52629
+    Caption = 'X '#52629
     Color = 15269887
     Font.Charset = DEFAULT_CHARSET
     Font.Color = 13996080
@@ -69,7 +69,7 @@ object loadfactorForm: TloadfactorForm
     TabOrder = 2
     Text = '100'
   end
-  object Panel39: TPanel
+  object pnlLimitValue: TPanel
     Left = 194
     Top = 10
     Width = 75
@@ -88,9 +88,9 @@ object loadfactorForm: TloadfactorForm
     ShowHint = False
     TabOrder = 3
   end
-  object Panel31: TPanel
+  object pnlYAxis: TPanel
     Left = 12
-    Top = 60
+    Top = 46
     Width = 75
     Height = 24
     BevelKind = bkFlat
@@ -110,7 +110,7 @@ object loadfactorForm: TloadfactorForm
   end
   object py: TPanel
     Left = 88
-    Top = 60
+    Top = 46
     Width = 100
     Height = 24
     BevelKind = bkFlat
@@ -127,9 +127,9 @@ object loadfactorForm: TloadfactorForm
     ShowHint = False
     TabOrder = 5
   end
-  object Panel33: TPanel
+  object pnlZAxis: TPanel
     Left = 12
-    Top = 85
+    Top = 82
     Width = 75
     Height = 24
     BevelKind = bkFlat
@@ -149,7 +149,7 @@ object loadfactorForm: TloadfactorForm
   end
   object pz: TPanel
     Left = 88
-    Top = 85
+    Top = 82
     Width = 100
     Height = 24
     BevelKind = bkFlat
@@ -168,9 +168,9 @@ object loadfactorForm: TloadfactorForm
   end
   object AdvSmoothButton_Save: TAdvSmoothButton
     Left = 194
-    Top = 40
+    Top = 38
     Width = 85
-    Height = 69
+    Height = 68
     Appearance.PictureAlignment = taCenter
     Appearance.Font.Charset = DEFAULT_CHARSET
     Appearance.Font.Color = clBlack
@@ -204,50 +204,11 @@ object loadfactorForm: TloadfactorForm
     OnClick = AdvSmoothButton_SaveClick
     TMSStyle = 8
   end
-  object Panel44: TPanel
-    Left = 12
-    Top = 35
-    Width = 75
-    Height = 24
-    BevelKind = bkFlat
-    BevelOuter = bvNone
-    Caption = 'X2 '#52629
-    Color = 15269887
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = 13996080
-    Font.Height = -11
-    Font.Name = 'Tahoma'
-    Font.Style = [fsBold]
-    ParentBackground = False
-    ParentFont = False
-    ParentShowHint = False
-    ShowHint = False
-    TabOrder = 9
-  end
-  object px2: TPanel
-    Left = 88
-    Top = 35
-    Width = 100
-    Height = 24
-    BevelKind = bkFlat
-    BevelOuter = bvNone
-    Color = clWhite
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clBlack
-    Font.Height = -13
-    Font.Name = 'Tahoma'
-    Font.Style = [fsBold]
-    ParentBackground = False
-    ParentFont = False
-    ParentShowHint = False
-    ShowHint = False
-    TabOrder = 10
-  end
   object AdvSmoothButton_Cancel: TAdvSmoothButton
     Left = 285
-    Top = 40
+    Top = 38
     Width = 85
-    Height = 69
+    Height = 68
     Appearance.PictureAlignment = taCenter
     Appearance.Font.Charset = DEFAULT_CHARSET
     Appearance.Font.Color = clBlack
@@ -276,14 +237,14 @@ object loadfactorForm: TloadfactorForm
     Caption = #52712#49548
     Color = clWhite
     ParentFont = False
-    TabOrder = 11
+    TabOrder = 9
     Version = '2.1.1.5'
     OnClick = AdvSmoothButton_CancelClick
     TMSStyle = 8
   end
   object Memo_Ko: TMemo
     Left = 31
-    Top = 159
+    Top = 151
     Width = 76
     Height = 89
     Lines.Strings = (
@@ -295,11 +256,11 @@ object loadfactorForm: TloadfactorForm
       #51200#51109
       #52712#49548)
     ScrollBars = ssBoth
-    TabOrder = 12
+    TabOrder = 10
     Visible = False
   end
   object Memo_En: TMemo
-    Left = 113
+    Left = 153
     Top = 151
     Width = 84
     Height = 89
@@ -312,12 +273,12 @@ object loadfactorForm: TloadfactorForm
       'Save'
       'Cancel')
     ScrollBars = ssBoth
-    TabOrder = 13
+    TabOrder = 11
     Visible = False
   end
   object Memo_Hu: TMemo
-    Left = 203
-    Top = 175
+    Left = 294
+    Top = 151
     Width = 76
     Height = 89
     Lines.Strings = (
@@ -329,85 +290,7 @@ object loadfactorForm: TloadfactorForm
       'Save'
       'Cancel')
     ScrollBars = ssBoth
-    TabOrder = 14
+    TabOrder = 12
     Visible = False
-  end
-  object Panel1: TPanel
-    Left = 12
-    Top = 141
-    Width = 75
-    Height = 24
-    BevelKind = bkFlat
-    BevelOuter = bvNone
-    Caption = 'G2 '#52629
-    Color = 15269887
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = 13996080
-    Font.Height = -11
-    Font.Name = 'Tahoma'
-    Font.Style = [fsBold]
-    ParentBackground = False
-    ParentFont = False
-    ParentShowHint = False
-    ShowHint = False
-    TabOrder = 15
-  end
-  object Panel2: TPanel
-    Left = 12
-    Top = 116
-    Width = 75
-    Height = 24
-    BevelKind = bkFlat
-    BevelOuter = bvNone
-    Caption = 'G1 '#52629
-    Color = 15269887
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = 13996080
-    Font.Height = -11
-    Font.Name = 'Tahoma'
-    Font.Style = [fsBold]
-    ParentBackground = False
-    ParentFont = False
-    ParentShowHint = False
-    ShowHint = False
-    TabOrder = 16
-  end
-  object pg1: TPanel
-    Left = 88
-    Top = 116
-    Width = 100
-    Height = 24
-    BevelKind = bkFlat
-    BevelOuter = bvNone
-    Color = clWhite
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clBlack
-    Font.Height = -13
-    Font.Name = 'Tahoma'
-    Font.Style = [fsBold]
-    ParentBackground = False
-    ParentFont = False
-    ParentShowHint = False
-    ShowHint = False
-    TabOrder = 17
-  end
-  object pg2: TPanel
-    Left = 88
-    Top = 141
-    Width = 100
-    Height = 24
-    BevelKind = bkFlat
-    BevelOuter = bvNone
-    Color = clWhite
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clBlack
-    Font.Height = -13
-    Font.Name = 'Tahoma'
-    Font.Style = [fsBold]
-    ParentBackground = False
-    ParentFont = False
-    ParentShowHint = False
-    ShowHint = False
-    TabOrder = 18
   end
 end

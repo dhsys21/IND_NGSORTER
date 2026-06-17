@@ -13,25 +13,19 @@
 class TloadfactorForm : public TForm
 {
 __published:	// IDE-managed Components
-	TPanel *Panel35;
+	TPanel *pnlXAxis;
 	TPanel *px1;
 	TEdit *Edit_LimitValue;
-	TPanel *Panel39;
-	TPanel *Panel31;
+	TPanel *pnlLimitValue;
+	TPanel *pnlYAxis;
 	TPanel *py;
-	TPanel *Panel33;
+	TPanel *pnlZAxis;
 	TPanel *pz;
 	TAdvSmoothButton *AdvSmoothButton_Save;
-	TPanel *Panel44;
-	TPanel *px2;
 	TAdvSmoothButton *AdvSmoothButton_Cancel;
 	TMemo *Memo_Ko;
 	TMemo *Memo_En;
 	TMemo *Memo_Hu;
-	TPanel *Panel1;
-	TPanel *Panel2;
-	TPanel *pg1;
-	TPanel *pg2;
 	void __fastcall AdvSmoothButton_SaveClick(TObject *Sender);
 	void __fastcall AdvSmoothButton_CancelClick(TObject *Sender);
 private:	// User declarations
@@ -43,7 +37,7 @@ public:		// User declarations
 	void __fastcall SaveInfo();
 	void __fastcall LoadInfo();
 
-	TPanel *Panel_Position[7];
+	TPanel *Panel_Position[4];
     int m_SetLimit, m_Count;
 };
 //---------------------------------------------------------------------------

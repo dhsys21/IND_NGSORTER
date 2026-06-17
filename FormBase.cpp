@@ -219,11 +219,11 @@ void __fastcall TBaseForm::RadioButton1Click(TObject *Sender)
         if(rbt->Tag == 0) MainForm->LanguageChange("KO");
         else if(rbt->Tag == 1) MainForm->LanguageChange("EN");
 
-//		teachForm->LanguageChange(rbt->Tag);
+
 //		ErrorForm_insert->LanguageChange(rbt->Tag);
 //		ErrorForm_eject->LanguageChange(rbt->Tag);
-//		ServoAlarmListForm->LanguageChange(rbt->Tag);
-//		loadfactorForm->LanguageChange(rbt->Tag);
+		ServoAlarmListForm->LanguageChange(rbt->Tag);
+
 	}
 }
 //---------------------------------------------------------------------------

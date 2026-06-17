@@ -12,13 +12,13 @@
 class TServoAlarmListForm : public TForm
 {
 __published:	// IDE-managed Components
-	TGroupBox *GroupBox1;
+	TGroupBox *gbSystemAlarm;
 	TListView *ListView1;
-	TGroupBox *GroupBox2;
+	TGroupBox *gbServoAlarm;
 	TListView *ListView2;
-	TGroupBox *GroupBox3;
+	TGroupBox *gbOPAlarm;
 	TListView *ListView3;
-	TGroupBox *GroupBox4;
+	TGroupBox *gbSystemError;
 	TListView *ListView4;
 	TMemo *Memo_Ko1;
 	TMemo *Memo_En1;

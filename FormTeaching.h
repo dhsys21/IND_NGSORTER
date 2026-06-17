@@ -345,6 +345,7 @@ __published:	// IDE-managed Components
 	TPanel *pnlSelectGripper;
 	TLabel *lblMsgRobot;
 	TAdvSmoothButton *btnApplyTeaching;
+	TAdvSmoothPanel *pnlBackground;
 	void __fastcall FormCreate(TObject *Sender);
 	void __fastcall sClick(TObject *Sender);
 	void __fastcall tClick(TObject *Sender);

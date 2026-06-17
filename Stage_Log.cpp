@@ -2,6 +2,48 @@
 #include "FormBase.h"
 
 //---------------------------------------------------------------------------
+void __fastcall TMainForm::WriteProgLog(AnsiString msg)
+{
+	AnsiString str;
+	int file_handle;
+
+	str = (AnsiString)PROG_LOG + Now().FormatString("yymmdd") + ".csv";
+
+	if(FileExists(str))
+		file_handle = FileOpen(str, fmOpenWrite);
+	else {
+		file_handle = FileCreate(str);
+	}
+
+	FileSeek(file_handle, 0, 2);
+
+	str = Now().FormatString("yyyy-mm-dd hh:nn:ss ") + "," + pTrayid_source2->Caption + "," + pTrayid_target2->Caption + "," +  msg +  "\r\n";
+
+	FileWrite(file_handle, str.c_str(), str.Length());
+	FileClose(file_handle);
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::WriteErrorLog(AnsiString str1, AnsiString str2)
+{
+	AnsiString str;
+	int file_handle;
+
+	str = (AnsiString)ERROR_LOG + Now().FormatString("yymmdd") + ".csv";
+
+	if(FileExists(str))
+		file_handle = FileOpen(str, fmOpenWrite);
+	else {
+		file_handle = FileCreate(str);
+	}
+
+	FileSeek(file_handle, 0, 2);
+
+	str = Now().FormatString("yyyy-mm-dd hh:nn:ss ") + "," + str1 + "," + str2+  "\r\n";
+
+	FileWrite(file_handle, str.c_str(), str.Length());
+	FileClose(file_handle);
+}
+//---------------------------------------------------------------------------
 UnicodeString __fastcall TMainForm::GetLangStr(AnsiString key)
 {
     // 이미 메모리에 로드된 LangDict에서 값만 찾아서 반환 (매우 빠름)
@@ -92,53 +134,24 @@ void __fastcall TMainForm::LanguageChange(AnsiString newLang)
     teachForm->pnlSpeed->Caption = GetLangStr("CAP_SPEED");
     teachForm->pnlSettingSpeed->Caption = GetLangStr("CAP_SETTING_SPEED");
     teachForm->lblJogControl->Caption = GetLangStr("CAP_JOG_CONTROL");
-    //teachForm->pnlGripperControl->Caption = GetLangStr("CAP_GRIPPER_CONTROL");
     teachForm->lblUpDown->Caption = GetLangStr("CAP_UP_DOWN");
     teachForm->lblOpenClose->Caption = GetLangStr("CAP_OPEN_CLOSE");
     teachForm->AdvSmoothButton_LoadFactorInfo->Caption = GetLangStr("CAP_LOAD_FACTOR");
     teachForm->lblLoadFactorTitle->Caption = GetLangStr("CAP_LOAD");
     teachForm->disableChk1->Caption = GetLangStr("CAP_USING");
-}
-//---------------------------------------------------------------------------
-void __fastcall TMainForm::WriteProgLog(AnsiString msg)
-{
-	AnsiString str;
-	int file_handle;
 
-	str = (AnsiString)PROG_LOG + Now().FormatString("yymmdd") + ".csv";
+    //* LoadFactor Form
+    loadfactorForm->pnlXAxis->Caption = GetLangStr("CAP_X_AXIS");
+    loadfactorForm->pnlYAxis->Caption = GetLangStr("CAP_Y_AXIS");
+    loadfactorForm->pnlZAxis->Caption = GetLangStr("CAP_Z_AXIS");
+    loadfactorForm->pnlLimitValue->Caption = GetLangStr("CAP_LIMIT_VALUE");
+    loadfactorForm->AdvSmoothButton_Save->Caption = GetLangStr("CAP_SAVE");
+    loadfactorForm->AdvSmoothButton_Cancel->Caption = GetLangStr("CAP_CANCEL");
 
-	if(FileExists(str))
-		file_handle = FileOpen(str, fmOpenWrite);
-	else {
-		file_handle = FileCreate(str);
-	}
-
-	FileSeek(file_handle, 0, 2);
-
-	str = Now().FormatString("yyyy-mm-dd hh:nn:ss ") + "," + pTrayid_source2->Caption + "," + pTrayid_target2->Caption + "," +  msg +  "\r\n";
-
-	FileWrite(file_handle, str.c_str(), str.Length());
-	FileClose(file_handle);
-}
-//---------------------------------------------------------------------------
-void __fastcall TMainForm::WriteErrorLog(AnsiString str1, AnsiString str2)
-{
-	AnsiString str;
-	int file_handle;
-
-	str = (AnsiString)ERROR_LOG + Now().FormatString("yymmdd") + ".csv";
-
-	if(FileExists(str))
-		file_handle = FileOpen(str, fmOpenWrite);
-	else {
-		file_handle = FileCreate(str);
-	}
-
-	FileSeek(file_handle, 0, 2);
-
-	str = Now().FormatString("yyyy-mm-dd hh:nn:ss ") + "," + str1 + "," + str2+  "\r\n";
-
-	FileWrite(file_handle, str.c_str(), str.Length());
-	FileClose(file_handle);
+    //* SERVO Alarm List
+    ServoAlarmListForm->gbSystemAlarm->Caption = GetLangStr("CAP_SYSTEM_ALARM");
+    ServoAlarmListForm->gbServoAlarm->Caption = GetLangStr("CAP_SERVO_ALARM");
+    ServoAlarmListForm->gbOPAlarm->Caption = GetLangStr("CAP_OP_ALARM");
+    ServoAlarmListForm->gbSystemError->Caption = GetLangStr("CAP_SYSTEM_ERROR");
 }
 //---------------------------------------------------------------------------

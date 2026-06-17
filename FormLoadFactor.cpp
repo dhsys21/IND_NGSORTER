@@ -14,11 +14,8 @@ __fastcall TloadfactorForm::TloadfactorForm(TComponent* Owner)
 	: TForm(Owner)
 {
 	Panel_Position[1] = px1;
-	Panel_Position[2] = px2;
-	Panel_Position[3] = py;
-	Panel_Position[4] = pz;
-	Panel_Position[5] = pg1;
-	Panel_Position[6] = pg2;
+	Panel_Position[2] = py;
+	Panel_Position[3] = pz;
 }
 //---------------------------------------------------------------------------
 
@@ -86,12 +83,12 @@ void __fastcall TloadfactorForm::LanguageChange(int index)
 	else if(index == 1) mm = Memo_En;
 	else if(index == 2) mm = Memo_Hu;
 
-	Panel35->Caption = mm->Lines->Strings[0];
-	Panel44->Caption = mm->Lines->Strings[1];
-	Panel31->Caption = mm->Lines->Strings[2];
-	Panel33->Caption = mm->Lines->Strings[3];
-	Panel39->Caption = mm->Lines->Strings[4];
-	AdvSmoothButton_Save->Caption = mm->Lines->Strings[5];
-	AdvSmoothButton_Cancel->Caption = mm->Lines->Strings[6];
+//	Panel35->Caption = mm->Lines->Strings[0];
+//	Panel44->Caption = mm->Lines->Strings[1];
+//	Panel31->Caption = mm->Lines->Strings[2];
+//	Panel33->Caption = mm->Lines->Strings[3];
+//	Panel39->Caption = mm->Lines->Strings[4];
+//	AdvSmoothButton_Save->Caption = mm->Lines->Strings[5];
+//	AdvSmoothButton_Cancel->Caption = mm->Lines->Strings[6];
 }
 //---------------------------------------------------------------------------
