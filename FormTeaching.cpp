@@ -705,13 +705,6 @@ void __fastcall TteachForm::btnZAxisUpMouseUp(TObject *Sender, TMouseButton Butt
 	}
 }
 //---------------------------------------------------------------------------
-void __fastcall TteachForm::btnKeyLockClick(TObject *Sender)
-{
-//	ErrorForm_eject->ShowError("Gripper #1 has a cell.", "Eject step 1. Cell check error", 1, 20);
-    ErrorForm_insert->Top = 100;
-    ErrorForm_insert->ShowError("Gripper #1 has a cell.", "Eject step 1. Cell check error", 1, 20);
-}
-//---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 //                  Method
 //---------------------------------------------------------------------------
@@ -1070,3 +1063,13 @@ TEdit* __fastcall TteachForm::GetTrayEdit(int channel, TrayAxisEdit editType)
 }
 //---------------------------------------------------------------------------
 
+void __fastcall TteachForm::AdvSmoothButton1Click(TObject *Sender)
+{
+	ErrorForm_eject->ShowError("Gripper #1 has a cell.", "Eject step 1. Cell check error", 1, 20);
+}
+//---------------------------------------------------------------------------
+void __fastcall TteachForm::btnKeyLockClick(TObject *Sender)
+{
+    ErrorForm_insert->ShowError("Gripper #1 has a cell.", "Eject step 1. Cell check error", 1, 20);
+}
+//---------------------------------------------------------------------------

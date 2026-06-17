@@ -10466,9 +10466,9 @@ object teachForm: TteachForm
     Visible = False
   end
   object btnKeyLock: TAdvSmoothButton
-    Left = 806
+    Left = 927
     Top = 8
-    Width = 135
+    Width = 83
     Height = 30
     Appearance.GlowPercentage = 50
     Appearance.PictureAlignment = taCenter
@@ -10541,6 +10541,45 @@ object teachForm: TteachForm
     TabOrder = 5
     Version = '2.1.1.5'
     OnClick = btnCloseClick
+    TMSStyle = 8
+  end
+  object AdvSmoothButton1: TAdvSmoothButton
+    Left = 838
+    Top = 8
+    Width = 83
+    Height = 30
+    Appearance.GlowPercentage = 50
+    Appearance.PictureAlignment = taCenter
+    Appearance.Font.Charset = DEFAULT_CHARSET
+    Appearance.Font.Color = clBlack
+    Appearance.Font.Height = -13
+    Appearance.Font.Name = 'Tahoma'
+    Appearance.Font.Style = [fsBold]
+    Appearance.Spacing = 0
+    Appearance.Rounding = 3
+    Appearance.WordWrapping = False
+    Status.Caption = '0'
+    Status.Appearance.Fill.Color = clRed
+    Status.Appearance.Fill.ColorMirror = clNone
+    Status.Appearance.Fill.ColorMirrorTo = clNone
+    Status.Appearance.Fill.GradientType = gtSolid
+    Status.Appearance.Fill.GradientMirrorType = gtSolid
+    Status.Appearance.Fill.BorderColor = clGray
+    Status.Appearance.Fill.Rounding = 0
+    Status.Appearance.Fill.ShadowOffset = 0
+    Status.Appearance.Fill.Glow = gmNone
+    Status.Appearance.Font.Charset = DEFAULT_CHARSET
+    Status.Appearance.Font.Color = clWhite
+    Status.Appearance.Font.Height = -11
+    Status.Appearance.Font.Name = 'Tahoma'
+    Status.Appearance.Font.Style = []
+    BevelColor = clBlack
+    Caption = 'test'
+    Color = clWhite
+    ParentFont = False
+    TabOrder = 7
+    Version = '2.1.1.5'
+    OnClick = AdvSmoothButton1Click
     TMSStyle = 8
   end
   object teachingTimer: TTimer

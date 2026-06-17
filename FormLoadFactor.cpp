@@ -73,22 +73,3 @@ void __fastcall TloadfactorForm::AdvSmoothButton_CancelClick(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
-
-
-//---------------------------------------------------------------------------
-void __fastcall TloadfactorForm::LanguageChange(int index)
-{
-	TMemo *mm;
-	if(index == 0) mm = Memo_Ko;
-	else if(index == 1) mm = Memo_En;
-	else if(index == 2) mm = Memo_Hu;
-
-//	Panel35->Caption = mm->Lines->Strings[0];
-//	Panel44->Caption = mm->Lines->Strings[1];
-//	Panel31->Caption = mm->Lines->Strings[2];
-//	Panel33->Caption = mm->Lines->Strings[3];
-//	Panel39->Caption = mm->Lines->Strings[4];
-//	AdvSmoothButton_Save->Caption = mm->Lines->Strings[5];
-//	AdvSmoothButton_Cancel->Caption = mm->Lines->Strings[6];
-}
-//---------------------------------------------------------------------------

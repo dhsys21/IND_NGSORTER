@@ -346,6 +346,7 @@ __published:	// IDE-managed Components
 	TLabel *lblMsgRobot;
 	TAdvSmoothButton *btnApplyTeaching;
 	TAdvSmoothPanel *pnlBackground;
+	TAdvSmoothButton *AdvSmoothButton1;
 	void __fastcall FormCreate(TObject *Sender);
 	void __fastcall sClick(TObject *Sender);
 	void __fastcall tClick(TObject *Sender);
@@ -395,6 +396,7 @@ __published:	// IDE-managed Components
           int X, int Y);
 	void __fastcall unchuckAllTimerTimer(TObject *Sender);
 	void __fastcall btnCloseClick(TObject *Sender);
+	void __fastcall AdvSmoothButton1Click(TObject *Sender);
 private:	// User declarations
     TListItem	*ITEM;
 	TAdvSmoothPanel *sTray[96];

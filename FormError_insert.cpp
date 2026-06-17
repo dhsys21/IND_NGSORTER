@@ -86,7 +86,7 @@ void __fastcall TErrorForm_insert::AdvSmoothButton5Click(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TErrorForm_insert::AdvSmoothButton2Click(TObject *Sender)
+void __fastcall TErrorForm_insert::btnMoveSourceClick(TObject *Sender)
 {
 	int map = 0;
 
@@ -95,13 +95,13 @@ void __fastcall TErrorForm_insert::AdvSmoothButton2Click(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TErrorForm_insert::AdvSmoothButton3Click(TObject *Sender)
+void __fastcall TErrorForm_insert::btnMoveTargetClick(TObject *Sender)
 {
 	robostar->req_AutoMove(2, toolNum+1, ptarget_ch1->Caption.ToInt(), 96);
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TErrorForm_insert::AdvSmoothButton13Click(TObject *Sender)
+void __fastcall TErrorForm_insert::btnUpClick(TObject *Sender)
 {
 	TAdvSmoothButton *btn;
 	btn = (TAdvSmoothButton*)Sender;
@@ -110,7 +110,7 @@ void __fastcall TErrorForm_insert::AdvSmoothButton13Click(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TErrorForm_insert::AdvSmoothButton14Click(TObject *Sender)
+void __fastcall TErrorForm_insert::btnDownClick(TObject *Sender)
 {
 	TAdvSmoothButton *btn;
 	btn = (TAdvSmoothButton*)Sender;
@@ -119,7 +119,7 @@ void __fastcall TErrorForm_insert::AdvSmoothButton14Click(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TErrorForm_insert::AdvSmoothButton12Click(TObject *Sender)
+void __fastcall TErrorForm_insert::btnOpenClick(TObject *Sender)
 {
 	TAdvSmoothButton *btn;
 	btn = (TAdvSmoothButton*)Sender;
@@ -128,7 +128,7 @@ void __fastcall TErrorForm_insert::AdvSmoothButton12Click(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TErrorForm_insert::AdvSmoothButton11Click(TObject *Sender)
+void __fastcall TErrorForm_insert::btnCloseClick(TObject *Sender)
 {
 	TAdvSmoothButton *btn;
 	btn = (TAdvSmoothButton*)Sender;
@@ -152,72 +152,7 @@ void __fastcall TErrorForm_insert::FormHide(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TErrorForm_insert::LanguageChange(int index)
 {
-	TMemo *mm;
-	if(index == 0) mm = Memo_Ko;
-	else if(index == 1) mm = Memo_En;
-	else if(index == 2) mm = Memo_Hu;
-
-	CLR1->Caption = mm->Lines->Strings[0] + " #1";
-	Label14->Caption = mm->Lines->Strings[0] + " #2";
-	Label17->Caption = mm->Lines->Strings[0] + " #3";
-	Label20->Caption = mm->Lines->Strings[0] + " #4";
-	Label23->Caption = mm->Lines->Strings[0] + " #5";
-	Label26->Caption = mm->Lines->Strings[0] + " #6";
-	pup1->Caption = mm->Lines->Strings[1];
-	pup2->Caption = mm->Lines->Strings[1];
-	pup3->Caption = mm->Lines->Strings[1];
-	pup4->Caption = mm->Lines->Strings[1];
-	pup5->Caption = mm->Lines->Strings[1];
-	pup6->Caption = mm->Lines->Strings[1];
-	pflow1->Caption = mm->Lines->Strings[2];
-	pflow2->Caption = mm->Lines->Strings[2];
-	pflow3->Caption = mm->Lines->Strings[2];
-	pflow4->Caption = mm->Lines->Strings[2];
-	pflow5->Caption = mm->Lines->Strings[2];
-	pflow6->Caption = mm->Lines->Strings[2];
-	popen1->Caption = mm->Lines->Strings[3];
-	popen2->Caption = mm->Lines->Strings[3];
-	popen3->Caption = mm->Lines->Strings[3];
-	popen4->Caption = mm->Lines->Strings[3];
-	popen5->Caption = mm->Lines->Strings[3];
-	popen6->Caption = mm->Lines->Strings[3];
-	pclose1->Caption = mm->Lines->Strings[4];
-	pclose2->Caption = mm->Lines->Strings[4];
-	pclose3->Caption = mm->Lines->Strings[4];
-	pclose4->Caption = mm->Lines->Strings[4];
-	pclose5->Caption = mm->Lines->Strings[4];
-	pclose6->Caption = mm->Lines->Strings[4];
-	pdn1->Caption = mm->Lines->Strings[5];
-	pdn2->Caption = mm->Lines->Strings[5];
-	pdn3->Caption = mm->Lines->Strings[5];
-	pdn4->Caption = mm->Lines->Strings[5];
-	pdn5->Caption = mm->Lines->Strings[5];
-	pdn6->Caption = mm->Lines->Strings[5];
-	pcell1->Caption = mm->Lines->Strings[6];
-	pcell2->Caption = mm->Lines->Strings[6];
-	pcell3->Caption = mm->Lines->Strings[6];
-	pcell4->Caption = mm->Lines->Strings[6];
-	pcell5->Caption = mm->Lines->Strings[6];
-	pcell6->Caption = mm->Lines->Strings[6];
-	Label12->Caption = mm->Lines->Strings[7];
-	Label15->Caption = mm->Lines->Strings[7];
-	Label18->Caption = mm->Lines->Strings[7];
-	Label21->Caption = mm->Lines->Strings[7];
-	Label24->Caption = mm->Lines->Strings[7];
-	Label27->Caption = mm->Lines->Strings[7];
-	Label13->Caption = mm->Lines->Strings[8];
-	Label16->Caption = mm->Lines->Strings[8];
-	Label19->Caption = mm->Lines->Strings[8];
-	Label22->Caption = mm->Lines->Strings[8];
-	Label25->Caption = mm->Lines->Strings[8];
-	Label28->Caption = mm->Lines->Strings[8];
-	Label1->Caption = mm->Lines->Strings[9];
-	Panel2->Caption = mm->Lines->Strings[10];
-	Panel26->Caption = mm->Lines->Strings[11];
-	AdvSmoothButton2->Caption = mm->Lines->Strings[12];
-	Panel29->Caption = mm->Lines->Strings[13];
-	AdvSmoothButton3->Caption = mm->Lines->Strings[12];
-	Panel25->Caption = mm->Lines->Strings[14];
+	
 }
 //---------------------------------------------------------------------------
 

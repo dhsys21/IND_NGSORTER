@@ -153,5 +153,42 @@ void __fastcall TMainForm::LanguageChange(AnsiString newLang)
     ServoAlarmListForm->gbServoAlarm->Caption = GetLangStr("CAP_SERVO_ALARM");
     ServoAlarmListForm->gbOPAlarm->Caption = GetLangStr("CAP_OP_ALARM");
     ServoAlarmListForm->gbSystemError->Caption = GetLangStr("CAP_SYSTEM_ERROR");
+
+    //* FormError_insert
+    ErrorForm_insert->lblTitle->Caption = GetLangStr("CAP_ERROR_CHANNEL_INFO");
+    ErrorForm_insert->pnlGripperNo->Caption = GetLangStr("CAP_GRIPPER_NO");
+    ErrorForm_insert->pnlSourceChannel->Caption = GetLangStr("CAP_SOURCE_CHANNEL");
+    ErrorForm_insert->pnlTargetChannel->Caption = GetLangStr("CAP_TARGET_CHANNEL");
+    ErrorForm_insert->pnlNgCode->Caption = GetLangStr("CAP_NG_CODE");
+    ErrorForm_insert->btnMoveSource->Caption = GetLangStr("CAP_MOVE");
+    ErrorForm_insert->btnMoveTarget->Caption = GetLangStr("CAP_MOVE");
+    ErrorForm_insert->CLR1->Caption = GetLangStr("CAP_GRIPPER1");
+    ErrorForm_insert->lblUpDown->Caption = GetLangStr("CAP_UP_DOWN");
+    ErrorForm_insert->lblOpenClose->Caption = GetLangStr("CAP_OPEN_CLOSE");
+    ErrorForm_insert->pup1->Caption = GetLangStr("CAP_UP");
+    ErrorForm_insert->pdn1->Caption = GetLangStr("CAP_DOWN");
+    ErrorForm_insert->pflow1->Caption = GetLangStr("CAP_FLOW");
+    ErrorForm_insert->popen1->Caption = GetLangStr("CAP_OPEN");
+    ErrorForm_insert->pclose1->Caption = GetLangStr("CAP_CLOSE");
+    ErrorForm_insert->pcell1->Caption = GetLangStr("CAP_CELL");
+
+    //* FormError_eject
+    ErrorForm_eject->lblTitle->Caption = GetLangStr("CAP_ERROR_CHANNEL_INFO");
+    ErrorForm_eject->pnlGripperNo->Caption = GetLangStr("CAP_GRIPPER_NO");
+    ErrorForm_eject->pnlSourceChannel->Caption = GetLangStr("CAP_SOURCE_CHANNEL");
+    ErrorForm_eject->pnlTargetChannel->Caption = GetLangStr("CAP_TARGET_CHANNEL");
+    ErrorForm_eject->pnlNgCode->Caption = GetLangStr("CAP_NG_CODE");
+    ErrorForm_eject->btnMoveSource->Caption = GetLangStr("CAP_MOVE");
+    ErrorForm_eject->btnMoveTarget->Caption = GetLangStr("CAP_MOVE");
+    ErrorForm_eject->CLR1->Caption = GetLangStr("CAP_GRIPPER1");
+    ErrorForm_eject->lblUpDown->Caption = GetLangStr("CAP_UP_DOWN");
+    ErrorForm_eject->lblOpenClose->Caption = GetLangStr("CAP_OPEN_CLOSE");
+    ErrorForm_eject->pup1->Caption = GetLangStr("CAP_UP");
+    ErrorForm_eject->pdn1->Caption = GetLangStr("CAP_DOWN");
+    ErrorForm_eject->pflow1->Caption = GetLangStr("CAP_FLOW");
+    ErrorForm_eject->popen1->Caption = GetLangStr("CAP_OPEN");
+    ErrorForm_eject->pclose1->Caption = GetLangStr("CAP_CLOSE");
+    ErrorForm_eject->pcell1->Caption = GetLangStr("CAP_CELL");
+
 }
 //---------------------------------------------------------------------------
