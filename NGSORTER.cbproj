@@ -231,9 +231,7 @@
             <BuildOrder>15</BuildOrder>
         </CppCompile>
         <None Include="Lang_En.ini"/>
-        <None Include="Lang_Ko.ini">
-            <ModuleName>lang</ModuleName>
-        </None>
+        <None Include="Lang_Ko.ini"/>
         <LibFiles Include="mc2xxstd.lib" Condition="'$(Platform)'=='Win32'">
             <BuildOrder>26</BuildOrder>
             <IgnorePath>true</IgnorePath>
@@ -294,11 +292,10 @@
         <CppCompile Include="Stage_mes.cpp">
             <BuildOrder>25</BuildOrder>
         </CppCompile>
-        <FormResources Include="Modmes.dfm"/>
         <FormResources Include="ModGripper.dfm"/>
-        <FormResources Include="FormServoAlarmList.dfm"/>
-        <FormResources Include="FormMain.dfm"/>
         <FormResources Include="FormTeaching.dfm"/>
+        <FormResources Include="FormServoAlarmList.dfm"/>
+        <FormResources Include="Modmes.dfm"/>
         <FormResources Include="ModRobostar.dfm"/>
         <FormResources Include="Modplc.dfm"/>
         <FormResources Include="FormAlarm_TrayInfo.dfm"/>
@@ -307,14 +304,15 @@
         <FormResources Include="FormBase.dfm"/>
         <FormResources Include="Barcode_comm.dfm"/>
         <FormResources Include="FormAlarm.dfm"/>
-        <FormResources Include="FormError_limit.dfm"/>
-        <FormResources Include="FormError_insert.dfm"/>
-        <FormResources Include="FormLoadFactor.dfm"/>
-        <FormResources Include="FormError_mes.dfm"/>
-        <FormResources Include="FormError.dfm"/>
         <FormResources Include="FormDoor.dfm"/>
-        <FormResources Include="FormError_eject.dfm"/>
+        <FormResources Include="FormError_mes.dfm"/>
+        <FormResources Include="FormError_limit.dfm"/>
+        <FormResources Include="FormMain.dfm"/>
+        <FormResources Include="FormLoadFactor.dfm"/>
         <FormResources Include="FormError_bcr.dfm"/>
+        <FormResources Include="FormError.dfm"/>
+        <FormResources Include="FormError_insert.dfm"/>
+        <FormResources Include="FormError_eject.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -358,12 +356,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="ko.ini" Configuration="Debug" Class="ProjectFile">
-                    <Platform Name="Win32">
-                        <RemoteDir>.\</RemoteDir>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="mmscl32_bor.lib" Configuration="Debug" Class="ProjectFile">
                     <Platform Name="Win32">
                         <RemoteDir>.\</RemoteDir>
@@ -387,6 +379,12 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="DsgnCPortDXE.lib" Configuration="Release" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ko.ini" Configuration="Debug" Class="ProjectFile">
                     <Platform Name="Win32">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
@@ -502,27 +500,12 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployClass Name="DependencyModule">
-                    <Platform Name="Win32">
-                        <Operation>0</Operation>
-                        <Extensions>.dll;.bpl</Extensions>
-                    </Platform>
+                <DeployClass Name="ProjectiOSDeviceResourceRules">
                     <Platform Name="iOSDevice64">
                         <Operation>1</Operation>
-                        <Extensions>.dylib</Extensions>
-                    </Platform>
-                    <Platform Name="OSX32">
-                        <RemoteDir>Contents\MacOS</RemoteDir>
-                        <Operation>1</Operation>
-                        <Extensions>.dylib</Extensions>
                     </Platform>
                     <Platform Name="iOSDevice32">
                         <Operation>1</Operation>
-                        <Extensions>.dylib</Extensions>
-                    </Platform>
-                    <Platform Name="iOSSimulator">
-                        <Operation>1</Operation>
-                        <Extensions>.dylib</Extensions>
                     </Platform>
                 </DeployClass>
                 <DeployClass Name="ProjectOSXResource">
@@ -901,12 +884,27 @@
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
-                <DeployClass Name="ProjectiOSDeviceResourceRules">
+                <DeployClass Name="DependencyModule">
+                    <Platform Name="Win32">
+                        <Operation>0</Operation>
+                        <Extensions>.dll;.bpl</Extensions>
+                    </Platform>
                     <Platform Name="iOSDevice64">
                         <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
+                    </Platform>
+                    <Platform Name="OSX32">
+                        <RemoteDir>Contents\MacOS</RemoteDir>
+                        <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
                     </Platform>
                     <Platform Name="iOSDevice32">
                         <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
+                    </Platform>
+                    <Platform Name="iOSSimulator">
+                        <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
                     </Platform>
                 </DeployClass>
                 <ProjectRoot Platform="iOSDevice64" Name="$(PROJECTNAME).app"/>

@@ -99,18 +99,18 @@ typedef struct{
 }PLC_INPUT;
 //---------------------------------------------------------------------------
 typedef struct{
-	uint8_t OUT_01:1; 		//RX00
+	uint8_t OUT_01:1;
 	uint8_t AUTO_RUN:1; 	// 선별기 자동 모드
 
 	uint8_t SRC_WORK:1; 	//	선별 센터링 명령
 	uint8_t SRC_OUT:1; 		//	선별 배출
 
-	uint8_t SRC_EMP:1; //RX04
+	uint8_t SRC_EMP:1;
 	uint8_t TARGET_OUT:1; 	//	대상 배출
-	uint8_t OUT_07:1; //RX06
-	uint8_t OUT_08:1; //RX07
+	uint8_t OUT_07:1;
+	uint8_t OUT_08:1;
 
-	uint8_t OUT_09:1; //RX08
+	uint8_t OUT_09:1;
 	uint8_t OUT_10:1;
 	uint8_t OUT_11:1;
 	uint8_t OUT_12:1;

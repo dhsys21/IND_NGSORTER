@@ -145,8 +145,6 @@ public:		// User declarations
 	int toolNum;
 	void __fastcall ShowError(AnsiString str1, AnsiString str2, int toolNo, int mesCode);
 
-    void __fastcall LanguageChange(int index);
-
 	__fastcall TErrorForm_eject(TComponent* Owner);
 };
 //---------------------------------------------------------------------------

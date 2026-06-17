@@ -6468,10 +6468,10 @@ object MainForm: TMainForm
     Visible = False
   end
   object pnlPLCTEST: TAdvSmoothPanel
-    Left = 1190
-    Top = 43
-    Width = 384
-    Height = 392
+    Left = 959
+    Top = 66
+    Width = 928
+    Height = 686
     Cursor = crDefault
     CanMove = True
     Caption.HTMLFont.Charset = DEFAULT_CHARSET
@@ -6531,8 +6531,8 @@ object MainForm: TMainForm
     end
     object AdvSmoothToggleButton2: TAdvSmoothToggleButton
       Tag = 1
-      Left = 23
-      Top = 80
+      Left = 20
+      Top = 274
       Width = 130
       Height = 30
       Color = clWhite
@@ -6574,8 +6574,8 @@ object MainForm: TMainForm
     end
     object AdvSmoothToggleButton3: TAdvSmoothToggleButton
       Tag = 1
-      Left = 23
-      Top = 121
+      Left = 20
+      Top = 315
       Width = 130
       Height = 30
       Color = clWhite
@@ -6617,8 +6617,8 @@ object MainForm: TMainForm
     end
     object AdvSmoothToggleButton5: TAdvSmoothToggleButton
       Tag = 1
-      Left = 23
-      Top = 157
+      Left = 20
+      Top = 351
       Width = 130
       Height = 30
       Color = clWhite
@@ -6660,8 +6660,8 @@ object MainForm: TMainForm
     end
     object AdvSmoothToggleButton6: TAdvSmoothToggleButton
       Tag = 1
-      Left = 23
-      Top = 193
+      Left = 20
+      Top = 387
       Width = 130
       Height = 30
       Color = clWhite
@@ -6702,8 +6702,8 @@ object MainForm: TMainForm
     end
     object AdvSmoothToggleButton7: TAdvSmoothToggleButton
       Tag = 1
-      Left = 162
-      Top = 120
+      Left = 159
+      Top = 314
       Width = 191
       Height = 30
       Color = clWhite
@@ -6745,8 +6745,8 @@ object MainForm: TMainForm
     end
     object AdvSmoothToggleButton8: TAdvSmoothToggleButton
       Tag = 1
-      Left = 162
-      Top = 156
+      Left = 159
+      Top = 350
       Width = 131
       Height = 30
       Color = clWhite
@@ -6788,8 +6788,8 @@ object MainForm: TMainForm
     end
     object AdvSmoothToggleButton9: TAdvSmoothToggleButton
       Tag = 1
-      Left = 162
-      Top = 192
+      Left = 159
+      Top = 386
       Width = 131
       Height = 30
       Color = clWhite
@@ -6831,8 +6831,8 @@ object MainForm: TMainForm
     end
     object AdvSmoothToggleButton10: TAdvSmoothToggleButton
       Tag = 1
-      Left = 23
-      Top = 280
+      Left = 398
+      Top = 279
       Width = 131
       Height = 30
       Color = clWhite
@@ -6874,8 +6874,8 @@ object MainForm: TMainForm
     end
     object AdvSmoothToggleButton11: TAdvSmoothToggleButton
       Tag = 1
-      Left = 23
-      Top = 316
+      Left = 398
+      Top = 315
       Width = 131
       Height = 30
       Color = clWhite
@@ -6917,8 +6917,8 @@ object MainForm: TMainForm
     end
     object AdvSmoothToggleButton12: TAdvSmoothToggleButton
       Tag = 1
-      Left = 23
-      Top = 352
+      Left = 398
+      Top = 351
       Width = 131
       Height = 30
       Color = clWhite
@@ -6960,8 +6960,8 @@ object MainForm: TMainForm
     end
     object AdvSmoothToggleButton13: TAdvSmoothToggleButton
       Tag = 1
-      Left = 160
-      Top = 352
+      Left = 535
+      Top = 351
       Width = 131
       Height = 30
       Color = clWhite
@@ -7003,8 +7003,8 @@ object MainForm: TMainForm
     end
     object AdvSmoothToggleButton14: TAdvSmoothToggleButton
       Tag = 1
-      Left = 160
-      Top = 316
+      Left = 535
+      Top = 315
       Width = 131
       Height = 30
       Color = clWhite
@@ -7046,8 +7046,8 @@ object MainForm: TMainForm
     end
     object AdvSmoothToggleButton16: TAdvSmoothToggleButton
       Tag = 1
-      Left = 160
-      Top = 280
+      Left = 535
+      Top = 279
       Width = 131
       Height = 30
       Color = clWhite
@@ -7089,8 +7089,8 @@ object MainForm: TMainForm
     end
     object AdvSmoothToggleButton17: TAdvSmoothToggleButton
       Tag = 1
-      Left = 162
-      Top = 80
+      Left = 159
+      Top = 274
       Width = 131
       Height = 30
       Color = clWhite

@@ -463,11 +463,6 @@ public:		// User declarations
 	void __fastcall memoGripperLineAdd(AnsiString msg);
 	void __fastcall memoRobostarLineAdd(AnsiString msg);
 
-    AnsiString CurrentLanguage;
-    TStringList *LangDict;
-    UnicodeString __fastcall GetLangStr(AnsiString key);
-	void __fastcall LanguageChange(AnsiString newLang);
-
 	void __fastcall setTrayInfo(int index);
 	void __fastcall saveTrayInfo(int index);
 	void __fastcall loadTrayInfo(int index);

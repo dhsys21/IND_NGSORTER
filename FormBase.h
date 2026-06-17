@@ -91,6 +91,7 @@ __published:	// IDE-managed Components
 	void __fastcall pplcClick(TObject *Sender);
 	void __fastcall btnKeyLockClick(TObject *Sender);
 	void __fastcall btnKeyUnLockClick(TObject *Sender);
+	void __fastcall FormCreate(TObject *Sender);
 
 private:	// User declarations
 
@@ -107,6 +108,12 @@ public:		// User declarations
     TPanel *pRead[2][16];
 	void __fastcall setColor(TAdvSmoothPanel *pnl, bool bon);
 	MAIN_CONFIG config;
+
+    AnsiString CurrentLanguage;
+    TStringList *LangDict;
+    UnicodeString __fastcall GetLangStr(AnsiString key);
+	void __fastcall ReadLanguage(AnsiString newLang);
+    void __fastcall ChangeLanguage();
 
     int __fastcall StringToInt(UnicodeString str, int def);
     double __fastcall StringToDouble(UnicodeString str, double def);
