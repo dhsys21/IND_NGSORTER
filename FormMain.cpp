@@ -418,7 +418,7 @@ void __fastcall TMainForm::plcReadData(AnsiString str, int addr)
 void __fastcall TMainForm::trayout_srcBtnClick(TObject *Sender)
 {
 	if(plcInput.SRC_ARRIVE){
-		if(MessageBox(Handle, L"", L"Tray Out", MB_YESNO|MB_ICONQUESTION) == ID_YES){
+		if(MessageBox(Handle, BaseForm->GetLangStr("MSG_EJECT_SOURCETRAY").c_str()), L"Tray Out", MB_YESNO|MB_ICONQUESTION) == ID_YES){
             plcOutput.SRC_MANUAL_WORK = 0;
 			CmdTrayOut(0);
 		}
@@ -430,8 +430,8 @@ void __fastcall TMainForm::trayout_targetBtnClick(TObject *Sender)
 {
 	int reply;
 	if(plcInput.TARGET_READY){
-		if(MessageBox(Handle, L"대상트레이를 배출 하시겠습니까?", L"Tray Out", MB_YESNO|MB_ICONQUESTION) == ID_YES){
-			reply = MessageBox(Handle, L"MES에 요청 하시겠습니까?", L"MES", MB_YESNOCANCEL|MB_ICONQUESTION);
+		if(MessageBox(Handle, BaseForm->GetLangStr("MSG_EJECT_TARGETTRAY").c_str(), L"Tray Out", MB_YESNO|MB_ICONQUESTION) == ID_YES){
+			reply = MessageBox(Handle, BaseForm->GetLangStr("MSG_MES_REQUEST").c_str(), L"MES", MB_YESNOCANCEL|MB_ICONQUESTION);
 			if(reply == ID_YES){
 				NotifyTransferOut(pTrayid_target->Caption);
 				CmdTrayOut(1);
@@ -455,12 +455,12 @@ void __fastcall TMainForm::InitStep(STEP *data)
 void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 {
 	if(equipMode != modeAuto){
-		memoMainLineAdd("[C_Maint] AUTO 모드가 아닙니다.");
+		memoMainLineAdd(BaseForm->GetLangStr("MSG_AUTOMODE_WARNING"));
 		return;
 	}
 
-	if(plcInput.SRC_ARRIVE == 0)InitStep(&step[0]);             // test
-	if(plcInput.TARGET_READY == 0)InitStep(&step[1]);           // test
+	if(plcInput.SRC_ARRIVE == 0)InitStep(&step[0]);
+	if(plcInput.TARGET_READY == 0)InitStep(&step[1]);
 
     if(!gripper->pauseStatus && !robostar->pauseStatus)
 	{
@@ -469,46 +469,46 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 				if(plcInput.SRC_ARRIVE){
 					NotifyEquipStatus("PROCESS");
 					if(chkBypass->Checked == false){
-						pTrayid_source->Caption = "";       // test
-						pTrayid_source2->Caption = "";      // test
-						memoMainLineAdd("선별 트레이 바코드 스캔.");
+						pTrayid_source->Caption = "";
+						pTrayid_source2->Caption = "";
+						memoMainLineAdd(BaseForm->GetLangStr("MSG_SOURCETRAY_SCAN"));
 						comBcr[0]->GetBarcode();	// 작업1. 선별 바코드 읽고  -> DisplayTrayInfo  	// test
 						step[0].step += 1;
 					}else{
-						memoMainLineAdd("바이패스 설정 - 트레이 배출.");
+						memoMainLineAdd(BaseForm->GetLangStr("MSG_BYPASS_TRAYOUT"));
 						CmdTrayOut(0);
 						step[0].step += 100;
 					}
 				}
 				else{
 					if(plcInput.TARGET_READY && pTrayid_target->Caption.IsEmpty()){
-						memoMainLineAdd("대상 트레이 바코드 스캔.");
+						memoMainLineAdd(BaseForm->GetLangStr("MSG_TARGETTRAY_SCAN"));
 						comBcr[1]->GetBarcode();                                            // test
 					}else{
-						memoMainLineAdd("선별 트레이 도착 기다림.");
+						memoMainLineAdd(BaseForm->GetLangStr("MSG_SOURCETRAY_WAITING"));
 					}
 				}
 				break;
 			case 1:
 				if(plcInput.SRC_READY){
-					memoMainLineAdd("선별 트레이 센터링 완료.");
+					memoMainLineAdd(BaseForm->GetLangStr("MSG_SOURCETRAY_CENTERING_COMPL"));
 					NotifyTransferIn(pTrayid_source->Caption);	// 작업3. 센터링을 치면 작업시작 보고를 한다.
 					step[0].step += 1;
 				}else{
-					memoMainLineAdd("선별 트레이 센터링.");
+					memoMainLineAdd(BaseForm->GetLangStr("MSG_SOURCETRAY_CENTERING"));
 				}
 				break;
 			case 2:
 				if(plcInput.TARGET_READY){
-					memoMainLineAdd("대상 트레이 센터링 완료.");
+					memoMainLineAdd(BaseForm->GetLangStr("MSG_TARGETTRAY_CENTERING_COMPL"));
 					pTrayid_target->Caption = "";       // test
 					pTrayid_target2->Caption = "";      // test
 					comBcr[1]->GetBarcode();		// 작업4. 센터링이 되어 있으면 바코드를 읽고 -> DisplayTrayInfo 	// test
 					step[0].step += 1;
 					step[1].step = 1;
 				}else{
-					memoMainLineAdd("대상트레이가 없거나 센터링 되지 않았습니다.");
-					AlarmForm->ShowError("[C_Maint] 대상 트레이 없음", L"대상 트레이 또는 센터링 상태 확인.");
+					memoMainLineAdd("The target tray is missing or not centering.");
+					AlarmForm->ShowError("No Target Tray", BaseForm->GetLangStr("MSG_TARGETTRAY_CHECK_CENTERING").c_str());
 				}
 			default:
 				break;
@@ -544,13 +544,6 @@ void __fastcall TMainForm::resetBtnClick(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TMainForm::homeBtnClick(TObject *Sender)
-{
-    UnicodeString msg1 = "[C_Maint] 대기상태로 이동 후 다시 시작하세요. \r\n부하율 : 58%, z축 위치 : 55000";
-    MainForm->memoRobostarLineAdd("Z 축 이동실패" + msg1);
-    AlarmForm->ShowError("[C_Maint] Z 축 이동실패", msg1);
-}
-//---------------------------------------------------------------------------
 void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 {
 	for(int i=0; i<=3; ++i)GetZoneCount(i);
@@ -575,7 +568,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	if(flowValue != 0)
 	{
 		robostar->req_JogMove(-1);
-		AlarmForm->ShowError("[B_Ignition] No." + IntToStr(flowValue) + " 그리퍼 쿠션 센서가 감지되었습니다.", "확인하고 재시작 해주세요.");
+		AlarmForm->ShowError("No." + IntToStr(flowValue) + " " + BaseForm->GetLangStr("MSG_GRIPPER_FLOW"), BaseForm->GetLangStr("MSG_CHECK_RESTART"));
 	}
 
 	if(robostar->mr2.system_status == SSC_STS_CODE_RUNNING) popen->Color = clLime;
@@ -638,7 +631,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 			loadfactorForm->m_Count++;
 			if(loadfactorForm->m_Count > 10)
 			{
-				loadfactor_AlarmForm->ShowError("[C_Maint] 부하율이 제한설정을 넘었습니다.", "서보 상태를 확인해 주세요.");
+				loadfactor_AlarmForm->ShowError(BaseForm->GetLangStr("MSG_LOADFACTOR_LIMIT"), BaseForm->GetLangStr("MSG_CHECK_SERVOSTATUS"));
 				break;
 			}
 		}
@@ -790,7 +783,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	if(gripper->pauseStatus)ppause->Color = clRed;
 	else ppause->Color = clSilver;
 
-	if(NGflag) AlarmForm->ShowError("[C_Maint] ROBOT Alarm Occurred (Error Code : " +  perr->Caption + ")", "Please RESET.");
+	if(NGflag) AlarmForm->ShowError(BaseForm->GetLangStr("MSG_ROBOT_ALARM") + " (Error Code : " +  perr->Caption + ")", "Please RESET.");
 	else
 	{
         perr->Caption = "";
@@ -799,23 +792,23 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 
 	//* 테스트 위해 주석처리 2019 05 15
 	if(robostar->input.SAFETY_DOOR_1)
-		doorForm->ShowError("[C_Maint] DOOR #1 Open", "문을 닫아 주세요.", 0);
+		doorForm->ShowError("DOOR #1 Open", BaseForm->GetLangStr("MSG_CLOSE_DOOR"), 0);
 	if(robostar->input.SAFETY_DOOR_2)
-		doorForm->ShowError("[C_Maint] DOOR #2 Open", "문을 닫아 주세요.", 1);
+		doorForm->ShowError("DOOR #2 Open", BaseForm->GetLangStr("MSG_CLOSE_DOOR"), 1);
 	if(robostar->input.SAFETY_DOOR_3)
-		doorForm->ShowError("[C_Maint] DOOR #3 Open", "문을 닫아 주세요.", 3);
+		doorForm->ShowError("DOOR #3 Open", BaseForm->GetLangStr("MSG_CLOSE_DOOR"), 3);
 	if(robostar->input.EMS_SWITCH)
-		doorForm->ShowError("[A_Safety] 비상정지", "비상정지 스위치를 확인해 주세요.", 2);
+		doorForm->ShowError("Emergency Stop", BaseForm->GetLangStr("MSG_CHECK_EMGSWITCH"), 2);
 	if(!robostar->gripper.DOOR_OPEN_SELECT)
 	{
 		if(equipMode == modeAuto)
-			doorForm->ShowError("[C_Maint] KEYLOCK 해제", "KEYLOCK 을 설정해 주세요.", 4);
+			doorForm->ShowError("KEYLOCK Unlock", BaseForm->GetLangStr("MSG_CHECK_EMGSWITCH"), 4);
 		else
             robostar->req_Speed(200, 3000, 3000);
 	}
 
 	if(popen->Color != clLime)
-		doorForm->ShowError("[C_Maint] RESET", "서보를 켜고 OPEN을 클릭 해주세요", 5);
+		doorForm->ShowError("RESET", BaseForm->GetLangStr("MSG_SERVO_OPEN"), 5);
 
 
 	pejectremainCnt->Caption = tray_source.remainCnt;
@@ -921,10 +914,10 @@ void __fastcall TMainForm::btnApplyNgLimitCountClick(TObject *Sender)
 {
 	try{
 		stage.limitCnt = limitEdit->Text.ToInt();
-		MessageBox(Handle, L"[C_Maint] NG limit 값이 설정 되었습니다.", L"NG limt", MB_OK|MB_ICONINFORMATION);
+		MessageBox(Handle, BaseForm->GetLangStr("MSG_NGLIMIT_SET").c_str(), L"NG limt", MB_OK|MB_ICONINFORMATION);
 	}
 	catch(...){
-		MessageBox(Handle, L"[C_Maint] 값을 확인해 주세요.", L"경고", MB_OK|MB_ICONWARNING);
+		MessageBox(Handle, BaseForm->GetLangStr("MSG_CHECK_VALUE").c_str(), L"WARNING", MB_OK|MB_ICONWARNING);
 	}
 
 }
@@ -1010,34 +1003,33 @@ bool __fastcall TMainForm::GetZoneChannel(int zone, int ch)
 AnsiString __fastcall TMainForm::GetAlarmMsg(int code)
 {
 	switch(code){
-		case 1: return "Warning_MES로부터 선별 TRAY정보응답 ERROR"; break;
-		case 2: return "Warning_MES로부터 선별 TRAY_REPLY_S 응답시간 초과"; break;
-		case 3: return "Warning_MES로부터 대상 TRAY정보응답 ERROR"; break;
-		case 4: return "Warning_MES로부터 대상 TRAY_REPLY_T 응답시간 초과"; break;
-		case 5: return "Warning_MES로부터 대상 ID_MATCHING 응답 Error"; break;
-		case 6: return "Warning_MES로부터 대상 ID_MATCHING 응답시간 초과"; break;
-		case 7: return "Warning_MES로부터 선별 TRAY TRANSFER_OUT 응답 Error"; break;
-		case 8: return "Warning_MES로부터 선별 TRAY TRANSFER_OUT 응답시간 초과"; break;
-		case 9: return "Warning_MES로부터 대상 TRAY TRANSFER_OUT 응답 Error"; break;
-		case 10: return "Warning_MES로부터 대상 TRAY TRANSFER_OUT 응답시간 초과"; break;
-		case 11: return "Warning_MES로부터 SEND_EVENT ERROR"; break;
-		case 12: return "Warning_MES로부터 SEND_EVENT 응답시간 초과"; break;
-		case 13: return "Warning_MES로부터 선별 ID_MATCHING 응답 Error"; break;
-		case 14: return "Warning_MES로부터 선별 ID_MATCHING 응답시간 초과"; break;
-		case 15: return "C_Maint_[선별TRAY] GRIP DOWN센서 감지 시간초과"; break;
-		case 16: return "C_Maint_[선별TRAY] GRIP UP센서 감지 시간초과"; break;
-		case 17: return "C_Maint_[선별TRAY] GRIP DOWN시 충돌되었습니다"; break;
-		case 18: return "C_Maint_[대상TRAY] GRIP UNCHUCK 센서 감지시간 초과"; break;
-		case 19: return "C_Maint_[대상TRAY] GRIP UP 센서 감지시간 초과"; break;
-		case 20: return "C_Maint_[선별TRAY] Cell No, Grip No에 셀이 없음"; break;
-		case 21: return "C_Maint_[대상TRAY] GRIP DOWN시 충돌되었습니다"; break;
-		case 22: return "C_Maint_[대상TRAY] GRIP DOWN시간 초과"; break;
-		case 23: return "C_Maint_[대상TRAY] Cell No, Grip No 에 셀이 없음"; break;
-		case 24: return "Warning_불량수가 설정치 보다 많습니다"; break;
-		case 25: return "Warning_DOOR #1 Open"; break;
-		case 26: return "Warning_DOOR #2 Open"; break;
-		case 27: return "A_Safety_Emergency stop"; break;
-		case 28: return "Warning_등록되지 않은 기종 입니다"; break;
+		case 1: return "MES로부터 선별 TRAY정보응답 ERROR"; break;
+		case 2: return "MES로부터 선별 TRAY_REPLY_S 응답시간 초과"; break;
+		case 3: return "MES로부터 대상 TRAY정보응답 ERROR"; break;
+		case 4: return "MES로부터 대상 TRAY_REPLY_T 응답시간 초과"; break;
+		case 5: return "MES로부터 대상 ID_MATCHING 응답 Error"; break;
+		case 6: return "MES로부터 대상 ID_MATCHING 응답시간 초과"; break;
+		case 7: return "MES로부터 선별 TRAY TRANSFER_OUT 응답 Error"; break;
+		case 8: return "MES로부터 선별 TRAY TRANSFER_OUT 응답시간 초과"; break;
+		case 9: return "MES로부터 대상 TRAY TRANSFER_OUT 응답 Error"; break;
+		case 10: return "MES로부터 대상 TRAY TRANSFER_OUT 응답시간 초과"; break;
+		case 11: return "MES로부터 SEND_EVENT ERROR"; break;
+		case 12: return "MES로부터 SEND_EVENT 응답시간 초과"; break;
+		case 13: return "MES로부터 선별 ID_MATCHING 응답 Error"; break;
+		case 14: return "MES로부터 선별 ID_MATCHING 응답시간 초과"; break;
+		case 15: return "[선별TRAY] GRIP DOWN센서 감지 시간초과"; break;
+		case 16: return "[선별TRAY] GRIP UP센서 감지 시간초과"; break;
+		case 17: return "[선별TRAY] GRIP DOWN시 충돌되었습니다"; break;
+		case 18: return "[대상TRAY] GRIP UNCHUCK 센서 감지시간 초과"; break;
+		case 19: return "[대상TRAY] GRIP UP 센서 감지시간 초과"; break;
+		case 20: return "[선별TRAY] Cell No, Grip No에 셀이 없음"; break;
+		case 21: return "[대상TRAY] GRIP DOWN시 충돌되었습니다"; break;
+		case 22: return "[대상TRAY] GRIP DOWN시간 초과"; break;
+		case 23: return "[대상TRAY] Cell No, Grip No 에 셀이 없음"; break;
+		case 24: return "불량수가 설정치 보다 많습니다"; break;
+		case 25: return "DOOR #1 Open"; break;
+		case 26: return "DOOR #2 Open"; break;
+		case 27: return "Emergency stop"; break;
 	}
 }
 //---------------------------------------------------------------------------
@@ -1072,8 +1064,8 @@ void __fastcall TMainForm::AdvSmoothToggleButton_InitWorkClick(TObject *Sender)
 {
 	if(gripper->pauseStatus && robostar->pauseStatus)
 	{
-		if(MessageBox(Handle, L"작업을 초기화 하시겠습니까?",
-			L"초기화", MB_YESNO|MB_ICONQUESTION) == ID_YES)
+		if(MessageBox(Handle, BaseForm->GetLangStr("MSG_INIT_WORK").c_str(),
+			L"Initialize", MB_YESNO|MB_ICONQUESTION) == ID_YES)
 		{
             gripper->seq_save = seqIdle;
 			robostar->seq_save = seqIdle;
@@ -1086,7 +1078,7 @@ void __fastcall TMainForm::AdvSmoothToggleButton_InitWorkClick(TObject *Sender)
 			pwork1->Color = clSilver;
 			pwork2->Color = clSilver;
 		}
-	}else ShowMessage("[C_Maint] 일시정지 상태에서만 작업초기화를 할 수 있습니다.");
+	}else ShowMessage(BaseForm->GetLangStr("MSG_INIT_WORK_ALARM"));
 }
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------

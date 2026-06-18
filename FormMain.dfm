@@ -1929,50 +1929,6 @@ object MainForm: TMainForm
       OnClick = autoBtnClick
       TMSStyle = 0
     end
-    object homeBtn: TAdvSmoothToggleButton
-      Tag = 2
-      Left = 216
-      Top = 3
-      Width = 100
-      Height = 30
-      Color = clWhite
-      ColorDown = clLime
-      BorderColor = clWhite
-      BorderInnerColor = clGray
-      BevelWidth = 0
-      AutoToggle = False
-      Appearance.GlowPercentage = 50
-      Appearance.Font.Charset = DEFAULT_CHARSET
-      Appearance.Font.Color = clBlack
-      Appearance.Font.Height = -13
-      Appearance.Font.Name = 'Tahoma'
-      Appearance.Font.Style = [fsBold]
-      Appearance.Spacing = 0
-      Appearance.FocusColor = clWhite
-      Appearance.WordWrapping = False
-      Caption = 'HOME'
-      Version = '1.5.1.1'
-      Status.Caption = '0'
-      Status.Appearance.Fill.Color = clRed
-      Status.Appearance.Fill.ColorMirror = clNone
-      Status.Appearance.Fill.ColorMirrorTo = clNone
-      Status.Appearance.Fill.GradientType = gtSolid
-      Status.Appearance.Fill.GradientMirrorType = gtSolid
-      Status.Appearance.Fill.BorderColor = clGray
-      Status.Appearance.Fill.Rounding = 0
-      Status.Appearance.Fill.ShadowOffset = 0
-      Status.Appearance.Fill.Glow = gmNone
-      Status.Appearance.Font.Charset = DEFAULT_CHARSET
-      Status.Appearance.Font.Color = clWhite
-      Status.Appearance.Font.Height = -11
-      Status.Appearance.Font.Name = 'Tahoma'
-      Status.Appearance.Font.Style = []
-      ParentFont = False
-      TabOrder = 2
-      Visible = False
-      OnClick = homeBtnClick
-      TMSStyle = 0
-    end
     object stopBtn: TAdvSmoothToggleButton
       Tag = 1
       Left = 60
@@ -2014,7 +1970,7 @@ object MainForm: TMainForm
       Status.Appearance.Font.Style = []
       ShowFocus = False
       ParentFont = False
-      TabOrder = 3
+      TabOrder = 2
       OnClick = stopBtnClick
       TMSStyle = 0
     end
@@ -2057,7 +2013,7 @@ object MainForm: TMainForm
       Status.Appearance.Font.Style = []
       ShowFocus = False
       ParentFont = False
-      TabOrder = 4
+      TabOrder = 3
       OnClick = playBtnClick
       TMSStyle = 0
     end
@@ -2100,7 +2056,7 @@ object MainForm: TMainForm
       Status.Appearance.Font.Name = 'Tahoma'
       Status.Appearance.Font.Style = []
       ParentFont = False
-      TabOrder = 5
+      TabOrder = 4
       OnClick = pause_stopBtnClick
       TMSStyle = 0
     end
@@ -2143,7 +2099,7 @@ object MainForm: TMainForm
       Status.Appearance.Font.Name = 'Tahoma'
       Status.Appearance.Font.Style = []
       ParentFont = False
-      TabOrder = 6
+      TabOrder = 5
       OnClick = buzzerBtnClick
       TMSStyle = 0
     end
@@ -2161,7 +2117,7 @@ object MainForm: TMainForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 7
+      TabOrder = 6
       Visible = False
       OnClick = chkBypassClick
     end
@@ -2183,7 +2139,7 @@ object MainForm: TMainForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 8
+      TabOrder = 7
     end
     object pdoor_right: TPanel
       Left = 651
@@ -2203,7 +2159,7 @@ object MainForm: TMainForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 9
+      TabOrder = 8
     end
     object pemergency: TPanel
       Left = 570
@@ -2223,7 +2179,7 @@ object MainForm: TMainForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 10
+      TabOrder = 9
     end
     object ppause: TPanel
       Left = 452
@@ -2243,7 +2199,7 @@ object MainForm: TMainForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 11
+      TabOrder = 10
     end
     object AdvSmoothToggleButton_InitWork: TAdvSmoothToggleButton
       Tag = 2
@@ -2284,7 +2240,7 @@ object MainForm: TMainForm
       Status.Appearance.Font.Name = 'Tahoma'
       Status.Appearance.Font.Style = []
       ParentFont = False
-      TabOrder = 12
+      TabOrder = 11
       OnClick = AdvSmoothToggleButton_InitWorkClick
       TMSStyle = 0
     end
@@ -2327,7 +2283,7 @@ object MainForm: TMainForm
       Status.Appearance.Font.Name = 'Tahoma'
       Status.Appearance.Font.Style = []
       ParentFont = False
-      TabOrder = 13
+      TabOrder = 12
       OnClick = pause_startBtnClick
       TMSStyle = 0
     end
@@ -2345,7 +2301,7 @@ object MainForm: TMainForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 14
+      TabOrder = 13
       Visible = False
       OnClick = chkBypassClick
     end

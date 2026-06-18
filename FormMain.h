@@ -92,7 +92,6 @@ __published:	// IDE-managed Components
 	TOpenDialog *OpenDialog;
 	TAdvSmoothToggleButton *manualBtn;
 	TAdvSmoothToggleButton *autoBtn;
-	TAdvSmoothToggleButton *homeBtn;
 	TAdvSmoothToggleButton *stopBtn;
 	TAdvSmoothToggleButton *playBtn;
 	TAdvSmoothToggleButton *pause_stopBtn;
@@ -323,7 +322,6 @@ __published:	// IDE-managed Components
 	void __fastcall stepTimerTimer(TObject *Sender);
 	void __fastcall chkBypassClick(TObject *Sender);
 	void __fastcall resetBtnClick(TObject *Sender);
-	void __fastcall homeBtnClick(TObject *Sender);
 	void __fastcall btnApplyNgLimitCountClick(TObject *Sender);
 	void __fastcall zone1Click(TObject *Sender);
 	void __fastcall openBtnClick(TObject *Sender);
