@@ -17,8 +17,6 @@ __fastcall Tgripper::Tgripper(TComponent* Owner)
 	pauseStatus = false;
 }
 //---------------------------------------------------------------------------
-
-
 void __fastcall Tgripper::InitSequence(gripperSequence data, gripperSequence reserve)
 {
 	seq = data;
@@ -61,18 +59,18 @@ void __fastcall Tgripper::stepTimerTimer(TObject *Sender)
 		else if(seq == seqInserting)
 			Inserting();
 		else if(seq == seqIdle)
-			MainForm->memoGripperLineAdd("[Waiting] ");
+			MainForm->memoGripperLineAdd(BaseForm->GetLangStr("MSG_WAITING"));
 		else
-			MainForm->memoGripperLineAdd("[Waiting] Auto mode.");
+			MainForm->memoGripperLineAdd(BaseForm->GetLangStr("MSG_WAITING") + " " + BaseForm->GetLangStr("MSG_AUTOMODE"));
 	}
 	else if(MainForm->equipMode == modeManual){
-		MainForm->memoGripperLineAdd("[Waiting] Manual mode.");
+		MainForm->memoGripperLineAdd(BaseForm->GetLangStr("MSG_WAITING") + " " + BaseForm->GetLangStr("MSG_MANUALMODE"));
 	}
 	else if(MainForm->equipMode == modeAutoStop){
-		MainForm->memoGripperLineAdd("[Waiting] Auto stop mode.");
+		MainForm->memoGripperLineAdd(BaseForm->GetLangStr("MSG_WAITING") + " " + BaseForm->GetLangStr("MSG_AUTOSTOPMODE"));
 	}
 	else if(MainForm->equipMode == modeEmergency){
-		MainForm->memoGripperLineAdd("[Waiting] Emergency stop mode.");
+		MainForm->memoGripperLineAdd(BaseForm->GetLangStr("MSG_WAITING") + " " + BaseForm->GetLangStr("MSG_EMGSTOPMODE"));
 	}
 }
 //---------------------------------------------------------------------------
@@ -106,14 +104,14 @@ void __fastcall Tgripper::Initialize()
 
     if(MainForm->pwork1->Color != clLime)
 	{
-		AlarmForm->ShowError("The source tray is not ready.", "Please check and restart.");
+		AlarmForm->ShowError(BaseForm->GetLangStr("MSG_SOURCETRAY_NOTREADY"), BaseForm->GetLangStr("MSG_CHECK_RESTART"));
 		return;
 	}
 
 	switch(step.step){
 		case 0:	// 그리퍼 정보 초기화
 			if(MainForm->pwork2->Color != clLime){
-				MainForm->memoGripperLineAdd("[Init step 0] The target tray is not ready.");
+				MainForm->memoGripperLineAdd("[Init step 0] " + BaseForm->GetLangStr("MSG_TARGETTRAY_NOTREADY"));
 				return;
 			}
 			if(MainForm->tray_target.remainCnt == 0){
@@ -123,7 +121,7 @@ void __fastcall Tgripper::Initialize()
 					MainForm->NotifyTransferOut(MainForm->pTrayid_target->Caption);
 					MainForm->CmdTrayOut(1);
 				}
-				MainForm->memoGripperLineAdd("[Init step 0] Target tray is full.");
+				MainForm->memoGripperLineAdd("[Init step 0] " + BaseForm->GetLangStr("MSG_TARGETTRAY_FULL"));
 
 				waitTimer->Enabled = true;
 				return;
@@ -141,14 +139,14 @@ void __fastcall Tgripper::Initialize()
 					tool[i].target_ch = "0";
 
 					if(tool[i].disable == false && robostar->CheckEjectCell_before(i+1) == false){ 	// 그리퍼 사용하는데 셀이 있으면 알람발생
-						MainForm->memoGripperLineAdd("[Init step 0] Gripper  #" + IntToStr(i+1) + " - Cell was detected and sorting stopped.");
-						AlarmForm->ShowError("Gripper  #" + IntToStr(i+1) + " - Cell was detected and sorting stopped.", "Check and restart.");
+						MainForm->memoGripperLineAdd("[Init step 0] " + BaseForm->GetLangStr("MSG_GRIPPER_CELLDETECT") + IntToStr(i+1));
+						AlarmForm->ShowError(BaseForm->GetLangStr("MSG_GRIPPER_CELLDETECT") + IntToStr(i+1), BaseForm->GetLangStr("MSG_AUTO_ALARM2"));
 						return;
 					}
 				}
 				step.step += 1;
 			}else{
-				MainForm->memoGripperLineAdd("[Init step 0] Automatic - Stop state.");
+				MainForm->memoGripperLineAdd("[Init step 0] " + BaseForm->GetLangStr("MSG_AUTOSTOPMODE"));
 			}
 			waitTimer->Enabled = false;
 			break;
@@ -204,8 +202,8 @@ void __fastcall Tgripper::Initialize()
                                         MainForm->DisplayTargetCellInfo(step.chCnt, tch);
                                         step.ejectCnt += 1;	// 취출 예정 수량
                                         step.chCnt += 1;
-                                        MainForm->memoGripperLineAdd("[Init step 1] Sorting channel : "
-                                            + MainForm->psort_ch[i]->Caption + " / Target channel : " + IntToStr(tch+1));
+                                        MainForm->memoGripperLineAdd("[Init step 1] " + BaseForm->GetLangStr("CAP_SOURCE_CHANNEL")+ " : "
+                                            + MainForm->psort_ch[i]->Caption + " / " + BaseForm->GetLangStr("CAP_TARGET_CHANNEL") + " : " + IntToStr(tch+1));
                                         break;
 									}
 								}
@@ -222,12 +220,11 @@ void __fastcall Tgripper::Initialize()
 			if(step.badCnt > 0){
 				if(step.ejectCnt > 0){
 					InitSequence(step.reserve);	// 선별시작
-					MainForm->memoGripperLineAdd("[Init step 2] Eject start.");
+					MainForm->memoGripperLineAdd("[Init step 2] " + BaseForm->GetLangStr("MSG_EJECT_START"));
 				}else{
-					MainForm->memoGripperLineAdd("[Init step 2] Cannot be ejected out : Check the gripper usage setting.");
-					AlarmForm->ShowError("Cannot eject the source tray", "Check the gripper usage setting.");
+					MainForm->memoGripperLineAdd("[Init step 2] " + BaseForm->GetLangStr("MSG_CANNOT_EJECT") + " : " + BaseForm->GetLangStr("MSG_CHECK_GRIPPERUSAGE"));
+					AlarmForm->ShowError(BaseForm->GetLangStr("MSG_CANNOT_EJECT"), BaseForm->GetLangStr("MSG_CHECK_GRIPPERUSAGE"));
 					req_Init();
-
 				}
 			}
 			else{
@@ -250,7 +247,7 @@ void __fastcall Tgripper::Sorting()
 
     if(MainForm->pwork1->Color != clLime)
 	{
-		AlarmForm->ShowError("The source tray is not ready.", "Please check and restart.");
+		AlarmForm->ShowError(BaseForm->GetLangStr("MSG_SOURCETRAY_NOTREADY"), BaseForm->GetLangStr("MSG_AUTO_ALARM2"));
 		return;
 	}
 
@@ -278,39 +275,39 @@ void __fastcall Tgripper::Sorting()
 				if(MainForm->tray_source.SLOT_COUNT == 96){
 					 MainForm->memoGripperLineAdd("[Eject step 0] 96 Tray / Gripper #" + IntToStr(eject.gripper) + " / Channel #" + IntToStr(eject.pos) + " / Continuous eject #" + IntToStr(eject.conCnt));
 					 robostar->req_AutoEject(1, eject.gripper , MainForm->mapSort[0][eject.pos-1], eject.conCnt, 962);
-					 MainForm->memoGripperLineAdd("[Eject step 0] 96 Channel start ejecting");
+					 MainForm->memoGripperLineAdd("[Eject step 0] 96 Channel " + BaseForm->GetLangStr("MSG_EJECT_START"));
 					 step.step += 1;
 				}else{
-					MainForm->memoGripperLineAdd("[MES] This is a tray that does not support sorting.");
-					ErrorForm->ShowError("Can not work", "This is a tray that does not support sorting.");
+					MainForm->memoGripperLineAdd(BaseForm->GetLangStr("MSG_SLOTCOUNT_ERROR"));
+					ErrorForm->ShowError("Can not work", BaseForm->GetLangStr("MSG_SLOTCOUNT_ERROR"));
 				}
 			}else{
 				step.step = 5;
 			}
 			break;
 		case 1:	// 취출중 확인
-			MainForm->memoGripperLineAdd("[Eject step 1] Ejecting...(Robot in operation)");
+			MainForm->memoGripperLineAdd("[Eject step 1] " + BaseForm->GetLangStr("MSG_EJECTING"));
 			if(robostar->seq == seqAutoEject || robostar->seq == seqAutoEjectComplete)step.step += 1;
 
 			break;
 		case 2:	// 취출 완료 확인
 			if(robostar->seq == seqAutoEjectComplete){
-				MainForm->memoGripperLineAdd("[Eject step 2] Eject completed.");
+				MainForm->memoGripperLineAdd("[Eject step 2] " + BaseForm->GetLangStr("MSG_EJECT_END"));
 				for(int i=eject.gripper; i<eject.gripper + eject.conCnt; ++i){
 					tool[i-1].eject_end = true;
 					MainForm->DisplaySourceCell(-1, tool[i-1].source_ch.ToInt()-1);	// 화면 show
 				}
 				step.step += 1;
 			}else{
-				MainForm->memoGripperLineAdd("[Eject step 2] Ejecting...(Robot in operation)");
+				MainForm->memoGripperLineAdd("[Eject step 2] " + BaseForm->GetLangStr("MSG_EJECTING"));
 			}
 			break;
 		case 3:
-			MainForm->memoGripperLineAdd("[Eject step 3] Check the next eject target.");
+			MainForm->memoGripperLineAdd("[Eject step 3] " + BaseForm->GetLangStr("MSG_EJECT_CHECK"));
 			InitSequence(seqSorting);
 			break;
 		default:
-			MainForm->memoGripperLineAdd("[Eject complete] Prepare the insert work.");
+			MainForm->memoGripperLineAdd("[Eject complete] " + BaseForm->GetLangStr("MSG_PREPARE_INSERT"));
 			InitSequence(seqInserting);
 			break;
 	}
@@ -320,7 +317,7 @@ void __fastcall Tgripper::Inserting()
 {
 	if(MainForm->pwork2->Color != clLime)
 	{
-		AlarmForm->ShowError("The target tray is not ready.", "Please check and restart.");
+		AlarmForm->ShowError(BaseForm->GetLangStr("MSG_TARGETTRAY_NOTREADY"), BaseForm->GetLangStr("MSG_AUTO_ALARM2"));
 		return;
 	}
 
@@ -353,7 +350,7 @@ void __fastcall Tgripper::Inserting()
 			}
 			break;
 		case 1:	// 이재중 확인
-			MainForm->memoGripperLineAdd("[Insert step 1] 삽입...(로봇 작동중)");
+			MainForm->memoGripperLineAdd("[Insert step 1] " + BaseForm->GetLangStr("MSG_INSERTING"));
 			if(robostar->seq == seqAutoInsert || robostar->seq == seqAutoInsertComplete)
 			{
 				robostar->m_bInsertSave = false;
@@ -362,7 +359,7 @@ void __fastcall Tgripper::Inserting()
 			break;
 		case 2:	// 이재 완료 확인
 			if(robostar->seq == seqAutoInsertComplete){
-				MainForm->memoGripperLineAdd("[Insert step 2] 삽입 완료.");
+				MainForm->memoGripperLineAdd("[Insert step 2] " + BaseForm->GetLangStr("MSG_INSERT_END"));
 				for(int i=insert.gripper; i<insert.gripper + insert.conCnt; ++i){
 					tool[i-1].insert_end = true;
 					MainForm->tray_target.SLOT_ID[tool[i-1].target_ch.ToInt()-1] = MainForm->tray_source.SLOT_ID[tool[i-1].source_ch.ToInt()-1];
@@ -374,15 +371,15 @@ void __fastcall Tgripper::Inserting()
 				}
 				step.step += 1;
 			}else{
-				MainForm->memoGripperLineAdd("[Insert step 2] Inserting...(Robot in operation)");
+				MainForm->memoGripperLineAdd("[Insert step 2] " + BaseForm->GetLangStr("MSG_INSERTING"));
 			}
 			break;
 		case 3:
-			MainForm->memoGripperLineAdd("[Insert step 3] Check the next insert target.");
+			MainForm->memoGripperLineAdd("[Insert step 3] " + BaseForm->GetLangStr("MSG_INSERT_CHECK"));
 			InitSequence(seqInserting);
 			break;
 		default:
-			MainForm->memoGripperLineAdd("[Insert complete] Prepare the initialization for the next eject.");
+			MainForm->memoGripperLineAdd("[Insert complete] " + BaseForm->GetLangStr("MSG_PERPARE_EJECT"));
 			MainForm->NotifyIdMatching_target("1");	// 이재 완료시마다 보고
 			InitSequence(seqInit, seqSorting);
 			break;
@@ -403,8 +400,8 @@ void __fastcall Tgripper::req_Init()
 
 void __fastcall Tgripper::waitTimerTimer(TObject *Sender)
 {
-	AlarmForm->ShowError("[C_Maint] 대상트레이가 없습니다.", "대상 트레이를 넣어주세요.");
-	MainForm->memoGripperLineAdd("대상트레이가 없습니다.");
+	AlarmForm->ShowError(BaseForm->GetLangStr("MSG_NO_TARGETTRAY"), BaseForm->GetLangStr("MSG_INSERT_TARGETTRAY"));
+	MainForm->memoGripperLineAdd(BaseForm->GetLangStr("MSG_NO_TARGETTRAY"));
 	waitTimer->Enabled = false;
 }
 //---------------------------------------------------------------------------

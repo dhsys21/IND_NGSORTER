@@ -66,7 +66,7 @@ void __fastcall TErrorForm_insert::retryBtnClick(TObject *Sender)
 		MainForm->playBtnClick(Sender);
 		this->Visible = false;
 	}else{
-		MessageBox(Handle, L"Move the robot to the target tray.", L"Sorting", MB_OK|MB_ICONQUESTION);
+		MessageBox(Handle, BaseForm->GetLangStr("MSG_INSERTING").c_str(), L"INSERT", MB_OK|MB_ICONQUESTION);
 	}
 }
 //---------------------------------------------------------------------------

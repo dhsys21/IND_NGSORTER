@@ -24,7 +24,7 @@ __fastcall TErrorForm_eject::TErrorForm_eject(TComponent* Owner)
 void __fastcall TErrorForm_eject::ShowError(AnsiString str1, AnsiString str2, int toolNo, int mesCode)
 {
 
-	errMsg1->Caption = "S_Maint_" + str1;
+	errMsg1->Caption = str1;
 	errMsg2->Caption = str2;
 
 	gripper->req_Pause(true);
@@ -58,7 +58,7 @@ void __fastcall TErrorForm_eject::retryBtnClick(TObject *Sender)
 		MainForm->playBtnClick(Sender);
 		this->Visible = false;
 	}else{
-		MessageBox(Handle, L"Move the robot to the source tray.", L"Sorting", MB_OK|MB_ICONQUESTION);
+		MessageBox(Handle, BaseForm->GetLangStr("MSG_EJECTING").c_str(), L"EJECT", MB_OK|MB_ICONQUESTION);
 	}
 }
 //---------------------------------------------------------------------------

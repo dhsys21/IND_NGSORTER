@@ -71,10 +71,5 @@ void __fastcall TServoAlarmListForm::LanguageChange(int index)
 		}
 		m_ListView[i]->Column[2]->Width = maxLength * 8;
 	}
-
-//	GroupBox1->Caption = mm[0]->Lines->Strings[m_Length[0] * 2];
-//	GroupBox2->Caption = mm[1]->Lines->Strings[m_Length[1] * 2];
-//	GroupBox3->Caption = mm[2]->Lines->Strings[m_Length[2] * 2];
-//	GroupBox4->Caption = mm[3]->Lines->Strings[m_Length[3] * 2];
 }
 //---------------------------------------------------------------------------
