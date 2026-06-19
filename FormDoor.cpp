@@ -92,7 +92,6 @@ void __fastcall TdoorForm::FormHide(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TdoorForm::errTimerTimer(TObject *Sender)
 {
-	//if(MainForm->m_ServoHome)
 	if(MainForm->m_ServoHome || MainForm->m_ServoHomeEmg)
 		pnlOpenGripper->Visible = true;
 	else
@@ -178,7 +177,7 @@ void __fastcall TdoorForm::stopBtnClick(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TdoorForm::AdvSmoothButton12MouseUp(TObject *Sender, TMouseButton Button,
+void __fastcall TdoorForm::btnGripper1OpenMouseUp(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y)
 {
     if(Button == mbLeft){
@@ -187,7 +186,7 @@ void __fastcall TdoorForm::AdvSmoothButton12MouseUp(TObject *Sender, TMouseButto
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TdoorForm::AdvSmoothButton12MouseDown(TObject *Sender, TMouseButton Button,
+void __fastcall TdoorForm::btnGripper1OpenMouseDown(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y)
 {
 	TAdvSmoothButton *btn;
@@ -201,10 +200,8 @@ void __fastcall TdoorForm::AdvSmoothButton12MouseDown(TObject *Sender, TMouseBut
 	{
 		if(isGripperOpen1 == false && MainForm->m_ServoHomeEmg)
 		{
-			if(MessageBox(Handle, ("[B_Ignition] 셀이 감지 되었습니다.\r\nGripper #" + IntToStr(btn->Tag - 6) + " 을 [열기] 하시겠습니까?").c_str(),
-				L"열기", MB_YESNO|MB_ICONWARNING) == ID_YES)
-				//robostar->GripperChuck(btn->Tag, true, false); // gripper no, open, close
-				//robostar->req_JogMove(btn->Tag);  //this->Tag 7 => gripper 1 번
+            UnicodeString str = BaseForm->GetLangStr("MSG_GRIPPER_UNCHUCK_ALARM1") + IntToStr(btn->Tag - 6);
+			if(MessageBox(Handle, str.c_str(), L"UNCHUCK", MB_YESNO|MB_ICONWARNING) == ID_YES)
 				isGripperOpen1 = true;
 		}
 	}
@@ -212,17 +209,13 @@ void __fastcall TdoorForm::AdvSmoothButton12MouseDown(TObject *Sender, TMouseBut
 	{
 		if(isGripperOpen1 == false && MainForm->m_ServoHomeEmg)
 		{
-			if(MessageBox(Handle, ("[B_Ignition] 셀이 감지 되지 않았습니다.\r\nGripper #" + IntToStr(btn->Tag - 6) + " 을 [열기] 하시겠습니까?").c_str(),
-				L"열기", MB_YESNO|MB_ICONWARNING) == ID_YES)
-				//robostar->GripperChuck(btn->Tag, true, false); // gripper no, open, close
-				//robostar->req_JogMove(btn->Tag);  //this->Tag 8 => gripper 2번
-				isGripperOpen1 = true;
+        	isGripperOpen1 = true;
 		}
 	}
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TdoorForm::AdvSmoothButton1MouseDown(TObject *Sender, TMouseButton Button,
+void __fastcall TdoorForm::btnGripper2OpenMouseDown(TObject *Sender, TMouseButton Button,
 		  TShiftState Shift, int X, int Y)
 {
     TAdvSmoothButton *btn;
@@ -236,10 +229,8 @@ void __fastcall TdoorForm::AdvSmoothButton1MouseDown(TObject *Sender, TMouseButt
 	{
 		if(isGripperOpen2 == false && MainForm->m_ServoHomeEmg)
 		{
-			if(MessageBox(Handle, ("[B_Ignition] 셀이 감지 되었습니다.\r\nGripper #" + IntToStr(btn->Tag - 7) + " 을 [열기] 하시겠습니까?").c_str(),
-				L"열기", MB_YESNO|MB_ICONWARNING) == ID_YES)
-				//robostar->GripperChuck(btn->Tag, true, false); // gripper no, open, close
-				//robostar->req_JogMove(btn->Tag);  //this->Tag 7 => gripper 1 번
+            UnicodeString str = BaseForm->GetLangStr("MSG_GRIPPER_UNCHUCK_ALARM1") + IntToStr(btn->Tag - 7);
+			if(MessageBox(Handle, str.c_str(), L"UNCHUCK", MB_YESNO|MB_ICONWARNING) == ID_YES)
 				isGripperOpen2 = true;
 		}
 	}
@@ -247,11 +238,7 @@ void __fastcall TdoorForm::AdvSmoothButton1MouseDown(TObject *Sender, TMouseButt
 	{
 		if(isGripperOpen2 == false && MainForm->m_ServoHomeEmg)
 		{
-			if(MessageBox(Handle, ("[B_Ignition] 셀이 감지 되지 않았습니다.\r\nGripper #" + IntToStr(btn->Tag - 7) + " 을 [열기] 하시겠습니까?").c_str(),
-				L"열기", MB_YESNO|MB_ICONWARNING) == ID_YES)
-				//robostar->GripperChuck(btn->Tag, true, false); // gripper no, open, close
-				//robostar->req_JogMove(btn->Tag);  //this->Tag 8 => gripper 2번
-				isGripperOpen2 = true;
+			isGripperOpen2 = true;
 		}
 	}
 }
@@ -298,4 +285,5 @@ void __fastcall TdoorForm::PassEditKeyUp(TObject *Sender, WORD &Key, TShiftState
     }
 }
 //---------------------------------------------------------------------------
+
 

@@ -5384,7 +5384,7 @@ object doorForm: TdoorForm
         ParentFont = False
         Transparent = True
       end
-      object AdvSmoothButton12: TAdvSmoothButton
+      object btnGripper1Open: TAdvSmoothButton
         Tag = 7
         Left = 19
         Top = 50
@@ -5511,11 +5511,11 @@ object doorForm: TdoorForm
           000049454E44AE426082}
         TabOrder = 0
         Version = '2.1.1.5'
-        OnMouseDown = AdvSmoothButton12MouseDown
-        OnMouseUp = AdvSmoothButton12MouseUp
+        OnMouseDown = btnGripper1OpenMouseDown
+        OnMouseUp = btnGripper1OpenMouseUp
         TMSStyle = 8
       end
-      object AdvSmoothButton1: TAdvSmoothButton
+      object btnGripper2Open: TAdvSmoothButton
         Tag = 9
         Left = 19
         Top = 98
@@ -5642,8 +5642,8 @@ object doorForm: TdoorForm
           000049454E44AE426082}
         TabOrder = 1
         Version = '2.1.1.5'
-        OnMouseDown = AdvSmoothButton1MouseDown
-        OnMouseUp = AdvSmoothButton12MouseUp
+        OnMouseDown = btnGripper2OpenMouseDown
+        OnMouseUp = btnGripper1OpenMouseUp
         TMSStyle = 8
       end
       object stopBtn: TAdvSmoothButton

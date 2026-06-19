@@ -49,8 +49,8 @@ __published:	// IDE-managed Components
 	TStaticText *StaticText4;
 	TAdvSmoothPanel *pnlOpenGripper;
 	TLabel *Label6;
-	TAdvSmoothButton *AdvSmoothButton12;
-	TAdvSmoothButton *AdvSmoothButton1;
+	TAdvSmoothButton *btnGripper1Open;
+	TAdvSmoothButton *btnGripper2Open;
 	TAdvSmoothButton *stopBtn;
 	TAdvSmoothButton *btnKeyUnlock;
 	TPanel *pPassword;
@@ -65,11 +65,11 @@ __published:	// IDE-managed Components
 	void __fastcall btnSetKEYLOCKClick(TObject *Sender);
 	void __fastcall btnServoOpenClick(TObject *Sender);
 	void __fastcall stopBtnClick(TObject *Sender);
-	void __fastcall AdvSmoothButton12MouseUp(TObject *Sender, TMouseButton Button, TShiftState Shift,
+	void __fastcall btnGripper1OpenMouseUp(TObject *Sender, TMouseButton Button, TShiftState Shift,
           int X, int Y);
-	void __fastcall AdvSmoothButton12MouseDown(TObject *Sender, TMouseButton Button,
+	void __fastcall btnGripper1OpenMouseDown(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y);
-	void __fastcall AdvSmoothButton1MouseDown(TObject *Sender, TMouseButton Button,
+	void __fastcall btnGripper2OpenMouseDown(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y);
 	void __fastcall btnKeyUnlockClick(TObject *Sender);
 	void __fastcall Label3DblClick(TObject *Sender);
