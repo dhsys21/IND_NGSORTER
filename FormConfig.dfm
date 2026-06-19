@@ -4,7 +4,7 @@ object ConfigForm: TConfigForm
   BorderIcons = []
   BorderStyle = bsSingle
   Caption = 'CONFIGURATION'
-  ClientHeight = 219
+  ClientHeight = 220
   ClientWidth = 488
   Color = clWhite
   Font.Charset = DEFAULT_CHARSET

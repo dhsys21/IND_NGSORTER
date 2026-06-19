@@ -147,7 +147,7 @@ void __fastcall TConfigForm::AdvSmoothButton1Click(TObject *Sender)
 
 void __fastcall TConfigForm::AdvSmoothButton2Click(TObject *Sender)
 {
-	if(MessageBox(Handle, L"적용 하시겠습니까?", L"옵션", MB_YESNO|MB_ICONQUESTION) == ID_YES){
+	if(MessageBox(Handle, BaseForm->GetLangStr("MSG_APPLY").c_str(), L"APPLY", MB_YESNO|MB_ICONQUESTION) == ID_YES){
 		ApplyConfig();
 		this->WriteSystemInfo();
 		this->Visible = false;
@@ -157,7 +157,7 @@ void __fastcall TConfigForm::AdvSmoothButton2Click(TObject *Sender)
 
 void __fastcall TConfigForm::AdvSmoothButton3Click(TObject *Sender)
 {
-	if(MessageBox(Handle, L"취소 하시겠습니까??", L"옵션", MB_YESNO|MB_ICONQUESTION) == ID_YES){
+	if(MessageBox(Handle, BaseForm->GetLangStr("MSG_CANCEL").c_str(), L"CANCEL", MB_YESNO|MB_ICONQUESTION) == ID_YES){
 		this->ReadSystemInfo();
 		this->Visible = false;
 	}	
