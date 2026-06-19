@@ -72,8 +72,14 @@ void __fastcall TConfigForm::WriteSystemInfo(AnsiString type)
     }
 	else
 	{
+        // Stage Info
 		ini->WriteString("INFO", "PC", pcEdit->Text);
+        // MES
 		ini->WriteString("COMMUNICATION", "IMS_PORT", PortEdit->Text);
+        // PLC
+        ini->WriteString("PLC", "IPADDRESS", editPLCIpaddress->Text);
+        ini->WriteString("PLC", "PORT1", editPlcPort1->Text);
+        ini->WriteString("PLC", "PORT2", editPlcPort2->Text);
 	}
 
 	if(chkZAxisUp->Checked == true)
@@ -102,8 +108,16 @@ bool __fastcall TConfigForm::ReadSystemInfo()
 	else
         chkZAxisUp->Checked = false;
 
+    // Stage Info
 	pcEdit->Text = ini->ReadString("INFO", "PC", "H1DIF01A");
+    // MES
 	PortEdit->Text = ini->ReadString("COMMUNICATION", "IMS_PORT", "7000");
+    // PLC
+    editPLCIpaddress->Text = ini->ReadString("PLC", "IPADDRESS", "192.168.0.1");
+    editPlcPort1->Text = ini->ReadString("PLC", "PORT1", "6002");
+    editPlcPort2->Text = ini->ReadString("PLC", "PORT2", "6003");
+
+    // Recipe
 	editRecipe->Text = ini->ReadString("RECIPE", "NO", "1");
 	AnsiString recipe = editRecipe->Text;
 
@@ -122,14 +136,14 @@ void __fastcall TConfigForm::FormShow(TObject *Sender)
 	this->BringToFront();
 }
 //---------------------------------------------------------------------------
-void __fastcall TConfigForm::Button1Click(TObject *Sender)
+void __fastcall TConfigForm::btnConMesClick(TObject *Sender)
 {
 	mes->ServerSocket->Port = PortEdit->Text.ToInt();
 	mes->ServerSocket->Active = true;	
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TConfigForm::AdvSmoothButton1Click(TObject *Sender)
+void __fastcall TConfigForm::btnDisconMesClick(TObject *Sender)
 {
 	mes->ServerSocket->Active = false;
 

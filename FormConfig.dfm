@@ -4,7 +4,7 @@ object ConfigForm: TConfigForm
   BorderIcons = []
   BorderStyle = bsSingle
   Caption = 'CONFIGURATION'
-  ClientHeight = 220
+  ClientHeight = 318
   ClientWidth = 488
   Color = clWhite
   Font.Charset = DEFAULT_CHARSET
@@ -230,9 +230,9 @@ object ConfigForm: TConfigForm
   end
   object GroupBox1: TGroupBox
     Left = 8
-    Top = 77
+    Top = 75
     Width = 470
-    Height = 58
+    Height = 60
     Caption = 'MES'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -259,7 +259,7 @@ object ConfigForm: TConfigForm
       TabOrder = 0
       Text = '7000'
     end
-    object Button1: TAdvSmoothButton
+    object btnConMes: TAdvSmoothButton
       Left = 249
       Top = 21
       Width = 100
@@ -293,10 +293,10 @@ object ConfigForm: TConfigForm
       ParentFont = False
       TabOrder = 1
       Version = '2.1.1.5'
-      OnClick = Button1Click
+      OnClick = btnConMesClick
       TMSStyle = 8
     end
-    object AdvSmoothButton1: TAdvSmoothButton
+    object btnDisconMes: TAdvSmoothButton
       Left = 358
       Top = 21
       Width = 100
@@ -330,7 +330,7 @@ object ConfigForm: TConfigForm
       ParentFont = False
       TabOrder = 2
       Version = '2.1.1.5'
-      OnClick = AdvSmoothButton1Click
+      OnClick = btnDisconMesClick
       TMSStyle = 8
     end
     object Panel3: TPanel
@@ -356,9 +356,9 @@ object ConfigForm: TConfigForm
   end
   object GroupBox3: TGroupBox
     Left = 8
-    Top = 138
+    Top = 235
     Width = 470
-    Height = 73
+    Height = 72
     Caption = 'STAGE Information'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -551,6 +551,208 @@ object ConfigForm: TConfigForm
       Checked = True
       State = cbChecked
       TabOrder = 0
+    end
+  end
+  object GroupBox4: TGroupBox
+    Left = 8
+    Top = 139
+    Width = 470
+    Height = 90
+    Caption = 'PLC'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 6
+    object editPlcPort1: TEdit
+      Left = 129
+      Top = 54
+      Width = 100
+      Height = 29
+      Color = clWhite
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -17
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ImeName = #54620#44397#50612' '#51077#47141' '#49884#49828#53596' (IME 2000)'
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 0
+      Text = '7000'
+    end
+    object btnConPLC: TAdvSmoothButton
+      Left = 294
+      Top = 21
+      Width = 80
+      Height = 30
+      Appearance.Font.Charset = DEFAULT_CHARSET
+      Appearance.Font.Color = clWindowText
+      Appearance.Font.Height = -11
+      Appearance.Font.Name = 'Tahoma'
+      Appearance.Font.Style = [fsBold]
+      Appearance.Spacing = 0
+      Appearance.Rounding = 3
+      Appearance.WordWrapping = False
+      Status.Caption = '0'
+      Status.Appearance.Fill.Color = clRed
+      Status.Appearance.Fill.ColorMirror = clNone
+      Status.Appearance.Fill.ColorMirrorTo = clNone
+      Status.Appearance.Fill.GradientType = gtSolid
+      Status.Appearance.Fill.GradientMirrorType = gtSolid
+      Status.Appearance.Fill.BorderColor = clGray
+      Status.Appearance.Fill.Rounding = 0
+      Status.Appearance.Fill.ShadowOffset = 0
+      Status.Appearance.Fill.Glow = gmNone
+      Status.Appearance.Font.Charset = DEFAULT_CHARSET
+      Status.Appearance.Font.Color = clWhite
+      Status.Appearance.Font.Height = -11
+      Status.Appearance.Font.Name = 'Tahoma'
+      Status.Appearance.Font.Style = []
+      BevelColor = clMedGray
+      Caption = 'Connect'
+      Color = clWhite
+      ParentFont = False
+      TabOrder = 1
+      Version = '2.1.1.5'
+      OnClick = btnConMesClick
+      TMSStyle = 8
+    end
+    object btnDisconPLC: TAdvSmoothButton
+      Left = 376
+      Top = 21
+      Width = 80
+      Height = 30
+      Appearance.Font.Charset = DEFAULT_CHARSET
+      Appearance.Font.Color = clWindowText
+      Appearance.Font.Height = -11
+      Appearance.Font.Name = 'Tahoma'
+      Appearance.Font.Style = [fsBold]
+      Appearance.Spacing = 0
+      Appearance.Rounding = 3
+      Appearance.WordWrapping = False
+      Status.Caption = '0'
+      Status.Appearance.Fill.Color = clRed
+      Status.Appearance.Fill.ColorMirror = clNone
+      Status.Appearance.Fill.ColorMirrorTo = clNone
+      Status.Appearance.Fill.GradientType = gtSolid
+      Status.Appearance.Fill.GradientMirrorType = gtSolid
+      Status.Appearance.Fill.BorderColor = clGray
+      Status.Appearance.Fill.Rounding = 0
+      Status.Appearance.Fill.ShadowOffset = 0
+      Status.Appearance.Fill.Glow = gmNone
+      Status.Appearance.Font.Charset = DEFAULT_CHARSET
+      Status.Appearance.Font.Color = clWhite
+      Status.Appearance.Font.Height = -11
+      Status.Appearance.Font.Name = 'Tahoma'
+      Status.Appearance.Font.Style = []
+      BevelColor = clMedGray
+      Caption = 'Disconnect'
+      Color = clWhite
+      ParentFont = False
+      TabOrder = 2
+      Version = '2.1.1.5'
+      OnClick = btnDisconMesClick
+      TMSStyle = 8
+    end
+    object Panel1: TPanel
+      Left = 10
+      Top = 54
+      Width = 120
+      Height = 29
+      BevelKind = bkFlat
+      BevelOuter = bvNone
+      Caption = 'PORT (PLC)'
+      Color = 15656921
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = 13996080
+      Font.Height = -15
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 3
+    end
+    object Panel2: TPanel
+      Left = 10
+      Top = 22
+      Width = 120
+      Height = 29
+      BevelKind = bkFlat
+      BevelOuter = bvNone
+      Caption = 'IP'
+      Color = 15656921
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = 13996080
+      Font.Height = -15
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 4
+    end
+    object editPLCIpaddress: TEdit
+      Left = 130
+      Top = 22
+      Width = 160
+      Height = 29
+      Color = clWhite
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -17
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ImeName = #54620#44397#50612' '#51077#47141' '#49884#49828#53596' (IME 2000)'
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 5
+      Text = '7000'
+    end
+    object Panel4: TPanel
+      Left = 235
+      Top = 54
+      Width = 120
+      Height = 29
+      BevelKind = bkFlat
+      BevelOuter = bvNone
+      Caption = 'PORT (PLC)'
+      Color = 15656921
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = 13996080
+      Font.Height = -15
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 6
+    end
+    object editPlcPort2: TEdit
+      Left = 355
+      Top = 54
+      Width = 100
+      Height = 29
+      Color = clWhite
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -17
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ImeName = #54620#44397#50612' '#51077#47141' '#49884#49828#53596' (IME 2000)'
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 7
+      Text = '7000'
     end
   end
 end

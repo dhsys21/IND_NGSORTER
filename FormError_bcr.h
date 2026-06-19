@@ -17,11 +17,11 @@ __published:	// IDE-managed Components
 	TAdvSmoothPanel *AdvSmoothPanel1;
 	TLabel *errMsg1;
 	TAdvSmoothButton *ignoreBtn;
-	TAdvSmoothButton *AdvSmoothButton1;
+	TAdvSmoothButton *btnScan;
 	TPanel *pon;
 	TAdvSmoothButton *AdvSmoothButton5;
 	void __fastcall ignoreBtnClick(TObject *Sender);
-	void __fastcall AdvSmoothButton1Click(TObject *Sender);
+	void __fastcall btnScanClick(TObject *Sender);
 	void __fastcall AdvSmoothButton5Click(TObject *Sender);
 	void __fastcall FormHide(TObject *Sender);
 private:	// User declarations

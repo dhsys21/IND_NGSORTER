@@ -102,7 +102,7 @@ object ErrorForm_bcr: TErrorForm_bcr
     OnClick = ignoreBtnClick
     TMSStyle = 8
   end
-  object AdvSmoothButton1: TAdvSmoothButton
+  object btnScan: TAdvSmoothButton
     Left = 355
     Top = 148
     Width = 216
@@ -137,7 +137,7 @@ object ErrorForm_bcr: TErrorForm_bcr
     ParentFont = False
     TabOrder = 2
     Version = '2.1.1.5'
-    OnClick = AdvSmoothButton1Click
+    OnClick = btnScanClick
     TMSStyle = 8
   end
   object pon: TPanel

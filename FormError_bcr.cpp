@@ -20,14 +20,14 @@ void __fastcall TErrorForm_bcr::ShowError(AnsiString str,  bool bsuccess)
 {
 	if(bsuccess){
 		ignoreBtn->Color = pon->Color;
-		errMsg1->Caption = "S_Maint_[ " + str + " ] 바코드 리딩 완료.";
+		errMsg1->Caption = "[ " + str + " ] " + BaseForm->GetLangStr("MSG_COMPLETE_SCAN");
 		strBcr = str;
 		ignoreBtn->Caption = "Normal progress";
 	}
 	else{
 		MainForm->BuzzerOn(true);
 		MainForm->LampModeChange(LampAlarm);
-		errMsg1->Caption = "S_Maint_" + str;
+		errMsg1->Caption = str;
 		ignoreBtn->Color = clRed;
 		ignoreBtn->Caption = "Forced Tray Out";
 	}
@@ -53,14 +53,14 @@ void __fastcall TErrorForm_bcr::ignoreBtnClick(TObject *Sender)
 //---------------------------------------------------------------------------
 
 
-void __fastcall TErrorForm_bcr::AdvSmoothButton1Click(TObject *Sender)
+void __fastcall TErrorForm_bcr::btnScanClick(TObject *Sender)
 {
 	switch(Tag){
 		case 0:
-			errMsg1->Caption = "선별 트레이 바코드 스캔 중.";
+			errMsg1->Caption = BaseForm->GetLangStr("MSG_SOURCETRAY_SCAN") + "..";
 			break;
 		case 1:
-			errMsg1->Caption = "대상 트레이 바코드 스캔 중.";
+			errMsg1->Caption = BaseForm->GetLangStr("MSG_TARGETTRAY_SCAN") + "..";
 			break;
 	}
 	MainForm->comBcr[Tag]->GetBarcode();
