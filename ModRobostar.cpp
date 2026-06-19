@@ -1450,44 +1450,4 @@ bool __fastcall Trobostar::KeyLock(int pos)
 
 }
 //---------------------------------------------------------------------------
-void __fastcall Trobostar::Timer_zUpTestTimer(TObject *Sender)
-{
-    AnsiString loadfactor = "", px = "", py = "", zpoint = "", msg = "", msg2 = "";
-
-	switch(zUpStep)
-	{
-		case 0:
-			teachForm->zup();
-			zUpStep = 1;
-			break;
-		case 1:
-            zUpCount = 0;
-			zUpStep = 2;
-			setPoint(Axis_z, 1000);   // z 위치 이동
-
-			MainForm->memoRobostarLineAdd("[Z Axis Up] start");
-			break;
-		case 2:
-            zUpCount++;
-			if(zUpCount > 200){
-                loadfactor = teachForm->lblLoadFactor4->Caption;
-				zpoint = MainForm->pz->Caption;
-				msg = "[C_Maint] 대기상태로 이동 후 다시 시작하세요. 부하율 : " + loadfactor + " z축 위치 : " + zpoint;
-				// + ", x축 위치 : " + px + ", y축 위치 : " + py;
-				MainForm->memoRobostarLineAdd("[C_Maint] Z 축 이동실패" + msg);
-				AlarmForm->ShowError("[C_Maint] Z 축 이동실패", msg);
-				zUpCount = 0;
-			}
-			else
-				MainForm->memoRobostarLineAdd("[Z Axis Up] moving");
-			if(rangeCheck(Axis_zUp)) zUpStep = 3;
-			break;
-		case 3:
-			MainForm->memoRobostarLineAdd("[Z Axis Up] ok");
-			break;
-		default:
-			break;
-    }
-}
-//---------------------------------------------------------------------------
 

@@ -1682,23 +1682,6 @@ object teachForm: TteachForm
         Version = '1.5.2.1'
         TabOrder = 2
         TMSStyle = 0
-        object Label51: TLabel
-          Left = 35
-          Top = 142
-          Width = 16
-          Height = 16
-          Alignment = taRightJustify
-          Caption = 'G1'
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clBlack
-          Font.Height = -13
-          Font.Name = 'Tahoma'
-          Font.Style = [fsBold]
-          ParentFont = False
-          ParentShowHint = False
-          ShowHint = False
-          Transparent = True
-        end
         object lblLoadFactorTitle: TLabel
           Left = 210
           Top = 10
@@ -1897,7 +1880,7 @@ object teachForm: TteachForm
           Fill.Glow = gmNone
           Version = '1.5.2.1'
           Visible = False
-          TabOrder = 8
+          TabOrder = 6
           TMSStyle = 0
           object Label57: TLabel
             Left = 60
@@ -2032,40 +2015,6 @@ object teachForm: TteachForm
           ParentFont = False
           TabOrder = 5
           OnMouseDown = Button1MouseDown
-          OnMouseUp = Button1MouseUp
-        end
-        object Button7: TButton
-          Tag = 6
-          Left = 59
-          Top = 136
-          Width = 70
-          Height = 32
-          Caption = 'Close(+)'
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -13
-          Font.Name = 'Tahoma'
-          Font.Style = [fsBold]
-          ParentFont = False
-          TabOrder = 6
-          OnMouseDown = Button2MouseDown
-          OnMouseUp = Button1MouseUp
-        end
-        object Button8: TButton
-          Tag = 7
-          Left = 130
-          Top = 136
-          Width = 70
-          Height = 32
-          Caption = 'Open(-)'
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -13
-          Font.Name = 'Tahoma'
-          Font.Style = [fsBold]
-          ParentFont = False
-          TabOrder = 7
-          OnMouseDown = Button2MouseDown
           OnMouseUp = Button1MouseUp
         end
       end

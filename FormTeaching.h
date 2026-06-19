@@ -277,9 +277,6 @@ __published:	// IDE-managed Components
 	TPanel *pg1;
 	TAdvSmoothPanel *AdvSmoothPanel8;
 	TLabel *Label50;
-	TButton *Button7;
-	TButton *Button8;
-	TLabel *Label51;
 	TPanel *pnlDcc;
 	TPanel *pnlAcc;
 	TEdit *acclSpeedEdit;
@@ -366,7 +363,6 @@ __published:	// IDE-managed Components
 	void __fastcall openBtnClick(TObject *Sender);
 	void __fastcall Button1MouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift,
 		  int X, int Y);
-	void __fastcall Button2MouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift, int X, int Y);
 	void __fastcall Button1MouseUp(TObject *Sender, TMouseButton Button, TShiftState Shift,
 		  int X, int Y);
 	void __fastcall AdvSmoothButton_ServoOnClick(TObject *Sender);
@@ -421,8 +417,6 @@ private:	// User declarations
     int nCurrentTag;
 public:		// User declarations
     TLabel *lblLoadFactor[7];
-    void __fastcall zdown();
-    void __fastcall zup();
 
 	TRAY_POSITION sTray_Position, tTray_Position;
     TEdit* __fastcall GetTrayEdit(int channel, TrayAxisEdit editType);

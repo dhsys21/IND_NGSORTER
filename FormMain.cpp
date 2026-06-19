@@ -210,8 +210,6 @@ void __fastcall TMainForm::EnableButton_auto(bool benable)
 	trayout_srcBtn->Enabled = !benable;
 	trayout_targetBtn->Enabled = !benable;
 	teachingBtn->Enabled = !benable;
-	homeBtn->Enabled = !benable;
-
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::mesTimerTimer(TObject *Sender)
@@ -418,7 +416,7 @@ void __fastcall TMainForm::plcReadData(AnsiString str, int addr)
 void __fastcall TMainForm::trayout_srcBtnClick(TObject *Sender)
 {
 	if(plcInput.SRC_ARRIVE){
-		if(MessageBox(Handle, BaseForm->GetLangStr("MSG_EJECT_SOURCETRAY").c_str()), L"Tray Out", MB_YESNO|MB_ICONQUESTION) == ID_YES){
+		if(MessageBox(Handle, BaseForm->GetLangStr("MSG_EJECT_SOURCETRAY").c_str(), L"Tray Out", MB_YESNO|MB_ICONQUESTION) == ID_YES){
             plcOutput.SRC_MANUAL_WORK = 0;
 			CmdTrayOut(0);
 		}

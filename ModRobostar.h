@@ -372,7 +372,6 @@ __published:	// IDE-managed Components
 	TTimer *Timer_zUpTest;
 	void __fastcall senTimerTimer(TObject *Sender);
 	void __fastcall DataModuleCreate(TObject *Sender);
-	void __fastcall Timer_zUpTestTimer(TObject *Sender);
 private:	// User declarations
 	typedef struct{
 		int step;

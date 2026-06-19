@@ -176,7 +176,7 @@ void __fastcall TteachForm::tClick(TObject *Sender)
 			ShowMessage(BaseForm->GetLangStr("MSG_GRIPPER_MOVE_ERR2")  + IntToStr(ch));
         } else{
 			str = "[" + sCombo->Text + "] " + BaseForm->GetLangStr("MSG_TARGETTRAY_MOVE_Q") + pnl->Caption->Text;
-            if(MessageBox(Handle, str.c_str(), L"이동", MB_YESNO|MB_ICONQUESTION) == ID_YES){
+            if(MessageBox(Handle, str.c_str(), L"MOVE", MB_YESNO|MB_ICONQUESTION) == ID_YES){
                 robostar->req_AutoMove(2, sCombo->ItemIndex + 1 , pnl->Tag, 96);
                 for(int i = 0; i < 96; ++i){
                     tTray[i]->Fill->Color = clWhite;
@@ -216,9 +216,12 @@ void __fastcall TteachForm::homeBtnClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::AdvSmoothButton_ResetClick(TObject *Sender)
 {
-	MainForm->BuzzerOn(false);
-	MainForm->LampModeChange(MainForm->beforeLampMode);
-	robostar->req_Reset();
+    if(MessageBox(Handle, BaseForm->GetLangStr("MSG_RESET_ALARM").c_str(),
+        L"RESET", MB_YESNO|MB_ICONQUESTION) == ID_YES){
+        MainForm->BuzzerOn(false);
+        MainForm->LampModeChange(MainForm->beforeLampMode);
+        robostar->req_Reset();
+    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::AdvSmoothButton_ZupClick(TObject *Sender)
@@ -337,14 +340,14 @@ void __fastcall TteachForm::unchuckTimerTimer(TObject *Sender)
 					robostar->GripperChuck(nCurrentTag, true, false);
             }else{
                 int pos_z = robostar->mr2.pos[Axis_z];
+                UnicodeString str = BaseForm->GetLangStr("MSG_GRIPPER_UNCHUCK_ALARM1") + IntToStr(nCurrentTag);
                 if(pos_z >= 20000 || MainForm->m_ServoHome)
                 {
-                    if(MessageBox(Handle, ("셀이 감지 되었습니다.\r\nGripper #" + IntToStr(nCurrentTag) + " 을 [열기] 하시겠습니까?").c_str(),
-                        L"열기", MB_YESNO|MB_ICONWARNING) == ID_YES)
+                    if(MessageBox(Handle, str.c_str(), L"OPEN", MB_YESNO|MB_ICONWARNING) == ID_YES)
                         robostar->GripperChuck(nCurrentTag, true, false);
                 } else
                 {
-                   ShowMessage("그리퍼 [열기]를 하기 위해 먼저 Z축을 상승시켜야 합니다.");
+                   ShowMessage(BaseForm->GetLangStr("MSG_GRIPPER_UNCHUCK_ALARM2"));
                 }
             }
             //* unchuck end
@@ -374,7 +377,7 @@ void __fastcall TteachForm::btnDownAllGripperClick(TObject *Sender)
 {
     if(MainForm->psrcReady->Color != clLime)
 	{
-		if(MessageBox(Handle, L"[C_Maint] 선별 트레이가 DOWN 상태가 아닙니다. down 하시겠습니까?",
+		if(MessageBox(Handle, L"Source tray centering is not in DOWN state. Do you want to down?",
 			L"Centering DOWN", MB_YESNO|MB_ICONQUESTION) == ID_YES){
 				MainForm->plcOutput.SRC_MANUAL_WORK = 1;
 			}
@@ -399,7 +402,7 @@ void __fastcall TteachForm::btnDownAllGripperClick(TObject *Sender)
 					robostar->GripperDown(i, true, false);
 			}
 		}
-		else ShowMessage("[C_Maint] 현재위치에서 그리퍼를 DOWN 시킬 수 없습니다. 위치를 확인 해 주세요.");
+		else ShowMessage("The position where the gripper can not be DOWN. Please check your position.");
     }
 }
 //---------------------------------------------------------------------------
@@ -455,7 +458,7 @@ void __fastcall TteachForm::unchuckAllTimerTimer(TObject *Sender)
 				unchuckAllTimer->Enabled = false;
                 isButtonPressed = false;
 				downTime = Now();
-				ShowMessage("[B_Ignition] 셀이 감지되어 그리퍼를 열 수 없습니다.");
+				ShowMessage("The gripper can not be opened because the cell is detected.");
 			}
             //* unchuck all end
         }
@@ -485,12 +488,12 @@ void __fastcall TteachForm::speedEditKeyDown(TObject *Sender, WORD &Key,
     ConfigForm->WriteSystemInfo("speed");
 
 	if(Key == VK_RETURN){
-		if(speed >= 200 && speed <= 1200)
+		if(speed >= 200 && speed <= 1000)
 		{
 			Panel_speedEdit->Caption = speed;
 			robostar->req_Speed(speed, acclSpeed, dcclSpeed);
 		}
-		else ShowMessage("[C_Maint] 속도값은 200 과 1200 사이값을 입력 해주세요.");
+		else ShowMessage(BaseForm->GetLangStr("MSG_SETSPEED_ALARM"));
 	}
 }
 //---------------------------------------------------------------------------
@@ -507,7 +510,7 @@ void __fastcall TteachForm::waitBtnClick(TObject *Sender)
 	UnicodeString msg;
 	if(MainForm->psrcReady->Color != clLime)
 	{
-		if(MessageBox(Handle, L"[C_Maint] 선별 트레이가 DOWN 상태가 아닙니다. down 하시겠습니까?",
+		if(MessageBox(Handle, BaseForm->GetLangStr("MSG_GRIPPER_DOWN").c_str(),
 			L"Centering DOWN", MB_YESNO|MB_ICONQUESTION) == ID_YES){
 				MainForm->plcOutput.SRC_MANUAL_WORK = 1;
 		}
@@ -515,11 +518,11 @@ void __fastcall TteachForm::waitBtnClick(TObject *Sender)
 	else {
         //* 2025 05 21
 		if(robostar->input.GRIPPER1_CELL_DETECT == true)
-			msg = "[B_Ignition] 그리퍼에 셀이 있습니다. 대기 위치로 이동하시겠습니까?";
+			msg = BaseForm->GetLangStr("MSG_WAITING_MOVE_ALARM");
 		else
-			msg = "[C_Maint] 대기 위치로 이동하시겠습니까?";
+			msg = BaseForm->GetLangStr("MSG_WAITING_MOVE_Q");
 
-		if(MessageBox(Handle, msg.c_str(), L"대기 위치 이동", MB_YESNO|MB_ICONQUESTION) == ID_YES){
+		if(MessageBox(Handle, msg.c_str(), L"MOVE", MB_YESNO|MB_ICONQUESTION) == ID_YES){
 			if(robostar->seq == seqIdle || robostar->seq == seqPause)
 				robostar->req_WaitPosition();
 		}
@@ -544,16 +547,16 @@ void __fastcall TteachForm::Button1MouseDown(TObject *Sender, TMouseButton Butto
 	if(Button == mbLeft){
 		if(MainForm->psrcReady->Color != clLime)
 		{
-			if(MessageBox(Handle, L"[C_Maint] 선별 트레이가 DOWN 상태가 아닙니다. down 하시겠습니까?",
+			if(MessageBox(Handle, BaseForm->GetLangStr("MSG_SOURCETRAY_CENTERING_Q").c_str(),
 				L"Centering DOWN", MB_YESNO|MB_ICONQUESTION) == ID_YES){
 					MainForm->plcOutput.SRC_MANUAL_WORK = 1;
 				}
 		}
 		else
 		if(!robostar->getGripperUpStatus())
-			ShowMessage("[C_Maint] 그리퍼가 상승하지 않았습니다. 상승(UP) 후에 이동하세요.");
+			ShowMessage(BaseForm->GetLangStr("MSG_JOG_GRIPPER_ALARM"));
 		else if((btn->Tag < 4) && robostar->mr2.pos[Axis_z] != 0)
-			ShowMessage("Z 축 위치가 0이 아닙니다. Z 축을 상승(UP) 한 후에 이동하세요.");
+			ShowMessage(BaseForm->GetLangStr("MSG_JOG_ZAXIS_ALARM"));
 		else if(btn->Tag == 4)
 		{
 			bool flag = true;
@@ -567,7 +570,7 @@ void __fastcall TteachForm::Button1MouseDown(TObject *Sender, TMouseButton Butto
 			}
 
 			if(flag) robostar->req_JogMove(btn->Tag);
-			else ShowMessage("[C_Maint] Z 축을 DOWN 할 수 없는 위치입니다. 위치를 확인 해주세요.");
+			else ShowMessage(BaseForm->GetLangStr("MSG_JOG_POSITION_ALARM"));
 		}
 		else robostar->req_JogMove(btn->Tag);
 	}
@@ -587,65 +590,6 @@ void __fastcall TteachForm::Button1MouseUp(TObject *Sender, TMouseButton Button,
 		isGripperOpen1 = false;
 	else if(btn->Tag == 8 || btn->Tag == 9)
 		isGripperOpen2 = false;
-}
-//---------------------------------------------------------------------------
-// 2019 07 05 btn->Tag 6,7,8,9 일때 (gripper 1, 2 => +, -) 셀 있으면 z축이 내려가 있을 때만 동작.
-void __fastcall TteachForm::Button2MouseDown(TObject *Sender, TMouseButton Button,
-		  TShiftState Shift, int X, int Y)
-{
-	TButton *btn;
-	btn = (TButton*)Sender;
-
-	if(Button == mbLeft){
-		if(MainForm->psrcReady->Color != clLime)
-		{
-			if(MessageBox(Handle, L"[C_Maint] 선별 트레이가 DOWN 상태가 아닙니다. down 하시겠습니까?",
-				L"Centering DOWN", MB_YESNO|MB_ICONQUESTION) == ID_YES){
-					MainForm->plcOutput.SRC_MANUAL_WORK = 1;
-				}
-		}
-		else
-		if(btn->Tag == 4)
-		{
-			bool flag = true;
-			for(int i=1; i<=gripCnt; ++i)
-			{
-				if(!CheckPositionDown(i - 1))
-				{
-					flag = false;
-					break;
-				}
-			}
-
-			if(flag) robostar->req_JogMove(btn->Tag);
-			else ShowMessage("[C_Maint] Z 축을 DOWN 할 수 없는 위치입니다. 위치를 확인 해주세요.");
-		}
-		// 2019 07 05 btn->Tag 6,7,8,9 일때 (gripper 1, 2 => +, -) 셀 있으면 z축이 내려가 있을 때만 동작.
-		else if(btn->Tag == 6 || btn->Tag == 7)
-		{
-			int pos_z = robostar->mr2.pos[Axis_z];
-			if(robostar->input.GRIPPER1_CELL_DETECT == true && (pos_z < 20000 && !MainForm->m_ServoHome))
-			{
-				ShowMessage("[B_Ignition] 그리퍼 1에 셀이 있습니다. Z축을 이동 시킨 후 그리퍼를 움직 일 수 있습니다.");
-			}
-			else if(robostar->input.GRIPPER1_CELL_DETECT == true && (pos_z >= 20000 || MainForm->m_ServoHome))
-			{
-				if(isGripperOpen1 == true)
-					robostar->req_JogMove(btn->Tag);
-				else if(MessageBox(Handle, L"[B_Ignition] 그리퍼 1에 셀이 있습니다.", L"위치 확인", MB_YESNO|MB_ICONWARNING) == ID_YES)
-				{
-					robostar->req_JogMove(-1);
-                    isGripperOpen1 = true;
-				}
-			}
-			else
-				robostar->req_JogMove(btn->Tag);
-		}
-		else
-		{
-			robostar->req_JogMove(btn->Tag);
-		}
-	}
 }
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::AdvSmoothButton_LoadFactorInfoClick(TObject *Sender)
@@ -778,56 +722,56 @@ void __fastcall TteachForm::ApplyTeaching()
         //* source tray teaching value
         if(editCh01_SX->Text.Trim().IsEmpty() || editCh01_SY->Text.Trim().IsEmpty()
         	|| editCh13_SX->Text.Trim().IsEmpty() || editCh13_SY->Text.Trim().IsEmpty()){
-        	MessageBox(Handle, L"Please check Source Tray Ch01 or Ch13 value.", L"Warning", MB_OK|MB_ICONWARNING);
+        	MessageBox(Handle, BaseForm->GetLangStr("MSG_CHECK_SOURCE_CH01").c_str(), L"Warning", MB_OK|MB_ICONWARNING);
             return;
         }
         else if(editCh25_SX->Text.Trim().IsEmpty() || editCh25_SY->Text.Trim().IsEmpty()
         	|| editCh37_SX->Text.Trim().IsEmpty() || editCh37_SY->Text.Trim().IsEmpty()){
-        	MessageBox(Handle, L"Please check Source Tray Ch25 or Ch37 value.", L"Warning", MB_OK|MB_ICONWARNING);
+        	MessageBox(Handle, BaseForm->GetLangStr("MSG_CHECK_SOURCE_CH25").c_str(), L"Warning", MB_OK|MB_ICONWARNING);
             return;
         }
         else if(editCh49_SX->Text.Trim().IsEmpty() || editCh49_SY->Text.Trim().IsEmpty()
         	|| editCh61_SX->Text.Trim().IsEmpty() || editCh61_SY->Text.Trim().IsEmpty()){
-        	MessageBox(Handle, L"Please check Source Tray Ch49 or Ch61 value.", L"Warning", MB_OK|MB_ICONWARNING);
+        	MessageBox(Handle, BaseForm->GetLangStr("MSG_CHECK_SOURCE_CH49").c_str(), L"Warning", MB_OK|MB_ICONWARNING);
             return;
         }
         else if(editCh73_SX->Text.Trim().IsEmpty() || editCh73_SY->Text.Trim().IsEmpty()
         	|| editCh85_SX->Text.Trim().IsEmpty() || editCh85_SY->Text.Trim().IsEmpty()){
-        	MessageBox(Handle, L"Please check Source Tray Ch73 or Ch85 value.", L"Warning", MB_OK|MB_ICONWARNING);
+        	MessageBox(Handle, BaseForm->GetLangStr("MSG_CHECK_SOURCE_CH73").c_str(), L"Warning", MB_OK|MB_ICONWARNING);
             return;
         }
 
         //* target tray teaching value
         if(editCh01_TX->Text.Trim().IsEmpty() || editCh01_TY->Text.Trim().IsEmpty()
         	|| editCh13_TX->Text.Trim().IsEmpty() || editCh13_TY->Text.Trim().IsEmpty()){
-        	MessageBox(Handle, L"Please check Target Tray Ch01 or Ch13 value.", L"Warning", MB_OK|MB_ICONWARNING);
+        	MessageBox(Handle, BaseForm->GetLangStr("MSG_CHECK_TARGET_CH01").c_str(), L"Warning", MB_OK|MB_ICONWARNING);
             return;
         }
         else if(editCh25_TX->Text.Trim().IsEmpty() || editCh25_TY->Text.Trim().IsEmpty()
         	|| editCh37_TX->Text.Trim().IsEmpty() || editCh37_TY->Text.Trim().IsEmpty()){
-        	MessageBox(Handle, L"Please check Target Tray Ch25 or Ch37 value.", L"Warning", MB_OK|MB_ICONWARNING);
+        	MessageBox(Handle, BaseForm->GetLangStr("MSG_CHECK_TARGET_CH25").c_str(), L"Warning", MB_OK|MB_ICONWARNING);
             return;
         }
         else if(editCh49_TX->Text.Trim().IsEmpty() || editCh49_TY->Text.Trim().IsEmpty()
         	|| editCh61_TX->Text.Trim().IsEmpty() || editCh61_TY->Text.Trim().IsEmpty()){
-        	MessageBox(Handle, L"Please check Target Tray Ch49 or Ch61 value.", L"Warning", MB_OK|MB_ICONWARNING);
+        	MessageBox(Handle, BaseForm->GetLangStr("MSG_CHECK_TARGET_CH49").c_str(), L"Warning", MB_OK|MB_ICONWARNING);
             return;
         }
         else if(editCh73_TX->Text.Trim().IsEmpty() || editCh73_TY->Text.Trim().IsEmpty()
         	|| editCh85_TX->Text.Trim().IsEmpty() || editCh85_TY->Text.Trim().IsEmpty()){
-        	MessageBox(Handle, L"Please check Target Tray Ch73 or Ch85 value.", L"Warning", MB_OK|MB_ICONWARNING);
+        	MessageBox(Handle, BaseForm->GetLangStr("MSG_CHECK_TARGET_CH73").c_str(), L"Warning", MB_OK|MB_ICONWARNING);
             return;
         }
 
         //* 파일에 저장
-        if(MessageBox(Handle, L"Do you want to save the teaching value?", L"SAVE", MB_YESNO|MB_ICONWARNING) == ID_YES){
+        if(MessageBox(Handle, BaseForm->GetLangStr("MSG_INPUT_VALUE").c_str(), L"SAVE", MB_YESNO|MB_ICONWARNING) == ID_YES){
 
             SaveTeaching(teachingFilePath);
 
             SetTrayMaxPosition();
         }
 	}catch(...){
-		MessageBox(Handle, L"[C_Maint] 정보를 입력 하세요.", L"경고", MB_OK|MB_ICONWARNING);
+		MessageBox(Handle, L"정보를 입력 하세요.", L"Warning", MB_OK|MB_ICONWARNING);
 	}
 }
 //---------------------------------------------------------------------------
@@ -923,38 +867,6 @@ void __fastcall TteachForm::SetTrayMaxPosition()
 
 	tTray_Position.Top = editCh13_TX->Text.ToIntDef(0) + (12 - 1) * 45000; // 대상 13열 X + 11열 X
     tTray_Position.Bottom = editCh01_TX->Text.ToIntDef(0);
-}
-//---------------------------------------------------------------------------
-void __fastcall TteachForm::zup()
-{
-	if(!gripper->disable_gripper[1 - 1])
-		robostar->GripperDown(1, false, true);
-}
-//---------------------------------------------------------------------------
-void __fastcall TteachForm::zdown()
-{
-
-    if(MainForm->psrcReady->Color != clLime)
-	{
-		if(MessageBox(Handle, L"선별 트레이가 DOWN 상태가 아닙니다. down 하시겠습니까?",
-			L"Centering DOWN", MB_YESNO|MB_ICONQUESTION) == ID_YES){
-				MainForm->plcOutput.SRC_MANUAL_WORK = 1;
-			}
-	}
-	else
-	{
-		if(CheckPositionDown(1 - 1))
-		{
-            //* 2022 04 20 선별 트레이는 unchuck 상태에서, 대상 트레이는 chuck 상태에서만 그리퍼 다운 가능
-			if(CheckUnchuckPosition(1 - 1)){
-				if(!gripper->disable_gripper[1 - 1])
-					robostar->GripperDown(1, true, false);
-			}
-			else
-				ShowMessage("[C_Maint] 그리퍼 Chuck/Unchuck 상태를 확인 해 주세요.");
-		}
-		else ShowMessage("[C_Maint] 현재위치에서 그리퍼를 DOWN 시킬 수 없습니다. 위치를 확인 해 주세요.");
-	}
 }
 //---------------------------------------------------------------------------
 int __fastcall TteachForm::GetTrayPosValue(int channel, TrayAxisEdit editType)

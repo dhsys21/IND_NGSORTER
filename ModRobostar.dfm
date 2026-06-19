@@ -13,7 +13,6 @@ object robostar: Trobostar
   object Timer_zUpTest: TTimer
     Enabled = False
     Interval = 100
-    OnTimer = Timer_zUpTestTimer
     Left = 200
     Top = 120
   end
