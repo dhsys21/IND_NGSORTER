@@ -4,11 +4,10 @@
 #pragma hdrstop
 #include <tchar.h>
 //---------------------------------------------------------------------------
-USEFORM("Modmes.cpp", mes); /* TDataModule: File Type */
 USEFORM("ModGripper.cpp", gripper); /* TDataModule: File Type */
-USEFORM("FormServoAlarmList.cpp", ServoAlarmListForm);
-USEFORM("FormMain.cpp", MainForm);
 USEFORM("FormTeaching.cpp", teachForm);
+USEFORM("FormServoAlarmList.cpp", ServoAlarmListForm);
+USEFORM("Modmes.cpp", mes); /* TDataModule: File Type */
 USEFORM("ModRobostar.cpp", robostar); /* TDataModule: File Type */
 USEFORM("Modplc.cpp", plc); /* TDataModule: File Type */
 USEFORM("FormAlarm_TrayInfo.cpp", trayinfoForm);
@@ -17,14 +16,17 @@ USEFORM("FormConfig.cpp", ConfigForm);
 USEFORM("FormBase.cpp", BaseForm);
 USEFORM("Barcode_comm.cpp", Barcode); /* TDataModule: File Type */
 USEFORM("FormAlarm.cpp", AlarmForm);
-USEFORM("FormError_limit.cpp", ErrorForm_limit);
-USEFORM("FormError_insert.cpp", ErrorForm_insert);
-USEFORM("FormLoadFactor.cpp", loadfactorForm);
-USEFORM("FormError_mes.cpp", ErrorForm_mes);
-USEFORM("FormError.cpp", ErrorForm);
 USEFORM("FormDoor.cpp", doorForm);
-USEFORM("FormError_eject.cpp", ErrorForm_eject);
+USEFORM("FormError_mes.cpp", ErrorForm_mes);
+USEFORM("FormError_limit.cpp", ErrorForm_limit);
+USEFORM("FormMain.cpp", MainForm);
+USEFORM("FormLoadFactor.cpp", loadfactorForm);
 USEFORM("FormError_bcr.cpp", ErrorForm_bcr);
+USEFORM("FormError.cpp", ErrorForm);
+USEFORM("FormError_insert.cpp", ErrorForm_insert);
+USEFORM("FormError_eject.cpp", ErrorForm_eject);
+USEFORM("ModPLC_Bin.cpp", PlcBin); /* TDataModule: File Type */
+USEFORM("FormInterface.cpp", InterfaceForm);
 //---------------------------------------------------------------------------
 int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 {
@@ -62,6 +64,8 @@ int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 		Application->CreateForm(__classid(Tloadfactor_AlarmForm), &loadfactor_AlarmForm);
 		Application->CreateForm(__classid(TloadfactorForm), &loadfactorForm);
 		Application->CreateForm(__classid(TtrayinfoForm), &trayinfoForm);
+		Application->CreateForm(__classid(TPlcBin), &PlcBin);
+        Application->CreateForm(__classid(TInterfaceForm), &InterfaceForm);
 		Application->Run();
 	}
 	catch (Exception &exception)

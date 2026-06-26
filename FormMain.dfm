@@ -3178,7 +3178,7 @@ object MainForm: TMainForm
     object trayout_targetBtn: TAdvSmoothButton
       Tag = 1
       Left = 15
-      Top = 403
+      Top = 399
       Width = 100
       Height = 60
       Appearance.PictureAlignment = taCenter
@@ -6424,10 +6424,10 @@ object MainForm: TMainForm
     Visible = False
   end
   object pnlPLCTEST: TAdvSmoothPanel
-    Left = 959
-    Top = 66
-    Width = 928
-    Height = 686
+    Left = 1181
+    Top = 200
+    Width = 699
+    Height = 424
     Cursor = crDefault
     CanMove = True
     Caption.HTMLFont.Charset = DEFAULT_CHARSET

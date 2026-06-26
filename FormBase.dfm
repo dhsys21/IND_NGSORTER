@@ -935,8 +935,8 @@ object BaseForm: TBaseForm
     TMSStyle = 8
   end
   object btnKeyLock: TAdvSmoothButton
-    Left = 1056
-    Top = 33
+    Left = 760
+    Top = 32
     Width = 103
     Height = 30
     Appearance.GlowPercentage = 50
@@ -974,8 +974,8 @@ object BaseForm: TBaseForm
     TMSStyle = 8
   end
   object btnKeyUnLock: TAdvSmoothButton
-    Left = 947
-    Top = 33
+    Left = 651
+    Top = 32
     Width = 103
     Height = 30
     Appearance.GlowPercentage = 50
@@ -1010,6 +1010,43 @@ object BaseForm: TBaseForm
     TabOrder = 15
     Version = '2.1.1.5'
     OnClick = btnKeyUnLockClick
+    TMSStyle = 8
+  end
+  object AdvSmoothButton4: TAdvSmoothButton
+    Left = 989
+    Top = 6
+    Width = 175
+    Height = 56
+    Appearance.Font.Charset = DEFAULT_CHARSET
+    Appearance.Font.Color = clWindowText
+    Appearance.Font.Height = -16
+    Appearance.Font.Name = 'Tahoma'
+    Appearance.Font.Style = [fsBold]
+    Appearance.Spacing = 0
+    Appearance.Rounding = 3
+    Appearance.WordWrapping = False
+    Status.Caption = '0'
+    Status.Appearance.Fill.Color = clRed
+    Status.Appearance.Fill.ColorMirror = clNone
+    Status.Appearance.Fill.ColorMirrorTo = clNone
+    Status.Appearance.Fill.GradientType = gtSolid
+    Status.Appearance.Fill.GradientMirrorType = gtSolid
+    Status.Appearance.Fill.BorderColor = clGray
+    Status.Appearance.Fill.Rounding = 0
+    Status.Appearance.Fill.ShadowOffset = 0
+    Status.Appearance.Fill.Glow = gmNone
+    Status.Appearance.Font.Charset = DEFAULT_CHARSET
+    Status.Appearance.Font.Color = clWhite
+    Status.Appearance.Font.Height = -11
+    Status.Appearance.Font.Name = 'Tahoma'
+    Status.Appearance.Font.Style = []
+    BevelColor = clMedGray
+    Caption = 'PLC / MES'
+    Color = clWhite
+    ParentFont = False
+    TabOrder = 16
+    Version = '2.1.1.5'
+    OnClick = AdvSmoothButton4Click
     TMSStyle = 8
   end
   object ClockTimer: TTimer

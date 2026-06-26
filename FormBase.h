@@ -13,12 +13,12 @@
 #include "AdvSmoothButton.hpp"
 #include "AdvSmoothPanel.hpp"
 
-
 #include "FormMain.h"
 #include "Modmes.h"
 #include "ModEcs.h"
 #include "FormConfig.h"
 #include "Modplc.h"
+#include "ModPLC_Bin.h"
 #include "DEFINE.h"
 #include "ModRobostar.h"
 #include "Mdfunc.h"
@@ -37,7 +37,7 @@
 #include "FormLoadFactor.h"
 #include "FormAlarm_LoadFactor.h"
 #include "FormAlarm_TrayInfo.h"
-
+#include "FormInterface.h"
 
 #include "mmsystem.h"
 
@@ -78,6 +78,7 @@ __published:	// IDE-managed Components
 	TLabel *Label2;
 	TAdvSmoothButton *btnKeyLock;
 	TAdvSmoothButton *btnKeyUnLock;
+	TAdvSmoothButton *AdvSmoothButton4;
 	void __fastcall FormShow(TObject *Sender);
 	void __fastcall ClockTimerTimer(TObject *Sender);
 	void __fastcall FileDeleteTimerTimer(TObject *Sender);
@@ -92,6 +93,7 @@ __published:	// IDE-managed Components
 	void __fastcall btnKeyLockClick(TObject *Sender);
 	void __fastcall btnKeyUnLockClick(TObject *Sender);
 	void __fastcall FormCreate(TObject *Sender);
+	void __fastcall AdvSmoothButton4Click(TObject *Sender);
 
 private:	// User declarations
 

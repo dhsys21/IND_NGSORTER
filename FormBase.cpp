@@ -76,8 +76,8 @@ void __fastcall TBaseForm::FormShow(TObject *Sender)
 	this->Left = 0;//Screen->Width - this->Width;
 	this->Top = 0;
 
-    ChangeLanguage();
-	//RadioButton2->Checked = true;
+//    ChangeLanguage();
+	RadioButton2->Checked = true;
 }
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::FormClose(TObject *Sender, TCloseAction &Action)
@@ -225,7 +225,7 @@ void __fastcall TBaseForm::btnKeyLockClick(TObject *Sender)
 {
 	if(MainForm->equipMode != modeManual)
 	{
-        ShowMessage("[C_Maint] 수동 모드가 아닙니다. 수동 모드로 변경하고 키락을 해제 해주세요.");
+        ShowMessage(GetLangStr("MSG_UNLOCK_KEY"));
 	}
 	else{
 		robostar->KeyLock(1);
@@ -438,3 +438,14 @@ void __fastcall TBaseForm::ChangeLanguage()
     ErrorForm_eject->pclose1->Caption = GetLangStr("CAP_CLOSE");
     ErrorForm_eject->pcell1->Caption = GetLangStr("CAP_CELL");
 }
+void __fastcall TBaseForm::AdvSmoothButton4Click(TObject *Sender)
+{
+    InterfaceForm->Position = poDesigned;
+	InterfaceForm->Left = 300;
+	InterfaceForm->Top = 85;
+	InterfaceForm->Visible = true;
+    InterfaceForm->WindowState = wsNormal;
+    InterfaceForm->BringToFront();
+}
+//---------------------------------------------------------------------------
+
