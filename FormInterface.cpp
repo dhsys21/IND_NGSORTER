@@ -90,6 +90,37 @@ void __fastcall TInterfaceForm::SetListViewPC()
 }
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
+// PLC Update
+//---------------------------------------------------------------------------
+void __fastcall TInterfaceForm::Timer_PLC_UpdateTimer(TObject *Sender)
+{
+    int index;
+    if(PlcBin->ClientSocket_PLC->Active)
+    {
+        index = 0;
+        ListView_PLC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPlcValue(PLC_D_HEART_BEAT);
+        ListView_PLC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPlcValue(PLC_D_AUTO_MANUAL);
+        ListView_PLC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPlcValue(PLC_D_ERROR);
+        ListView_PLC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPlcValue(PLC_D_SOURCE_TRAY_IN);
+        ListView_PLC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPlcValue(PLC_D_SOURCE_CENTERING);
+        ListView_PLC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPlcValue(PLC_D_TARGET_TRAY_IN);
+        ListView_PLC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPlcValue(PLC_D_TARGET_CENTERING);
+    }
+
+    if(PlcBin->ClientSocket_PC->Active)
+    {
+        index = 0;
+        ListView_PC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPcValue(PC_D_HEART_BEAT);
+        ListView_PC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPcValue(PC_D_AUTO_MANUAL);
+        ListView_PC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPcValue(PC_D_ERROR);
+        ListView_PC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPcValue(PC_D_SOURCE_CENTERING_REQ);
+        ListView_PC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPcValue(PC_D_TARGET_CENTERING_REQ);
+        ListView_PC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPcValue(PC_D_SOURCE_TRAY_OUT);
+        ListView_PC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPcValue(PC_D_TARGET_TRAY_OUT);
+    }
+}
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 // PLC TEST
 //---------------------------------------------------------------------------
 void __fastcall TInterfaceForm::btnPlcWriteValueClick(TObject *Sender)
@@ -103,6 +134,9 @@ void __fastcall TInterfaceForm::WritePcValue()
     int value = editPcValue->Text.ToIntDef(1);
     PlcBin->SetPcValue(address, value);
 }
+//---------------------------------------------------------------------------
+
+
 
 //---------------------------------------------------------------------------
 // FMS TAG LIST
@@ -234,6 +268,13 @@ void __fastcall TInterfaceForm::SetListViewPCTAG()
 }
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
+// FMS Update
+//---------------------------------------------------------------------------
+
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 // FMS TEST
 //---------------------------------------------------------------------------
+
+
 

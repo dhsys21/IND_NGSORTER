@@ -43,9 +43,11 @@ __published:	// IDE-managed Components
 	TEdit *editOCV;
 	TGroupBox *gbIrocvNgValue;
 	TEdit *editNgList;
-	TTimer *Timer_Update;
+	TTimer *Timer_PLC_Update;
+	TTimer *Timer_MES_Update;
 	void __fastcall GroupBox_PLC_PCDblClick(TObject *Sender);
 	void __fastcall btnPlcWriteValueClick(TObject *Sender);
+	void __fastcall Timer_PLC_UpdateTimer(TObject *Sender);
 private:	// User declarations
     void __fastcall AddListView(TListView *list, AnsiString address, AnsiString name);
     void __fastcall SetListViewPLC();
