@@ -49,7 +49,7 @@ void __fastcall TBarcode::GetBarcode()
 		char stx = 0x02;
 		Comm->Write(&stx, 1);
 		if(ErrorForm_bcr->Visible){
-			chkTimer->Interval = 60000;
+			chkTimer->Interval = 50000;
 			tryCnt = retryCnt;
 		}else{
 			chkTimer->Interval = retryInterval;

@@ -356,63 +356,6 @@ void __fastcall TMainForm::openBtnClick(TObject *Sender)
 	if(gripper->seq == 4) gripper->step.step = 0;   //  seqPause
 }
 //---------------------------------------------------------------------------
-
-
-void __fastcall TMainForm::ReceivePLC(TMessage &Msg)
-{
-	AnsiString *data, param;
-	int cmd = 0, axis = 0, addr = 0;
-
-	data = (AnsiString*)Msg.LParam;
-	addr = Msg.WParam;
-
-	switch(addr){
-		case 0x4000:	// PLC WRITE 康开
-		case 0x4001:	// PLC WRITE 康开
-
-		case 0x4010:	// PLC WRITE 康开
-		case 0x4011:	// PLC WRITE 康开
-			plcReadData(*data, addr);
-			break;
-	}
-
-}
-//---------------------------------------------------------------------------
-void __fastcall TMainForm::plcReadData(AnsiString str, int addr)
-{
-	WORD data;
-	if(str.IsEmpty())return;
-
-	int row = 0;
-	WORD *ptr;
-	AnsiString s194 = str.SubString(19,4);
-	if(s194 == "0000" && str.Length() >=26){
-		str.Delete(1, 22);
-		data = ("0x" + str.SubString(1, 4)).ToInt();
-		if(addr == 0x4000 || addr == 0x4010){
-			ptr = (WORD*)&plcInput;
-		   *ptr =data;
-        	row = 0;
-			for(int col = 0; col < 16; col++){
-				if(data & (1 << col))BaseForm->pRead[row][col]->Color = clYellow;
-				else BaseForm->pRead[row][col]->Color = clSilver;
-			}
-		}
-		else if(addr == 0x4001 || addr == 0x4011){
-//			ptr = (WORD*)&plcOutput;
-//		   *ptr =data;
-        	row = 1;
-			for(int col = 0; col < 16; col++){
-				if(data & (1 << col))
-					BaseForm->pRead[row][col]->Color = clYellow;
-				else
-					BaseForm->pRead[row][col]->Color = clSilver;
-			}
-		}
-	}
-}
-//---------------------------------------------------------------------------
-
 void __fastcall TMainForm::trayout_srcBtnClick(TObject *Sender)
 {
 	if(plcInput.SRC_ARRIVE){
@@ -423,7 +366,6 @@ void __fastcall TMainForm::trayout_srcBtnClick(TObject *Sender)
 	}
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TMainForm::trayout_targetBtnClick(TObject *Sender)
 {
 	int reply;
@@ -718,7 +660,6 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		teachForm->px1->Caption = px1->Caption;
 		teachForm->py->Caption = py->Caption;
 		teachForm->pz->Caption = pz->Caption;
-//		teachForm->pg1->Caption = pg1->Caption;
 		teachForm->pspeed->Caption = pspeed->Caption;
 	}
 
@@ -807,7 +748,6 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 
 	if(popen->Color != clLime)
 		doorForm->ShowError("RESET", BaseForm->GetLangStr("MSG_SERVO_OPEN"), 5);
-
 
 	pejectremainCnt->Caption = tray_source.remainCnt;
 	pinsertremainCnt->Caption = tray_target.remainCnt;
@@ -1080,91 +1020,6 @@ void __fastcall TMainForm::AdvSmoothToggleButton_InitWorkClick(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
-void __fastcall TMainForm::AdvSmoothToggleButton2Click(TObject *Sender)
-{
-    plcOutput.AUTO_RUN = 1;
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TMainForm::AdvSmoothToggleButton3Click(TObject *Sender)
-{
-    plcOutput.SRC_WORK = 1;
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TMainForm::AdvSmoothToggleButton7Click(TObject *Sender)
-{
-	plcOutput.SRC_MANUAL_WORK = !plcOutput.SRC_MANUAL_WORK;
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TMainForm::AdvSmoothToggleButton5Click(TObject *Sender)
-{
-    plcOutput.SRC_OUT = 1;
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TMainForm::AdvSmoothToggleButton8Click(TObject *Sender)
-{
-    plcOutput.SRC_OUT = 0;
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TMainForm::AdvSmoothToggleButton6Click(TObject *Sender)
-{
-    plcOutput.TARGET_OUT = 1;
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TMainForm::AdvSmoothToggleButton9Click(TObject *Sender)
-{
-    plcOutput.TARGET_OUT = 0;
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TMainForm::AdvSmoothToggleButton17Click(TObject *Sender)
-{
-	comBcr[0]->GetBarcode();
-	comBcr[1]->GetBarcode();
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TMainForm::AdvSmoothToggleButton10Click(TObject *Sender)
-{
-    plcInput.SRC_READY = 1;
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TMainForm::AdvSmoothToggleButton16Click(TObject *Sender)
-{
-    plcInput.SRC_READY = 0;
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TMainForm::AdvSmoothToggleButton11Click(TObject *Sender)
-{
-    plcInput.SRC_ARRIVE = 1;
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TMainForm::AdvSmoothToggleButton14Click(TObject *Sender)
-{
-    plcInput.SRC_ARRIVE = 0;
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TMainForm::AdvSmoothToggleButton12Click(TObject *Sender)
-{
-    plcInput.TARGET_READY = 1;
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TMainForm::AdvSmoothToggleButton13Click(TObject *Sender)
-{
-    plcInput.TARGET_READY = 0;
-}
-//---------------------------------------------------------------------------
-
 void __fastcall TMainForm::pnlSource2Click(TObject *Sender)
 {
     badCode->Visible = !badCode->Visible;
@@ -1177,6 +1032,9 @@ void __fastcall TMainForm::lblTitleClick(TObject *Sender)
         CheckBox1->Checked = false;
 }
 //---------------------------------------------------------------------------
+
+
+
 
 
 

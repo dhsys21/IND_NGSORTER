@@ -267,23 +267,6 @@ __published:	// IDE-managed Components
 	TPanel *pErrorG1;
 	TPanel *pLspG1;
 	TPanel *pLsnG1;
-	TAdvSmoothPanel *pnlPLCTEST;
-	TPanel *Panel28;
-	TLabel *Label14;
-	TAdvSmoothToggleButton *AdvSmoothToggleButton2;
-	TAdvSmoothToggleButton *AdvSmoothToggleButton3;
-	TAdvSmoothToggleButton *AdvSmoothToggleButton5;
-	TAdvSmoothToggleButton *AdvSmoothToggleButton6;
-	TAdvSmoothToggleButton *AdvSmoothToggleButton7;
-	TAdvSmoothToggleButton *AdvSmoothToggleButton8;
-	TAdvSmoothToggleButton *AdvSmoothToggleButton9;
-	TAdvSmoothToggleButton *AdvSmoothToggleButton10;
-	TAdvSmoothToggleButton *AdvSmoothToggleButton11;
-	TAdvSmoothToggleButton *AdvSmoothToggleButton12;
-	TAdvSmoothToggleButton *AdvSmoothToggleButton13;
-	TAdvSmoothToggleButton *AdvSmoothToggleButton14;
-	TAdvSmoothToggleButton *AdvSmoothToggleButton16;
-	TAdvSmoothToggleButton *AdvSmoothToggleButton17;
 	TAdvSmoothPanel *pTargetBase;
 	TPanel *Panel31;
 	TPanel *pflow3;
@@ -326,32 +309,16 @@ __published:	// IDE-managed Components
 	void __fastcall zone1Click(TObject *Sender);
 	void __fastcall openBtnClick(TObject *Sender);
 	void __fastcall AdvSmoothToggleButton_InitWorkClick(TObject *Sender);
-	void __fastcall AdvSmoothToggleButton2Click(TObject *Sender);
-	void __fastcall AdvSmoothToggleButton3Click(TObject *Sender);
-	void __fastcall AdvSmoothToggleButton6Click(TObject *Sender);
-	void __fastcall AdvSmoothToggleButton5Click(TObject *Sender);
-	void __fastcall AdvSmoothToggleButton7Click(TObject *Sender);
-	void __fastcall AdvSmoothToggleButton8Click(TObject *Sender);
-	void __fastcall AdvSmoothToggleButton9Click(TObject *Sender);
-	void __fastcall AdvSmoothToggleButton17Click(TObject *Sender);
-	void __fastcall AdvSmoothToggleButton10Click(TObject *Sender);
-	void __fastcall AdvSmoothToggleButton16Click(TObject *Sender);
-	void __fastcall AdvSmoothToggleButton11Click(TObject *Sender);
-	void __fastcall AdvSmoothToggleButton14Click(TObject *Sender);
-	void __fastcall AdvSmoothToggleButton12Click(TObject *Sender);
-	void __fastcall AdvSmoothToggleButton13Click(TObject *Sender);
 	void __fastcall pnlSource2Click(TObject *Sender);
 	void __fastcall lblTitleClick(TObject *Sender);
 private:	// User declarations
 //------------ Æû °ü·Ã -------------------//
-
 
 	void __fastcall InitMode();
 	void __fastcall AutoMode();
 	void __fastcall ManualMode();
 	void __fastcall EmergencyMode();
 	void __fastcall ResetMode();
-
 
 	TListItem	*ITEM;
 	TIniFile *ini;
@@ -441,12 +408,6 @@ public:		// User declarations
 
 	PLC_INPUT	plcInput;
 	PLC_OUTPUT	plcOutput;
-
-	void __fastcall ReceivePLC(TMessage &Msg);
-	void __fastcall plcReadData(AnsiString str, int addr);
-	BEGIN_MESSAGE_MAP
-		MESSAGE_HANDLER(UM_PLC, TMessage, ReceivePLC)
-	END_MESSAGE_MAP(TForm)
 
 	void __fastcall BuzzerOn(bool on);
 	void __fastcall LampModeChange(LampMode mode);

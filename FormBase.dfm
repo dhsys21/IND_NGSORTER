@@ -609,7 +609,6 @@ object BaseForm: TBaseForm
     Fill.ShadowOffset = 0
     Fill.Glow = gmNone
     Version = '1.5.2.1'
-    OnClick = pplcClick
     TabOrder = 4
     TMSStyle = 0
   end

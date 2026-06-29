@@ -89,7 +89,6 @@ __published:	// IDE-managed Components
 	void __fastcall AdvSmoothButton1Click(TObject *Sender);
 	void __fastcall RadioButton1Click(TObject *Sender);
 	void __fastcall AdvSmoothButton3Click(TObject *Sender);
-	void __fastcall pplcClick(TObject *Sender);
 	void __fastcall btnKeyLockClick(TObject *Sender);
 	void __fastcall btnKeyUnLockClick(TObject *Sender);
 	void __fastcall FormCreate(TObject *Sender);
@@ -107,7 +106,6 @@ private:	// User declarations
     HANDLE hProcess;
 public:		// User declarations
 
-    TPanel *pRead[2][16];
 	void __fastcall setColor(TAdvSmoothPanel *pnl, bool bon);
 	MAIN_CONFIG config;
 

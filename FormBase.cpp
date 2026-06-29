@@ -27,47 +27,7 @@ void __fastcall TBaseForm::FormCreate(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::FormShow(TObject *Sender)
 {
-	int nx = 20;
-	int ny = 100;
-	for(int row = 0; row < 2; row++) {
-		for(int col = 0; col < 16; col++) {
-			pRead[row][col] = new TPanel(Owner);
-			pRead[row][col]->Parent = MainForm->pnlPLCTEST;
-            pRead[row][col]->ParentBackground = false;
-			//pRead[row][col]->Parent = this;
-			pRead[row][col]->Width = 100;
-			pRead[row][col]->Height = 25;
-			pRead[row][col]->Color = clSilver;
-			pRead[row][col]->Top = ny;
-			pRead[row][col]->Left = nx;
-			pRead[row][col]->Caption = col;
-			pRead[row][col]->Visible = true;
-
-			nx = nx + 100 + 2;
-            if(col == 7) {
-            	ny += 30;
-                nx = 20;
-            }
-
-		}
-		ny += 30;
-		nx = 20;
-	}
-	pRead[0][0]->Caption = "자동";
-	pRead[0][1]->Caption = "비상";
-	pRead[0][2]->Caption = "선별도착";
-	pRead[0][3]->Caption = "선별센터";
-	pRead[0][4]->Caption = "선별배출";
-	pRead[0][5]->Caption = "대센터1";
-	pRead[0][6]->Caption = "대배출1";
-
-	pRead[1][1]->Caption = "작업가능";
-	pRead[1][2]->Caption = "선별작업";
-	pRead[1][3]->Caption = "선별배출";
-	pRead[1][5]->Caption = "대배출1";
-
-
-	if(config.file_exists == false){		// test
+ 	if(config.file_exists == false){		// test
 		ConfigForm->Visible = true;
 	}
 
@@ -214,11 +174,6 @@ void __fastcall TBaseForm::AdvSmoothButton3Click(TObject *Sender)
 	ServoAlarmListForm->Top = AdvSmoothButton3->Top + 80;
 	ServoAlarmListForm->BringToFront();
 	ServoAlarmListForm->Show();
-}
-//---------------------------------------------------------------------------
-void __fastcall TBaseForm::pplcClick(TObject *Sender)
-{
-    MainForm->pnlPLCTEST->Visible = !MainForm->pnlPLCTEST->Visible;
 }
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::btnKeyLockClick(TObject *Sender)
