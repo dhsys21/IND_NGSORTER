@@ -49,9 +49,10 @@ void __fastcall TInterfaceForm::SetListViewPLC()
         AddListView(ListView_PLC, "D" + IntToStr(PLC_D_INTERFACE_START_DEV_NUM + PLC_D_HEART_BEAT), "PLC HEART BEAT");
         AddListView(ListView_PLC, "D" + IntToStr(PLC_D_INTERFACE_START_DEV_NUM + PLC_D_AUTO_MANUAL), "PLC AUTO MANUAL");
         AddListView(ListView_PLC, "D" + IntToStr(PLC_D_INTERFACE_START_DEV_NUM + PLC_D_ERROR), "PLC ERROR");
-        AddListView(ListView_PLC, "D" + IntToStr(PLC_D_INTERFACE_START_DEV_NUM + PLC_D_TRAY_IN), "TRAY IN");
-        AddListView(ListView_PLC, "D" + IntToStr(PLC_D_INTERFACE_START_DEV_NUM + PLC_D_MAINTENANCE_ON), "MAINTENANCE ON");
-        AddListView(ListView_PLC, "D" + IntToStr(PLC_D_INTERFACE_START_DEV_NUM + PLC_D_MAINTENANCE_TRAY_OUT), "MAINTENANCE TRAY OUT");
+        AddListView(ListView_PLC, "D" + IntToStr(PLC_D_INTERFACE_START_DEV_NUM + PLC_D_SOURCE_TRAY_IN), "SOURCE TRAY IN");
+        AddListView(ListView_PLC, "D" + IntToStr(PLC_D_INTERFACE_START_DEV_NUM + PLC_D_SOURCE_CENTERING), "SOURCE CENTERING");
+        AddListView(ListView_PLC, "D" + IntToStr(PLC_D_INTERFACE_START_DEV_NUM + PLC_D_TARGET_TRAY_IN), "TARGET TRAY IN");
+        AddListView(ListView_PLC, "D" + IntToStr(PLC_D_INTERFACE_START_DEV_NUM + PLC_D_TARGET_CENTERING), "TARGET CENTERING");
     }
     __finally
     {
@@ -73,12 +74,10 @@ void __fastcall TInterfaceForm::SetListViewPC()
         AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_HEART_BEAT), "PC HEART BEAT");
         AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_AUTO_MANUAL), "PC AUTO MANUAL");
         AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_ERROR), "PC ERROR");
-        AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_MEASURECOMPLETE), "MEASURING COMPLETE");
-        AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_TRAY_OUT), "TRAY OUT");
-        AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_MAINTENANCE_IN), "MAINTENANCE IN");
-        AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_MAINTENANCE_OUT), "MAINTENANCE OUT");
-        AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_PROB_OPEN), "PROB OPEN");
-        AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_PROB_CLOSE), "PROB CLOSE");
+        AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_SOURCE_CENTERING_REQ), "SOURCE CENTERING REQ");
+        AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_TARGET_CENTERING_REQ), "TARGET CENTERING REQ");
+        AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_SOURCE_TRAY_OUT), "SOURCE TRAY OUT");
+        AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_TARGET_TRAY_OUT), "TARGET TRAY OUT");
     }
     __finally
     {
@@ -152,15 +151,9 @@ void __fastcall TInterfaceForm::SetListViewFMSTAG()
         AddListView(ListView_FMS_TAG, "Tray Process");
         AddListView(ListView_FMS_TAG, "  Process Start Response");
         AddListView(ListView_FMS_TAG, "  Process End Response");
-        AddListView(ListView_FMS_TAG, "  Request Recipe Response");
 
-        AddListView(ListView_FMS_TAG, "Recipe");
-        AddListView(ListView_FMS_TAG, "  Recipe Id");
-        AddListView(ListView_FMS_TAG, "  SV");
-        AddListView(ListView_FMS_TAG, "    Max OCV");
-        AddListView(ListView_FMS_TAG, "    Min OCV");
-        AddListView(ListView_FMS_TAG, "    Max IR");
-        AddListView(ListView_FMS_TAG, "    Min IR");
+        AddListView(ListView_FMS_TAG, "Cell Track Out");
+        AddListView(ListView_FMS_TAG, "  Cell Unload Complete Res");
 
     }
     __finally
@@ -191,28 +184,44 @@ void __fastcall TInterfaceForm::SetListViewPCTAG()
         AddListView(ListView_PC_TAG, "Equipment Control");
         AddListView(ListView_PC_TAG, "  Command Response");
 
+        AddListView(ListView_PC_TAG, "=== SOURCE TRAY ===");
         AddListView(ListView_PC_TAG, "Tray Information");
         AddListView(ListView_PC_TAG, "  Tray Exist");
         AddListView(ListView_PC_TAG, "  Tray Id");
         AddListView(ListView_PC_TAG, "  Tray Load");
 
-        AddListView(ListView_PC_TAG, "TrackOut Cell Information");
+        AddListView(ListView_PC_TAG, "Tray Process");
+        AddListView(ListView_PC_TAG, "  Process Start");
+        AddListView(ListView_PC_TAG, "  Process End");
+
+        AddListView(ListView_PC_TAG, "=== TARGET TRAY ===");
+        AddListView(ListView_PC_TAG, "Tray Information");
+        AddListView(ListView_PC_TAG, "  Tray Exist");
+        AddListView(ListView_PC_TAG, "  Tray Id");
+        AddListView(ListView_PC_TAG, "  Tray Load");
+
+        AddListView(ListView_PC_TAG, "Track Out Cell Info");
         AddListView(ListView_PC_TAG, "  Cell Count");
         AddListView(ListView_PC_TAG, "  Cell");
-        AddListView(ListView_PC_TAG, "    Cell Id");
+        AddListView(ListView_PC_TAG, "    Cell ID");
         AddListView(ListView_PC_TAG, "    Cell No");
         AddListView(ListView_PC_TAG, "    Lot Id");
         AddListView(ListView_PC_TAG, "    Cell Exist");
         AddListView(ListView_PC_TAG, "    NG Code");
         AddListView(ListView_PC_TAG, "    Grade");
-        AddListView(ListView_PC_TAG, "    WorkFlag");
-        AddListView(ListView_PC_TAG, "    OCV");
-        AddListView(ListView_PC_TAG, "    IR");
+        AddListView(ListView_PC_TAG, "    Work Flag");
 
         AddListView(ListView_PC_TAG, "Tray Process");
         AddListView(ListView_PC_TAG, "  Process Start");
         AddListView(ListView_PC_TAG, "  Process End");
-        AddListView(ListView_PC_TAG, "  Request Recipe");
+
+        AddListView(ListView_PC_TAG, "Cell Track Out");
+        AddListView(ListView_PC_TAG, "  Cell No. From");
+        AddListView(ListView_PC_TAG, "  Tray Id From");
+        AddListView(ListView_PC_TAG, "  Cell No. To");
+        AddListView(ListView_PC_TAG, "  Tray Id To");
+        AddListView(ListView_PC_TAG, "  Cell Id");
+        AddListView(ListView_PC_TAG, "  Cell Unload Complete");
     }
     __finally
     {

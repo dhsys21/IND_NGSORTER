@@ -44,9 +44,10 @@ const int PC_D_INTERFACE_LEN	 					= 	50;
 const int PLC_D_HEART_BEAT				   			=	0;
 const int PLC_D_AUTO_MANUAL			                =   1;
 const int PLC_D_ERROR    	  				        =   2;
-const int PLC_D_TRAY_IN   	  				        =   3;
-const int PLC_D_MAINTENANCE_ON                      =   4;
-const int PLC_D_MAINTENANCE_TRAY_OUT                =   5;
+const int PLC_D_SOURCE_TRAY_IN 				        =   3;
+const int PLC_D_SOURCE_CENTERING                    =   4;
+const int PLC_D_TARGET_TRAY_IN 				        =   3;
+const int PLC_D_TARGET_CENTERING                    =   4;
 
 //---------------------------------------------------------------------------
 //	PC - PLC Interface
@@ -54,12 +55,10 @@ const int PLC_D_MAINTENANCE_TRAY_OUT                =   5;
 const int PC_D_HEART_BEAT			  				=	0;
 const int PC_D_AUTO_MANUAL			     	    	=   1;
 const int PC_D_ERROR    	  			    		=   2;
-const int PC_D_MEASURECOMPLETE                      =   3;
-const int PC_D_TRAY_OUT    	  	   	    			=   4;
-const int PC_D_MAINTENANCE_IN  		    			=   5;
-const int PC_D_MAINTENANCE_OUT                      =   6;
-const int PC_D_PROB_OPEN   	  		    			=   7;
-const int PC_D_PROB_CLOSE                           =   8;
+const int PC_D_SOURCE_CENTERING_REQ                 =   3;
+const int PC_D_TARGET_CENTERING_REQ	    			=   4;
+const int PC_D_SOURCE_TRAY_OUT 		    			=   5;
+const int PC_D_TARGET_TRAY_OUT                      =   6;
 
 //---------------------------------------------------------------------------
 //	PLC Header
