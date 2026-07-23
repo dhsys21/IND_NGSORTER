@@ -4,8 +4,8 @@ object ConfigForm: TConfigForm
   BorderIcons = []
   BorderStyle = bsSingle
   Caption = 'CONFIGURATION'
-  ClientHeight = 318
-  ClientWidth = 488
+  ClientHeight = 396
+  ClientWidth = 900
   Color = clWhite
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -23,7 +23,7 @@ object ConfigForm: TConfigForm
   object Image12: TImage
     Left = 0
     Top = 0
-    Width = 488
+    Width = 900
     Height = 68
     Align = alTop
     AutoSize = True
@@ -232,8 +232,8 @@ object ConfigForm: TConfigForm
     Left = 8
     Top = 75
     Width = 470
-    Height = 60
-    Caption = 'MES'
+    Height = 100
+    Caption = 'FMS Gateway'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -16
@@ -243,7 +243,7 @@ object ConfigForm: TConfigForm
     TabOrder = 0
     object PortEdit: TEdit
       Left = 140
-      Top = 22
+      Top = 56
       Width = 100
       Height = 29
       Color = clWhite
@@ -257,7 +257,7 @@ object ConfigForm: TConfigForm
       ParentShowHint = False
       ShowHint = False
       TabOrder = 0
-      Text = '7000'
+      Text = '18080'
     end
     object btnConMes: TAdvSmoothButton
       Left = 249
@@ -335,7 +335,7 @@ object ConfigForm: TConfigForm
     end
     object Panel3: TPanel
       Left = 10
-      Top = 22
+      Top = 56
       Width = 130
       Height = 29
       BevelKind = bkFlat
@@ -353,10 +353,42 @@ object ConfigForm: TConfigForm
       ShowHint = False
       TabOrder = 3
     end
+    object pnlFmsIp: TPanel
+      Left = 10
+      Top = 22
+      Width = 90
+      Height = 29
+      BevelKind = bkFlat
+      BevelOuter = bvNone
+      Caption = 'IP'
+      Color = 15656921
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 4
+    end
+    object editFmsIp: TEdit
+      Left = 101
+      Top = 22
+      Width = 140
+      Height = 29
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -17
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 5
+      Text = '127.0.0.1'
+    end
   end
   object GroupBox3: TGroupBox
     Left = 8
-    Top = 235
+    Top = 285
     Width = 470
     Height = 72
     Caption = 'STAGE Information'
@@ -404,7 +436,7 @@ object ConfigForm: TConfigForm
     end
   end
   object AdvSmoothButton2: TAdvSmoothButton
-    Left = 272
+    Left = 686
     Top = 18
     Width = 100
     Height = 30
@@ -441,7 +473,7 @@ object ConfigForm: TConfigForm
     TMSStyle = 8
   end
   object AdvSmoothButton3: TAdvSmoothButton
-    Left = 378
+    Left = 792
     Top = 18
     Width = 100
     Height = 30
@@ -479,7 +511,7 @@ object ConfigForm: TConfigForm
   end
   object GroupBox5: TGroupBox
     Left = 8
-    Top = 355
+    Top = 563
     Width = 255
     Height = 58
     Caption = #44592#51333#49440#53469' (Teaching '#49440#53469')'
@@ -490,6 +522,7 @@ object ConfigForm: TConfigForm
     Font.Style = [fsBold]
     ParentFont = False
     TabOrder = 4
+    Visible = False
     object editRecipe: TEdit
       Left = 146
       Top = 22
@@ -531,7 +564,7 @@ object ConfigForm: TConfigForm
   end
   object GroupBox2: TGroupBox
     Left = 280
-    Top = 355
+    Top = 563
     Width = 200
     Height = 58
     Caption = #51060#46041#49884' Z'#52629' '#49345#49849
@@ -542,6 +575,7 @@ object ConfigForm: TConfigForm
     Font.Style = [fsBold]
     ParentFont = False
     TabOrder = 5
+    Visible = False
     object chkZAxisUp: TCheckBox
       Left = 68
       Top = 30
@@ -555,7 +589,7 @@ object ConfigForm: TConfigForm
   end
   object GroupBox4: TGroupBox
     Left = 8
-    Top = 139
+    Top = 181
     Width = 470
     Height = 90
     Caption = 'PLC'
@@ -753,6 +787,242 @@ object ConfigForm: TConfigForm
       ShowHint = False
       TabOrder = 7
       Text = '7000'
+    end
+  end
+  object GroupBoxBcr: TGroupBox
+    Left = 500
+    Top = 75
+    Width = 390
+    Height = 170
+    Caption = 'Barcode Reader (SRX100W)'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 7
+    object pnlBcrSourceIp: TPanel
+      Left = 10
+      Top = 24
+      Width = 70
+      Height = 24
+      BevelKind = bkFlat
+      BevelOuter = bvNone
+      Caption = 'SRC IP'
+      Color = 15656921
+      ParentBackground = False
+      TabOrder = 0
+    end
+    object editBcrSourceIp: TEdit
+      Left = 80
+      Top = 24
+      Width = 140
+      Height = 24
+      TabOrder = 1
+      Text = '192.168.100.238'
+    end
+    object pnlBcrSourcePort: TPanel
+      Left = 225
+      Top = 24
+      Width = 50
+      Height = 24
+      BevelKind = bkFlat
+      BevelOuter = bvNone
+      Caption = 'PORT'
+      Color = 15656921
+      ParentBackground = False
+      TabOrder = 2
+    end
+    object editBcrSourcePort: TEdit
+      Left = 275
+      Top = 24
+      Width = 55
+      Height = 24
+      TabOrder = 3
+      Text = '9004'
+    end
+    object btnBcrSourceConn: TButton
+      Left = 190
+      Top = 58
+      Width = 86
+      Height = 25
+      Caption = 'SRC Conn'
+      TabOrder = 4
+    end
+    object btnBcrSourceDisconn: TButton
+      Left = 284
+      Top = 58
+      Width = 96
+      Height = 25
+      Caption = 'SRC Disconn'
+      TabOrder = 5
+    end
+    object pnlBcrTargetIp: TPanel
+      Left = 10
+      Top = 96
+      Width = 70
+      Height = 24
+      BevelKind = bkFlat
+      BevelOuter = bvNone
+      Caption = 'TGT IP'
+      Color = 15656921
+      ParentBackground = False
+      TabOrder = 6
+    end
+    object editBcrTargetIp: TEdit
+      Left = 80
+      Top = 96
+      Width = 140
+      Height = 24
+      TabOrder = 7
+      Text = '192.168.100.239'
+    end
+    object pnlBcrTargetPort: TPanel
+      Left = 225
+      Top = 96
+      Width = 50
+      Height = 24
+      BevelKind = bkFlat
+      BevelOuter = bvNone
+      Caption = 'PORT'
+      Color = 15656921
+      ParentBackground = False
+      TabOrder = 8
+    end
+    object editBcrTargetPort: TEdit
+      Left = 275
+      Top = 96
+      Width = 55
+      Height = 24
+      TabOrder = 9
+      Text = '9004'
+    end
+    object btnBcrTargetConn: TButton
+      Left = 190
+      Top = 130
+      Width = 86
+      Height = 25
+      Caption = 'TGT Conn'
+      TabOrder = 10
+    end
+    object btnBcrTargetDisconn: TButton
+      Left = 284
+      Top = 130
+      Width = 96
+      Height = 25
+      Caption = 'TGT Disconn'
+      TabOrder = 11
+    end
+  end
+  object GroupBoxSmoke: TGroupBox
+    Left = 500
+    Top = 255
+    Width = 390
+    Height = 130
+    Caption = 'Smoke Detector'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 8
+    object pnlSmokePort: TPanel
+      Left = 10
+      Top = 24
+      Width = 70
+      Height = 24
+      BevelKind = bkFlat
+      BevelOuter = bvNone
+      Caption = 'COM'
+      Color = 15656921
+      ParentBackground = False
+      TabOrder = 0
+    end
+    object editSmokePort: TEdit
+      Left = 80
+      Top = 24
+      Width = 80
+      Height = 24
+      TabOrder = 1
+      Text = 'COM3'
+    end
+    object pnlSmokeId: TPanel
+      Left = 165
+      Top = 24
+      Width = 45
+      Height = 24
+      BevelKind = bkFlat
+      BevelOuter = bvNone
+      Caption = 'ID'
+      Color = 15656921
+      ParentBackground = False
+      TabOrder = 2
+    end
+    object editSmokeId: TEdit
+      Left = 210
+      Top = 24
+      Width = 40
+      Height = 24
+      TabOrder = 3
+      Text = '1'
+    end
+    object pnlSmokeMode: TPanel
+      Left = 255
+      Top = 24
+      Width = 55
+      Height = 24
+      BevelKind = bkFlat
+      BevelOuter = bvNone
+      Caption = 'MODE'
+      Color = 15656921
+      ParentBackground = False
+      TabOrder = 4
+    end
+    object editSmokeMode: TEdit
+      Left = 310
+      Top = 24
+      Width = 40
+      Height = 24
+      TabOrder = 5
+      Text = '0'
+    end
+    object pnlSmokeBaud: TPanel
+      Left = 10
+      Top = 58
+      Width = 70
+      Height = 24
+      BevelKind = bkFlat
+      BevelOuter = bvNone
+      Caption = 'BAUD'
+      Color = 15656921
+      ParentBackground = False
+      TabOrder = 6
+    end
+    object editSmokeBaud: TEdit
+      Left = 80
+      Top = 58
+      Width = 80
+      Height = 24
+      TabOrder = 7
+      Text = '115200'
+    end
+    object btnSmokeConn: TButton
+      Left = 190
+      Top = 92
+      Width = 86
+      Height = 25
+      Caption = 'Connect'
+      TabOrder = 8
+    end
+    object btnSmokeDisconn: TButton
+      Left = 284
+      Top = 92
+      Width = 96
+      Height = 25
+      Caption = 'Disconnect'
+      TabOrder = 9
     end
   end
 end

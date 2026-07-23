@@ -60,15 +60,14 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	m_ServoON = false;
 	m_ServoHome = false;
 	m_ServoHomeEmg = false;
+	for(int i = 0; i < 2; ++i) comBcr[i] = NULL;
+	comSmoke[0] = NULL;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::FormShow(TObject *Sender)
 {
-	for(int i=0; i<2; ++i){
-		comBcr[i] = new TBarcode(Owner);
-	}
-	comBcr[0]->CommOpen("COM2", 0);     	// test
-	comBcr[1]->CommOpen("COM1", 1);
+	ReadSystemInfo();
+	InitBarcodeAndSmoke();
 
 	tx = new TX_DATA;
 	mes->savePath = (AnsiString)SOCK_LOG;
@@ -98,7 +97,55 @@ void __fastcall TMainForm::FormShow(TObject *Sender)
 	senTimer->Enabled = true;
 	stepTimer->Enabled = true;
     LampCount = 0;
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMainForm::ReadSystemInfo()
+{
+	AnsiString file = (AnsiString)BIN + "MainSystemInfo.inf";
+	bool exists = FileExists(file);
 
+	if(!exists)
+		return false;
+
+	TIniFile *ini = new TIniFile(file);
+
+	BaseForm->config.bcrIp[0] = ini->ReadString("COMMUNICATION", "BCR_SOURCE_IP",
+		ini->ReadString("COMMUNICATION", "BCR_IP", BaseForm->config.bcrIp[0]));
+	BaseForm->config.bcrPort[0] = ini->ReadInteger("COMMUNICATION", "BCR_SOURCE_PORT",
+		ini->ReadInteger("COMMUNICATION", "BCR_PORT", BaseForm->config.bcrPort[0]));
+	BaseForm->config.bcrIp[1] = ini->ReadString("COMMUNICATION", "BCR_TARGET_IP", BaseForm->config.bcrIp[1]);
+	BaseForm->config.bcrPort[1] = ini->ReadInteger("COMMUNICATION", "BCR_TARGET_PORT", BaseForm->config.bcrPort[1]);
+	BaseForm->config.smokePort = ini->ReadString("COMMUNICATION", "SMOKE_PORT", BaseForm->config.smokePort);
+	BaseForm->config.smokeId = ini->ReadInteger("COMMUNICATION", "SMOKE_ID", BaseForm->config.smokeId);
+	BaseForm->config.smokeMode = ini->ReadInteger("COMMUNICATION", "SMOKE_MODE", BaseForm->config.smokeMode);
+	BaseForm->config.smokeBaudRate = ini->ReadInteger("COMMUNICATION", "SMOKE_BAUDRATE", BaseForm->config.smokeBaudRate);
+
+	delete ini;
+	return true;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::InitBarcodeAndSmoke()
+{
+	for(int i = 0; i < 2; ++i) {
+		if(comBcr[i] == NULL) {
+			comBcr[i] = new TMod_Bcr(this);
+			comBcr[i]->Tag = i;
+		}
+
+		AnsiString ip = BaseForm->config.bcrIp[i];
+		int port = BaseForm->config.bcrPort[i];
+		if(!ip.IsEmpty() && port > 0)
+			comBcr[i]->Connect(ip, port);
+	}
+
+	if(comSmoke[0] == NULL)
+		comSmoke[0] = new TSmokeDetector(this);
+
+	if(!BaseForm->config.smokePort.IsEmpty())
+		comSmoke[0]->CommOpen(BaseForm->config.smokePort, 0,
+			BaseForm->config.smokeId,
+			BaseForm->config.smokeMode,
+			BaseForm->config.smokeBaudRate);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::CmdTrayOut(int pos)

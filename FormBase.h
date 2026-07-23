@@ -15,6 +15,8 @@
 
 #include "FormMain.h"
 #include "Modmes.h"
+#include "ModMes_Gateway.h"
+#include "ModMes_OPCUA.h"
 #include "ModEcs.h"
 #include "FormConfig.h"
 #include "Modplc.h"
@@ -33,6 +35,8 @@
 #include "FormDoor.h"
 #include "FormAlarm.h"
 #include "Barcode_comm.h"
+#include "Mod_SRX100W.h"
+#include "SmokeDetector_comm.h"
 #include "FormServoAlarmList.h"
 #include "FormLoadFactor.h"
 #include "FormAlarm_LoadFactor.h"
@@ -45,9 +49,17 @@
 typedef struct{
 	bool file_exists;
 	int ims_port;
+	AnsiString fmsIp;
+	int gatewayPort;
 	AnsiString line;
 	AnsiString pc;
 	int ocv_retest;
+	AnsiString bcrIp[2];
+	int bcrPort[2];
+	AnsiString smokePort;
+	int smokeId;
+	int smokeMode;
+	int smokeBaudRate;
 }MAIN_CONFIG;
 
 

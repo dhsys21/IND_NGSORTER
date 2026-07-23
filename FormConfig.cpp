@@ -12,12 +12,19 @@ TConfigForm *ConfigForm;
 __fastcall TConfigForm::TConfigForm(TComponent* Owner)
 	: TForm(Owner)
 {
-
+	this->Width = 920;
+	this->Height = 540;
 }
 //---------------------------------------------------------------------------
 void __fastcall TConfigForm::ApplyConfig()
 {
+	UpdateCommunicationConfigFromEdits();
+	if(editFmsIp != NULL)
+		BaseForm->config.fmsIp = editFmsIp->Text;
+	BaseForm->config.gatewayPort = PortEdit->Text.ToIntDef(18080);
 	mes->pcName = pcEdit->Text;
+	if(Mod_Fms != NULL)
+		Mod_Fms->Configure(BaseForm->config.fmsIp, BaseForm->config.gatewayPort);
 
 	plc->Tag = 2;
 	plc->client->Port = 8197;
@@ -26,15 +33,19 @@ void __fastcall TConfigForm::ApplyConfig()
     	plc->client->Active = true;
 	}
 
-	if(mes->ServerSocket->Active == false){
-		mes->ServerSocket->Port = PortEdit->Text.ToInt();
-		mes->ServerSocket->Active = true;
+	if(MainForm != NULL){
+		for(int i = 0; i < 2; ++i){
+			if(MainForm->comBcr[i] != NULL && MainForm->comBcr[i]->ClientSocketBcr->Active)
+				MainForm->comBcr[i]->Disconnect();
+		}
+		MainForm->InitBarcodeAndSmoke();
 	}
 }
 
 
 void __fastcall TConfigForm::FormCreate(TObject *Sender)
 {
+	CreateCommunicationControls();
 	if(!DirectoryExists((AnsiString)APP_PATH))MkDir((AnsiString)APP_PATH);
 
 	if(!DirectoryExists((AnsiString)BIN))MkDir((AnsiString)BIN);
@@ -53,6 +64,84 @@ void __fastcall TConfigForm::FormCreate(TObject *Sender)
 	}
 }
 //---------------------------------------------------------------------------
+TPanel* __fastcall TConfigForm::AddFieldLabel(TWinControl *Parent, int Left, int Top, int Width, AnsiString Caption)
+{
+	TPanel *Panel = new TPanel(this);
+	Panel->Parent = Parent;
+	Panel->Left = Left;
+	Panel->Top = Top;
+	Panel->Width = Width;
+	Panel->Height = 24;
+	Panel->BevelKind = bkFlat;
+	Panel->BevelOuter = bvNone;
+	Panel->Caption = Caption;
+	Panel->Color = (TColor)15656921;
+	Panel->ParentBackground = false;
+	Panel->Font->Style = TFontStyles() << fsBold;
+	return Panel;
+}
+//---------------------------------------------------------------------------
+TEdit* __fastcall TConfigForm::AddFieldEdit(TWinControl *Parent, int Left, int Top, int Width, AnsiString Text)
+{
+	TEdit *Edit = new TEdit(this);
+	Edit->Parent = Parent;
+	Edit->Left = Left;
+	Edit->Top = Top;
+	Edit->Width = Width;
+	Edit->Height = 24;
+	Edit->Text = Text;
+	return Edit;
+}
+//---------------------------------------------------------------------------
+TButton* __fastcall TConfigForm::AddActionButton(TWinControl *Parent, int Left, int Top, int Width, AnsiString Caption, TNotifyEvent OnClick)
+{
+	TButton *Button = new TButton(this);
+	Button->Parent = Parent;
+	Button->Left = Left;
+	Button->Top = Top;
+	Button->Width = Width;
+	Button->Height = 25;
+	Button->Caption = Caption;
+	Button->OnClick = OnClick;
+	return Button;
+}
+//---------------------------------------------------------------------------
+void __fastcall TConfigForm::CreateCommunicationControls()
+{
+	if(btnConPLC != NULL) btnConPLC->OnClick = btnPlcConnClick;
+	if(btnDisconPLC != NULL) btnDisconPLC->OnClick = btnPlcDisconnClick;
+	if(btnBcrSourceConn != NULL) btnBcrSourceConn->OnClick = btnBcrSourceConnClick;
+	if(btnBcrSourceDisconn != NULL) btnBcrSourceDisconn->OnClick = btnBcrSourceDisconnClick;
+	if(btnBcrTargetConn != NULL) btnBcrTargetConn->OnClick = btnBcrTargetConnClick;
+	if(btnBcrTargetDisconn != NULL) btnBcrTargetDisconn->OnClick = btnBcrTargetDisconnClick;
+	if(btnSmokeConn != NULL) btnSmokeConn->OnClick = btnSmokeConnClick;
+	if(btnSmokeDisconn != NULL) btnSmokeDisconn->OnClick = btnSmokeDisconnClick;
+}
+//---------------------------------------------------------------------------
+void __fastcall TConfigForm::LoadCommunicationEdits()
+{
+	if(editBcrSourceIp != NULL) editBcrSourceIp->Text = BaseForm->config.bcrIp[0];
+	if(editBcrSourcePort != NULL) editBcrSourcePort->Text = IntToStr(BaseForm->config.bcrPort[0]);
+	if(editBcrTargetIp != NULL) editBcrTargetIp->Text = BaseForm->config.bcrIp[1];
+	if(editBcrTargetPort != NULL) editBcrTargetPort->Text = IntToStr(BaseForm->config.bcrPort[1]);
+	if(editSmokePort != NULL) editSmokePort->Text = BaseForm->config.smokePort;
+	if(editSmokeId != NULL) editSmokeId->Text = IntToStr(BaseForm->config.smokeId);
+	if(editSmokeMode != NULL) editSmokeMode->Text = IntToStr(BaseForm->config.smokeMode);
+	if(editSmokeBaud != NULL) editSmokeBaud->Text = IntToStr(BaseForm->config.smokeBaudRate);
+}
+//---------------------------------------------------------------------------
+void __fastcall TConfigForm::UpdateCommunicationConfigFromEdits()
+{
+	if(editBcrSourceIp != NULL) BaseForm->config.bcrIp[0] = editBcrSourceIp->Text;
+	if(editBcrSourcePort != NULL) BaseForm->config.bcrPort[0] = editBcrSourcePort->Text.ToIntDef(9004);
+	if(editBcrTargetIp != NULL) BaseForm->config.bcrIp[1] = editBcrTargetIp->Text;
+	if(editBcrTargetPort != NULL) BaseForm->config.bcrPort[1] = editBcrTargetPort->Text.ToIntDef(9004);
+	if(editSmokePort != NULL) BaseForm->config.smokePort = editSmokePort->Text;
+	if(editSmokeId != NULL) BaseForm->config.smokeId = editSmokeId->Text.ToIntDef(1);
+	if(editSmokeMode != NULL) BaseForm->config.smokeMode = editSmokeMode->Text.ToIntDef(0);
+	if(editSmokeBaud != NULL) BaseForm->config.smokeBaudRate = editSmokeBaud->Text.ToIntDef(115200);
+}
+//---------------------------------------------------------------------------
 void __fastcall TConfigForm::WriteSystemInfo(AnsiString type)
 {
 	TIniFile *ini;
@@ -61,6 +150,9 @@ void __fastcall TConfigForm::WriteSystemInfo(AnsiString type)
 	file = (AnsiString)BIN + "MainSystemInfo.inf";
 
 	ini = new TIniFile(file);
+
+	if(type.IsEmpty())
+		UpdateCommunicationConfigFromEdits();
 
     if(type == "recipe")
 		ini->WriteString("RECIPE", "NO", editRecipe->Text);
@@ -74,12 +166,21 @@ void __fastcall TConfigForm::WriteSystemInfo(AnsiString type)
 	{
         // Stage Info
 		ini->WriteString("INFO", "PC", pcEdit->Text);
-        // MES
-		ini->WriteString("COMMUNICATION", "IMS_PORT", PortEdit->Text);
+        // FMS Gateway
+		ini->WriteString("COMMUNICATION", "FMS_IP", editFmsIp->Text);
+		ini->WriteString("COMMUNICATION", "GATEWAY_PORT", PortEdit->Text);
         // PLC
         ini->WriteString("PLC", "IPADDRESS", editPLCIpaddress->Text);
         ini->WriteString("PLC", "PORT1", editPlcPort1->Text);
         ini->WriteString("PLC", "PORT2", editPlcPort2->Text);
+        ini->WriteString("COMMUNICATION", "BCR_SOURCE_IP", BaseForm->config.bcrIp[0]);
+        ini->WriteInteger("COMMUNICATION", "BCR_SOURCE_PORT", BaseForm->config.bcrPort[0]);
+        ini->WriteString("COMMUNICATION", "BCR_TARGET_IP", BaseForm->config.bcrIp[1]);
+        ini->WriteInteger("COMMUNICATION", "BCR_TARGET_PORT", BaseForm->config.bcrPort[1]);
+        ini->WriteString("COMMUNICATION", "SMOKE_PORT", BaseForm->config.smokePort);
+        ini->WriteInteger("COMMUNICATION", "SMOKE_ID", BaseForm->config.smokeId);
+        ini->WriteInteger("COMMUNICATION", "SMOKE_MODE", BaseForm->config.smokeMode);
+        ini->WriteInteger("COMMUNICATION", "SMOKE_BAUDRATE", BaseForm->config.smokeBaudRate);
 	}
 
 	if(chkZAxisUp->Checked == true)
@@ -99,6 +200,7 @@ bool __fastcall TConfigForm::ReadSystemInfo()
 	file = (AnsiString)BIN + "MainSystemInfo.inf";
 
 	if(FileExists(file) == false){
+		LoadCommunicationEdits();
 		return false;
 	}
 	ini = new TIniFile(file);
@@ -110,12 +212,26 @@ bool __fastcall TConfigForm::ReadSystemInfo()
 
     // Stage Info
 	pcEdit->Text = ini->ReadString("INFO", "PC", "H1DIF01A");
-    // MES
-	PortEdit->Text = ini->ReadString("COMMUNICATION", "IMS_PORT", "7000");
+    // FMS Gateway
+	editFmsIp->Text = ini->ReadString("COMMUNICATION", "FMS_IP", "127.0.0.1");
+	PortEdit->Text = ini->ReadString("COMMUNICATION", "GATEWAY_PORT",
+		ini->ReadString("COMMUNICATION", "IMS_PORT", "18080"));
+	BaseForm->config.fmsIp = editFmsIp->Text;
+	BaseForm->config.gatewayPort = PortEdit->Text.ToIntDef(18080);
     // PLC
     editPLCIpaddress->Text = ini->ReadString("PLC", "IPADDRESS", "192.168.0.1");
     editPlcPort1->Text = ini->ReadString("PLC", "PORT1", "6002");
     editPlcPort2->Text = ini->ReadString("PLC", "PORT2", "6003");
+    BaseForm->config.bcrIp[0] = ini->ReadString("COMMUNICATION", "BCR_SOURCE_IP",
+        ini->ReadString("COMMUNICATION", "BCR_IP", BaseForm->config.bcrIp[0]));
+    BaseForm->config.bcrPort[0] = ini->ReadInteger("COMMUNICATION", "BCR_SOURCE_PORT",
+        ini->ReadInteger("COMMUNICATION", "BCR_PORT", BaseForm->config.bcrPort[0]));
+    BaseForm->config.bcrIp[1] = ini->ReadString("COMMUNICATION", "BCR_TARGET_IP", BaseForm->config.bcrIp[1]);
+    BaseForm->config.bcrPort[1] = ini->ReadInteger("COMMUNICATION", "BCR_TARGET_PORT", BaseForm->config.bcrPort[1]);
+    BaseForm->config.smokePort = ini->ReadString("COMMUNICATION", "SMOKE_PORT", BaseForm->config.smokePort);
+    BaseForm->config.smokeId = ini->ReadInteger("COMMUNICATION", "SMOKE_ID", BaseForm->config.smokeId);
+    BaseForm->config.smokeMode = ini->ReadInteger("COMMUNICATION", "SMOKE_MODE", BaseForm->config.smokeMode);
+    BaseForm->config.smokeBaudRate = ini->ReadInteger("COMMUNICATION", "SMOKE_BAUDRATE", BaseForm->config.smokeBaudRate);
 
     // Recipe
 	editRecipe->Text = ini->ReadString("RECIPE", "NO", "1");
@@ -126,6 +242,8 @@ bool __fastcall TConfigForm::ReadSystemInfo()
 	teachForm->Panel_speedEdit->Caption = ini->ReadString("SPEED", "SPEED", "500");
 	teachForm->acclSpeedEdit->Text = ini->ReadString("SPEED", "ACCL_SPEED", "1000");
 	teachForm->dcclSpeedEdit->Text = ini->ReadString("SPEED", "DCCL_SPEED", "1000");
+
+	LoadCommunicationEdits();
 
 	delete ini;
 	return true;
@@ -138,24 +256,77 @@ void __fastcall TConfigForm::FormShow(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TConfigForm::btnConMesClick(TObject *Sender)
 {
-	mes->ServerSocket->Port = PortEdit->Text.ToInt();
-	mes->ServerSocket->Active = true;	
+	ApplyConfig();
+	if(Mod_Fms != NULL)
+		Mod_Fms->Start();
 }
 //---------------------------------------------------------------------------
 
 void __fastcall TConfigForm::btnDisconMesClick(TObject *Sender)
 {
-	mes->ServerSocket->Active = false;
-
-	if(mes->ThreadFlag){
-		mes->ThreadFlag = false;
-
-		Sleep(1000);
-
-		delete mes->tx_data;
-
+	if(Mod_Fms != NULL)
+		Mod_Fms->Stop();
+}
+//---------------------------------------------------------------------------
+void __fastcall TConfigForm::btnPlcConnClick(TObject *Sender)
+{
+	if(PlcBin != NULL)
+		PlcBin->Connect(editPLCIpaddress->Text, editPlcPort1->Text.ToIntDef(6002), editPlcPort2->Text.ToIntDef(6003));
+}
+//---------------------------------------------------------------------------
+void __fastcall TConfigForm::btnPlcDisconnClick(TObject *Sender)
+{
+	if(PlcBin != NULL)
+		PlcBin->DisConnect();
+}
+//---------------------------------------------------------------------------
+void __fastcall TConfigForm::btnBcrSourceConnClick(TObject *Sender)
+{
+	UpdateCommunicationConfigFromEdits();
+	if(MainForm->comBcr[0] == NULL){
+		MainForm->comBcr[0] = new TMod_Bcr(MainForm);
+		MainForm->comBcr[0]->Tag = 0;
 	}
-	mes->bConnect = false;
+	MainForm->comBcr[0]->Connect(BaseForm->config.bcrIp[0], BaseForm->config.bcrPort[0]);
+}
+//---------------------------------------------------------------------------
+void __fastcall TConfigForm::btnBcrSourceDisconnClick(TObject *Sender)
+{
+	if(MainForm->comBcr[0] != NULL)
+		MainForm->comBcr[0]->Disconnect();
+}
+//---------------------------------------------------------------------------
+void __fastcall TConfigForm::btnBcrTargetConnClick(TObject *Sender)
+{
+	UpdateCommunicationConfigFromEdits();
+	if(MainForm->comBcr[1] == NULL){
+		MainForm->comBcr[1] = new TMod_Bcr(MainForm);
+		MainForm->comBcr[1]->Tag = 1;
+	}
+	MainForm->comBcr[1]->Connect(BaseForm->config.bcrIp[1], BaseForm->config.bcrPort[1]);
+}
+//---------------------------------------------------------------------------
+void __fastcall TConfigForm::btnBcrTargetDisconnClick(TObject *Sender)
+{
+	if(MainForm->comBcr[1] != NULL)
+		MainForm->comBcr[1]->Disconnect();
+}
+//---------------------------------------------------------------------------
+void __fastcall TConfigForm::btnSmokeConnClick(TObject *Sender)
+{
+	UpdateCommunicationConfigFromEdits();
+	if(MainForm->comSmoke[0] == NULL)
+		MainForm->comSmoke[0] = new TSmokeDetector(MainForm);
+	MainForm->comSmoke[0]->CommOpen(BaseForm->config.smokePort, 0,
+		BaseForm->config.smokeId,
+		BaseForm->config.smokeMode,
+		BaseForm->config.smokeBaudRate);
+}
+//---------------------------------------------------------------------------
+void __fastcall TConfigForm::btnSmokeDisconnClick(TObject *Sender)
+{
+	if(MainForm->comSmoke[0] != NULL)
+		MainForm->comSmoke[0]->CommClose();
 }
 //---------------------------------------------------------------------------
 
@@ -177,101 +348,4 @@ void __fastcall TConfigForm::AdvSmoothButton3Click(TObject *Sender)
 	}	
 }
 //---------------------------------------------------------------------------
-
-
-void __fastcall TConfigForm::WritePlcData()
-{
-	WORD nData = 0;
-
-	nData = *((WORD *)&MainForm->plcOutput + 0);
-	plc->WriteWordData(0x4001, 1, IntToHex(nData, 4));
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TConfigForm::AdvSmoothButton6Click(TObject *Sender)
-{
-	MainForm->plcOutput.AUTO_RUN = 	1;
-	WritePlcData();
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TConfigForm::AdvSmoothButton7Click(TObject *Sender)
-{
-    MainForm->plcOutput.AUTO_RUN = 	0;
-	WritePlcData();
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TConfigForm::AdvSmoothButton9Click(TObject *Sender)
-{
-	MainForm->plcOutput.SRC_WORK = 	1;
-	WritePlcData();
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TConfigForm::AdvSmoothButton8Click(TObject *Sender)
-{
-    MainForm->plcOutput.SRC_WORK = 	0;
-	WritePlcData();
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TConfigForm::AdvSmoothButton11Click(TObject *Sender)
-{
-	MainForm->plcOutput.SRC_OUT = 	1;
-	WritePlcData();
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TConfigForm::AdvSmoothButton10Click(TObject *Sender)
-{
-    MainForm->plcOutput.SRC_OUT = 	0;
-	WritePlcData();
-}
-//---------------------------------------------------------------------------
-
-
-void __fastcall TConfigForm::AdvSmoothButton14Click(TObject *Sender)
-{
-   MainForm->plcOutput.TARGET_OUT = 	1;
-	WritePlcData();
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TConfigForm::AdvSmoothButton15Click(TObject *Sender)
-{
-	MainForm->plcOutput.TARGET_OUT = 	0;
-	WritePlcData();
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TConfigForm::AdvSmoothButton16Click(TObject *Sender)
-{
-	 MainForm->plcOutput.SRC_MANUAL_WORK = 	1;
-	WritePlcData();
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TConfigForm::AdvSmoothButton17Click(TObject *Sender)
-{
-  MainForm->plcOutput.SRC_MANUAL_WORK = 	0;
-	WritePlcData();
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TConfigForm::AdvSmoothButton12Click(TObject *Sender)
-{
-	MainForm->plcOutput.SRC_EMP = 	1;
-	WritePlcData();
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TConfigForm::AdvSmoothButton13Click(TObject *Sender)
-{
-   MainForm->plcOutput.SRC_EMP = 0;
-	WritePlcData();
-}
-//---------------------------------------------------------------------------
-
-
 

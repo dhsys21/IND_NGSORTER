@@ -19,11 +19,13 @@ __fastcall Tmes::Tmes(TComponent* Owner)
 	mesMsg = "";
 	pcName = "H1DIF01A";
 	systemByte = 1000;
+	ThreadFlag = false;
+	tx_data = NULL;
 }
 //---------------------------------------------------------------------------
 void __fastcall Tmes::DataModuleCreate(TObject *Sender)
 {
-	this->ServerSocket->Active = true;
+	this->ServerSocket->Active = false;
 }
 //---------------------------------------------------------------------------
 // ims 立加矫 胶饭靛 积己
@@ -57,11 +59,8 @@ void __fastcall Tmes::ServerSocketClientDisconnect(TObject *Sender,
 {
 	if(ThreadFlag){
 		ThreadFlag = false;
-
 		Sleep(1000);
-
-		delete tx_data;
-
+		tx_data = NULL;
 	}
 	bConnect = false;
 
@@ -69,7 +68,42 @@ void __fastcall Tmes::ServerSocketClientDisconnect(TObject *Sender,
 //---------------------------------------------------------------------------
 void __fastcall Tmes::DataModuleDestroy(TObject *Sender)
 {
+	Stop();
 	ServerSocket->Close();
+}
+//---------------------------------------------------------------------------
+void __fastcall Tmes::Configure(AnsiString bindIp, int bindPort)
+{
+	bool wasActive = ServerSocket->Active;
+	if(wasActive)
+		Stop();
+
+	if(bindPort <= 0)
+		bindPort = 18080;
+
+	ServerSocket->Port = bindPort;
+
+	if(wasActive)
+		Start();
+}
+//---------------------------------------------------------------------------
+void __fastcall Tmes::Start()
+{
+	if(ServerSocket->Active == false)
+		ServerSocket->Active = true;
+}
+//---------------------------------------------------------------------------
+void __fastcall Tmes::Stop()
+{
+	if(ServerSocket->Active)
+		ServerSocket->Active = false;
+
+	if(ThreadFlag){
+		ThreadFlag = false;
+		Sleep(1000);
+		tx_data = NULL;
+	}
+	bConnect = false;
 }
 //---------------------------------------------------------------------------
 void __fastcall Tmes::WritemesLog(AnsiString flow, AnsiString msg)
@@ -111,6 +145,8 @@ DWORD WINAPI TxThread(LPVOID parm_data)
 			mes->WritemesLog("PC - MES", tx);
 		}
 	}
+	if(mes->tx_data == parm)
+		mes->tx_data = NULL;
 	delete parm;
 	return 1;
 }

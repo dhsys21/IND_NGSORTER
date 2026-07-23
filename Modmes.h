@@ -67,6 +67,9 @@ public:		// User declarations
 	bool __fastcall DataCheck(AnsiString msg);
 	void __fastcall WritemesLog(AnsiString flow, AnsiString msg);
 
+	void __fastcall Configure(AnsiString bindIp, int bindPort);
+	void __fastcall Start();
+	void __fastcall Stop();
 	void __fastcall SendMsg(TX_DATA *msg, bool reply = false);
 
 

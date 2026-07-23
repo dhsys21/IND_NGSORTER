@@ -1,0 +1,1052 @@
+﻿//---------------------------------------------------------------------------
+
+#include <vcl.h>
+#pragma hdrstop
+
+#include "ModMes_Gateway.h"
+#include "FormMain.h"
+
+#include <IdGlobal.hpp>
+#include <IdIOHandler.hpp>
+#include <IdSocketHandle.hpp>
+#include <System.Variants.hpp>
+#include <Xml.XMLDoc.hpp>
+
+//---------------------------------------------------------------------------
+#pragma package(smart_init)
+#pragma classgroup "Vcl.Controls.TControl"
+#pragma resource "*.dfm"
+
+using namespace System;
+using namespace System::Json;
+using namespace System::Sysutils;
+using namespace System::Syncobjs;
+using namespace System::Variants;
+using namespace Xml::Xmlintf;
+
+static const UnicodeString FMS_BIND_IP = L"127.0.0.1";
+static const int FMS_BIND_PORT = 18080;
+static const int FMS_MAX_JSON_LINE_LENGTH = 4 * 1024 * 1024;
+static const UnicodeString FMS_TAG_CONFIG_FILE =
+	L"D:\\Project\\2026\\03.Jeng(India)\\02.Program\\05.OpcFoundation\\NGSORTER.Config.xml";
+
+TMod_Fms *Mod_Fms;
+
+static bool IsNumericText(const UnicodeString &Text)
+{
+	if (Text.IsEmpty())
+		return false;
+
+	for (int i = 1; i <= Text.Length(); ++i)
+	{
+		if (Text[i] < L'0' || Text[i] > L'9')
+			return false;
+	}
+	return true;
+}
+
+static UnicodeString CanonicalCellTagKey(const UnicodeString &Key, bool DisplayToInternal = false)
+{
+	UnicodeString Result = Key;
+	int SearchFrom = 1;
+
+	while (true)
+	{
+		UnicodeString Tail = Result.SubString(SearchFrom, Result.Length());
+		int RelativePos = Tail.Pos(L".Cell.Cell[");
+		if (RelativePos <= 0)
+			break;
+
+		int CellPos = SearchFrom + RelativePos - 1;
+		int NumberStart = CellPos + 11;
+		int NumberEnd = NumberStart;
+		while (NumberEnd <= Result.Length() && Result[NumberEnd] != L']')
+			++NumberEnd;
+
+		UnicodeString NumberText = Result.SubString(NumberStart, NumberEnd - NumberStart);
+		if (IsNumericText(NumberText))
+		{
+			UnicodeString Replacement = L".Cell." + IntToStr(NumberText.ToIntDef(0));
+			Result.Delete(CellPos, NumberEnd - CellPos + 1);
+			Result.Insert(Replacement, CellPos);
+			SearchFrom = CellPos + Replacement.Length();
+		}
+		else
+			SearchFrom = NumberEnd;
+	}
+
+	SearchFrom = 1;
+	while (true)
+	{
+		UnicodeString Tail = Result.SubString(SearchFrom, Result.Length());
+		int RelativePos = Tail.Pos(L".Cell.");
+		if (RelativePos <= 0)
+			break;
+
+		int CellPos = SearchFrom + RelativePos - 1;
+		int NumberStart = CellPos + 6;
+		int NumberEnd = NumberStart;
+		while (NumberEnd <= Result.Length() && Result[NumberEnd] != L'.')
+			++NumberEnd;
+
+		UnicodeString NumberText = Result.SubString(NumberStart, NumberEnd - NumberStart);
+		if (IsNumericText(NumberText))
+		{
+			int Number = NumberText.ToIntDef(0);
+			if (DisplayToInternal && NumberText.Length() >= 2 && Number > 0)
+				--Number;
+			UnicodeString Canonical = IntToStr(Number);
+			Result.Delete(NumberStart, NumberEnd - NumberStart);
+			Result.Insert(Canonical, NumberStart);
+			NumberEnd = NumberStart + Canonical.Length();
+		}
+
+		SearchFrom = NumberEnd;
+	}
+
+	return Result;
+}
+
+static bool TagKeyEndsWith(const UnicodeString &FullKey, const UnicodeString &Key)
+{
+	if (Key.IsEmpty() || FullKey.Length() < Key.Length())
+		return false;
+
+	int Start = FullKey.Length() - Key.Length() + 1;
+	if (FullKey.SubString(Start, Key.Length()) != Key)
+		return false;
+
+	return Start == 1 || FullKey[Start - 1] == L'.';
+}
+
+static bool IsSnapshotLine(const UnicodeString &Line)
+{
+	return Line.UpperCase().Pos(L"SNAPSHOT") > 0;
+}
+
+static UnicodeString FormatGatewayTagKey(const UnicodeString &Key)
+{
+	UnicodeString Result = CanonicalCellTagKey(Key);
+	int SearchFrom = 1;
+
+	while (true)
+	{
+		UnicodeString Tail = Result.SubString(SearchFrom, Result.Length());
+		int RelativePos = Tail.Pos(L".Cell.");
+		if (RelativePos <= 0)
+			break;
+
+		int CellPos = SearchFrom + RelativePos - 1;
+		int NumberStart = CellPos + 6;
+		int NumberEnd = NumberStart;
+		while (NumberEnd <= Result.Length() && Result[NumberEnd] != L'.')
+			++NumberEnd;
+
+		UnicodeString NumberText = Result.SubString(NumberStart, NumberEnd - NumberStart);
+		if (IsNumericText(NumberText))
+		{
+			int Number = NumberText.ToIntDef(0) + 1;
+			UnicodeString Formatted = FormatFloat(L"00", Number);
+			Result.Delete(NumberStart, NumberEnd - NumberStart);
+			Result.Insert(Formatted, NumberStart);
+			NumberEnd = NumberStart + Formatted.Length();
+		}
+
+		SearchFrom = NumberEnd;
+	}
+
+	return Result;
+}
+
+//---------------------------------------------------------------------------
+class TLockGuard
+{
+private:
+	TCriticalSection *FSection;
+
+public:
+	__fastcall TLockGuard(TCriticalSection *Section)
+		: FSection(Section)
+	{
+		FSection->Acquire();
+	}
+
+	~TLockGuard(void)
+	{
+		FSection->Release();
+	}
+};
+
+//---------------------------------------------------------------------------
+static UnicodeString XmlAttrToStr(_di_IXMLNode Node, const UnicodeString &Name)
+{
+	if (Node == NULL || !Node->HasAttribute(Name))
+		return L"";
+
+	OleVariant OleValue = Node->GetAttribute(Name);
+	Variant Value = OleValue.AsType(varOleStr);
+	return VarToStr(Value);
+}
+
+//---------------------------------------------------------------------------
+__fastcall TMod_Fms::TMod_Fms(TComponent* Owner)
+	: TDataModule(Owner),
+	  FLock(NULL),
+	  FSendLock(NULL),
+	  FSnapshotReceived(false),
+	  FTagConfigLoaded(false),
+	  FGatewayConnected(false),
+	  FAliveValue(false),
+	  FBindIp(FMS_BIND_IP),
+	  FBindPort(FMS_BIND_PORT)
+{
+	FLock = new TCriticalSection();
+	FSendLock = new TCriticalSection();
+
+	Timer_Alive->Enabled = false;
+	Timer_Alive->Interval = 1000;
+	TcpServer->Active = false;
+	TcpServer->DefaultPort = FBindPort;
+	TcpServer->Bindings->Clear();
+
+	TIdSocketHandle *Binding = TcpServer->Bindings->Add();
+	Binding->IP = FBindIp;
+	Binding->Port = FBindPort;
+}
+//---------------------------------------------------------------------------
+__fastcall TMod_Fms::~TMod_Fms(void)
+{
+	Stop();
+	delete FLock;
+	FLock = NULL;
+	delete FSendLock;
+	FSendLock = NULL;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::Start(void)
+{
+	if (TcpServer != NULL && !TcpServer->Active)
+	{
+		if (!FTagConfigLoaded)
+			LoadTagConfig(FMS_TAG_CONFIG_FILE);
+
+		TcpServer->Active = true;
+		Timer_Alive->Enabled = true;
+		LogOpcUa(L"SERVER", L"START " + FBindIp + L":" + IntToStr(FBindPort));
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::Stop(void)
+{
+	if (TcpServer != NULL && TcpServer->Active)
+	{
+		Timer_Alive->Enabled = false;
+		TcpServer->Active = false;
+		{
+			TLockGuard Guard(FLock);
+			FGatewayConnected = false;
+		}
+		LogOpcUa(L"SERVER", L"STOP");
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::Configure(const UnicodeString &BindIp, int BindPort)
+{
+	if (TcpServer == NULL)
+		return;
+
+	bool WasActive = TcpServer->Active;
+	if (WasActive)
+		Stop();
+
+	FBindIp = BindIp;
+	FBindPort = BindPort;
+	TcpServer->DefaultPort = FBindPort;
+	TcpServer->Bindings->Clear();
+
+	TIdSocketHandle *Binding = TcpServer->Bindings->Add();
+	Binding->IP = FBindIp;
+	Binding->Port = FBindPort;
+
+	if (WasActive)
+		Start();
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::Timer_AliveTimer(TObject *Sender)
+{
+	FAliveValue = !FAliveValue;
+	SetPcTag(L"F1NGS01.Common.Alive", FAliveValue);
+	FlushPendingPcTags(false);
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::TcpServerConnect(TIdContext *AContext)
+{
+	if (AContext != NULL && AContext->Connection != NULL &&
+		AContext->Connection->IOHandler != NULL)
+	{
+		AContext->Connection->IOHandler->DefStringEncoding = Idglobal::IndyTextEncoding_UTF8();
+	}
+
+	{
+		TLockGuard Guard(FLock);
+		FGatewayConnected = true;
+	}
+	LogOpcUa(L"CONNECT", L"Gateway connected");
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::TcpServerDisconnect(TIdContext *AContext)
+{
+	{
+		TLockGuard Guard(FLock);
+		FGatewayConnected = false;
+	}
+	LogOpcUa(L"DISCONNECT", L"Gateway disconnected");
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::TcpServerExecute(TIdContext *AContext)
+{
+	if (AContext == NULL || AContext->Connection == NULL ||
+		AContext->Connection->IOHandler == NULL)
+		return;
+
+	try
+	{
+		UnicodeString Line = AContext->Connection->IOHandler->ReadLn(
+			L"\n", -1, FMS_MAX_JSON_LINE_LENGTH, Idglobal::IndyTextEncoding_UTF8());
+
+		if (Line.Length() > 0 && Line[Line.Length()] == L'\r')
+			Line = Line.SubString(1, Line.Length() - 1);
+
+		bool DisplayLog = !IsSnapshotLine(Line);
+		LogOpcUa(L"RX", Line, DisplayLog);
+
+		UnicodeString Response = HandleMessage(Line);
+		LogOpcUa(L"TX", Response, DisplayLog);
+		{
+			TLockGuard SendGuard(FSendLock);
+			AContext->Connection->IOHandler->Write(
+				Response + L"\n", Idglobal::IndyTextEncoding_UTF8());
+		}
+	}
+	catch (Exception &E)
+	{
+		LogOpcUa(L"ERROR", L"TCP execute: " + E.Message);
+		AContext->Connection->Disconnect();
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::LogOpcUa(const UnicodeString &Type, const UnicodeString &Msg, bool bDisplay)
+{
+	if (MainForm != NULL)
+		MainForm->WriteOpcUaLog(AnsiString(Type), AnsiString(Msg), bDisplay);
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::LoadTagConfig(const UnicodeString &FileName)
+{
+	try
+	{
+		if (!FileExists(FileName))
+		{
+			LogOpcUa(L"ERROR", L"Tag config not found: " + FileName);
+			return;
+		}
+
+		{
+			TLockGuard Guard(FLock);
+			FTagDefinitions.clear();
+		}
+
+		_di_IXMLDocument Document = Xml::Xmldoc::LoadXMLDocument(FileName);
+		ReadTagNodes(Document->DocumentElement);
+
+		{
+			TLockGuard Guard(FLock);
+			FTagConfigLoaded = !FTagDefinitions.empty();
+			LogOpcUa(L"CONFIG", L"Loaded tag definitions: " + IntToStr((int)FTagDefinitions.size()));
+		}
+	}
+	catch (Exception &E)
+	{
+		LogOpcUa(L"ERROR", L"Load tag config failed: " + E.Message);
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::ReadTagNodes(_di_IXMLNode Node)
+{
+	if (Node == NULL)
+		return;
+
+	_di_IXMLNodeList Children = Node->ChildNodes;
+
+	if (Node->LocalName == L"UAVariable")
+	{
+		TFmsTagDefinition Definition;
+
+		Definition.NodeId = XmlAttrToStr(Node, L"NodeId");
+		int Pos = Definition.NodeId.Pos(L";s=");
+		if (Pos > 0)
+			Definition.FullKey = Definition.NodeId.SubString(Pos + 3, Definition.NodeId.Length());
+
+		int Dot = Definition.FullKey.Pos(L".");
+		if (Dot > 0)
+			Definition.ShortKey = Definition.FullKey.SubString(Dot + 1, Definition.FullKey.Length());
+
+		Definition.DataType = XmlAttrToStr(Node, L"DataType");
+		Definition.AccessLevel = StrToIntDef(XmlAttrToStr(Node, L"AccessLevel"), 0);
+		Definition.ValueRank = StrToIntDef(XmlAttrToStr(Node, L"ValueRank"), -1);
+		Definition.ArrayDimensions = XmlAttrToStr(Node, L"ArrayDimensions");
+
+		_di_IXMLNode Description;
+		for (int i = 0; i < Children->Count; ++i)
+		{
+			_di_IXMLNode Child = Children->Get(i);
+			if (Child != NULL && Child->LocalName == L"Description")
+			{
+				Description = Child;
+				break;
+			}
+		}
+
+		UnicodeString Desc = L"";
+		if (Description != NULL)
+			Desc = Description->Text.UpperCase();
+		if (Desc.Pos(L"WRITE: EQP/FMS BOTH") > 0 || Desc.Pos(L"WRITE: BOTH") > 0)
+			Definition.Direction = ftdBoth;
+		else if (Desc.Pos(L"WRITE: EQP ONLY") > 0)
+			Definition.Direction = ftdEqpOnly;
+		else if (Desc.Pos(L"WRITE: FMS ONLY") > 0)
+			Definition.Direction = ftdFmsOnly;
+		else
+			Definition.Direction = ftdUnknown;
+
+		RegisterTagDefinition(Definition);
+	}
+
+	for (int i = 0; i < Children->Count; ++i)
+		ReadTagNodes(Children->Get(i));
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::RegisterTagDefinition(const TFmsTagDefinition &Definition)
+{
+	if (Definition.FullKey.IsEmpty())
+		return;
+
+	TLockGuard Guard(FLock);
+	FTagDefinitions[Definition.FullKey] = Definition;
+	RegisterTagAlias(Definition.ShortKey, Definition);
+
+	int LocationPos = Definition.FullKey.Pos(L".Location1.");
+	if (LocationPos <= 0)
+		LocationPos = Definition.FullKey.Pos(L".Location2.");
+	if (LocationPos > 0)
+	{
+		UnicodeString Tail = Definition.FullKey.SubString(LocationPos + 1, Definition.FullKey.Length());
+		RegisterTagAlias(Tail, Definition);
+
+		int FirstDot = Definition.FullKey.Pos(L".");
+		if (FirstDot > 0)
+		{
+			UnicodeString LinePrefix = Definition.FullKey.SubString(1, FirstDot - 1);
+			RegisterTagAlias(LinePrefix + L"." + Tail, Definition);
+		}
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::RegisterTagAlias(const UnicodeString &Alias, const TFmsTagDefinition &Definition)
+{
+	if (Alias.IsEmpty())
+		return;
+
+	UnicodeString Canonical = CanonicalCellTagKey(Alias);
+	if (FTagDefinitions.find(Alias) == FTagDefinitions.end())
+		FTagDefinitions[Alias] = Definition;
+	if (Canonical != Alias && FTagDefinitions.find(Canonical) == FTagDefinitions.end())
+		FTagDefinitions[Canonical] = Definition;
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMod_Fms::FindTagDefinition(const UnicodeString &Key, TFmsTagDefinition &Definition)
+{
+	TTagDefinitionMap::iterator it = FTagDefinitions.find(Key);
+	if (it == FTagDefinitions.end())
+	{
+		UnicodeString Canonical = CanonicalCellTagKey(Key);
+		it = FTagDefinitions.find(Canonical);
+		if (it == FTagDefinitions.end())
+		{
+			Canonical = CanonicalCellTagKey(Key, true);
+			it = FTagDefinitions.find(Canonical);
+		}
+		if (it == FTagDefinitions.end())
+			return false;
+	}
+
+	Definition = it->second;
+	return true;
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMod_Fms::KeyMatchesDefinition(const UnicodeString &Key, const TFmsTagDefinition &Definition)
+{
+	UnicodeString CanonicalKey = CanonicalCellTagKey(Key, true);
+	UnicodeString CanonicalFullKey = CanonicalCellTagKey(Definition.FullKey);
+
+	if (CanonicalKey == CanonicalFullKey)
+		return true;
+	if (!Definition.ShortKey.IsEmpty() && CanonicalKey == CanonicalCellTagKey(Definition.ShortKey))
+		return true;
+	if (TagKeyEndsWith(CanonicalFullKey, CanonicalKey))
+		return true;
+
+	int KeyDot = CanonicalKey.Pos(L".");
+	int FullDot = CanonicalFullKey.Pos(L".");
+	if (KeyDot > 0 && FullDot > 0)
+	{
+		UnicodeString KeyLine = CanonicalKey.SubString(1, KeyDot - 1);
+		UnicodeString FullLine = CanonicalFullKey.SubString(1, FullDot - 1);
+		UnicodeString KeyTail = CanonicalKey.SubString(KeyDot + 1, CanonicalKey.Length());
+		if (KeyLine == FullLine && TagKeyEndsWith(CanonicalFullKey, KeyTail))
+			return true;
+	}
+
+	return false;
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMod_Fms::FindTagDefinitionForDirection(const UnicodeString &Key, TFmsTagDirection Direction, TFmsTagDefinition &Definition)
+{
+	for (TTagDefinitionMap::iterator it = FTagDefinitions.begin(); it != FTagDefinitions.end(); ++it)
+	{
+		const TFmsTagDefinition &Candidate = it->second;
+		if (it->first != Candidate.FullKey)
+			continue;
+		if (!KeyMatchesDefinition(Key, Candidate))
+			continue;
+		if (Candidate.Direction == Direction || Candidate.Direction == ftdBoth ||
+			IsImplicitDirectionTag(Candidate, Direction))
+		{
+			Definition = Candidate;
+			return true;
+		}
+	}
+
+	return FindTagDefinition(Key, Definition);
+}
+//---------------------------------------------------------------------------
+UnicodeString __fastcall TMod_Fms::NormalizeTagKey(const UnicodeString &Key)
+{
+	TFmsTagDefinition Definition;
+	if (FindTagDefinition(Key, Definition))
+		return Definition.FullKey;
+
+	LogOpcUa(L"WARN", L"Unknown tag key: " + Key);
+	return Key;
+}
+//---------------------------------------------------------------------------
+UnicodeString __fastcall TMod_Fms::NormalizeTagKeyForDirection(const UnicodeString &Key, TFmsTagDirection Direction)
+{
+	TFmsTagDefinition Definition;
+	if (FindTagDefinitionForDirection(Key, Direction, Definition))
+		return Definition.FullKey;
+
+	LogOpcUa(L"WARN", L"Unknown tag key: " + Key);
+	return Key;
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMod_Fms::ValidateJsonValue(const TFmsTagDefinition &Definition, TJSONValue *Value)
+{
+	if (Value == NULL || Definition.DataType.IsEmpty())
+		return true;
+
+	UnicodeString DataType = Definition.DataType.UpperCase();
+	UnicodeString Text = Value->ToString().Trim().LowerCase();
+
+	if (DataType == L"BOOLEAN")
+		return Text == L"true" || Text == L"false";
+
+	if (DataType == L"UINT16" || DataType == L"INT32" || DataType == L"UINT32" ||
+		DataType == L"FLOAT" || DataType == L"DOUBLE")
+	{
+		if (Text.IsEmpty())
+			return false;
+
+		for (int i = 1; i <= Text.Length(); ++i)
+		{
+			wchar_t Ch = Text[i];
+			if ((Ch < L'0' || Ch > L'9') && Ch != L'-' && Ch != L'+' &&
+				Ch != L'.' && Ch != L'e')
+				return false;
+		}
+		return true;
+	}
+
+	if (DataType == L"STRING")
+		return Text.Length() >= 2 && Text[1] == L'"';
+
+	return true;
+}
+//---------------------------------------------------------------------------
+UnicodeString __fastcall TMod_Fms::HandleMessage(const UnicodeString &Line)
+{
+	TJSONValue *Value = NULL;
+	UnicodeString Result;
+
+	try
+	{
+		Value = TJSONObject::ParseJSONValue(Line, true);
+		TJSONObject *Json = dynamic_cast<TJSONObject*>(Value);
+		if (Json == NULL)
+			Result = BuildErrorResponse(L"invalid json");
+		else
+		{
+			TJSONString *TypeValue = dynamic_cast<TJSONString*>(Json->GetValue(L"type"));
+			if (TypeValue == NULL)
+				Result = BuildErrorResponse(L"missing type");
+			else
+			{
+				UnicodeString Type = TypeValue->Value();
+				if (Type == L"SNAPSHOT")
+				{
+					ApplySnapshot(Json);
+					QueuePcRequestClearsForResponses();
+					Result = BuildSuccessResponse();
+				}
+				else if (Type == L"FMS_CHANGED")
+				{
+					ApplyChangedTags(Json);
+					QueuePcRequestClearsForResponses();
+					Result = BuildSuccessResponse();
+				}
+				else
+					Result = BuildErrorResponse(L"unknown type");
+			}
+		}
+	}
+	catch (Exception &E)
+	{
+		Result = BuildErrorResponse(E.Message);
+	}
+
+	delete Value;
+	return Result;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::ApplySnapshot(TJSONObject *Json)
+{
+	TLockGuard Guard(FLock);
+
+	TJSONString *Equipment = dynamic_cast<TJSONString*>(Json->GetValue(L"equipment"));
+	TJSONString *Timestamp = dynamic_cast<TJSONString*>(Json->GetValue(L"timestamp"));
+	TJSONObject *FmsTags = dynamic_cast<TJSONObject*>(Json->GetValue(L"fmsTags"));
+	TJSONObject *PcTags = dynamic_cast<TJSONObject*>(Json->GetValue(L"pcTags"));
+
+	if (Equipment != NULL)
+		FLastEquipment = Equipment->Value();
+	if (Timestamp != NULL)
+		FLastTimestamp = Timestamp->Value();
+
+	FFmsTags.clear();
+	FPcTags.clear();
+	if (FmsTags != NULL)
+		CopyTags(FmsTags, FFmsTags, ftdFmsOnly);
+	if (PcTags != NULL)
+		CopyTags(PcTags, FPcTags, ftdEqpOnly);
+
+	FSnapshotReceived = true;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::ApplyChangedTags(TJSONObject *Json)
+{
+	TLockGuard Guard(FLock);
+
+	TJSONString *Equipment = dynamic_cast<TJSONString*>(Json->GetValue(L"equipment"));
+	TJSONString *Timestamp = dynamic_cast<TJSONString*>(Json->GetValue(L"timestamp"));
+	TJSONObject *Tags = dynamic_cast<TJSONObject*>(Json->GetValue(L"tags"));
+	TJSONObject *PcTags = dynamic_cast<TJSONObject*>(Json->GetValue(L"pcTags"));
+
+	if (Equipment != NULL)
+		FLastEquipment = Equipment->Value();
+	if (Timestamp != NULL)
+		FLastTimestamp = Timestamp->Value();
+	if (Tags != NULL)
+		CopyChangedTags(Tags);
+	if (PcTags != NULL)
+		CopyTags(PcTags, FPcTags, ftdEqpOnly);
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::CopyTags(TJSONObject *Tags, TTagMap &Target, TFmsTagDirection Direction)
+{
+	if (Tags == NULL)
+		return;
+
+	for (int i = 0; i < Tags->Count; ++i)
+	{
+		TJSONPair *Pair = Tags->Pairs[i];
+		if (Pair != NULL && Pair->JsonString != NULL && Pair->JsonValue != NULL)
+		{
+			UnicodeString Key = Pair->JsonString->Value();
+			TFmsTagDefinition Definition;
+			bool KnownTag = FindTagDefinitionForDirection(Key, Direction, Definition);
+			if (KnownTag && !ValidateJsonValue(Definition, Pair->JsonValue))
+				LogOpcUa(L"WARN", L"Type mismatch: " + Key + L" expected " + Definition.DataType);
+
+			Target[KnownTag ? Definition.FullKey : NormalizeTagKey(Key)] = Pair->JsonValue->ToString();
+		}
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::CopyChangedTags(TJSONObject *Tags)
+{
+	if (Tags == NULL)
+		return;
+
+	for (int i = 0; i < Tags->Count; ++i)
+	{
+		TJSONPair *Pair = Tags->Pairs[i];
+		if (Pair == NULL || Pair->JsonString == NULL || Pair->JsonValue == NULL)
+			continue;
+
+		UnicodeString Value = Pair->JsonValue->ToString();
+		UnicodeString Key = Pair->JsonString->Value();
+		bool Applied = false;
+
+		for (TTagDefinitionMap::iterator it = FTagDefinitions.begin(); it != FTagDefinitions.end(); ++it)
+		{
+			const TFmsTagDefinition &Definition = it->second;
+			if (it->first != Definition.FullKey || !KeyMatchesDefinition(Key, Definition))
+				continue;
+
+			if (!ValidateJsonValue(Definition, Pair->JsonValue))
+				LogOpcUa(L"WARN", L"Type mismatch: " + Key + L" expected " + Definition.DataType);
+
+			if (Definition.Direction == ftdEqpOnly || IsImplicitDirectionTag(Definition, ftdEqpOnly))
+				FPcTags[Definition.FullKey] = Value;
+			else if (Definition.Direction == ftdBoth)
+			{
+				FFmsTags[Definition.FullKey] = Value;
+				FPcTags[Definition.FullKey] = Value;
+			}
+			else
+				FFmsTags[Definition.FullKey] = Value;
+
+			Applied = true;
+		}
+
+		if (!Applied)
+		{
+			UnicodeString NormalizedKey = NormalizeTagKey(Key);
+			FFmsTags[NormalizedKey] = Value;
+		}
+	}
+}
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+bool __fastcall TMod_Fms::IsActiveFmsResponse(const UnicodeString &ResponseKey)
+{
+	UnicodeString NormalizedKey = NormalizeTagKey(ResponseKey);
+	UnicodeString Value;
+	{
+		TLockGuard Guard(FLock);
+		TTagMap::iterator it = FFmsTags.find(NormalizedKey);
+		if (it == FFmsTags.end())
+			return false;
+		Value = it->second.Trim().LowerCase();
+	}
+
+	if (Value == L"true")
+		return true;
+	if (Value == L"false" || Value.IsEmpty())
+		return false;
+
+	return StrToIntDef(Value, 0) != 0;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::QueuePcRequestClearsForResponses(void)
+{
+	if (IsActiveFmsResponse(L"F1NGS01.Location1.TrayProcess.TrayLoadResponse"))
+		SetPcTagJson(L"F1NGS01.Location1.TrayProcess.TrayLoad", L"false");
+	if (IsActiveFmsResponse(L"F1NGS01.Location1.TrayProcess.ProcessStartResponse"))
+		SetPcTagJson(L"F1NGS01.Location1.TrayProcess.ProcessStart", L"false");
+	if (IsActiveFmsResponse(L"F1NGS01.Location1.TrayProcess.ProcessEndResponse"))
+		SetPcTagJson(L"F1NGS01.Location1.TrayProcess.ProcessEnd", L"false");
+	if (IsActiveFmsResponse(L"F1NGS01.Location2.TrayProcess.TrayLoadResponse"))
+		SetPcTagJson(L"F1NGS01.Location2.TrayProcess.TrayLoad", L"false");
+	if (IsActiveFmsResponse(L"F1NGS01.Location2.TrayProcess.TrayUnloadResponse"))
+		SetPcTagJson(L"F1NGS01.Location2.TrayProcess.TrayUnloadRequest", L"false");
+}
+//---------------------------------------------------------------------------
+UnicodeString __fastcall TMod_Fms::BuildSuccessResponse(void)
+{
+	TJSONObject *Response = new TJSONObject();
+	UnicodeString Result;
+
+	Response->AddPair(L"success", new TJSONBool(true));
+
+	TTagMap Pending;
+	{
+		TLockGuard Guard(FLock);
+		Pending = FPendingPcTags;
+		FPendingPcTags.clear();
+	}
+
+	if (!Pending.empty())
+	{
+		TJSONObject *Tags = new TJSONObject();
+		TTagMap FormattedPending;
+		for (TTagMap::iterator it = Pending.begin(); it != Pending.end(); ++it)
+			FormattedPending[FormatGatewayTagKey(it->first)] = it->second;
+		for (TTagMap::iterator it = FormattedPending.begin(); it != FormattedPending.end(); ++it)
+			Tags->AddPair(it->first, CreateJsonValue(it->second));
+
+		Response->AddPair(L"tags", Tags);
+	}
+
+	Result = Response->ToString();
+	delete Response;
+	return Result;
+}
+//---------------------------------------------------------------------------
+UnicodeString __fastcall TMod_Fms::BuildErrorResponse(const UnicodeString &ErrorText)
+{
+	TJSONObject *Response = new TJSONObject();
+	UnicodeString Result;
+
+	Response->AddPair(L"success", new TJSONBool(false));
+	Response->AddPair(L"error", ErrorText);
+	Result = Response->ToString();
+
+	delete Response;
+	return Result;
+}
+//---------------------------------------------------------------------------
+TJSONValue* __fastcall TMod_Fms::CreateJsonValue(const UnicodeString &JsonText)
+{
+	TJSONValue *Value = TJSONObject::ParseJSONValue(JsonText, true);
+	if (Value != NULL)
+		return Value;
+
+	return new TJSONString(JsonText);
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::SetPcTag(const UnicodeString &Key, bool Value)
+{
+	SetPcTagJson(Key, Value ? L"true" : L"false");
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::SetPcTag(const UnicodeString &Key, int Value)
+{
+	SetPcTagJson(Key, IntToStr(Value));
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::SetPcTag(const UnicodeString &Key, double Value)
+{
+	TJSONNumber *JsonNumber = new TJSONNumber(Value);
+	SetPcTagJson(Key, JsonNumber->ToString());
+	delete JsonNumber;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::SetPcTag(const UnicodeString &Key, const UnicodeString &Value)
+{
+	TJSONString *JsonString = new TJSONString(Value);
+	SetPcTagJson(Key, JsonString->ToString());
+	delete JsonString;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::SetPcTagJson(const UnicodeString &Key, const UnicodeString &JsonValue)
+{
+	UnicodeString NormalizedKey = NormalizeTagKeyForDirection(Key, ftdEqpOnly);
+	TLockGuard Guard(FLock);
+	FPcTags[NormalizedKey] = JsonValue;
+	FPendingPcTags[NormalizedKey] = JsonValue;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::FlushPendingPcTags(bool LogTx)
+{
+	if (TcpServer == NULL || !TcpServer->Active)
+		return;
+	if (!IsGatewayConnected())
+		return;
+
+	UnicodeString Response = BuildSuccessResponse();
+	if (Response.Pos(L"\"tags\"") <= 0)
+		return;
+
+	TList *List = TcpServer->Contexts->LockList();
+	try
+	{
+		TLockGuard SendGuard(FSendLock);
+		for (int i = 0; i < List->Count; ++i)
+		{
+			TIdContext *Context = static_cast<TIdContext*>(List->Items[i]);
+			if (Context != NULL && Context->Connection != NULL &&
+				Context->Connection->IOHandler != NULL)
+			{
+				try
+				{
+					Context->Connection->IOHandler->Write(
+						Response + L"\n", Idglobal::IndyTextEncoding_UTF8());
+				}
+				catch (Exception &E)
+				{
+					LogOpcUa(L"ERROR", L"TCP flush: " + E.Message);
+				}
+			}
+		}
+	}
+	__finally
+	{
+		TcpServer->Contexts->UnlockList();
+	}
+
+	if (LogTx)
+		LogOpcUa(L"TX", Response);
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMod_Fms::GetFmsTagJson(const UnicodeString &Key, UnicodeString &JsonValue)
+{
+	UnicodeString SearchKey = NormalizeTagKeyForDirection(Key, ftdFmsOnly);
+	TLockGuard Guard(FLock);
+
+	TTagMap::iterator it = FFmsTags.find(SearchKey);
+	if (it == FFmsTags.end())
+		return false;
+
+	JsonValue = it->second;
+	return true;
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMod_Fms::GetFmsTagBool(const UnicodeString &Key, bool DefaultValue)
+{
+	UnicodeString JsonValue;
+	if (!GetFmsTagJson(Key, JsonValue))
+		return DefaultValue;
+
+	UnicodeString Text = JsonValue.Trim().LowerCase();
+	if (Text == L"true" || Text == L"1")
+		return true;
+	if (Text == L"false" || Text == L"0")
+		return false;
+
+	return DefaultValue;
+}
+//---------------------------------------------------------------------------
+int __fastcall TMod_Fms::GetFmsTagInt(const UnicodeString &Key, int DefaultValue)
+{
+	UnicodeString JsonValue;
+	if (!GetFmsTagJson(Key, JsonValue))
+		return DefaultValue;
+
+	return StrToIntDef(JsonValue.Trim(), DefaultValue);
+}
+//---------------------------------------------------------------------------
+UnicodeString __fastcall TMod_Fms::GetFmsTagString(const UnicodeString &Key, const UnicodeString &DefaultValue)
+{
+	UnicodeString JsonValue;
+	if (!GetFmsTagJson(Key, JsonValue))
+		return DefaultValue;
+
+	TJSONValue *Value = TJSONObject::ParseJSONValue(JsonValue, true);
+	TJSONString *TextValue = dynamic_cast<TJSONString*>(Value);
+	UnicodeString Result = TextValue != NULL ? TextValue->Value() : JsonValue;
+	delete Value;
+	return Result;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::ClearFmsTag(const UnicodeString &Key)
+{
+	UnicodeString SearchKey = NormalizeTagKeyForDirection(Key, ftdFmsOnly);
+	TLockGuard Guard(FLock);
+	FFmsTags.erase(SearchKey);
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMod_Fms::IsGatewayConnected(void)
+{
+	TLockGuard Guard(FLock);
+	return FGatewayConnected;
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMod_Fms::GetTagDefinitionInfo(const UnicodeString &Key, TFmsTagDefinition &Definition)
+{
+	TLockGuard Guard(FLock);
+	if (FindTagDefinitionForDirection(Key, ftdEqpOnly, Definition))
+		return true;
+	if (FindTagDefinitionForDirection(Key, ftdFmsOnly, Definition))
+		return true;
+	return FindTagDefinition(Key, Definition);
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMod_Fms::IsImplicitDirectionTag(const TFmsTagDefinition &Definition, TFmsTagDirection Direction)
+{
+	if (Direction == ftdFmsOnly &&
+		Definition.FullKey.Pos(L"F1NGS01.Location1.TrackInCellInformation.") == 1)
+		return true;
+
+	if (Direction == ftdEqpOnly &&
+		Definition.FullKey.Pos(L"F1NGS01.Location2.TrackOutCellInformation.") == 1)
+		return true;
+
+	return false;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::AddTagRows(TStrings *Rows, TFmsTagDirection Direction, const TTagMap &Values)
+{
+	if (Rows == NULL)
+		return;
+
+	for (TTagDefinitionMap::iterator it = FTagDefinitions.begin(); it != FTagDefinitions.end(); ++it)
+	{
+		const TFmsTagDefinition &Definition = it->second;
+		if (it->first != Definition.FullKey)
+			continue;
+		if (Definition.Direction != Direction && Definition.Direction != ftdBoth &&
+			!IsImplicitDirectionTag(Definition, Direction))
+			continue;
+
+		UnicodeString Value = L"";
+		TTagMap::const_iterator ValueIt = Values.find(Definition.FullKey);
+		if (ValueIt != Values.end())
+			Value = ValueIt->second;
+
+		Rows->Add(FormatGatewayTagKey(Definition.FullKey) + L"\t" + Definition.DataType + L"\t" + Value);
+	}
+	TStringList *List = dynamic_cast<TStringList*>(Rows);
+	if (List != NULL)
+		List->Sort();
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::GetTagRows(TStrings *FmsRows, TStrings *PcRows)
+{
+	TLockGuard Guard(FLock);
+
+	if (FmsRows != NULL)
+	{
+		FmsRows->Clear();
+		AddTagRows(FmsRows, ftdFmsOnly, FFmsTags);
+	}
+
+	if (PcRows != NULL)
+	{
+		PcRows->Clear();
+		AddTagRows(PcRows, ftdEqpOnly, FPcTags);
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::GetPcTagNames(TStrings *Tags)
+{
+	if (Tags == NULL)
+		return;
+
+	TLockGuard Guard(FLock);
+	Tags->Clear();
+	for (TTagDefinitionMap::iterator it = FTagDefinitions.begin(); it != FTagDefinitions.end(); ++it)
+	{
+		const TFmsTagDefinition &Definition = it->second;
+		if (it->first == Definition.FullKey &&
+			(Definition.Direction == ftdEqpOnly || Definition.Direction == ftdBoth ||
+			 IsImplicitDirectionTag(Definition, ftdEqpOnly)))
+		{
+			Tags->Add(FormatGatewayTagKey(Definition.FullKey));
+		}
+	}
+	TStringList *List = dynamic_cast<TStringList*>(Tags);
+	if (List != NULL)
+		List->Sort();
+}
+//---------------------------------------------------------------------------

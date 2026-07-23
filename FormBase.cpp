@@ -15,6 +15,14 @@ __fastcall TBaseForm::TBaseForm(TComponent* Owner)
 {
 	DeleteDay = 180;
 	DeleteIndex = 0;
+	config.bcrIp[0] = "192.168.100.238";
+	config.bcrIp[1] = "192.168.100.239";
+	config.bcrPort[0] = 9004;
+	config.bcrPort[1] = 9004;
+	config.smokePort = "COM3";
+	config.smokeId = 1;
+	config.smokeMode = 0;
+	config.smokeBaudRate = 115200;
 
     GetWindowThreadProcessId(this->Handle, &PID);
 	hProcess = OpenProcess(PROCESS_SET_QUOTA, FALSE, PID);
@@ -74,13 +82,13 @@ void __fastcall TBaseForm::ClockTimerTimer(TObject *Sender)
 	TDateTime dt;
 	dt = Now();
 
-	setColor(pims, mes->bConnect);
+	setColor(pims, Mod_Fms != NULL && Mod_Fms->IsGatewayConnected());
 	setColor(pplc, plc->client->Active);
 	if(MainForm->path  == 81)setColor(pcclink, true);
 	else setColor(pcclink, false);
 
-	setColor(pbcr1, MainForm->comBcr[0]->Comm->Connected);
-	setColor(pbcr2, MainForm->comBcr[1]->Comm->Connected);
+	setColor(pbcr1, MainForm->comBcr[0] != NULL && MainForm->comBcr[0]->ClientSocketBcr->Active);
+	setColor(pbcr2, MainForm->comBcr[1] != NULL && MainForm->comBcr[1]->ClientSocketBcr->Active);
 
 	if(dt.FormatString("hhnn") == "0700") {
 		DeleteDay = 90;	// 12시가 되면 DeleteDay를 90으로 초기화

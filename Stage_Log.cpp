@@ -23,6 +23,29 @@ void __fastcall TMainForm::WriteProgLog(AnsiString msg)
 	FileClose(file_handle);
 }
 //---------------------------------------------------------------------------
+void __fastcall TMainForm::WriteOpcUaLog(AnsiString Type, AnsiString Msg, bool bDisplay)
+{
+	AnsiString str;
+	int file_handle;
+
+	str = (AnsiString)SOCK_LOG + "OPCUA_" + Now().FormatString("yymmdd-hh") + ".log";
+
+	if(FileExists(str))
+		file_handle = FileOpen(str, fmOpenWrite);
+	else
+		file_handle = FileCreate(str);
+
+	FileSeek(file_handle, 0, 2);
+
+	str = Now().FormatString("yyyy-mm-dd hh:nn:ss.zzz ") + "[" + Type + "]\t" + Msg + "\r\n";
+
+	FileWrite(file_handle, str.c_str(), str.Length());
+	FileClose(file_handle);
+
+	if(bDisplay)
+		memoMainLineAdd("[FMS] " + Type + " : " + Msg);
+}
+//---------------------------------------------------------------------------
 void __fastcall TMainForm::WriteErrorLog(AnsiString str1, AnsiString str2)
 {
 	AnsiString str;

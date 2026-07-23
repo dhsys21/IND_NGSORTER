@@ -24,6 +24,8 @@
 //---------------------------------------------------------------------------
 #include "DEFINE.h"
 #include "Barcode_comm.h"
+#include "Mod_SRX100W.h"
+#include "SmokeDetector_comm.h"
 
 
 typedef enum Mode
@@ -356,13 +358,15 @@ private:	// User declarations
 	void __fastcall WriteZoneList();
 	void __fastcall ReadZoneList();
 
-
 	TPanel *status_on[AxisCnt], *status_org[AxisCnt], *status_error[AxisCnt], *status_lsp[AxisCnt], *status_lsn[AxisCnt], *status_pos[AxisCnt];
 
 public:		// User declarations
 
-	TBarcode *comBcr[2];
+	TMod_Bcr *comBcr[2];
+	TSmokeDetector *comSmoke[1];
 	void __fastcall setBarcode(int pos, AnsiString strBcr);
+	bool __fastcall ReadSystemInfo();
+	void __fastcall InitBarcodeAndSmoke();
 	SorterMode equipMode;
 	LampMode nowLampMode, beforeLampMode;
 
@@ -379,7 +383,6 @@ public:		// User declarations
 	TColor color_target[4][24];
     TColor color_target2[96];
 	int mapSort[2][96];		// 96채널 48채널 맵핑
-
 	TAdvSmoothPanel *pt_ch[96];
 
 	STAGE_INFO stage;
@@ -414,6 +417,7 @@ public:		// User declarations
 
 	void __fastcall CmdTrayOut(int pos);
 	void __fastcall WriteProgLog(AnsiString msg);
+	void __fastcall WriteOpcUaLog(AnsiString Type, AnsiString Msg, bool bDisplay = true);
 	void __fastcall WriteErrorLog(AnsiString str1, AnsiString str2);
 	AnsiString __fastcall GetAlarmMsg(int code);
 	void __fastcall NotifyAlarm(bool alarm, AnsiString code = -1,  bool warning = true);
