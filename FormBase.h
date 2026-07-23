@@ -70,6 +70,7 @@ __published:	// IDE-managed Components
 	TTimer *FileDeleteTimer;
 	TImage *Image12;
 	TAdvSmoothPanel *pims;
+	TAdvSmoothPanel *psmokedetector;
 	TPanel *pon;
 	TPanel *poff;
 	TAdvSmoothButton *Button1;

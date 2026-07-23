@@ -89,6 +89,7 @@ void __fastcall TBaseForm::ClockTimerTimer(TObject *Sender)
 
 	setColor(pbcr1, MainForm->comBcr[0] != NULL && MainForm->comBcr[0]->ClientSocketBcr->Active);
 	setColor(pbcr2, MainForm->comBcr[1] != NULL && MainForm->comBcr[1]->ClientSocketBcr->Active);
+	setColor(psmokedetector, MainForm->comSmoke[0] != NULL && MainForm->comSmoke[0]->Comm->Connected);
 
 	if(dt.FormatString("hhnn") == "0700") {
 		DeleteDay = 90;	// 12시가 되면 DeleteDay를 90으로 초기화

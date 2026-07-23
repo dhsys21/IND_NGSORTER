@@ -515,6 +515,43 @@ object BaseForm: TBaseForm
     TabOrder = 0
     TMSStyle = 0
   end
+  object psmokedetector: TAdvSmoothPanel
+    Left = 1522
+    Top = 6
+    Width = 100
+    Height = 25
+    Cursor = crDefault
+    Caption.Text = 'SMOKE'
+    Caption.Location = plBottomCenter
+    Caption.HTMLFont.Charset = DEFAULT_CHARSET
+    Caption.HTMLFont.Color = clWindowText
+    Caption.HTMLFont.Height = -11
+    Caption.HTMLFont.Name = 'Tahoma'
+    Caption.HTMLFont.Style = []
+    Caption.Font.Charset = DEFAULT_CHARSET
+    Caption.Font.Color = clWindowText
+    Caption.Font.Height = -17
+    Caption.Font.Name = 'Tahoma'
+    Caption.Font.Style = [fsBold]
+    Caption.ColorStart = clWhite
+    Caption.ColorEnd = clWhite
+    Caption.Line = False
+    Caption.TextAlignment = taCenter
+    Fill.Color = clRed
+    Fill.ColorTo = clRed
+    Fill.ColorMirror = clRed
+    Fill.ColorMirrorTo = clRed
+    Fill.GradientType = gtVertical
+    Fill.GradientMirrorType = gtVertical
+    Fill.PicturePosition = ppCenterCenter
+    Fill.BorderColor = 14922381
+    Fill.Rounding = 5
+    Fill.ShadowOffset = 0
+    Fill.Glow = gmNone
+    Version = '1.5.2.1'
+    TabOrder = 38
+    TMSStyle = 0
+  end
   object pon: TPanel
     Left = 228
     Top = 143

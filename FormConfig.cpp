@@ -13,7 +13,7 @@ __fastcall TConfigForm::TConfigForm(TComponent* Owner)
 	: TForm(Owner)
 {
 	this->Width = 920;
-	this->Height = 540;
+	this->Height = 430;
 }
 //---------------------------------------------------------------------------
 void __fastcall TConfigForm::ApplyConfig()
