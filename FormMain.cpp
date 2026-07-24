@@ -62,6 +62,7 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	m_ServoHomeEmg = false;
 	for(int i = 0; i < 2; ++i) comBcr[i] = NULL;
 	comSmoke[0] = NULL;
+	CreateIoMonitoringPanel();
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::FormShow(TObject *Sender)
@@ -531,6 +532,226 @@ void __fastcall TMainForm::resetBtnClick(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
+void __fastcall TMainForm::CreateIoRow(TScrollBox *parent, TPanel **statePanel, int index, AnsiString address, AnsiString name)
+{
+	int rowLimit = (parent->Tag > 0) ? parent->Tag : 24;
+	int col = index / rowLimit;
+	int row = index % rowLimit;
+	int left = 8 + (col * 285);
+	int top = 8 + (row * 24);
+
+	TPanel *captionPanel = new TPanel(parent);
+	captionPanel->Parent = parent;
+	captionPanel->Left = left;
+	captionPanel->Top = top;
+	captionPanel->Width = 220;
+	captionPanel->Height = 22;
+	captionPanel->BevelOuter = bvNone;
+	captionPanel->Alignment = taLeftJustify;
+	captionPanel->Caption = address + "  " + name;
+	captionPanel->Color = clWhite;
+	captionPanel->Font->Color = clBlack;
+	captionPanel->Font->Style = TFontStyles() << fsBold;
+
+	TPanel *statusPanel = new TPanel(parent);
+	statusPanel->Parent = parent;
+	statusPanel->Left = left + 224;
+	statusPanel->Top = top;
+	statusPanel->Width = 48;
+	statusPanel->Height = 22;
+	statusPanel->BevelKind = bkFlat;
+	statusPanel->BevelOuter = bvNone;
+	statusPanel->Caption = "OFF";
+	statusPanel->Color = clSilver;
+	statusPanel->Font->Color = clWhite;
+	statusPanel->Font->Style = TFontStyles() << fsBold;
+	statePanel[index] = statusPanel;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::CreateIoMonitoringPanel()
+{
+	for(int i = 0; i < 64; ++i) ioInputState[i] = NULL;
+	for(int i = 0; i < 32; ++i) ioOutputState[i] = NULL;
+	ioInputCount = 0;
+	ioOutputCount = 0;
+
+	btnIOMonitoring = new TAdvSmoothButton(this);
+	btnIOMonitoring->Parent = this;
+	btnIOMonitoring->Left = pemergency->Left;
+	btnIOMonitoring->Top = 1;
+	btnIOMonitoring->Width = pemergency->Width;
+	btnIOMonitoring->Height = 24;
+	btnIOMonitoring->Caption = "I/O Monitoring";
+	btnIOMonitoring->Color = clWhite;
+	btnIOMonitoring->BevelColor = clBlack;
+	btnIOMonitoring->Appearance->Font->Style = TFontStyles() << fsBold;
+	btnIOMonitoring->OnClick = btnIOMonitoringClick;
+	btnIOMonitoring->BringToFront();
+
+	grp_io = new TPanel(this);
+	grp_io->Parent = this;
+	grp_io->Left = 570;
+	grp_io->Top = 92;
+	grp_io->Width = 760;
+	grp_io->Height = 760;
+	grp_io->BevelKind = bkFlat;
+	grp_io->Color = clWhite;
+	grp_io->Visible = false;
+	grp_io->ParentBackground = false;
+
+	TPanel *title = new TPanel(grp_io);
+	title->Parent = grp_io;
+	title->Align = alTop;
+	title->Height = 32;
+	title->Caption = "CC-Link I/O Monitoring";
+	title->Color = clGray;
+	title->Font->Color = clWhite;
+	title->Font->Style = TFontStyles() << fsBold;
+
+	TAdvSmoothButton *closeButton = new TAdvSmoothButton(grp_io);
+	closeButton->Parent = grp_io;
+	closeButton->Left = grp_io->Width - 82;
+	closeButton->Top = 4;
+	closeButton->Width = 72;
+	closeButton->Height = 24;
+	closeButton->Caption = "Close";
+	closeButton->Color = clWhite;
+	closeButton->Appearance->Font->Style = TFontStyles() << fsBold;
+	closeButton->OnClick = btnCloseIoPanelClick;
+	closeButton->BringToFront();
+
+	TPanel *inputPanel = new TPanel(grp_io);
+	inputPanel->Parent = grp_io;
+	inputPanel->Left = 8;
+	inputPanel->Top = 40;
+	inputPanel->Width = 744;
+	inputPanel->Height = 432;
+	inputPanel->BevelKind = bkFlat;
+	inputPanel->Color = clWhite;
+
+	TPanel *inputTitle = new TPanel(inputPanel);
+	inputTitle->Parent = inputPanel;
+	inputTitle->Align = alTop;
+	inputTitle->Height = 22;
+	inputTitle->Caption = "INPUT (X)";
+	inputTitle->Color = clGray;
+	inputTitle->Font->Color = clWhite;
+	inputTitle->Font->Style = TFontStyles() << fsBold;
+
+	TScrollBox *scrInput = new TScrollBox(inputPanel);
+	scrInput->Parent = inputPanel;
+	scrInput->Left = 4;
+	scrInput->Top = 26;
+	scrInput->Width = 734;
+	scrInput->Height = 398;
+	scrInput->HorzScrollBar->Visible = false;
+	scrInput->Color = clWhite;
+
+	const char *inputNames[48] = {
+		"CP01 TRIP", "CP02 TRIP", "CP03 TRIP", "CP04 TRIP", "CP05 TRIP", "CP06 TRIP", "CP07 TRIP", "CP08 TRIP",
+		"CP09 TRIP", "CP10 SERVO1 TRIP", "CP11 SERVO2 TRIP", "CP12 SERVO3 TRIP", "CP13 BCR01 TRIP", "CP14 BCR02 TRIP", "MS01 TRIP", "",
+		"SERVO01 INPOS", "SERVO01 ALARM", "SERVO01 OK HOME", "SERVO02 INPOS", "SERVO02 ALARM", "SERVO02 OK HOME", "SERVO03 INPOS", "SERVO03 ALARM",
+		"SERVO03 OK HOME", "", "", "", "", "", "", "",
+		"GRIPPER1 CHUCK", "GRIPPER1 UNCHUCK", "GRIPPER1 CELL DETECT", "GRIPPER1 BUFFER", "EMERGENCY SWITCH", "OPBOX RESET SWITCH", "SAFETY DOOR NO.1 LEFT", "SAFETY DOOR NO.2 RIGHT",
+		"SAFETY RESET SW ON", "BY-PASS S/W ON", "BY-PASS S/W OFF", "SAFETY EMG ERROR", "SAFETY DOOR ERROR", "", "", ""
+	};
+	for(int i = 0; i < 48; ++i){
+		AnsiString address = "X" + IntToHex(i, 4);
+		CreateIoRow(scrInput, ioInputState, ioInputCount, address, inputNames[i]);
+		ioInputCount++;
+	}
+
+	TPanel *outputPanel = new TPanel(grp_io);
+	outputPanel->Parent = grp_io;
+	outputPanel->Left = 8;
+	outputPanel->Top = 480;
+	outputPanel->Width = 744;
+	outputPanel->Height = 272;
+	outputPanel->BevelKind = bkFlat;
+	outputPanel->Color = clWhite;
+
+	TPanel *outputTitle = new TPanel(outputPanel);
+	outputTitle->Parent = outputPanel;
+	outputTitle->Align = alTop;
+	outputTitle->Height = 22;
+	outputTitle->Caption = "OUTPUT (Y)";
+	outputTitle->Color = clGray;
+	outputTitle->Font->Color = clWhite;
+	outputTitle->Font->Style = TFontStyles() << fsBold;
+
+	TScrollBox *scrOutput = new TScrollBox(outputPanel);
+	scrOutput->Parent = outputPanel;
+	scrOutput->Left = 4;
+	scrOutput->Top = 26;
+	scrOutput->Width = 734;
+	scrOutput->Height = 240;
+	scrOutput->HorzScrollBar->Visible = false;
+	scrOutput->Color = clWhite;
+	scrOutput->Tag = 8;
+
+	const char *outputNames[16] = {
+		"GRIPPER CHUCK SOL", "GRIPPER UNCHUCK SOL", "SAFETY RESET", "DOOR_LEFT_OPEN",
+		"DOOR_RIGHT_OPEN", "OPBOX RESET LAMP", "SAFETY RESET SW LAMP", "OPBOX EMERGENCY LAMP",
+		"TOWER LAMP RED", "TOWER LAMP YELLOW", "TOWER LAMP GREEN", "TOWER LAMP BUZZER",
+		"SAFETY KEY S/W", "", "", ""
+	};
+	for(int i = 0; i < 16; ++i){
+		AnsiString address = "Y" + IntToHex(0x0030 + i, 4);
+		CreateIoRow(scrOutput, ioOutputState, ioOutputCount, address, outputNames[i]);
+		ioOutputCount++;
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::UpdateIoMonitoringPanel()
+{
+	if(grp_io == NULL) return;
+
+	bool inputValue[48] = {
+		robostar->input.CP01_TRIP, robostar->input.CP02_TRIP, robostar->input.CP03_TRIP, robostar->input.CP04_TRIP,
+		robostar->input.CP05_TRIP, robostar->input.CP06_TRIP, robostar->input.CP07_TRIP, robostar->input.CP08_TRIP,
+		robostar->input.CP09_TRIP, robostar->input.CP10_TRIP, robostar->input.CP11_TRIP, robostar->input.CP12_TRIP,
+		robostar->input.CP13_TRIP, robostar->input.CP14_TRIP, robostar->input.MS01_TRIP, robostar->input.X000F,
+		robostar->input.SERVO01_INPOS, robostar->input.SERVO01_ALARM, robostar->input.SERVO01_OK_HOME, robostar->input.SERVO02_INPOS,
+		robostar->input.SERVO02_ALARM, robostar->input.SERVO02_OK_HOME, robostar->input.SERVO03_INPOS, robostar->input.SERVO03_ALARM,
+		robostar->input.SERVO03_OK_HOME, robostar->input.X0019, robostar->input.X001A, robostar->input.X001B,
+		robostar->input.X001C, robostar->input.X001D, robostar->input.X001E, robostar->input.X001F,
+		robostar->input.GRIPPER1_UP, robostar->input.GRIPPER1_DOWN, robostar->input.GRIPPER1_CELL_DETECT, robostar->input.GRIPPER1_BUFFER,
+		robostar->input.EMS_SWITCH, robostar->input.OPBOX_RESET_SWITCH, robostar->input.SAFETY_DOOR_1, robostar->input.SAFETY_DOOR_2,
+		robostar->input.SAFETY_RESET_SW_ON, robostar->input.BYPASS_SW_ON, robostar->input.BYPASS_SW_OFF, robostar->input.SAFETY_EMG_ERROR,
+		robostar->input.SAFETY_DOOR_ERROR, robostar->input.SAFETY_DOOR_3, robostar->input.X002E, robostar->input.X002F
+	};
+
+	bool outputValue[16] = {
+		robostar->gripper.GRIPPER1_CHUCK, robostar->gripper.GRIPPER1_UNCHUCK, robostar->gripper.SAFETY_RESET, robostar->gripper.DOOR_LEFT_OPEN,
+		robostar->gripper.DOOR_RIGHT_OPEN, robostar->gripper.OPBOX_RESET_LAMP, robostar->gripper.SAFETY_RESET_SW_LAMP, robostar->gripper.OPBOX_EMERGENCY_LAMP,
+		robostar->gripper.TOWER_LAMP_RED, robostar->gripper.TOWER_LAMP_YELLOW, robostar->gripper.TOWER_LAMP_GREEN, robostar->gripper.TOWER_LAMP_BUZZER,
+		robostar->gripper.DOOR_OPEN_SELECT, robostar->gripper.Y003D, robostar->gripper.Y003E, robostar->gripper.Y003F
+	};
+
+	for(int i = 0; i < ioInputCount; ++i){
+		if(ioInputState[i] == NULL) continue;
+		ioInputState[i]->Caption = inputValue[i] ? "ON" : "OFF";
+		ioInputState[i]->Color = inputValue[i] ? clLime : clSilver;
+	}
+	for(int i = 0; i < ioOutputCount; ++i){
+		if(ioOutputState[i] == NULL) continue;
+		ioOutputState[i]->Caption = outputValue[i] ? "ON" : "OFF";
+		ioOutputState[i]->Color = outputValue[i] ? clLime : clSilver;
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::btnIOMonitoringClick(TObject *Sender)
+{
+	UpdateIoMonitoringPanel();
+	grp_io->BringToFront();
+	grp_io->Visible = true;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::btnCloseIoPanelClick(TObject *Sender)
+{
+	grp_io->Visible = false;
+}
+//---------------------------------------------------------------------------
 void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 {
 	for(int i=0; i<=3; ++i)GetZoneCount(i);
@@ -562,6 +783,8 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		robostar->req_JogMove(-1);
 		AlarmForm->ShowError("No." + IntToStr(flowValue) + " " + BaseForm->GetLangStr("MSG_GRIPPER_FLOW"), BaseForm->GetLangStr("MSG_CHECK_RESTART"));
 	}
+
+	UpdateIoMonitoringPanel();
 
 	if(robostar->mr2.system_status == SSC_STS_CODE_RUNNING) popen->Color = clLime;
 	else popen->Color = clSilver;

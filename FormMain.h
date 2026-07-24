@@ -345,6 +345,11 @@ private:	// User declarations
 	void __fastcall DisplayStatus(int status);
 	void __fastcall DisplaySensorInfo();
 	void __fastcall sensorColor(TPanel *pnl, bool bon);
+	void __fastcall CreateIoMonitoringPanel();
+	void __fastcall CreateIoRow(TScrollBox *parent, TPanel **statePanel, int index, AnsiString address, AnsiString name);
+	void __fastcall UpdateIoMonitoringPanel();
+	void __fastcall btnIOMonitoringClick(TObject *Sender);
+	void __fastcall btnCloseIoPanelClick(TObject *Sender);
 
 	int __fastcall FindList(AnsiString strType);
 	void __fastcall AddList(AnsiString strType);
@@ -359,6 +364,12 @@ private:	// User declarations
 	void __fastcall ReadZoneList();
 
 	TPanel *status_on[AxisCnt], *status_org[AxisCnt], *status_error[AxisCnt], *status_lsp[AxisCnt], *status_lsn[AxisCnt], *status_pos[AxisCnt];
+	TAdvSmoothButton *btnIOMonitoring;
+	TPanel *grp_io;
+	TPanel *ioInputState[64];
+	TPanel *ioOutputState[32];
+	int ioInputCount;
+	int ioOutputCount;
 
 public:		// User declarations
 
