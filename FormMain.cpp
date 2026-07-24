@@ -541,10 +541,15 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	sensorColor(pflow1, robostar->input.GRIPPER1_BUFFER);
 	sensorColor(popen1, !robostar->output.GRIPPER1_CHUCK);
 	sensorColor(pclose1, robostar->output.GRIPPER1_CHUCK);
-
-    //* 2025 09 25 Ãß°¡
-	sensorColor(pRun, robostar->output.SERVO_RUNNING);
-	if(robostar->output.SERVO_RUNNING == true)
+    //* 2026 07 24 MR-MC axis operation status
+	bool servoRunning = false;
+	for(int i = 1; i <= servoCnt; ++i){
+		if(robostar->mr2.running[i]){
+			servoRunning = true;
+			break;
+		}
+	}
+	if(servoRunning)
 		pRun->Color = clLime;
 	else
 		pRun->Color = clGray;
@@ -760,7 +765,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	if( robostar->input.SAFETY_DOOR_1)pdoor_left->Color = clRed;
 	else pdoor_left->Color = clSilver;
 
-	if(robostar->input.SAFETY_DOOR_1)pdoor_right->Color = clRed;
+	if(robostar->input.SAFETY_DOOR_2)pdoor_right->Color = clRed;
 	else pdoor_right->Color = clSilver;
 
 	if(robostar->input.EMS_SWITCH)pemergency->Color = clRed;

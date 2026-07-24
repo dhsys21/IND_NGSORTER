@@ -1214,6 +1214,7 @@ void __fastcall Trobostar::mr2Sensing()
 			for(int i=1; i<=servoCnt; ++i){
 				sscGetStatusBitSignalEx(board_id, channel_id, i, SSC_STSBIT_AX_RDY, &mr2.servo[i]);
 				sscGetStatusBitSignalEx(board_id, channel_id, i, SSC_STSBIT_AX_ZREQ, &mr2.zero[i]);
+				sscGetStatusBitSignalEx(board_id, channel_id, i, SSC_STSBIT_AX_OP, &mr2.running[i]);
 			}
 			seq = -1;
 			break;
@@ -1312,7 +1313,7 @@ bool __fastcall Trobostar::CheckEjectUnchuck(int pos)
 	bool bresult = false;
 	switch(pos){
 		case 1:
-			if(input.GRIPPER1_UNCHUCK){
+			if(input.GRIPPER1_DOWN){
 				bresult = true;
 			}else{
 				gripper.GRIPPER1_CHUCK = false;
@@ -1329,7 +1330,7 @@ bool __fastcall Trobostar::CheckEjectChuck(int pos)
 	bool bresult = false;
 	switch(pos){
 		case 1:
-			if(input.GRIPPER1_UNCHUCK == false){
+			if(input.GRIPPER1_DOWN == false){
 				bresult = true;
 			}else{
 				gripper.GRIPPER1_CHUCK = true;
@@ -1396,7 +1397,7 @@ bool __fastcall Trobostar::CheckInsertUnchuck(int pos)
 	bool bresult = false;
 	switch(pos){
 		case 1:
-			if(input.GRIPPER1_UNCHUCK == true){
+			if(input.GRIPPER1_DOWN == true){
 					bresult = true;
 			}else{
 				gripper.GRIPPER1_CHUCK = false;

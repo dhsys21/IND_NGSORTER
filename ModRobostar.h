@@ -20,118 +20,87 @@ typedef struct{
 	long 	devno;
 }CONFIG_ROBOSTAR;
 
+// CC-Link input map. mdReceive() reads this block from DevX X0000.
 typedef struct{
-	uint8_t EMS_SWITCH:1; //RX00
-	uint8_t SAFETY_DOOR_1:1; //RX01
-	uint8_t SAFETY_DOOR_2:1; //RX02
-	uint8_t SAFETY_DOOR_3:1; //RX03
-	uint8_t RX04:1; //RX04
-	uint8_t SAFETY_CONT_ERROR:1; //RX05
-	uint8_t RX06:1; //RX06 0p
-	uint8_t RX07:1; //RX07
-	uint8_t CP04_TRIP:1; //RX08
-	uint8_t CP05_TRIP:1; //RX09
-	uint8_t CP06_TRIP:1; //RX0A	/INRNG
-	uint8_t CP07_TRIP:1; //RX0B
-	uint8_t CP08_TRIP:1; //RX0C
-	uint8_t RX0D:1; //RX0D
-	uint8_t RX0E:1; //RX0E
-	uint8_t RX0F:1; //RX0F
+	uint8_t CP01_TRIP:1; //X0000 CP01 TRIP, PL LAMP Trip
+	uint8_t CP02_TRIP:1; //X0001 CP02 TRIP, SPD Trip
+	uint8_t CP03_TRIP:1; //X0002 CP03 TRIP, SMPS1 Trip
+	uint8_t CP04_TRIP:1; //X0003 CP04 TRIP, SMPS2 Trip
+	uint8_t CP05_TRIP:1; //X0004 CP05 TRIP, SMPS3 Trip
+	uint8_t CP06_TRIP:1; //X0005 CP06 TRIP, SMPS1 DC Trip
+	uint8_t CP07_TRIP:1; //X0006 CP07 TRIP, SMPS2 DC Trip
+	uint8_t CP08_TRIP:1; //X0007 CP08 TRIP, SMPS3 DC Trip
+	uint8_t CP09_TRIP:1; //X0008 CP09 TRIP, FAN Trip
+	uint8_t CP10_TRIP:1; //X0009 CP10 TRIP, SERVO1 Trip
+	uint8_t CP11_TRIP:1; //X000A CP11 TRIP, SERVO2 Trip
+	uint8_t CP12_TRIP:1; //X000B CP12 TRIP, SERVO3 Trip
+	uint8_t CP13_TRIP:1; //X000C CP13 TRIP, BCR01 Trip
+	uint8_t CP14_TRIP:1; //X000D CP14 TRIP, BCR02 Trip
+	uint8_t MS01_TRIP:1; //X000E MS01 TRIP
+	uint8_t X000F:1; //X000F
 //--------------------------
-	uint8_t RX10:1; //RX10
-	uint8_t RX11:1; //RX11
-	uint8_t CP11_TRIP:1; //RX12
-	uint8_t CP12_TRIP:1; //RX13
-	uint8_t CP13_TRIP:1; //RX14
-	uint8_t CP14_TRIP:1; //RX15
-	uint8_t CP15_TRIP:1; //RX16
-	uint8_t CP16_TRIP:1; //RX17
-	uint8_t RX18:1; //RX18
-	uint8_t RX19:1; //RX19
-	uint8_t RX1A:1; //RX1A
-	uint8_t CP21_TRIP:1; //RX1B
-	uint8_t CP22_TRIP:1; //RX1C
-	uint8_t RX1D:1; //RX1D
-	uint8_t RX1E:1; //RX1E
-	uint8_t RX1F:1; //RX1F
+	uint8_t SERVO01_INPOS:1; //X0010 SERVO01 INPOS
+	uint8_t SERVO01_ALARM:1; //X0011 SERVO01 ALARM
+	uint8_t SERVO01_OK_HOME:1; //X0012 SERVO01 OK HOME
+	uint8_t SERVO02_INPOS:1; //X0013 SERVO02 INPOS
+	uint8_t SERVO02_ALARM:1; //X0014 SERVO02 ALARM
+	uint8_t SERVO02_OK_HOME:1; //X0015 SERVO02 OK HOME
+	uint8_t SERVO03_INPOS:1; //X0016 SERVO03 INPOS
+	uint8_t SERVO03_ALARM:1; //X0017 SERVO03 ALARM
+	uint8_t SERVO03_OK_HOME:1; //X0018 SERVO03 OK HOME
+	uint8_t X0019:1; //X0019
+	uint8_t X001A:1; //X001A
+	uint8_t X001B:1; //X001B
+	uint8_t X001C:1; //X001C
+	uint8_t X001D:1; //X001D
+	uint8_t X001E:1; //X001E
+	uint8_t X001F:1; //X001F
 //--------------------------
-	uint8_t RX20:1; //RX20
-	uint8_t RX21:1; //RX21
-	uint8_t RX22:1; //RX22
-	uint8_t RX23:1; //RX23
-	uint8_t RX24:1; //RX24
-	uint8_t RX25:1; //RX25
-	uint8_t RX26:1; //RX26
-	uint8_t RX27:1; //RX27
-	uint8_t RX28:1; //RX28
-	uint8_t RX29:1; //RX29
-	uint8_t RX2A:1; //RX2A
-	uint8_t RX2B:1; //RX2B
-	uint8_t RX2C:1; //RX2C
-	uint8_t RX2D:1; //RX2D
-	uint8_t RX2E:1; //RX2E
-	uint8_t RX2F:1; //RX2F
+	uint8_t GRIPPER1_UP:1; //X0020 GRIPPER1 CHUCK, old code compatibility
+	uint8_t GRIPPER1_DOWN:1; //X0021 GRIPPER1 UNCHUCK, old code compatibility
+	uint8_t GRIPPER1_CELL_DETECT:1; //X0022 GRIPPER1 CELL DETECT
+	uint8_t GRIPPER1_BUFFER:1; //X0023 GRIPPER1 BUFFER
+	uint8_t EMS_SWITCH:1; //X0024 EMERGENCY SWITCH
+	uint8_t OPBOX_RESET_SWITCH:1; //X0025 OPBOX RESET SWITCH
+	uint8_t SAFETY_DOOR_1:1; //X0026 SAFETY DOOR #1 LEFT
+	uint8_t SAFETY_DOOR_2:1; //X0027 SAFETY DOOR #2 RIGHT
+	uint8_t SAFETY_RESET_SW_ON:1; //X0028 SAFETY RESET SW ON
+	uint8_t BYPASS_SW_ON:1; //X0029 BY-PASS S/W ON
+	uint8_t BYPASS_SW_OFF:1; //X002A BY-PASS S/W OFF
+	uint8_t SAFETY_EMG_ERROR:1; //X002B SAFETY EMG ERROR
+	uint8_t SAFETY_DOOR_ERROR:1; //X002C SAFETY DOOR ERROR
+	uint8_t SAFETY_DOOR_3:1; //X002D not used
+	uint8_t X002E:1; //X002E
+	uint8_t X002F:1; //X002F
 //--------------------------
-	uint8_t RX30:1; //RX30
-	uint8_t RX31:1; //RX31
-	uint8_t RX32:1; //RX32
-	uint8_t RX33:1; //RX33
-	uint8_t RX34:1; //RX34
-	uint8_t RX35:1; //RX35
-	uint8_t RX36:1; //RX36
-	uint8_t RX37:1; //RX37
-	uint8_t RX38:1; //RX38
-	uint8_t RX39:1; //RX39
-	uint8_t RX3A:1; //RX3A
-	uint8_t RX3B:1; //RX3B
-	uint8_t RX3C:1; //RX3C
-	uint8_t RX3D:1; //RX3D
-	uint8_t RX3E:1; //RX3E
-	uint8_t RX3F:1; //RX3F
-//--------------------------
-	uint8_t GRIPPER1_UP:1; //RX40
-	uint8_t GRIPPER1_DOWN:1; //RX41
-	uint8_t GRIPPER1_BUFFER:1; //RX42
-	uint8_t GRIPPER1_CELL_DETECT:1; //RX43
-	uint8_t GRIPPER1_UNCHUCK:1; //RX44
-	uint8_t GRIPPER1_FLOAT:1; //RX45
-	uint8_t RX46:1; //RX46
-	uint8_t RX47:1; //RX47
-	uint8_t RX48:1; //RX48
-	uint8_t RX49:1; //RX49
-	uint8_t RX4A:1; //RX4A
-	uint8_t RX4B:1; //RX4B
-	uint8_t RX4C:1; //RX4C
-	uint8_t RX4D:1; //RX4D
-	uint8_t RX4E:1; //RX4E
-	uint8_t RX4F:1; //RX4F
-//--------------------------
-	uint8_t RX50:1; //RX50
-	uint8_t RX51:1; //RX51
-	uint8_t RX52:1; //RX52
-	uint8_t RX53:1; //RX53
-	uint8_t RX54:1; //RX54
-	uint8_t RX55:1; //RX55
-	uint8_t RX56:1; //RX56
-	uint8_t RX57:1; //RX57
-	uint8_t RX58:1; //RX58
-	uint8_t RX59:1; //RX59
-	uint8_t RX5A:1; //RX5A
-	uint8_t RX5B:1; //RX5B
-	uint8_t RX5C:1; //RX5C
-	uint8_t RX5D:1; //RX5D
-	uint8_t RX5E:1; //RX5E
-	uint8_t RX5F:1; //RX5F
+	uint8_t X0030:1; //X0030
+	uint8_t X0031:1; //X0031
+	uint8_t X0032:1; //X0032
+	uint8_t X0033:1; //X0033
+	uint8_t X0034:1; //X0034
+	uint8_t X0035:1; //X0035
+	uint8_t X0036:1; //X0036
+	uint8_t X0037:1; //X0037
+	uint8_t X0038:1; //X0038
+	uint8_t X0039:1; //X0039
+	uint8_t X003A:1; //X003A
+	uint8_t X003B:1; //X003B
+	uint8_t X003C:1; //X003C
+	uint8_t X003D:1; //X003D
+	uint8_t X003E:1; //X003E
+	uint8_t X003F:1; //X003F
 //--------------------------
 }INPUT_ROBOT;
 //---------------------------------------------------------------------------
+
+// Internal robot status bits used by the existing motion sequence.
 typedef struct{
-	uint8_t SERVO_ON[4];
-	uint8_t SERVO_HOME[4];
+	uint8_t SERVO_ON[3];
+	uint8_t SERVO_HOME[3];
 	uint8_t CYLINDER_Z:1;
 
 	uint8_t SERVO03_OK_HOME:1; //RX09
-	uint8_t SERVO04_INPOS:1; //RX0A	/INRNG
+	uint8_t SERVO04_INPOS:1; //RX0A
 	uint8_t SERVO04_ALARM:1; //RX0B
 	uint8_t SERVO04_OK_HOME:1; //RX0C
 	uint8_t SERVO_RUNNING:1; //RX0D
@@ -209,109 +178,42 @@ typedef struct{
 }OUTPUT_ROBOT;
 //---------------------------------------------------------------------------
 
+// CC-Link output map. mdSend() writes this block from DevY Y0020.
 typedef struct{
 //--------------------------
-	uint8_t TOWER_LAMP_RED:1; //RY20
-	uint8_t TOWER_LAMP_YELLOW:1; //RY51
-	uint8_t TOWER_LAMP_GREEN:1; //RY52
-	uint8_t TOWER_LAMP_BUZZER:1; //RY53
-	uint8_t RY24:1; //RY24
-	uint8_t RY25:1; //RY25
-	uint8_t RY26:1; //RY26
-	uint8_t RY27:1; //RY27
-	uint8_t RY28:1; //RY28
-	uint8_t RY29:1; //RY29
-	uint8_t RY2A:1; //RY2A
-	uint8_t RY2B:1; //RY2B
-	uint8_t RY2C:1; //RY2C
-	uint8_t RY2D:1; //RY2D
-	uint8_t RY2E:1; //RY2E
-	uint8_t RY2F:1; //RY2F
+	uint8_t Y0020:1; //Y0020
+	uint8_t Y0021:1; //Y0021
+	uint8_t GRIPPER1_DOWN_SOL:1; //Y0022 reserved, old code compatibility
+	uint8_t GRIPPER1_UP_SOL:1; //Y0023 reserved, old code compatibility
+	uint8_t Y0024:1; //Y0024
+	uint8_t Y0025:1; //Y0025
+	uint8_t Y0026:1; //Y0026
+	uint8_t Y0027:1; //Y0027
+	uint8_t Y0028:1; //Y0028
+	uint8_t Y0029:1; //Y0029
+	uint8_t Y002A:1; //Y002A
+	uint8_t Y002B:1; //Y002B
+	uint8_t Y002C:1; //Y002C
+	uint8_t Y002D:1; //Y002D
+	uint8_t Y002E:1; //Y002E
+	uint8_t Y002F:1; //Y002F
 //--------------------------
-	uint8_t RY30:1; //RY30
-	uint8_t RY31:1; //RY31
-	uint8_t RY32:1; //RY32
-	uint8_t RY33:1; //RY33
-	uint8_t RY34:1; //RY34
-	uint8_t RY35:1; //RY35
-	uint8_t RY36:1; //RY36
-	uint8_t RY37:1; //RY37
-	uint8_t RY38:1; //RY38
-	uint8_t RY39:1; //RY39
-	uint8_t RY3A:1; //RY3A
-	uint8_t RY3B:1; //RY3B
-	uint8_t RY3C:1; //RY3C
-	uint8_t RY3D:1; //RY3D
-	uint8_t RY3E:1; //RY3E
-	uint8_t DOOR_OPEN_SELECT:1; //RY3F
-    //--------------------------
-	uint8_t RY40:1; //RY40
-	uint8_t RY41:1; //RY41
-	uint8_t RY42:1; //RY42
-	uint8_t RY43:1; //RY43
-	uint8_t RY44:1; //RY44
-	uint8_t RY45:1; //RY45
-	uint8_t RY46:1; //RY46
-	uint8_t RY47:1; //RY47
-	uint8_t RY48:1; //RY48
-	uint8_t RY49:1; //RY49
-	uint8_t RY4A:1; //RY4A
-	uint8_t RY4B:1; //RY4B
-	uint8_t RY4C:1; //RY4C
-	uint8_t RY4D:1; //RY4D
-	uint8_t RY4E:1; //RY4E
-	uint8_t RY4F:1; //RY4F
-	//--------------------------
-	uint8_t RY50:1; //RY50
-	uint8_t RY51:1; //RY51
-	uint8_t RY52:1; //RY52
-	uint8_t RY53:1; //RY53
-	uint8_t RY54:1; //RY54
-	uint8_t RY55:1; //RY55
-	uint8_t RY56:1; //RY56
-	uint8_t RY57:1; //RY57
-	uint8_t RY58:1; //RY58
-	uint8_t RY59:1; //RY59
-	uint8_t RY5A:1; //RY5A
-	uint8_t RY5B:1; //RY5B
-	uint8_t RY5C:1; //RY5C
-	uint8_t RY5D:1; //RY5D
-	uint8_t RY5E:1; //RY5E
-	uint8_t RY5F:1; //RY5F
-//--------------------------
-    uint8_t RY60:1; //RY60
-	uint8_t RY61:1; //RY61
-	uint8_t GRIPPER1_DOWN_SOL:1; //RY62
-	uint8_t GRIPPER1_UP_SOL:1; //RY63
-	uint8_t RY64:1; //RY64
-	uint8_t RY65:1; //RY65
-	uint8_t RY66:1; //RY66
-	uint8_t RY67:1; //RY67
-	uint8_t RY68:1; //RY68
-	uint8_t RY69:1; //RY69
-	uint8_t RY6A:1; //RY6A
-	uint8_t RY6B:1; //RY6B
-	uint8_t RY6C:1; //RY6C
-	uint8_t RY6D:1; //RY6D
-	uint8_t RY6E:1; //RY6E
-	uint8_t RY6F:1; //RY6F
-//--------------------------
-	uint8_t GRIPPER1_UNCHUCK:1; //RY70
-	uint8_t GRIPPER1_CHUCK:1; //RY71
-	uint8_t RY72:1; //RY72
-	uint8_t RY73:1; //RY73
-	uint8_t RY74:1; //RY74
-	uint8_t RY75:1; //RY75
-	uint8_t RY76:1; //RY76
-	uint8_t RY77:1; //RY77
-	uint8_t RY78:1; //RY78
-	uint8_t RY79:1; //RY79
-	uint8_t RY7A:1; //RY7A
-	uint8_t RY7B:1; //RY7B
-	uint8_t RY7C:1; //RY7C
-	uint8_t RY7D:1; //RY7D
-	uint8_t RY7E:1; //RY7E
-	uint8_t RY7F:1; //RY7F
+	uint8_t GRIPPER1_CHUCK:1; //Y0030 GRIPPER CHUCK SOL
+	uint8_t GRIPPER1_UNCHUCK:1; //Y0031 GRIPPER UNCHUCK SOL
+	uint8_t SAFETY_RESET:1; //Y0032 SAFETY RESET
+	uint8_t DOOR_LEFT_OPEN:1; //Y0033 DOOR_LEFT_OPEN
+	uint8_t DOOR_RIGHT_OPEN:1; //Y0034 DOOR_RIGHT_OPEN
+	uint8_t OPBOX_RESET_LAMP:1; //Y0035 OPBOX RESET LAMP
+	uint8_t SAFETY_RESET_SW_LAMP:1; //Y0036 SAFETY RESET SW LAMP
+	uint8_t OPBOX_EMERGENCY_LAMP:1; //Y0037 OPBOX EMERGENCY LAMP
+	uint8_t TOWER_LAMP_RED:1; //Y0038 TOWER LAMP RED
+	uint8_t TOWER_LAMP_YELLOW:1; //Y0039 TOWER LAMP YELLOW
+	uint8_t TOWER_LAMP_GREEN:1; //Y003A TOWER LAMP GREEN
+	uint8_t TOWER_LAMP_BUZZER:1; //Y003B TOWER LAMP BUZZER
+	uint8_t DOOR_OPEN_SELECT:1; //Y003C SAFETY KEY S/W
+	uint8_t Y003D:1; //Y003D
+	uint8_t Y003E:1; //Y003E
+	uint8_t Y003F:1; //Y003F
 }OUTPUT_IO;
 //---------------------------------------------------------------------------
 typedef enum Sequence
@@ -352,6 +254,7 @@ typedef struct{
 	int status[AxisCnt];
 	int servo[AxisCnt];
 	int zero[AxisCnt];
+	int running[AxisCnt];
 	unsigned short int system_alarm;
 	unsigned short int system_detail;
 	unsigned short int servo_alarm[AxisCnt];
