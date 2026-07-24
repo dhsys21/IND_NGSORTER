@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 
-#include <vcl.h>
+
 #pragma hdrstop
 
 #include "FormBase.h"
@@ -14,36 +14,31 @@ TSmokeDetector *SmokeDetector;
 __fastcall TSmokeDetector::TSmokeDetector(TComponent* Owner)
 	: TDataModule(Owner)
 {
-	retryCnt = 3;
-	Tag = 0;
+    retryCnt = 3;
+	retryInterval = 1000; // ?? 1초 주기로 변경
+	tryCnt = 0;
+	failCount = 0;        // ?? 초기화
+	bWaitingResponse = false; // ?? 초기화
 	slaveId = 1;
 	protocolMode = 0;
-	bWaitingResponse = false;
-	failCount = 0;
-	SmokeOutput = false;
-	DangerOutput = false;
-	WarningOutput = false;
-	RunOutput = false;
-	SmokeAlarm = false;
-	DangerAlarm = false;
-	WarningAlarm = false;
-	TemperaturePV = 0;
-	TemperatureOffset = 0;
-	TemperatureWarningSV = 0;
-	TemperatureDangerSV = 0;
 }
 //---------------------------------------------------------------------------
 unsigned short __fastcall TSmokeDetector::get_crc16(unsigned char *pBuf, int nLen)
 {
+	int i, j;
 	unsigned short crc = 0xFFFF;
-	for(int i = 0; i < nLen; i++) {
+	for (i = 0; i < nLen; i++)
+	{
 		crc ^= pBuf[i];
-		for(int j = 0; j < 8; j++) {
-			if(crc & 0x01) {
+		for (j = 0; j < 8; j++)
+		{
+			if (crc & 0x01)
+			{
 				crc >>= 1;
 				crc ^= 0xA001;
 			}
-			else {
+			else
+			{
 				crc >>= 1;
 			}
 		}
@@ -53,310 +48,546 @@ unsigned short __fastcall TSmokeDetector::get_crc16(unsigned char *pBuf, int nLe
 //---------------------------------------------------------------------------
 void __fastcall TSmokeDetector::CommOpen(AnsiString port, int sep, int id, int mode, int baudRate)
 {
-	try {
-		if(Comm->Connected) Comm->Close();
-
-		Tag = sep;
-		slaveId = id;
-		protocolMode = mode;
-		failCount = 0;
-		bWaitingResponse = false;
-		rxBuffer.clear();
-
-		Comm->Port = port;
-		if(baudRate <= 0) baudRate = (protocolMode == 0) ? 115200 : 9600;
-
-		switch(baudRate) {
-			case 9600: Comm->BaudRate = br9600; break;
-			case 19200: Comm->BaudRate = br19200; break;
-			case 38400: Comm->BaudRate = br38400; break;
-			case 57600: Comm->BaudRate = br57600; break;
-			case 115200: Comm->BaudRate = br115200; break;
-			default:
-				Comm->BaudRate = brCustom;
-				Comm->CustomBaudRate = baudRate;
-				break;
+	try{
+		if(Comm->Connected){
+			Comm->Close();
 		}
 
-		Comm->FlowControl->ControlDTR = dtrEnable;
-		Comm->FlowControl->ControlRTS = rtsEnable;
+        retryCnt = 3;
+        retryInterval = 3000; // ?? 1초 주기로 변경
+        tryCnt = 0;
+        failCount = 0;        // ?? 초기화
+        bWaitingResponse = false; // ?? 초기화
+        slaveId = 1;
+        protocolMode = 0;
+
+		Tag = sep;
+		slaveId = id; // 센서의 Modbus 국번 저장
+        protocolMode = mode;
+		Comm->Port = port;
+
+        if(baudRate <= 0)
+            baudRate = (protocolMode == 0) ? 115200 : 9600;
+
+        switch(baudRate){
+            case 9600: Comm->BaudRate = br9600; break;
+            case 19200: Comm->BaudRate = br19200; break;
+            case 38400: Comm->BaudRate = br38400; break;
+            case 57600: Comm->BaudRate = br57600; break;
+            case 115200: Comm->BaudRate = br115200; break;
+            default:
+                Comm->BaudRate = brCustom;
+                Comm->CustomBaudRate = baudRate;
+                break;
+        }
+
+        //* RTS, DTR enable해주지 않으면 데이터 수신 안됨.
+        Comm->FlowControl->ControlDTR = dtrEnable;
+        Comm->FlowControl->ControlRTS = rtsEnable;
+
+		// ?? [중요] Modbus RTU는 바이너리 통신이므로 특정 종료 문자(0x0a 등)를
+		// 이벤트 캐릭터로 사용하면 데이터 도중 오작동합니다. 0 또는 해제 처리합니다.
 		Comm->EventChar = 0x00;
 		Comm->Open();
 		Comm->ClearBuffer(true, true);
 
-		chkTimer->Interval = 1000;
+        // ?? 포트 오픈 성공 시 1초 폴링 타이머 가동
+		failCount = 0;
+		bWaitingResponse = false;
+		chkTimer->Interval = 1000; // 1초 주기 고정
 		chkTimer->Enabled = true;
-		if(MainForm != NULL)
-			MainForm->memoMainLineAdd("Smoke detector connected: " + port);
 	}
-	catch(...) {
+	catch(...){
 		Comm->Close();
-		chkTimer->Enabled = false;
-		if(AlarmForm != NULL)
-			AlarmForm->ShowError("TSD-V50 COM Port", "Can not open " + port + " port.");
-		else if(MainForm != NULL)
-			MainForm->memoMainLineAdd("Smoke detector open fail: " + port);
+        chkTimer->Enabled = false; // 실패 시 타이머 중지
+		AlarmForm->ShowError("TSD-V50 COM Port", "Can not open " + port + " port.");
 	}
 }
 //---------------------------------------------------------------------------
 void __fastcall TSmokeDetector::CommClose()
 {
-	chkTimer->Enabled = false;
-	if(Comm->Connected) Comm->Close();
+    if(Comm->Connected)
+        Comm->Close();
 }
 //---------------------------------------------------------------------------
+// ?? 장비 연결이 끊어졌을 때 Close 후 다시 Open 하는 함수
 void __fastcall TSmokeDetector::Reconnect()
 {
-	try {
-		if(Comm->Connected) Comm->Close();
-		Sleep(500);
-		Comm->Open();
-		Comm->ClearBuffer(true, true);
-		failCount = 0;
-		bWaitingResponse = false;
-		if(MainForm != NULL)
-			MainForm->memoMainLineAdd("Smoke detector reconnected.");
-	}
-	catch(...) {
-		if(MainForm != NULL)
-			MainForm->memoMainLineAdd("Smoke detector reconnect failed.");
-	}
-}
-//---------------------------------------------------------------------------
-void __fastcall TSmokeDetector::ClearAlarm()
-{
-	setTsdData(0x1005, 0x1234);
-}
-//---------------------------------------------------------------------------
-void __fastcall TSmokeDetector::setTsdData(short regAddr, short writeValue)
-{
-	unsigned char txBuf[8];
-	txBuf[0] = (unsigned char)slaveId;
-	txBuf[1] = 0x06;
-	txBuf[2] = (unsigned char)((regAddr >> 8) & 0xFF);
-	txBuf[3] = (unsigned char)(regAddr & 0xFF);
-	txBuf[4] = (unsigned char)((writeValue >> 8) & 0xFF);
-	txBuf[5] = (unsigned char)(writeValue & 0xFF);
+    BaseForm->Memo1->Lines->Clear();
+    BaseForm->Memo1->Lines->Add("=========================================");
+    BaseForm->Memo1->Lines->Add("?? 통신 단절 감지! 포트 재연결 시도 중... ");
+    BaseForm->Memo1->Lines->Add("=========================================");
 
-	unsigned short crc = get_crc16(txBuf, 6);
-	txBuf[6] = (unsigned char)(crc & 0xFF);
-	txBuf[7] = (unsigned char)((crc >> 8) & 0xFF);
-	Comm->Write((void*)txBuf, 8);
+    try {
+        // 1. 기존 연결 안전하게 종료
+        if(Comm->Connected) {
+            Comm->Close();
+        }
+
+        // 2. RS-485 칩셋 및 OS가 포트를 정리할 수 있도록 잠시 대기 (0.5초)
+        Sleep(500);
+
+        // 3. 기존 정보로 재오픈 시도
+        Comm->Open();
+        Comm->ClearBuffer(true, true);
+
+        // 상태 초기화
+        failCount = 0;
+        bWaitingResponse = false;
+        BaseForm->Memo1->Lines->Add("? 포트 재오픈 성공! 통신을 재개합니다.");
+    }
+    catch(const Exception &e)
+    {
+        BaseForm->Memo1->Lines->Add("통신오류 연결 종료중 예외방생 : " );
+    }
+    catch(...) {
+        // 재오픈 실패 시 다음 1초 뒤 타이머에서 다시 Reconnect를 타게 됨
+        BaseForm->Memo1->Lines->Add("? 포트 재오픈 실패. 1초 후 재시도합니다.");
+    }
 }
+
 //---------------------------------------------------------------------------
+// ?? TSD-V50 데이터 계측 요청 (Master Request)
 void __fastcall TSmokeDetector::GetTsdData()
 {
-	if(!Comm->Connected) return;
-	if(protocolMode == 0) GetTsdData_Modbus();
-	else GetTsdData_HumanAuto();
+    if(!Comm->Connected) {
+		AlarmForm->ShowError("TSD-V50 COM Port", "Can not open " + Comm->Port + " port.");
+		return;
+	}
+
+    // ?? 현재 설정된 프로토콜에 따라 함수 분기 실행
+	if(protocolMode == 0) {
+		GetTsdData_Modbus();
+	} else {
+		GetTsdData_HumanAuto();
+	}
 }
 //---------------------------------------------------------------------------
+// ?? TSD-V50 알람 해제
+void __fastcall TSmokeDetector::ClearAlarm()
+{
+    short addr = 0x1005;
+    short tempvalue = 0x1234;
+
+    setTsdData(addr, tempvalue);
+}
+//---------------------------------------------------------------------------
+// ?? TSD-V50 데이터 셋팅
+void __fastcall TSmokeDetector::setTsdData(short regAddr, short writeValue)
+{
+    unsigned char txBuf[8];
+	txBuf[0] = (unsigned char)slaveId;
+	txBuf[1] = 0x06;                   // Write Single Registers
+	// ?? 레지스터 주소 쪼개기 (예: 1003h -> 10, 03)
+    txBuf[2] = (unsigned char)((regAddr >> 8) & 0xFF); // 상위 바이트
+    txBuf[3] = (unsigned char)(regAddr & 0xFF);        // 하위 바이트
+
+    // ?? 기록할 데이터 쪼개기 (예: 1234h -> 12, 34)
+    // 음수(예: -0.3도 -> Offset -3)도 정상적으로 비트 처리되어 들어갑니다.
+    txBuf[4] = (unsigned char)((writeValue >> 8) & 0xFF); // 상위 바이트
+    txBuf[5] = (unsigned char)(writeValue & 0xFF);        // 하위 바이트
+
+    // CRC-16 계산 (앞 6바이트)
+    unsigned short crc = get_crc16(txBuf, 6);
+    txBuf[6] = (unsigned char)(crc & 0xFF);        // CRC 하위(Low) 먼저
+    txBuf[7] = (unsigned char)((crc >> 8) & 0xFF); // CRC 상위(High) 나중에
+
+    // ?? 0x00 잘림 방지를 위해 포인터 캐스팅 후 8바이트 전송
+    Comm->Write((void*)txBuf, 8);
+}
+//---------------------------------------------------------------------------
+// [Tx 함수 1] Modbus RTU 요청 패킷 송신
 void __fastcall TSmokeDetector::GetTsdData_Modbus()
 {
 	unsigned char txBuf[8];
 	txBuf[0] = (unsigned char)slaveId;
-	txBuf[1] = 0x03;
-	txBuf[2] = 0x10;
-	txBuf[3] = 0x00;
-	txBuf[4] = 0x00;
-	txBuf[5] = 0x05;
+	txBuf[1] = 0x03;                   // Read Holding Registers
+	txBuf[2] = 0x10;                   // 시작 주소 High (1000h)
+	txBuf[3] = 0x00;                   // 시작 주소 Low
+	txBuf[4] = 0x00;                   // 레지스터 개수 High
+	txBuf[5] = 0x05;                   // 레지스터 개수 Low (5개 요구)
 
 	unsigned short crc = get_crc16(txBuf, 6);
-	txBuf[6] = (unsigned char)(crc & 0xFF);
-	txBuf[7] = (unsigned char)((crc >> 8) & 0xFF);
-	Comm->Write((void*)txBuf, 8);
+	txBuf[6] = (unsigned char)(crc & 0x00FF);
+	txBuf[7] = (unsigned char)((crc >> 8) & 0x00FF);
+
+	Comm->Write(txBuf, 8);
 }
+
 //---------------------------------------------------------------------------
+// [Tx 함수 2] HumanAutomation 전용 프로토콜 요청 패킷 송신
 void __fastcall TSmokeDetector::GetTsdData_HumanAuto()
 {
 	unsigned char txBuf[7];
-	txBuf[0] = 0x02;
-	txBuf[1] = (unsigned char)(slaveId + 0x40);
-	txBuf[2] = 2;
-	txBuf[3] = 0x41;
-	txBuf[4] = 0x00;
+	txBuf[0] = 0x02;                             // STX
+	txBuf[1] = (unsigned char)(slaveId + 0x40);  // Address (ID + 0x40)
+	txBuf[2] = 2;                                // Length (Cmd + Dummy Data = 2)
+	txBuf[3] = 0x41;                             // Command (0x41)
+	txBuf[4] = 0x00;                             // Data 0 (Dummy 0x00)
 
 	unsigned char sum = 0;
-	for(int i = 1; i <= 4; i++) sum += txBuf[i];
-	txBuf[5] = sum;
-	txBuf[6] = 0x03;
-	Comm->Write((void*)txBuf, 7);
+	for(int i = 1; i <= 4; i++) { sum += txBuf[i]; }
+	txBuf[5] = sum;                              // Sum Check
+	txBuf[6] = 0x03;                             // ETX
+
+	Comm->Write(txBuf, 7);
 }
 //---------------------------------------------------------------------------
 void __fastcall TSmokeDetector::CommRxFlag(TObject *Sender)
 {
-	unsigned char data[256];
-	int cnt = Comm->InputCount();
-	if(cnt <= 0) return;
-	if(cnt > 256) cnt = 256;
+    const int RX_BUF_SIZE = 256;
+    unsigned char rxBuf[RX_BUF_SIZE];
 
-	Comm->Read(data, cnt);
-	if(protocolMode != 0) {
-		Parse_HumanAuto(data, cnt);
-		return;
-	}
+    int cnt = Comm->InputCount();
+    if (cnt <= 0) return;
 
-	for(int i = 0; i < cnt; i++) rxBuffer.push_back(data[i]);
+    if (cnt > RX_BUF_SIZE) cnt = RX_BUF_SIZE;
 
-	while(rxBuffer.size() >= 3) {
-		unsigned char expectedSlave = (unsigned char)slaveId;
-		if(rxBuffer[0] != expectedSlave) {
-			rxBuffer.erase(rxBuffer.begin());
-			continue;
-		}
+	Comm->Read(rxBuf, cnt); // 우선 버퍼 전체를 안전하게 읽음
+    for (int i = 0; i < cnt; i++)
+    {
+        g_rxBuffer.push_back(rxBuf[i]);
+    }
 
-		unsigned char funcCode = rxBuffer[1];
-		int expectedLen = 0;
-		if(funcCode == 0x03) {
-			if(rxBuffer[2] != 0x0A) {
-				rxBuffer.erase(rxBuffer.begin());
-				continue;
-			}
-			expectedLen = 5 + rxBuffer[2];
-		}
-		else if(funcCode == 0x06 || funcCode == 0x10) expectedLen = 8;
-		else if((funcCode & 0x80) == 0x80) expectedLen = 5;
-		else {
-			rxBuffer.erase(rxBuffer.begin());
-			continue;
-		}
+	// 설정된 모드에 맞는 수신 파싱 전용 함수 호출
+	if(protocolMode == 0) {
+        while (g_rxBuffer.size() >= 3)
+        {
+            unsigned char expectedSlave = (unsigned char)slaveId;
 
-		if((int)rxBuffer.size() < expectedLen) break;
+            // 이전 수신 찌꺼기가 섞이면 slave id가 나올 때까지 버리고 프레임 위치를 다시 맞춘다.
+            if(g_rxBuffer[0] != expectedSlave){
+                unsigned int syncPos = 1;
+                while(syncPos < g_rxBuffer.size() && g_rxBuffer[syncPos] != expectedSlave)
+                    syncPos++;
 
-		unsigned short recvCRC = rxBuffer[expectedLen - 2] | (rxBuffer[expectedLen - 1] << 8);
-		if(get_crc16(&rxBuffer[0], expectedLen - 2) != recvCRC) {
-			rxBuffer.erase(rxBuffer.begin());
-			continue;
-		}
+                if(syncPos >= g_rxBuffer.size()){
+                    g_rxBuffer.clear();
+                    break;
+                }
 
-		Parse_Modbus(&rxBuffer[0], expectedLen);
-		rxBuffer.erase(rxBuffer.begin(), rxBuffer.begin() + expectedLen);
+                g_rxBuffer.erase(g_rxBuffer.begin(), g_rxBuffer.begin() + syncPos);
+                if(g_rxBuffer.size() < 3)
+                    break;
+            }
+
+            unsigned char funcCode = g_rxBuffer[1]; // 2번째 바이트: 기능 코드
+            int expectedLen = 0;
+
+            if (funcCode == 0x03) // [Read 명령 정상응답]
+            {
+                // TSD-V50 정상 read 응답은 01 03 0A로 시작한다. 아니면 다음 정상 시작점까지 버린다.
+                if(g_rxBuffer[2] != 0x0A){
+                    unsigned int syncPos = 1;
+                    while(syncPos + 2 < g_rxBuffer.size()){
+                        if(g_rxBuffer[syncPos] == expectedSlave && g_rxBuffer[syncPos + 1] == 0x03 && g_rxBuffer[syncPos + 2] == 0x0A)
+                            break;
+                        syncPos++;
+                    }
+
+                    if(syncPos + 2 < g_rxBuffer.size())
+                        g_rxBuffer.erase(g_rxBuffer.begin(), g_rxBuffer.begin() + syncPos);
+                    else
+                        g_rxBuffer.erase(g_rxBuffer.begin());
+                    continue;
+                }
+
+                expectedLen = 5 + g_rxBuffer[2]; // slave + func + byte count + data + crc(2)
+            }
+            else if (funcCode == 0x06 || funcCode == 0x10) // [Write 정상 응답]
+            {
+                expectedLen = 8;
+            }
+            else if ((funcCode & 0x80) == 0x80) // [Modbus Exception 응답]
+            {
+                expectedLen = 5;
+            }
+            else
+            {
+                g_rxBuffer.erase(g_rxBuffer.begin());
+                continue;
+            }
+
+            // 계산된 예상 길이만큼 데이터가 다 왔는지 확인
+            if (g_rxBuffer.size() < (unsigned int)expectedLen) {
+                break; // 데이터가 아직 덜 왔으므로 다음 수신 이벤트 때까지 대기
+            }
+
+            unsigned short receivedCRC = g_rxBuffer[expectedLen - 2] | (g_rxBuffer[expectedLen - 1] << 8);
+            if(get_crc16(&g_rxBuffer[0], expectedLen - 2) != receivedCRC){
+                // CRC가 틀리면 현재 시작점만 버리고 다음 01 03 0A 프레임을 다시 찾는다.
+                g_rxBuffer.erase(g_rxBuffer.begin());
+                continue;
+            }
+
+            // 온전한 하나의 Modbus 패킷 분리 완료
+            Parse_Modbus(&g_rxBuffer[0], expectedLen);
+
+            // 처리 완료된 패킷 크기만큼 버퍼에서 삭제
+            g_rxBuffer.erase(g_rxBuffer.begin(), g_rxBuffer.begin() + expectedLen);
+        }
+	} else {
+		Parse_HumanAuto(rxBuf, cnt);
 	}
 }
 //---------------------------------------------------------------------------
-void __fastcall TSmokeDetector::Parse_Modbus(unsigned char* data, int len)
+//---------------------------------------------------------------------------
+// [Rx 함수 1] Modbus RTU 응답 데이터 파싱
+void __fastcall TSmokeDetector::Parse_Modbus(unsigned char* rxBuf, int cnt)
 {
-	if(len < 5 || data[0] != slaveId) return;
+    if (cnt < 5 || rxBuf[0] != slaveId) return;
+    unsigned char funcCode = rxBuf[1];
 
-	if(data[1] == 0x03 && len >= 15) {
-		bWaitingResponse = false;
-		failCount = 0;
+    // ?? 1. CRC 검증 (가변 길이 대응: 맨 뒤 2바이트 직전까지 계산)
+    unsigned short receivedCRC = rxBuf[cnt - 2] | (rxBuf[cnt - 1] << 8);
+    if (get_crc16(rxBuf, cnt - 2) != receivedCRC)
+    {
+        BaseForm->Memo1->Lines->Clear(); // 이전 내용 청소
+        BaseForm->Memo1->Lines->Add("=========================================");
+        BaseForm->Memo1->Lines->Add("          CRC ERROR          ");
+        BaseForm->Memo1->Lines->Add("=========================================");
+        return;
+    }
 
-		unsigned short status = (data[3] << 8) | data[4];
-		short rawTemp = (data[5] << 8) | data[6];
-		short rawOffset = (data[7] << 8) | data[8];
-		unsigned short rawWarning = (data[9] << 8) | data[10];
-		unsigned short rawDanger = (data[11] << 8) | data[12];
+	// 4개 레지스터 응답 정상 데이터 길이는 13바이트 고정
+    if(funcCode == 0x03 && cnt >= 15)
+    {
+        bWaitingResponse = false; // ?? 응답 받았으므로 대기 해제
+		failCount = 0;            // ?? 에러 카운트 리셋
 
-		UpdateState(
-			(status & (1 << 7)) != 0,
-			(status & (1 << 6)) != 0,
-			(status & (1 << 5)) != 0,
-			(status & (1 << 4)) != 0,
-			(status & (1 << 2)) != 0,
-			(status & (1 << 1)) != 0,
-			(status & (1 << 0)) != 0,
-			rawTemp / 10.0,
-			rawOffset / 10.0,
-			rawWarning / 10.0,
-			rawDanger / 10.0);
-	}
-	else if(data[1] == 0x06) {
-		bWaitingResponse = false;
-		failCount = 0;
-	}
+        // ?? 1. 사양서 Register Table 기준 (p.33) 각 레지스터 결합 및 파싱
+        // rxBuf[3],[4] : 1000h Status (상태 비트)
+        // rxBuf[5],[6] : 1001h Temperature PV (현재 온도)
+        // rxBuf[7],[8] : 1002h Temperature Offset (온도 오프셋 - 음수 가능하므로 short)
+        // rxBuf[9],[10]: 1003h Temp Warning SV (경보 온도 설정값)
+        // rxBuf[11],[12] : 1004h Temp Danger SV (위험 온도 설정값)
+        // 1005h (쓰기전용) : alarm 해제
+        unsigned short status     = (rxBuf[3] << 8) | rxBuf[4];
+        short rawTemp             = (rxBuf[5] << 8) | rxBuf[6];
+        short rawOffset           = (rxBuf[7] << 8) | rxBuf[8];  // 2의 보수(음수) 표현을 위해 signed short 사용
+        unsigned short rawWarning = (rxBuf[9] << 8) | rxBuf[10];
+        unsigned short rawDanger = (rxBuf[11] << 8) | rxBuf[12];
+
+        // 스케일(10.0) 적용하여 실제 물리량으로 변환
+        double finalTemperature  = rawTemp / 10.0;
+        double temperatureOffset = rawOffset / 10.0;
+        double tempWarningSV     = rawWarning / 10.0;
+        double tempDangerSV      = rawDanger / 10.0;
+
+        // ?? 2. Status(1000h) 16비트를 2진수(Binary) 문자열로 변환
+        UnicodeString binStr = "";
+        for(int i = 15; i >= 0; i--) {
+            binStr += ((status >> i) & 1) ? "1" : "0";
+            if(i == 8) binStr += " "; // 가독성을 위해 상위/하위 8비트 사이에 공백 추가
+        }
+
+        // ?? 3. 사양서 비트맵 기반 상태값 분석 (마스킹)
+        bool outSmoke   = (status & (1 << 7)); // Bit 7 : Output State - Smoke
+        bool outDanger  = (status & (1 << 6)); // Bit 6 : Output State - Danger
+        bool outWarning = (status & (1 << 5)); // Bit 5 : Output State - Warning
+        bool outRun     = (status & (1 << 4)); // Bit 4 : Output State - Run (0:off, 1:on)
+
+        bool alarmSmoke = (status & (1 << 2)); // Bit 2 : Alarm Flag - Smoke
+        bool alarmTempD = (status & (1 << 1)); // Bit 1 : Alarm Flag - Temp Danger
+        bool alarmTempW = (status & (1 << 0)); // Bit 0 : Alarm Flag - Temp Warning
+
+        BaseForm->Memo1->Lines->Clear(); // 이전 내용 청소
+        BaseForm->Memo1->Lines->Add("=========================================");
+        BaseForm->Memo1->Lines->Add("          TSD-V50 MODBUS REPORT          ");
+        BaseForm->Memo1->Lines->Add("=========================================");
+
+        // 4. [raw hex] 수신된 전체 Raw 데이터를 16진수 문자열로 예쁘게 출력
+        UnicodeString strRawHex = "[RAW HEX] : ";
+        for(int i = 0; i < 13; i++) {
+            strRawHex += IntToHex(rxBuf[i], 2) + " ";
+        }
+        BaseForm->Memo1->Lines->Add(strRawHex);
+        BaseForm->Memo1->Lines->Add("-----------------------------------------");
+
+        // ?? 5. 상태 정보 상세 출력
+        BaseForm->Memo1->Lines->Add("1000h Status       : 0x" + IntToHex(status, 4) + " (Bin: " + binStr + ")");
+        BaseForm->Memo1->Lines->Add("  [Output State]");
+        BaseForm->Memo1->Lines->Add("   - Smoke   (Bit7) : " + UnicodeString(outSmoke ? "ON" : "OFF"));
+        BaseForm->Memo1->Lines->Add("   - Danger  (Bit6) : " + UnicodeString(outDanger ? "ON" : "OFF"));
+        BaseForm->Memo1->Lines->Add("   - Warning (Bit5) : " + UnicodeString(outWarning ? "ON" : "OFF"));
+        BaseForm->Memo1->Lines->Add("   - Run     (Bit4) : " + UnicodeString(outRun ? "ON" : "OFF"));
+        BaseForm->Memo1->Lines->Add("  [Alarm Flag]");
+        BaseForm->Memo1->Lines->Add("   - Smoke   (Bit2) : " + UnicodeString(alarmSmoke ? "Event" : "Normal"));
+        BaseForm->Memo1->Lines->Add("   - Temp(D) (Bit1) : " + UnicodeString(alarmTempD ? "Event" : "Normal"));
+        BaseForm->Memo1->Lines->Add("   - Temp(W) (Bit0) : " + UnicodeString(alarmTempW ? "Event" : "Normal"));
+        BaseForm->Memo1->Lines->Add("-----------------------------------------");
+
+        BaseForm->pnlStatusSmoke->Caption->Text = UnicodeString(outSmoke ? "ON" : "OFF");
+        BaseForm->pnlStatusDanger->Caption->Text = UnicodeString(outDanger ? "ON" : "OFF");
+        BaseForm->pnlStatusWarning->Caption->Text = UnicodeString(outWarning ? "ON" : "OFF");
+        BaseForm->pnlStatusRun->Caption->Text = UnicodeString(outRun ? "ON" : "OFF");
+
+        BaseForm->pnlAlarmReserve->Caption->Text = "-";
+        BaseForm->pnlAlarmSmoke->Caption->Text = UnicodeString(alarmSmoke ? "ON" : "OFF");
+        BaseForm->pnlAlarmDanger->Caption->Text = UnicodeString(alarmTempD ? "ON" : "OFF");
+        BaseForm->pnlAlarmWarning->Caption->Text = UnicodeString(alarmTempW ? "ON" : "OFF");
+
+        // 온도 데이터 출력
+        BaseForm->Memo1->Lines->Add("1001h Temp PV      : " + FormatFloat("0.0", finalTemperature) + " C");
+        BaseForm->Memo1->Lines->Add("1002h Temp Offset  : " + FormatFloat("0.0", temperatureOffset) + " C");
+        BaseForm->Memo1->Lines->Add("1003h Warning SV   : " + FormatFloat("0.0", tempWarningSV) + " C");
+        BaseForm->Memo1->Lines->Add("1004h Danger SV   : " + FormatFloat("0.0", tempDangerSV) + " C");
+        BaseForm->Memo1->Lines->Add("=========================================");
+
+        BaseForm->pnlTempPV->Caption->Text = FormatFloat("0.0", finalTemperature);
+        BaseForm->pnlTempOffset->Caption->Text = FormatFloat("0.0", temperatureOffset);
+        BaseForm->pnlTempWarning->Caption->Text = FormatFloat("0.0", tempWarningSV);
+        BaseForm->pnlTempDanger->Caption->Text = FormatFloat("0.0", tempDangerSV);
+    }
+    // -------------------------------------------------------------
+    // [Case B] Write Single Register (06h) 정상 응답 처리 (Echo 백)
+    // -------------------------------------------------------------
+    else if (funcCode == 0x06)
+    {
+        if (cnt < 8) return;
+
+        unsigned short echoedAddr = (rxBuf[2] << 8) | rxBuf[3];
+        short echoedData          = (rxBuf[4] << 8) | rxBuf[5];
+
+        BaseForm->Memo1->Lines->Clear();
+        BaseForm->Memo1->Lines->Add("=========================================");
+        BaseForm->Memo1->Lines->Add("       MODBUS WRITE SUCCESS (06h)        ");
+        BaseForm->Memo1->Lines->Add("=========================================");
+        BaseForm->Memo1->Lines->Add("Target Register : 0x" + IntToHex(echoedAddr, 4));
+        BaseForm->Memo1->Lines->Add("Written Value   : " + IntToStr(echoedData) + " (Scaled: " + FormatFloat("0.0", echoedData / 10.0) + ")");
+        BaseForm->Memo1->Lines->Add("=========================================");
+    }
+    // -------------------------------------------------------------
+    // [Case C] 이상/에러 응답 처리 (매뉴얼 기준 88h, 표준 기준 86h/83h)
+    // -------------------------------------------------------------
+    else if (funcCode == 0x88 || funcCode == 0x86 || funcCode == 0x83)
+    {
+        if (cnt < 5) return;
+
+        unsigned char errorCode = rxBuf[2]; // 3번째 바이트가 에러 코드
+
+        BaseForm->Memo1->Lines->Clear();
+        BaseForm->Memo1->Lines->Add("=========================================");
+        BaseForm->Memo1->Lines->Add("         MODBUS ERROR RESPONSE           ");
+        BaseForm->Memo1->Lines->Add("=========================================");
+        BaseForm->Memo1->Lines->Add("Failed Function : 0x" + IntToHex(funcCode, 2));
+        BaseForm->Memo1->Lines->Add("Modbus Error Code: " + IntToStr(errorCode));
+        BaseForm->Memo1->Lines->Add("=========================================");
+    }
 }
 //---------------------------------------------------------------------------
-void __fastcall TSmokeDetector::Parse_HumanAuto(unsigned char* data, int len)
+// [Rx 함수 2] HumanAutomation 전용 프로토콜 응답 데이터 파싱
+void __fastcall TSmokeDetector::Parse_HumanAuto(unsigned char* rxBuf, int cnt)
 {
-	if(len < 7) return;
+	if (cnt < 5) return;
 
+	int pos = 0;
 	unsigned char expectedAddr = (unsigned char)(slaveId + 0x40);
-	for(int pos = 0; pos <= len - 7; pos++) {
-		if(data[pos] != 0x02 || data[pos + 1] != expectedAddr) continue;
 
-		int dataLen = data[pos + 2];
-		int packetLen = dataLen + 5;
-		if(pos + packetLen > len) return;
+	while (pos <= cnt - 5)
+	{
+		if (rxBuf[pos] == 0x02 && rxBuf[pos + 1] == expectedAddr)
+		{
+			int cmdDataLen = rxBuf[pos + 2];
+			int packetSize = cmdDataLen + 5;
 
-		unsigned char sum = 0;
-		for(int i = pos + 1; i < pos + packetLen - 2; i++) sum += data[i];
-		if(sum != data[pos + packetLen - 2] || data[pos + packetLen - 1] != 0x03) return;
+			if (pos + packetSize <= cnt)
+			{
+				// 에코(내가 보낸 요청문) 패킷 필터링
+				if (cmdDataLen == 2) {
+					pos += packetSize;
+					continue;
+				}
 
-		if(dataLen >= 4) {
-			short rawTemp = (data[pos + 4] << 8) | data[pos + 5];
-			TemperaturePV = rawTemp / 10.0;
-			bWaitingResponse = false;
-			failCount = 0;
+				// Sum Check 검증
+				unsigned char calcSum = 0;
+				for (int i = pos + 1; i < pos + packetSize - 2; i++) {
+					calcSum += rxBuf[i];
+				}
+
+				unsigned char receivedSum = rxBuf[pos + packetSize - 2];
+				unsigned char etx         = rxBuf[pos + packetSize - 1];
+
+				if (calcSum == receivedSum && etx == 0x03)
+				{
+					//chkTimer->Enabled = false; // 성공 시 타이머 해제
+
+					// 예시 파싱 구조 (Data 0, Data 1을 상하위 온도 데이터로 임시 지정)
+					short rawTemp = (rxBuf[pos + 4] << 8) | rxBuf[pos + 5];
+					double finalTemperature = rawTemp / 10.0;
+
+					if(ErrorForm_bcr->Visible) {
+						ErrorForm_bcr->ShowError(FormatFloat("0.0", finalTemperature) + " C", true);
+					}
+					return;
+				}
+			}
 		}
+		pos++;
 	}
 }
 //---------------------------------------------------------------------------
-void __fastcall TSmokeDetector::UpdateState(bool outSmoke, bool outDanger, bool outWarning,
-	bool outRun, bool alarmSmoke, bool alarmDanger, bool alarmWarning,
-	double temperature, double offset, double warningSv, double dangerSv)
+bool __fastcall TSmokeDetector::Parse_Modbus_Write(unsigned char *rxBuf, int nLen)
 {
-	bool stateChanged =
-		SmokeOutput != outSmoke ||
-		DangerOutput != outDanger ||
-		WarningOutput != outWarning ||
-		RunOutput != outRun ||
-		SmokeAlarm != alarmSmoke ||
-		DangerAlarm != alarmDanger ||
-		WarningAlarm != alarmWarning;
+    // Write(06h) 응답은 정상일 때 정확히 8바이트입니다.
+    if (nLen < 8) return false;
 
-	SmokeOutput = outSmoke;
-	DangerOutput = outDanger;
-	WarningOutput = outWarning;
-	RunOutput = outRun;
-	SmokeAlarm = alarmSmoke;
-	DangerAlarm = alarmDanger;
-	WarningAlarm = alarmWarning;
-	TemperaturePV = temperature;
-	TemperatureOffset = offset;
-	TemperatureWarningSV = warningSv;
-	TemperatureDangerSV = dangerSv;
+    // 1. CRC 검증
+    unsigned short calcCRC = get_crc16(rxBuf, nLen - 2);
+    unsigned short recvCRC = rxBuf[nLen - 2] | (rxBuf[nLen - 1] << 8);
 
-	if(BaseForm != NULL && BaseForm->pnlTempPV != NULL) {
-		BaseForm->pnlStatusSmoke->Caption->Text = UnicodeString(outSmoke ? "ON" : "OFF");
-		BaseForm->pnlStatusDanger->Caption->Text = UnicodeString(outDanger ? "ON" : "OFF");
-		BaseForm->pnlStatusWarning->Caption->Text = UnicodeString(outWarning ? "ON" : "OFF");
-		BaseForm->pnlStatusRun->Caption->Text = UnicodeString(outRun ? "ON" : "OFF");
+    if (calcCRC != recvCRC) {
+        // CRC 오류
+        return false;
+    }
 
-		BaseForm->pnlAlarmReserve->Caption->Text = "-";
-		BaseForm->pnlAlarmSmoke->Caption->Text = UnicodeString(alarmSmoke ? "ON" : "OFF");
-		BaseForm->pnlAlarmDanger->Caption->Text = UnicodeString(alarmDanger ? "ON" : "OFF");
-		BaseForm->pnlAlarmWarning->Caption->Text = UnicodeString(alarmWarning ? "ON" : "OFF");
+    // 2. Modbus 에러 응답(Exception) 체크
+    // 사양서 우측 '응답 메시지(이상 시)' 부분: Function Code가 0x86 (0x06 + 0x80)으로 옴
+    if (rxBuf[1] == 0x86) {
+        // 에러 코드 처리 로직 (예: memo->Lines->Add("쓰기 에러 발생: " + IntToStr(errorCode));)
+        return false;
+    }
 
-		BaseForm->pnlTempPV->Caption->Text = FormatFloat("0.0", TemperaturePV);
-		BaseForm->pnlTempOffset->Caption->Text = FormatFloat("0.0", TemperatureOffset);
-		BaseForm->pnlTempWarning->Caption->Text = FormatFloat("0.0", TemperatureWarningSV);
-		BaseForm->pnlTempDanger->Caption->Text = FormatFloat("0.0", TemperatureDangerSV);
-	}
+    // 3. 정상 응답(0x06) 처리
+    if (rxBuf[1] == 0x06) {
+        // 장비가 응답한(실제 쓰기가 적용된) 주소와 데이터 확인
+        unsigned short echoedAddr = (rxBuf[2] << 8) | rxBuf[3];
+        short echoedData          = (rxBuf[4] << 8) | rxBuf[5];
 
-	if(stateChanged && MainForm != NULL) {
-		MainForm->memoMainLineAdd(AnsiString("Smoke detector state: smoke=") +
-			AnsiString(SmokeAlarm ? "ON" : "OFF") +
-			", temp=" + AnsiString(FormatFloat("0.0", TemperaturePV)));
-	}
+        // 디버깅/로그용 출력 (TMemo)
+        UnicodeString msg = Format("쓰기 성공! [주소: 0x%04X, 값: %d]", ARRAYOFCONST((echoedAddr, echoedData)));
+        // memo->Lines->Add(msg);
+
+        return true; // 설정 성공!
+    }
+
+    return false;
 }
 //---------------------------------------------------------------------------
 void __fastcall TSmokeDetector::chkTimerTimer(TObject *Sender)
 {
-	if(bWaitingResponse) {
-		failCount++;
-		if(failCount >= retryCnt) {
-			Reconnect();
-			return;
-		}
-	}
+    // 1. [상태 체크] 이전 턴에 보낸 요청에 대해 아직 응답을 못 받았다면? (타임아웃 발생)
+    if (bWaitingResponse)
+    {
+        failCount++;
+        BaseForm->Memo1->Lines->Add("? 응답 타임아웃 발생 (" + IntToStr(failCount) + "/" + IntToStr(retryCnt) + ")");
 
-	if(Comm->Connected) {
-		bWaitingResponse = true;
-		GetTsdData();
-	}
-	else {
-		bWaitingResponse = true;
-	}
+        // 연속 실패 횟수가 지정된 횟수(3회)를 초과하면 재연결 루틴 실행
+        if (failCount >= retryCnt)
+        {
+            Reconnect();
+            return; // 재연결을 시도했으므로 이번 턴은 무시하고 다음 초에 다시 요청함
+        }
+    }
+
+    // 2. [데이터 요청] 정상 상태이거나 재시도 중이라면 새로운 요청 패킷 전송
+    if (Comm->Connected)
+    {
+        bWaitingResponse = true; // 응답 대기 상태로 전환
+        GetTsdData();
+    }else{
+        bWaitingResponse = true;
+    }
+
 }
 //---------------------------------------------------------------------------

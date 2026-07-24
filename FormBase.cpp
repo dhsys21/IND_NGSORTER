@@ -421,6 +421,14 @@ void __fastcall TBaseForm::pbcrClick(TObject *Sender)
 	if(comp != NULL && comp->Tag >= 0 && comp->Tag < 2)
 		SelectedBcrIndex = comp->Tag;
 
+	AnsiString readerName = (SelectedBcrIndex == 0) ? "Source Tray BCR" : "Target Tray BCR";
+	Label9->Caption = readerName + " - Keyence SR-X100W";
+	if(memoBcr != NULL) {
+		memoBcr->Lines->Clear();
+		memoBcr->Lines->Add(readerName);
+		memoBcr->Lines->Add("IP : " + BaseForm->config.bcrIp[SelectedBcrIndex] + ":" + IntToStr(BaseForm->config.bcrPort[SelectedBcrIndex]));
+	}
+
 	grp_bcr->Visible = !grp_bcr->Visible;
 	grp_bcr->BringToFront();
 	grp_bcr->Left = 1498;
@@ -483,12 +491,16 @@ void __fastcall TBaseForm::pnlTempOffsetClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::btnTriggerOnClick(TObject *Sender)
 {
+	AnsiString readerName = (SelectedBcrIndex == 0) ? "Source Tray BCR" : "Target Tray BCR";
+	if(memoBcr != NULL) memoBcr->Lines->Add(readerName + " Trigger ON");
 	if(MainForm->comBcr[SelectedBcrIndex] != NULL)
 		MainForm->comBcr[SelectedBcrIndex]->TriggerOn();
 }
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::btnTriggerOffClick(TObject *Sender)
 {
+	AnsiString readerName = (SelectedBcrIndex == 0) ? "Source Tray BCR" : "Target Tray BCR";
+	if(memoBcr != NULL) memoBcr->Lines->Add(readerName + " Trigger OFF");
 	if(MainForm->comBcr[SelectedBcrIndex] != NULL)
 		MainForm->comBcr[SelectedBcrIndex]->TriggerOff();
 }

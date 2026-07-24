@@ -208,6 +208,8 @@ void __fastcall TMod_Bcr::ProcessResult(AnsiString data)
 
 	if(MainForm != NULL)
 		MainForm->memoMainLineAdd(ReaderName() + " scan complete: " + result);
+	if(BaseForm != NULL && BaseForm->memoBcr != NULL)
+		BaseForm->memoBcr->Lines->Add(ReaderName() + " scan complete: " + result);
 	if(ErrorForm_bcr->Visible) ErrorForm_bcr->ShowError(result, true);
 	else MainForm->setBarcode(Tag, result);
 }
