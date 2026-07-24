@@ -317,6 +317,23 @@ void __fastcall TSmokeDetector::UpdateState(bool outSmoke, bool outDanger, bool 
 	TemperatureWarningSV = warningSv;
 	TemperatureDangerSV = dangerSv;
 
+	if(BaseForm != NULL && BaseForm->pnlTempPV != NULL) {
+		BaseForm->pnlStatusSmoke->Caption->Text = UnicodeString(outSmoke ? "ON" : "OFF");
+		BaseForm->pnlStatusDanger->Caption->Text = UnicodeString(outDanger ? "ON" : "OFF");
+		BaseForm->pnlStatusWarning->Caption->Text = UnicodeString(outWarning ? "ON" : "OFF");
+		BaseForm->pnlStatusRun->Caption->Text = UnicodeString(outRun ? "ON" : "OFF");
+
+		BaseForm->pnlAlarmReserve->Caption->Text = "-";
+		BaseForm->pnlAlarmSmoke->Caption->Text = UnicodeString(alarmSmoke ? "ON" : "OFF");
+		BaseForm->pnlAlarmDanger->Caption->Text = UnicodeString(alarmDanger ? "ON" : "OFF");
+		BaseForm->pnlAlarmWarning->Caption->Text = UnicodeString(alarmWarning ? "ON" : "OFF");
+
+		BaseForm->pnlTempPV->Caption->Text = FormatFloat("0.0", TemperaturePV);
+		BaseForm->pnlTempOffset->Caption->Text = FormatFloat("0.0", TemperatureOffset);
+		BaseForm->pnlTempWarning->Caption->Text = FormatFloat("0.0", TemperatureWarningSV);
+		BaseForm->pnlTempDanger->Caption->Text = FormatFloat("0.0", TemperatureDangerSV);
+	}
+
 	if(stateChanged && MainForm != NULL) {
 		MainForm->memoMainLineAdd(AnsiString("Smoke detector state: smoke=") +
 			AnsiString(SmokeAlarm ? "ON" : "OFF") +

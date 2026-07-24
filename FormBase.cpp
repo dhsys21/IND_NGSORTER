@@ -23,6 +23,7 @@ __fastcall TBaseForm::TBaseForm(TComponent* Owner)
 	config.smokeId = 1;
 	config.smokeMode = 0;
 	config.smokeBaudRate = 115200;
+	SelectedBcrIndex = 0;
 
     GetWindowThreadProcessId(this->Handle, &PID);
 	hProcess = OpenProcess(PROCESS_SET_QUOTA, FALSE, PID);
@@ -413,3 +414,82 @@ void __fastcall TBaseForm::AdvSmoothButton4Click(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
+//---------------------------------------------------------------------------
+void __fastcall TBaseForm::pbcrClick(TObject *Sender)
+{
+	TComponent *comp = dynamic_cast<TComponent *>(Sender);
+	if(comp != NULL && comp->Tag >= 0 && comp->Tag < 2)
+		SelectedBcrIndex = comp->Tag;
+
+	grp_bcr->Visible = !grp_bcr->Visible;
+	grp_bcr->BringToFront();
+	grp_bcr->Left = 1498;
+	grp_bcr->Top = 71;
+
+	if(grp_tmperature != NULL)
+		grp_tmperature->Visible = false;
+}
+//---------------------------------------------------------------------------
+void __fastcall TBaseForm::psmokedetectorClick(TObject *Sender)
+{
+	grp_tmperature->Visible = !grp_tmperature->Visible;
+	grp_tmperature->BringToFront();
+	grp_tmperature->Left = 1498;
+	grp_tmperature->Top = 71;
+
+	if(grp_bcr != NULL)
+		grp_bcr->Visible = false;
+}
+//---------------------------------------------------------------------------
+void __fastcall TBaseForm::btnSetValueClick(TObject *Sender)
+{
+	if(MainForm->comSmoke[0] == NULL)
+		return;
+
+	UnicodeString text = "0x" + editTempValue->Text.Trim();
+	short tempvalue = 0;
+	if(!text.IsEmpty())
+		tempvalue = (short)wcstoul(text.w_str(), NULL, 0);
+
+	short addr = 0x1002;
+	if(rbSetTemperatureOffset->Checked) addr = 0x1002;
+	else if(rbSetTemperatureWarningSV->Checked) addr = 0x1003;
+	else if(rbSetTemperatureDangerSV->Checked) addr = 0x1004;
+	else if(rbAlarmClear->Checked) addr = 0x1005;
+
+	if(addr == 0x1005)
+		MainForm->comSmoke[0]->ClearAlarm();
+	else
+		MainForm->comSmoke[0]->setTsdData(addr, tempvalue);
+}
+//---------------------------------------------------------------------------
+void __fastcall TBaseForm::rbAlarmClearClick(TObject *Sender)
+{
+	if(MainForm->comSmoke[0] != NULL)
+		MainForm->comSmoke[0]->ClearAlarm();
+}
+//---------------------------------------------------------------------------
+void __fastcall TBaseForm::pnlTempPVClick(TObject *Sender)
+{
+	if(MainForm->comSmoke[0] != NULL)
+		MainForm->comSmoke[0]->GetTsdData_Modbus();
+}
+//---------------------------------------------------------------------------
+void __fastcall TBaseForm::pnlTempOffsetClick(TObject *Sender)
+{
+	if(MainForm->comSmoke[0] != NULL)
+		MainForm->comSmoke[0]->chkTimer->Enabled = true;
+}
+//---------------------------------------------------------------------------
+void __fastcall TBaseForm::btnTriggerOnClick(TObject *Sender)
+{
+	if(MainForm->comBcr[SelectedBcrIndex] != NULL)
+		MainForm->comBcr[SelectedBcrIndex]->TriggerOn();
+}
+//---------------------------------------------------------------------------
+void __fastcall TBaseForm::btnTriggerOffClick(TObject *Sender)
+{
+	if(MainForm->comBcr[SelectedBcrIndex] != NULL)
+		MainForm->comBcr[SelectedBcrIndex]->TriggerOff();
+}
+//---------------------------------------------------------------------------
