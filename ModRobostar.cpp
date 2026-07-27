@@ -36,9 +36,10 @@ int __fastcall Trobostar::io_Init()
 
 	short size = sizeof(gripper);
 	mdReceive(config.path, config.stno, DevY, 0x0020, &size, &gripper);	// IO 상태는 초기 상태를 불러온다 : 셀을 놓을 수 있기 때문에
-	for(int i = 1; i <= gripCnt; ++i)GripperDown(i, false, true);	// 그리퍼는 모두 상승시킨다.
+	for(int i = 1; i <= gripCnt; ++i)GripperDown(i, false, true);
 
-	SetPositionValue(); // gsm 2018 09 14
+	return 0;	// 그리퍼는 모두 상승시킨다.
+
 }
 //---------------------------------------------------------------------------
 int __fastcall Trobostar::io_Read()
@@ -602,38 +603,45 @@ void __fastcall Trobostar::req_Reset()
 * 대상 트레이 채널 간 거리 : 45,000
 */
 //---------------------------------------------------------------------------
-void __fastcall Trobostar::SetPositionValue()
+bool __fastcall Trobostar::SetPositionValue()
 {
-	unsigned long int pos[AxisCnt];
-	int index;
+    if(move.channel < 1 || move.channel > TraySlotCount)
+        return false;
+    if(move.tool < 1 || move.tool > gripCnt)
+        return false;
+    if(move.pallet != 1 && move.pallet != 2)
+        return false;
 
-	if(move.pallet == 1) //* source tray
-	{
-		int xPos = teachForm->GetTrayPosValue(move.channel, asSourceX);//teachForm-> teachForm->teachEdit[0][index]->Text.ToInt();
+    TrayAxisEdit xEditType = move.pallet == 1 ? asSourceX : asTargetX;
+    TrayAxisEdit yEditType = move.pallet == 1 ? asSourceY : asTargetY;
+    TEdit* xEdit = teachForm->GetTrayEdit(move.channel, xEditType);
+    TEdit* yEdit = teachForm->GetTrayEdit(move.channel, yEditType);
+    TEdit* zEdit = move.pallet == 1 ? teachForm->edit_SZ : teachForm->edit_TZ;
+    int baseX = 0;
+    int baseY = 0;
+    int zPosition = 0;
 
-		int chPos = ((move.channel - 1) % 12) * 45000; // 24 -> 12, 12개씩 묶어서 사용
-		int toolPos = (move.tool - 1) * 90000;         // 그리퍼간 간격
-		pos[Axis_x] = xPos + chPos - toolPos;          //chPos: 채널 방향에 따라 +/- 바뀜. toolPos : 1 -> 6 순서에 따라 +/- 바뀜
-		pos[Axis_y] = teachForm->GetTrayPosValue(move.channel, asSourceY);//teachForm->teachEdit[1][index]->Text.ToInt();
-		pos[Axis_z] = teachForm->edit_SZ->Text.ToIntDef(0);//teachForm->teachEdit_z[0]->Text.ToInt();
-	}
-	else if(move.pallet == 2) //* target tray
-	{
-		int xPos = teachForm->GetTrayPosValue(move.channel, asTargetX);//teachForm->teachEdit[0][index]->Text.ToInt();
+    if(xEdit == NULL || yEdit == NULL || zEdit == NULL)
+        return false;
+    if(!TryStrToInt(xEdit->Text.Trim(), baseX)
+        || !TryStrToInt(yEdit->Text.Trim(), baseY)
+        || !TryStrToInt(zEdit->Text.Trim(), zPosition))
+        return false;
 
-		int chPos = ((move.channel - 1) % 12) * 45000;
-		int toolPos = (move.tool - 1) * 90000;
-		pos[Axis_x] = xPos + chPos - toolPos;
-		pos[Axis_y] = teachForm->GetTrayPosValue(move.channel, asTargetY);//teachForm->teachEdit[1][index]->Text.ToInt();
-		pos[Axis_z] = teachForm->edit_TZ->Text.ToIntDef(0);//teachForm->teachEdit_z[1]->Text.ToInt();
-	}
+    long position[AxisCnt] = {0};
+    long channelOffset = ((move.channel - 1) % TrayTeachingGroupSize) * (long)TrayCellPitch;
+    long toolOffset = (move.tool - 1) * 90000L;
 
-	for(int i = 1; i <= servoCnt; ++i){
-		point[i].position = pos[i];
-	}
+    position[Axis_x] = (long)baseX + channelOffset - toolOffset;
+    position[Axis_y] = baseY;
+    position[Axis_z] = zPosition;
+
+    for(int i = 1; i <= servoCnt; ++i)
+        point[i].position = position[i];
+
+    return true;
 }
 //---------------------------------------------------------------------------
-
 void __fastcall Trobostar::req_AutoRun()
 {
 	InitSequence(seqAutoRun);
@@ -653,7 +661,10 @@ void __fastcall Trobostar::req_AutoMove(int pallet, int tool, int channel, int t
 		move.channel = channel;
 		move.cnt = 0;
 
-		SetPositionValue();
+		if(!SetPositionValue()){
+			MainForm->memoMainLineAdd("[Robot] Invalid tray move request.");
+			return;
+		}
 		InitSequence(seqAutoMove, seq);
 	}
 }
@@ -666,7 +677,10 @@ void __fastcall Trobostar::req_AutoEject(int pallet, int tool, int channel, int 
 	move.channel = channel;
 	move.cnt = cnt;
 
-	SetPositionValue();
+	if(!SetPositionValue()){
+		MainForm->memoMainLineAdd("[Robot] Invalid eject position request.");
+		return;
+	}
 	InitSequence(seqAutoMove, seqAutoEject);
 }
 //---------------------------------------------------------------------------
@@ -678,7 +692,10 @@ void __fastcall Trobostar::req_AutoInsert(int pallet, int tool, int channel, int
 	move.channel = channel;
 	move.cnt = cnt;
 
-	SetPositionValue();
+	if(!SetPositionValue()){
+		MainForm->memoMainLineAdd("[Robot] Invalid insert position request.");
+		return;
+	}
 	InitSequence(seqAutoMove, seqAutoInsert);
 }
 //---------------------------------------------------------------------------

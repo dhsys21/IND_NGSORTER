@@ -24,6 +24,7 @@ void __fastcall TteachForm::FormCreate(TObject *Sender)
 	lblLoadFactor[4] = lblLoadFactor4;
 
     MakePanel();
+    sCombo->ItemIndex = 0;
 
 	teachingFilePath = (AnsiString)BIN + "KindTeaching.ini";
 	LoadTeaching(teachingFilePath);
@@ -50,7 +51,7 @@ void __fastcall TteachForm::MakePanel()
     tx = t1->Left;
     ty = t1->Top;
 
-    for(int i = 0; i < 96;)
+    for(int i = 0; i < TraySlotCount;)
     {
         sTray[i] = new TAdvSmoothPanel(this);
         sTray[i]->Parent = pnlSourceBase;
@@ -66,7 +67,7 @@ void __fastcall TteachForm::MakePanel()
 
         sTray[i]->Caption->Assign(s1->Caption);
         sTray[i]->Caption->Text = IntToStr(i + 1);
-        sTray[i]->Tag = i;
+        sTray[i]->Tag = i + 1;
         sTray[i]->Left = sx;
         sTray[i]->Top = sy;
         sTray[i]->OnClick = sClick;
@@ -80,7 +81,7 @@ void __fastcall TteachForm::MakePanel()
 		}
     }
 
-    for(int i = 0; i < 96;)
+    for(int i = 0; i < TraySlotCount;)
     {
         tTray[i] = new TAdvSmoothPanel(this);
         tTray[i]->Parent = pnlTargetBase;
@@ -96,7 +97,7 @@ void __fastcall TteachForm::MakePanel()
 
         tTray[i]->Caption->Assign(t1->Caption);
         tTray[i]->Caption->Text = IntToStr(i + 1);
-        tTray[i]->Tag = i;
+        tTray[i]->Tag = i + 1;
         tTray[i]->Left = tx;
         tTray[i]->Top = ty;
         tTray[i]->OnClick = tClick;
@@ -130,15 +131,15 @@ void __fastcall TteachForm::sClick(TObject *Sender)
 	}
 	else
 	{
-		int ch = BaseForm->StringToInt(pnl->Tag, 0);
+		int ch = pnl->Tag;
         if(CheckMoveSourceChannel() == false){
 			ShowMessage(BaseForm->GetLangStr("MSG_GRIPPER_MOVE_ERR") + IntToStr(ch));
         } else{
             str = "[" + sCombo->Text + "] " + BaseForm->GetLangStr("MSG_SOURCETRAY_MOVE_Q") + pnl->Caption->Text;
             if(MessageBox(Handle, str.c_str(), L"MOVE", MB_YESNO|MB_ICONQUESTION) == ID_YES){
-				robostar->req_AutoMove(1, sCombo->ItemIndex + 1 , pnl->Tag, 962);
+				robostar->req_AutoMove(1, 1, ch, 962);
 
-                for(int i=0; i< 96; ++i){
+                for(int i = 0; i < TraySlotCount; ++i){
                     sTray[i]->Fill->Color = clWhite;
                     sTray[i]->Fill->ColorTo = clWhite;
                     sTray[i]->Fill->ColorMirror = clWhite;
@@ -171,14 +172,14 @@ void __fastcall TteachForm::tClick(TObject *Sender)
         //* 그리퍼에 셀이 있고 robostar->input.GRIPPER1_CELL_DETECT == true, robostar->input.GRIPPER2_CELL_DETECT == true
 		//* 대상트레이 해당 채널에 셀이 있으면 color_target[i/6][5-(i%6)] = clSilver; color_target[ch/6][5-(ch%6)] = clInactiveCaption;
 		//* 이동채널 pnl->Caption->Text
-		int ch = BaseForm->StringToInt(pnl->Tag, 0);
+		int ch = pnl->Tag;
         if(CheckMoveTargetChannel(ch-1) == false){
 			ShowMessage(BaseForm->GetLangStr("MSG_GRIPPER_MOVE_ERR2")  + IntToStr(ch));
         } else{
 			str = "[" + sCombo->Text + "] " + BaseForm->GetLangStr("MSG_TARGETTRAY_MOVE_Q") + pnl->Caption->Text;
             if(MessageBox(Handle, str.c_str(), L"MOVE", MB_YESNO|MB_ICONQUESTION) == ID_YES){
-                robostar->req_AutoMove(2, sCombo->ItemIndex + 1 , pnl->Tag, 96);
-                for(int i = 0; i < 96; ++i){
+                robostar->req_AutoMove(2, 1, ch, 96);
+                for(int i = 0; i < TraySlotCount; ++i){
                     tTray[i]->Fill->Color = clWhite;
                     tTray[i]->Fill->ColorTo = clWhite;
                     tTray[i]->Fill->ColorMirror = clWhite;
@@ -652,6 +653,9 @@ void __fastcall TteachForm::btnZAxisUpMouseUp(TObject *Sender, TMouseButton Butt
 //---------------------------------------------------------------------------
 bool __fastcall TteachForm::CheckMoveTargetChannel(int channel)
 {
+    if(channel < 0 || channel >= TraySlotCount)
+        return false;
+
     //* 2026 06 96채널로 변경해야 함.
     bool isPossible = true;
 
@@ -764,6 +768,26 @@ void __fastcall TteachForm::ApplyTeaching()
         }
 
         //* 파일에 저장
+        TEdit* teachingEdits[] = {
+            editCh01_SX, editCh01_SY, editCh13_SX, editCh13_SY,
+            editCh25_SX, editCh25_SY, editCh37_SX, editCh37_SY,
+            editCh49_SX, editCh49_SY, editCh61_SX, editCh61_SY,
+            editCh73_SX, editCh73_SY, editCh85_SX, editCh85_SY,
+            editCh01_TX, editCh01_TY, editCh13_TX, editCh13_TY,
+            editCh25_TX, editCh25_TY, editCh37_TX, editCh37_TY,
+            editCh49_TX, editCh49_TY, editCh61_TX, editCh61_TY,
+            editCh73_TX, editCh73_TY, editCh85_TX, editCh85_TY,
+            edit_SZ, edit_TZ
+        };
+
+        for(unsigned int i = 0; i < sizeof(teachingEdits) / sizeof(teachingEdits[0]); ++i){
+            int value = 0;
+            if(!TryStrToInt(teachingEdits[i]->Text.Trim(), value)){
+                MessageBox(Handle, L"Teaching values must be integers.", L"Warning", MB_OK|MB_ICONWARNING);
+                teachingEdits[i]->SetFocus();
+                return;
+            }
+        }
         if(MessageBox(Handle, BaseForm->GetLangStr("MSG_INPUT_VALUE").c_str(), L"SAVE", MB_YESNO|MB_ICONWARNING) == ID_YES){
 
             SaveTeaching(teachingFilePath);
@@ -781,19 +805,22 @@ void __fastcall TteachForm::SaveTeaching(AnsiString filePath)
 
     // 1. 공통 설정 저장
     ini->WriteString("COMMON", "KIND", "STANDARD");
-    ini->WriteString("COMMON", "SLOT_COUNT", "96");
+    ini->WriteString("COMMON", "SLOT_COUNT", IntToStr(TraySlotCount));
 
     // 2. Source Tray 티칭값 저장
-    for(int i = 0; i < 8; i++){
-        ini->WriteString("SOURCE_TRAY", "XAxis_CH" + IntToStr(i * 12 + 1), IntToStr(GetTrayPosValue(i * 12 + 1, asSourceX)));
-        ini->WriteString("SOURCE_TRAY", "YAxis_CH" + IntToStr(i * 12 + 1), IntToStr(GetTrayPosValue(i * 12 + 1, asSourceY)));
+    int teachingCount = TraySlotCount / TrayTeachingGroupSize;
+    for(int i = 0; i < teachingCount; ++i){
+        int channel = i * TrayTeachingGroupSize + 1;
+        ini->WriteString("SOURCE_TRAY", "XAxis_CH" + IntToStr(channel), IntToStr(GetTrayPosValue(channel, asSourceX)));
+        ini->WriteString("SOURCE_TRAY", "YAxis_CH" + IntToStr(channel), IntToStr(GetTrayPosValue(channel, asSourceY)));
     }
     ini->WriteString("SOURCE_TRAY", "ZAxis", edit_SZ->Text);
 
     //3. Target Tray 티칭값 저장
-    for(int i = 0; i < 8; i++){
-        ini->WriteString("TARGET_TRAY", "XAxis_CH" + IntToStr(i * 12 + 1), IntToStr(GetTrayPosValue(i * 12 + 1, asTargetX)));
-        ini->WriteString("TARGET_TRAY", "YAxis_CH" + IntToStr(i * 12 + 1), IntToStr(GetTrayPosValue(i * 12 + 1, asTargetY)));
+    for(int i = 0; i < teachingCount; ++i){
+        int channel = i * TrayTeachingGroupSize + 1;
+        ini->WriteString("TARGET_TRAY", "XAxis_CH" + IntToStr(channel), IntToStr(GetTrayPosValue(channel, asTargetX)));
+        ini->WriteString("TARGET_TRAY", "YAxis_CH" + IntToStr(channel), IntToStr(GetTrayPosValue(channel, asTargetY)));
     }
     ini->WriteString("TARGET_TRAY", "ZAxis", edit_TZ->Text);
 }
@@ -844,29 +871,37 @@ void __fastcall TteachForm::LoadTeaching(AnsiString filePath)
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::SetTrayMaxPosition()
 {
-	sTray_Position.Top = 0;
-	sTray_Position.Bottom = 0;
-	sTray_Position.Left = 0;
-	sTray_Position.Right = 0;
+    int sourceX = GetTrayCalculatedPosValue(1, asSourceX);
+    int sourceY = GetTrayCalculatedPosValue(1, asSourceY);
+    int targetX = GetTrayCalculatedPosValue(1, asTargetX);
+    int targetY = GetTrayCalculatedPosValue(1, asTargetY);
 
-    //* Source Tray 최대값 저장
-    sTray_Position.Left = editCh01_SY->Text.ToIntDef(0);//teachEdit[1][0]->Text.ToInt();
-    sTray_Position.Right = editCh73_SY->Text.ToIntDef(0);//teachEdit[1][3]->Text.ToInt();
+    sTray_Position.Top = sourceX;
+    sTray_Position.Bottom = sourceX;
+    sTray_Position.Left = sourceY;
+    sTray_Position.Right = sourceY;
 
-	sTray_Position.Top = editCh13_SX->Text.ToIntDef(0) + (12 - 1) * 45000; // 선별 1열 X + 11열 X
-    sTray_Position.Bottom = editCh01_SX->Text.ToIntDef(0);
+    tTray_Position.Top = targetX;
+    tTray_Position.Bottom = targetX;
+    tTray_Position.Left = targetY;
+    tTray_Position.Right = targetY;
 
-	tTray_Position.Top = 0;
-	tTray_Position.Bottom = 0;
-	tTray_Position.Left = 0;
-	tTray_Position.Right = 0;
+    for(int channel = 2; channel <= TraySlotCount; ++channel){
+        sourceX = GetTrayCalculatedPosValue(channel, asSourceX);
+        sourceY = GetTrayCalculatedPosValue(channel, asSourceY);
+        targetX = GetTrayCalculatedPosValue(channel, asTargetX);
+        targetY = GetTrayCalculatedPosValue(channel, asTargetY);
 
-    //* Target Tray 최대값 저장
-	tTray_Position.Left = editCh01_TY->Text.ToIntDef(0);// teachEdit[1][4]->Text.ToInt();
-    tTray_Position.Right = editCh73_TY->Text.ToIntDef(0);//teachEdit[1][7]->Text.ToInt();
+        if(sourceX > sTray_Position.Top) sTray_Position.Top = sourceX;
+        if(sourceX < sTray_Position.Bottom) sTray_Position.Bottom = sourceX;
+        if(sourceY > sTray_Position.Left) sTray_Position.Left = sourceY;
+        if(sourceY < sTray_Position.Right) sTray_Position.Right = sourceY;
 
-	tTray_Position.Top = editCh13_TX->Text.ToIntDef(0) + (12 - 1) * 45000; // 대상 13열 X + 11열 X
-    tTray_Position.Bottom = editCh01_TX->Text.ToIntDef(0);
+        if(targetX > tTray_Position.Top) tTray_Position.Top = targetX;
+        if(targetX < tTray_Position.Bottom) tTray_Position.Bottom = targetX;
+        if(targetY > tTray_Position.Left) tTray_Position.Left = targetY;
+        if(targetY < tTray_Position.Right) tTray_Position.Right = targetY;
+    }
 }
 //---------------------------------------------------------------------------
 int __fastcall TteachForm::GetTrayPosValue(int channel, TrayAxisEdit editType)
@@ -879,12 +914,24 @@ int __fastcall TteachForm::GetTrayPosValue(int channel, TrayAxisEdit editType)
     return edt->Text.ToIntDef(0);
 }
 //---------------------------------------------------------------------------
+int __fastcall TteachForm::GetTrayCalculatedPosValue(int channel, TrayAxisEdit editType)
+{
+    if(channel < 1 || channel > TraySlotCount)
+        return 0;
+
+    int value = GetTrayPosValue(channel, editType);
+    if(editType == asSourceX || editType == asTargetX)
+        value += ((channel - 1) % TrayTeachingGroupSize) * TrayCellPitch;
+
+    return value;
+}
+//---------------------------------------------------------------------------
 TEdit* __fastcall TteachForm::GetTrayEdit(int channel, TrayAxisEdit editType)
 {
-    if (channel < 1 || channel > 96)
+    if (channel < 1 || channel > TraySlotCount)
         return NULL;
 
-    int group = (channel - 1) / 12;
+    int group = (channel - 1) / TrayTeachingGroupSize;
 
     switch (group)
     {

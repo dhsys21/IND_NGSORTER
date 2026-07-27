@@ -137,6 +137,9 @@ const int Axis_zUp = 0;
 const int AxisCnt = 4;  //* System=0, X=1, Y=2, Z=3
 const int Wait_xAxis = 0; //* 원점센서 위치에 따라 대기 장소가 달라짐.
 const int Wait_yAxis = 0;
+const int TraySlotCount = 96;
+const int TrayTeachingGroupSize = 12;
+const int TrayCellPitch = 45000;
 
 typedef struct{
 	int arl;

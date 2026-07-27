@@ -421,6 +421,7 @@ public:		// User declarations
 	TRAY_POSITION sTray_Position, tTray_Position;
     TEdit* __fastcall GetTrayEdit(int channel, TrayAxisEdit editType);
     int __fastcall GetTrayPosValue(int channel, TrayAxisEdit editType);
+    int __fastcall GetTrayCalculatedPosValue(int channel, TrayAxisEdit editType);
 	bool isGripperOpen1;
     bool isGripperOpen2;
 
