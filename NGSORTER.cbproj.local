@@ -382,6 +382,14 @@
     <File Path="Modmes.cpp"/>
     <File Path="Modmes.dfm"/>
     <File Path="Modmes.h"/>
+    <File Path="ModMes_Gateway.cpp"/>
+    <File Path="ModMes_Gateway.cpp"/>
+    <File Path="ModMes_Gateway.dfm"/>
+    <File Path="ModMes_Gateway.h"/>
+    <File Path="ModMes_OPCUA.cpp"/>
+    <File Path="ModMes_OPCUA.cpp"/>
+    <File Path="ModMes_OPCUA.dfm"/>
+    <File Path="ModMes_OPCUA.h"/>
     <File Path="Modplc.cpp"/>
     <File Path="Modplc.cpp"/>
     <File Path="Modplc.dfm"/>
@@ -408,13 +416,5 @@
     <File Path="Stage_Form.cpp"/>
     <File Path="Stage_Log.cpp"/>
     <File Path="Stage_mes.cpp"/>
-    <File Path="ModMes_Gateway.cpp"/>
-    <File Path="ModMes_Gateway.cpp"/>
-    <File Path="ModMes_Gateway.dfm"/>
-    <File Path="ModMes_Gateway.h"/>
-    <File Path="ModMes_OPCUA.cpp"/>
-    <File Path="ModMes_OPCUA.cpp"/>
-    <File Path="ModMes_OPCUA.dfm"/>
-    <File Path="ModMes_OPCUA.h"/>
   </ProjectSortOrder>
 </BorlandProject>

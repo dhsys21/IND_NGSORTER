@@ -201,8 +201,8 @@ typedef struct{
 	uint8_t GRIPPER1_CHUCK:1; //Y0030 GRIPPER CHUCK SOL
 	uint8_t GRIPPER1_UNCHUCK:1; //Y0031 GRIPPER UNCHUCK SOL
 	uint8_t SAFETY_RESET:1; //Y0032 SAFETY RESET
-	uint8_t DOOR_LEFT_OPEN:1; //Y0033 DOOR_LEFT_OPEN
-	uint8_t DOOR_RIGHT_OPEN:1; //Y0034 DOOR_RIGHT_OPEN
+	uint8_t DOOR_LEFT_CLOSE:1; //Y0033 DOOR_LEFT_CLOSE
+	uint8_t DOOR_RIGHT_CLOSE:1; //Y0034 DOOR_RIGHT_CLOSE
 	uint8_t OPBOX_RESET_LAMP:1; //Y0035 OPBOX RESET LAMP
 	uint8_t SAFETY_RESET_SW_LAMP:1; //Y0036 SAFETY RESET SW LAMP
 	uint8_t OPBOX_EMERGENCY_LAMP:1; //Y0037 OPBOX EMERGENCY LAMP
@@ -393,7 +393,7 @@ public:		// User declarations
 	void __fastcall req_Pause(bool stop);
 	void __fastcall setTx();
 	bool __fastcall CheckEjectCell_before(int pos);
-	bool __fastcall KeyLock(int pos);
+	bool __fastcall KeyLock(bool on);
 	bool m_bInsertSave;
 
 	__fastcall Trobostar(TComponent* Owner);

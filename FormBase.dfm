@@ -550,7 +550,7 @@ object BaseForm: TBaseForm
     Fill.Glow = gmNone
     Version = '1.5.2.1'
     OnClick = psmokedetectorClick
-    TabOrder = 38
+    TabOrder = 17
     TMSStyle = 0
   end
   object pon: TPanel
@@ -693,7 +693,6 @@ object BaseForm: TBaseForm
     Top = 37
     Width = 120
     Height = 25
-    Tag = 0
     Cursor = crDefault
     Caption.Text = 'Source BCR'
     Caption.Location = plBottomCenter
@@ -730,11 +729,11 @@ object BaseForm: TBaseForm
     TMSStyle = 0
   end
   object pbcr2: TAdvSmoothPanel
+    Tag = 1
     Left = 1734
     Top = 6
     Width = 120
     Height = 25
-    Tag = 1
     Cursor = crDefault
     Caption.Text = 'Target BCR'
     Caption.Location = plBottomCenter
@@ -1009,7 +1008,7 @@ object BaseForm: TBaseForm
     Caption = #53412#46973' '#49444#51221
     Color = clWhite
     ParentFont = False
-    TabOrder = 14
+    TabOrder = 18
     Version = '2.1.1.5'
     OnClick = btnKeyLockClick
     TMSStyle = 8
@@ -1048,7 +1047,7 @@ object BaseForm: TBaseForm
     Caption = #53412#46973' '#54644#51228
     Color = clWhite
     ParentFont = False
-    TabOrder = 15
+    TabOrder = 19
     Version = '2.1.1.5'
     OnClick = btnKeyUnLockClick
     TMSStyle = 8

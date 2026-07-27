@@ -193,7 +193,7 @@ void __fastcall TBaseForm::btnKeyLockClick(TObject *Sender)
         ShowMessage(GetLangStr("MSG_UNLOCK_KEY"));
 	}
 	else{
-		robostar->KeyLock(1);
+		robostar->KeyLock(true);
 	}
 }
 //---------------------------------------------------------------------------
@@ -214,13 +214,12 @@ double __fastcall TBaseForm::StringToDouble(UnicodeString str, double def)
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::btnKeyUnLockClick(TObject *Sender)
 {
-    ShowMessage(GetLangStr("MSG_UNLOCK_KEY"));
     if(MainForm->equipMode != modeManual)
 	{
         ShowMessage(GetLangStr("MSG_UNLOCK_KEY"));
 	}
 	else{
-		robostar->KeyLock(2);
+		robostar->KeyLock(false);
 	}
 }
 //---------------------------------------------------------------------------

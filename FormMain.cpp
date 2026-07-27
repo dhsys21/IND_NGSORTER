@@ -534,36 +534,42 @@ void __fastcall TMainForm::resetBtnClick(TObject *Sender)
 
 void __fastcall TMainForm::CreateIoRow(TScrollBox *parent, TPanel **statePanel, int index, AnsiString address, AnsiString name)
 {
+	const TColor ioNoBackColor = (TColor)15269887;
+	const TColor ioNoFontColor = (TColor)13996080;
 	int rowLimit = (parent->Tag > 0) ? parent->Tag : 24;
 	int col = index / rowLimit;
 	int row = index % rowLimit;
-	int left = 8 + (col * 285);
+	int left = 8 + (col * 278);
 	int top = 8 + (row * 24);
 
-	TPanel *captionPanel = new TPanel(parent);
-	captionPanel->Parent = parent;
-	captionPanel->Left = left;
-	captionPanel->Top = top;
-	captionPanel->Width = 220;
-	captionPanel->Height = 22;
-	captionPanel->BevelOuter = bvNone;
-	captionPanel->Alignment = taLeftJustify;
-	captionPanel->Caption = address + "  " + name;
-	captionPanel->Color = clWhite;
-	captionPanel->Font->Color = clBlack;
-	captionPanel->Font->Style = TFontStyles() << fsBold;
+	TPanel *addressPanel = new TPanel(parent);
+	addressPanel->Parent = parent;
+	addressPanel->Left = left;
+	addressPanel->Top = top;
+	addressPanel->Width = 54;
+	addressPanel->Height = 22;
+	addressPanel->BevelOuter = bvNone;
+	addressPanel->Alignment = taCenter;
+	addressPanel->Caption = address;
+	addressPanel->Color = ioNoBackColor;
+	addressPanel->ParentBackground = false;
+	addressPanel->BevelKind = bkFlat;
+	addressPanel->Font->Color = ioNoFontColor;
+	addressPanel->Font->Style = TFontStyles() << fsBold;
 
 	TPanel *statusPanel = new TPanel(parent);
 	statusPanel->Parent = parent;
-	statusPanel->Left = left + 224;
+	statusPanel->Left = left + 58;
 	statusPanel->Top = top;
-	statusPanel->Width = 48;
+	statusPanel->Width = 210;
 	statusPanel->Height = 22;
 	statusPanel->BevelKind = bkFlat;
 	statusPanel->BevelOuter = bvNone;
-	statusPanel->Caption = "OFF";
-	statusPanel->Color = clSilver;
-	statusPanel->Font->Color = clWhite;
+	statusPanel->ParentBackground = false;
+	statusPanel->Alignment = taLeftJustify;
+	statusPanel->Caption = name;
+	statusPanel->Color = clWhite;
+	statusPanel->Font->Color = clBlack;
 	statusPanel->Font->Style = TFontStyles() << fsBold;
 	statePanel[index] = statusPanel;
 }
@@ -592,8 +598,8 @@ void __fastcall TMainForm::CreateIoMonitoringPanel()
 	grp_io->Parent = this;
 	grp_io->Left = 570;
 	grp_io->Top = 92;
-	grp_io->Width = 760;
-	grp_io->Height = 760;
+	grp_io->Width = 600;
+	grp_io->Height = 720;
 	grp_io->BevelKind = bkFlat;
 	grp_io->Color = clWhite;
 	grp_io->Visible = false;
@@ -603,10 +609,11 @@ void __fastcall TMainForm::CreateIoMonitoringPanel()
 	title->Parent = grp_io;
 	title->Align = alTop;
 	title->Height = 32;
-	title->Caption = "CC-Link I/O Monitoring";
-	title->Color = clGray;
-	title->Font->Color = clWhite;
+	title->Caption = "I/O Monitoring";
+	title->Color = clWhite;
+	title->Font->Color = (TColor)13204573;
 	title->Font->Style = TFontStyles() << fsBold;
+	title->Font->Height = -17;
 
 	TAdvSmoothButton *closeButton = new TAdvSmoothButton(grp_io);
 	closeButton->Parent = grp_io;
@@ -624,7 +631,7 @@ void __fastcall TMainForm::CreateIoMonitoringPanel()
 	inputPanel->Parent = grp_io;
 	inputPanel->Left = 8;
 	inputPanel->Top = 40;
-	inputPanel->Width = 744;
+	inputPanel->Width = 584;
 	inputPanel->Height = 432;
 	inputPanel->BevelKind = bkFlat;
 	inputPanel->Color = clWhite;
@@ -633,8 +640,9 @@ void __fastcall TMainForm::CreateIoMonitoringPanel()
 	inputTitle->Parent = inputPanel;
 	inputTitle->Align = alTop;
 	inputTitle->Height = 22;
-	inputTitle->Caption = "INPUT (X)";
+	inputTitle->Caption = "INPUT";
 	inputTitle->Color = clGray;
+	inputTitle->ParentBackground = false;
 	inputTitle->Font->Color = clWhite;
 	inputTitle->Font->Style = TFontStyles() << fsBold;
 
@@ -642,7 +650,7 @@ void __fastcall TMainForm::CreateIoMonitoringPanel()
 	scrInput->Parent = inputPanel;
 	scrInput->Left = 4;
 	scrInput->Top = 26;
-	scrInput->Width = 734;
+	scrInput->Width = 574;
 	scrInput->Height = 398;
 	scrInput->HorzScrollBar->Visible = false;
 	scrInput->Color = clWhite;
@@ -665,8 +673,8 @@ void __fastcall TMainForm::CreateIoMonitoringPanel()
 	outputPanel->Parent = grp_io;
 	outputPanel->Left = 8;
 	outputPanel->Top = 480;
-	outputPanel->Width = 744;
-	outputPanel->Height = 272;
+	outputPanel->Width = 584;
+	outputPanel->Height = 232;
 	outputPanel->BevelKind = bkFlat;
 	outputPanel->Color = clWhite;
 
@@ -674,8 +682,9 @@ void __fastcall TMainForm::CreateIoMonitoringPanel()
 	outputTitle->Parent = outputPanel;
 	outputTitle->Align = alTop;
 	outputTitle->Height = 22;
-	outputTitle->Caption = "OUTPUT (Y)";
+	outputTitle->Caption = "OUTPUT";
 	outputTitle->Color = clGray;
+	outputTitle->ParentBackground = false;
 	outputTitle->Font->Color = clWhite;
 	outputTitle->Font->Style = TFontStyles() << fsBold;
 
@@ -683,15 +692,15 @@ void __fastcall TMainForm::CreateIoMonitoringPanel()
 	scrOutput->Parent = outputPanel;
 	scrOutput->Left = 4;
 	scrOutput->Top = 26;
-	scrOutput->Width = 734;
-	scrOutput->Height = 240;
+	scrOutput->Width = 574;
+	scrOutput->Height = 204;
 	scrOutput->HorzScrollBar->Visible = false;
 	scrOutput->Color = clWhite;
 	scrOutput->Tag = 8;
 
 	const char *outputNames[16] = {
-		"GRIPPER CHUCK SOL", "GRIPPER UNCHUCK SOL", "SAFETY RESET", "DOOR_LEFT_OPEN",
-		"DOOR_RIGHT_OPEN", "OPBOX RESET LAMP", "SAFETY RESET SW LAMP", "OPBOX EMERGENCY LAMP",
+		"GRIPPER CHUCK SOL", "GRIPPER UNCHUCK SOL", "SAFETY RESET", "DOOR_LEFT_CLOSE",
+		"DOOR_RIGHT_CLOSE", "OPBOX RESET LAMP", "SAFETY RESET SW LAMP", "OPBOX EMERGENCY LAMP",
 		"TOWER LAMP RED", "TOWER LAMP YELLOW", "TOWER LAMP GREEN", "TOWER LAMP BUZZER",
 		"SAFETY KEY S/W", "", "", ""
 	};
@@ -722,21 +731,19 @@ void __fastcall TMainForm::UpdateIoMonitoringPanel()
 	};
 
 	bool outputValue[16] = {
-		robostar->gripper.GRIPPER1_CHUCK, robostar->gripper.GRIPPER1_UNCHUCK, robostar->gripper.SAFETY_RESET, robostar->gripper.DOOR_LEFT_OPEN,
-		robostar->gripper.DOOR_RIGHT_OPEN, robostar->gripper.OPBOX_RESET_LAMP, robostar->gripper.SAFETY_RESET_SW_LAMP, robostar->gripper.OPBOX_EMERGENCY_LAMP,
+		robostar->gripper.GRIPPER1_CHUCK, robostar->gripper.GRIPPER1_UNCHUCK, robostar->gripper.SAFETY_RESET, robostar->gripper.DOOR_LEFT_CLOSE,
+		robostar->gripper.DOOR_RIGHT_CLOSE, robostar->gripper.OPBOX_RESET_LAMP, robostar->gripper.SAFETY_RESET_SW_LAMP, robostar->gripper.OPBOX_EMERGENCY_LAMP,
 		robostar->gripper.TOWER_LAMP_RED, robostar->gripper.TOWER_LAMP_YELLOW, robostar->gripper.TOWER_LAMP_GREEN, robostar->gripper.TOWER_LAMP_BUZZER,
 		robostar->gripper.DOOR_OPEN_SELECT, robostar->gripper.Y003D, robostar->gripper.Y003E, robostar->gripper.Y003F
 	};
 
 	for(int i = 0; i < ioInputCount; ++i){
 		if(ioInputState[i] == NULL) continue;
-		ioInputState[i]->Caption = inputValue[i] ? "ON" : "OFF";
-		ioInputState[i]->Color = inputValue[i] ? clLime : clSilver;
+		ioInputState[i]->Color = inputValue[i] ? clLime : clWhite;
 	}
 	for(int i = 0; i < ioOutputCount; ++i){
 		if(ioOutputState[i] == NULL) continue;
-		ioOutputState[i]->Caption = outputValue[i] ? "ON" : "OFF";
-		ioOutputState[i]->Color = outputValue[i] ? clLime : clSilver;
+		ioOutputState[i]->Color = outputValue[i] ? clLime : clWhite;
 	}
 }
 //---------------------------------------------------------------------------

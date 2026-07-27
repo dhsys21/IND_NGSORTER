@@ -114,17 +114,17 @@ void __fastcall TdoorForm::errTimerTimer(TObject *Sender)
 //	{
 //		isDoorOpen = false;
 //		BaseForm->btnKeyLock->Caption = "키락 해제";
-//		robostar->KeyLock(1);
+//		robostar->KeyLock(true);
 //	}
 
 	if(isDoorOpen || robostar->input.EMS_SWITCH || !robostar->gripper.DOOR_OPEN_SELECT)
-		robostar->KeyLock(2);
+		robostar->KeyLock(false);
 
 //	if(isDoorOpen == true && robostar->input.SAFETY_DOOR_1 == 0 && robostar->input.SAFETY_DOOR_2 == 0 && robostar->input.SAFETY_DOOR_3 == 0)
 //	{
 //		isDoorOpen = false;
 //		BaseForm->btnKeyLock->Caption = "키락 해제";
-//		robostar->KeyLock(2);
+//		robostar->KeyLock(false);
 //	}
 
 
@@ -148,7 +148,7 @@ void __fastcall TdoorForm::errTimerTimer(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TdoorForm::okBtnClick(TObject *Sender)
 {
-    robostar->KeyLock(1);
+    robostar->KeyLock(true);
 	errTimer->Enabled = false;
 	this->Close();
 	flag = false;
@@ -158,7 +158,7 @@ void __fastcall TdoorForm::okBtnClick(TObject *Sender)
 
 void __fastcall TdoorForm::btnSetKEYLOCKClick(TObject *Sender)
 {
-	robostar->KeyLock(2);
+	robostar->KeyLock(false);
 }
 //---------------------------------------------------------------------------
 
@@ -246,7 +246,7 @@ void __fastcall TdoorForm::btnGripper2OpenMouseDown(TObject *Sender, TMouseButto
 
 void __fastcall TdoorForm::btnKeyUnlockClick(TObject *Sender)
 {
-	robostar->KeyLock(2);
+	robostar->KeyLock(false);
 }
 //---------------------------------------------------------------------------
 void __fastcall TdoorForm::Label3DblClick(TObject *Sender)

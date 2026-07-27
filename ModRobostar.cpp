@@ -1436,19 +1436,10 @@ void __fastcall Trobostar::DataModuleCreate(TObject *Sender)
 	req_Speed(1000, 1000, 1000);
 }
 //---------------------------------------------------------------------------
-bool __fastcall Trobostar::KeyLock(int pos)
+bool __fastcall Trobostar::KeyLock(bool on)
 {
-	switch(pos){
-		case 1:
-			if(gripper.DOOR_OPEN_SELECT = true){
-			}
-			break;
-		case 2:
-			if(gripper.DOOR_OPEN_SELECT = false){
-			}
-			break;
-	}
-
+	gripper.DOOR_OPEN_SELECT = on;
+	return gripper.DOOR_OPEN_SELECT == on;
 }
 //---------------------------------------------------------------------------
 
