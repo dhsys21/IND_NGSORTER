@@ -353,14 +353,14 @@ object InterfaceForm: TInterfaceForm
       Top = 221
       Width = 330
       Height = 145
-      Caption = 'IR/OCV Value'
+      Caption = 'TRAY LOAD TEST'
       TabOrder = 1
       object lblIrValue: TLabel
-        Left = 261
-        Top = 20
-        Width = 48
+        Left = 16
+        Top = 24
+        Width = 97
         Height = 16
-        Caption = 'IR Value'
+        Caption = 'SOURCE TRAY ID'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -13
@@ -369,11 +369,11 @@ object InterfaceForm: TInterfaceForm
         ParentFont = False
       end
       object lblOcvValue: TLabel
-        Left = 248
-        Top = 84
-        Width = 61
+        Left = 16
+        Top = 82
+        Width = 96
         Height = 16
-        Caption = 'OCV Value'
+        Caption = 'TARGET TRAY ID'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -13
@@ -382,20 +382,36 @@ object InterfaceForm: TInterfaceForm
         ParentFont = False
       end
       object editIR: TEdit
-        Left = 42
+        Left = 16
         Top = 42
-        Width = 271
+        Width = 190
         Height = 21
         TabOrder = 0
-        Text = '16.5'
+        Text = 'SOURCE_TEST'
       end
       object editOCV: TEdit
-        Left = 42
-        Top = 106
-        Width = 271
+        Left = 16
+        Top = 100
+        Width = 190
         Height = 21
         TabOrder = 1
-        Text = '3100.5'
+        Text = 'TARGET_TEST'
+      end
+      object btnSourceTrayLoad: TButton
+        Left = 214
+        Top = 36
+        Width = 100
+        Height = 32
+        Caption = 'Source Load'
+        TabOrder = 2
+      end
+      object btnTargetTrayLoad: TButton
+        Left = 214
+        Top = 94
+        Width = 100
+        Height = 32
+        Caption = 'Target Load'
+        TabOrder = 3
       end
     end
     object gbIrocvNgValue: TGroupBox
@@ -403,15 +419,23 @@ object InterfaceForm: TInterfaceForm
       Top = 376
       Width = 330
       Height = 82
-      Caption = 'IROCV NG Value'
+      Caption = 'TARGET NG CELL LIST'
       TabOrder = 2
       object editNgList: TEdit
         Left = 16
-        Top = 36
-        Width = 297
+        Top = 32
+        Width = 190
         Height = 21
         TabOrder = 0
         Text = '1,13,25,37,49,61,73,85'
+      end
+      object btnWriteTargetData: TButton
+        Left = 214
+        Top = 24
+        Width = 100
+        Height = 36
+        Caption = 'Write Track Out'
+        TabOrder = 1
       end
     end
   end

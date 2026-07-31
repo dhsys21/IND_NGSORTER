@@ -43,24 +43,51 @@ __published:	// IDE-managed Components
 	TEdit *editOCV;
 	TGroupBox *gbIrocvNgValue;
 	TEdit *editNgList;
+	TButton *btnSourceTrayLoad;
+	TButton *btnTargetTrayLoad;
+	TButton *btnWriteTargetData;
 	TTimer *Timer_PLC_Update;
 	TTimer *Timer_MES_Update;
 	void __fastcall GroupBox_PLC_PCDblClick(TObject *Sender);
 	void __fastcall btnPlcWriteValueClick(TObject *Sender);
 	void __fastcall Timer_PLC_UpdateTimer(TObject *Sender);
+	void __fastcall btnWriteMesValueClick(TObject *Sender);
+	void __fastcall cbMesTagChange(TObject *Sender);
+	void __fastcall Timer_MES_UpdateTimer(TObject *Sender);
+	void __fastcall ListViewPCTagClick(TObject *Sender);
+	void __fastcall btnSourceTrayLoadClick(TObject *Sender);
+	void __fastcall btnTargetTrayLoadClick(TObject *Sender);
+	void __fastcall btnWriteTargetDataClick(TObject *Sender);
 private:	// User declarations
     void __fastcall AddListView(TListView *list, AnsiString address, AnsiString name);
     void __fastcall SetListViewPLC();
 	void __fastcall SetListViewPC();
 
     void __fastcall AddListView(TListView *list, AnsiString tagname);
+	void __fastcall AddListView(TListView *list, UnicodeString tagname, UnicodeString datatype, UnicodeString value);
     void __fastcall SetListViewFMSTAG();
     void __fastcall SetListViewPCTAG();
+	void __fastcall SetupMesTestControls();
+	void __fastcall RefreshMesTagLists();
+	void __fastcall RefreshPcTagCombo();
+	bool __fastcall IsSameListLayout(TListView *list, TStrings *Rows);
+	void __fastcall SyncListViewRows(TListView *list, TStrings *Rows);
+	void __fastcall UpdateListViewValues(TListView *list, TStrings *Rows);
+	void __fastcall UpdateMesValueEditor();
+	void __fastcall WriteMesValue();
+	void __fastcall SendTrayLoadTest(bool TargetTray);
+	void __fastcall WriteTargetTrackOutTestData();
+	UnicodeString __fastcall GetRowPart(const UnicodeString &Row, int Index);
+	UnicodeString __fastcall BuildJsonValue(const UnicodeString &DataType, const UnicodeString &Text);
+	bool __fastcall IsNgChannel(int Channel);
+	bool __fastcall CanRunMesTest();
 
     // PLC TEST
     void __fastcall WritePcValue();
 
-    TListItem *tempListItem;
+	TListItem *tempListItem;
+	TComboBox *cbMesBoolValue;
+	TLabel *lblFmsDataType;
 public:		// User declarations
 	__fastcall TInterfaceForm(TComponent* Owner);
 };

@@ -27,10 +27,30 @@ using namespace Xml::Xmlintf;
 static const UnicodeString FMS_BIND_IP = L"127.0.0.1";
 static const int FMS_BIND_PORT = 18080;
 static const int FMS_MAX_JSON_LINE_LENGTH = 4 * 1024 * 1024;
-static const UnicodeString FMS_TAG_CONFIG_FILE =
-	L"D:\\Project\\2026\\03.Jeng(India)\\02.Program\\05.OpcFoundation\\NGSORTER.Config.xml";
 
 TMod_Fms *Mod_Fms;
+
+static UnicodeString ResolveFmsTagConfigFile()
+{
+	UnicodeString ExeDir = ExtractFilePath(Application->ExeName);
+	UnicodeString Candidates[] =
+	{
+		ExeDir + L"Config\\NGSORTER.Config.xml",
+		ExeDir + L"NGSORTER.Config.xml",
+		L"D:\\NGSORTER_IND\\Config\\NGSORTER.Config.xml",
+		L"D:\\Project\\2026\\03.Jeng(India)\\02.Program\\05.OpcFoundation\\"
+			L"DHS.Equipment.OpcUaGateway\\DHS.Equipment.OpcUaGateway\\Config\\"
+			L"NGSORTER.Config.xml"
+	};
+
+	for (unsigned int i = 0; i < sizeof(Candidates) / sizeof(Candidates[0]); ++i)
+	{
+		if (FileExists(Candidates[i]))
+			return Candidates[i];
+	}
+
+	return Candidates[0];
+}
 
 static bool IsNumericText(const UnicodeString &Text)
 {
@@ -117,6 +137,13 @@ static bool TagKeyEndsWith(const UnicodeString &FullKey, const UnicodeString &Ke
 		return false;
 
 	return Start == 1 || FullKey[Start - 1] == L'.';
+}
+
+static bool TextEndsWith(const UnicodeString &Text, const UnicodeString &Suffix)
+{
+	if (Text.Length() < Suffix.Length())
+		return false;
+	return Text.SubString(Text.Length() - Suffix.Length() + 1, Suffix.Length()) == Suffix;
 }
 
 static bool IsSnapshotLine(const UnicodeString &Line)
@@ -228,7 +255,7 @@ void __fastcall TMod_Fms::Start(void)
 	if (TcpServer != NULL && !TcpServer->Active)
 	{
 		if (!FTagConfigLoaded)
-			LoadTagConfig(FMS_TAG_CONFIG_FILE);
+			LoadTagConfig(ResolveFmsTagConfigFile());
 
 		TcpServer->Active = true;
 		Timer_Alive->Enabled = true;
@@ -317,11 +344,31 @@ void __fastcall TMod_Fms::TcpServerExecute(TIdContext *AContext)
 		if (Line.Length() > 0 && Line[Line.Length()] == L'\r')
 			Line = Line.SubString(1, Line.Length() - 1);
 
-		bool DisplayLog = !IsSnapshotLine(Line);
-		LogOpcUa(L"RX", Line, DisplayLog);
-
 		UnicodeString Response = HandleMessage(Line);
-		LogOpcUa(L"TX", Response, DisplayLog);
+		bool Snapshot = IsSnapshotLine(Line);
+		if (Snapshot)
+		{
+			int FmsTagCount = 0;
+			int PcTagCount = 0;
+			{
+				TLockGuard Guard(FLock);
+				FmsTagCount = (int)FFmsTags.size();
+				PcTagCount = (int)FPcTags.size();
+			}
+
+			UTF8String SnapshotUtf8(Line);
+			UnicodeString Summary =
+				L"SNAPSHOT: FmsTags=" + IntToStr(FmsTagCount) +
+				L", PcTags=" + IntToStr(PcTagCount) +
+				L", Bytes=" + IntToStr(SnapshotUtf8.Length() + 1);
+			LogOpcUa(L"RX", Summary);
+			LogOpcUa(L"TX", Response, false);
+		}
+		else
+		{
+			LogOpcUa(L"RX", Line);
+			LogOpcUa(L"TX", Response);
+		}
 		{
 			TLockGuard SendGuard(FSendLock);
 			AContext->Connection->IOHandler->Write(
@@ -974,13 +1021,56 @@ bool __fastcall TMod_Fms::GetTagDefinitionInfo(const UnicodeString &Key, TFmsTag
 //---------------------------------------------------------------------------
 bool __fastcall TMod_Fms::IsImplicitDirectionTag(const TFmsTagDefinition &Definition, TFmsTagDirection Direction)
 {
-	if (Direction == ftdFmsOnly &&
-		Definition.FullKey.Pos(L"F1NGS01.Location1.TrackInCellInformation.") == 1)
-		return true;
+	UnicodeString Key = Definition.FullKey.LowerCase();
 
-	if (Direction == ftdEqpOnly &&
-		Definition.FullKey.Pos(L"F1NGS01.Location2.TrackOutCellInformation.") == 1)
-		return true;
+	if (Key.Pos(L".common.alive") > 0)
+		return Direction == ftdFmsOnly || Direction == ftdEqpOnly;
+
+	if (Key.Pos(L".fmsstatus.") > 0)
+		return Direction == ftdFmsOnly;
+	if (Key.Pos(L".equipmentstatus.") > 0)
+		return Direction == ftdEqpOnly;
+
+	if (Key.Pos(L".equipmentcontrol.commandresponse") > 0)
+		return Direction == ftdEqpOnly;
+	if (Key.Pos(L".equipmentcontrol.command") > 0)
+		return Direction == ftdFmsOnly;
+
+	if (Key.Pos(L".trackincellinformation.") > 0)
+		return Direction == ftdFmsOnly;
+	if (Key.Pos(L".trackoutcellinformation.") > 0)
+		return Direction == ftdEqpOnly;
+
+	if (Key.Pos(L".recipe.") > 0)
+		return Direction == ftdFmsOnly;
+
+	if (Key.Pos(L".trayprocess.") > 0)
+	{
+		if (TextEndsWith(Key, L"response"))
+			return Direction == ftdFmsOnly;
+		return Direction == ftdEqpOnly;
+	}
+
+	if (Key.Pos(L".trayinformation.") > 0)
+	{
+		if (TextEndsWith(Key, L".productmodel") ||
+			TextEndsWith(Key, L".routeid") ||
+			TextEndsWith(Key, L".processid") ||
+			TextEndsWith(Key, L".lotid"))
+		{
+			return Direction == ftdFmsOnly;
+		}
+
+		if (TextEndsWith(Key, L".trayexist") || TextEndsWith(Key, L".trayid"))
+			return Direction == ftdEqpOnly;
+	}
+
+	if (Key.Pos(L".celltrackout.") > 0 || Key.Pos(L".manualcellout.") > 0)
+	{
+		if (TextEndsWith(Key, L"response"))
+			return Direction == ftdFmsOnly;
+		return Direction == ftdEqpOnly;
+	}
 
 	return false;
 }
