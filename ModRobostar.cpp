@@ -1245,6 +1245,7 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 	MainForm->Caption = step.step;
 
 	this->io_Read();
+	gripper.SAFETY_RESET = input.OPBOX_RESET_SWITCH || input.SAFETY_RESET_SW_ON;
 	// 그리퍼가 모두 상승되어 있을때 ON : 안전관련 추가사항
 	output.CYLINDER_Z = input.GRIPPER1_UP;
 	this->io_WriteGripper();
