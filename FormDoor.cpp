@@ -29,6 +29,7 @@ __fastcall TdoorForm::TdoorForm(TComponent* Owner)
 		text[i]->Visible = false;
 		perr[i]->Visible = false;
 	}
+	StaticText4->Visible = false;
 
 	isGripperOpen1 = false;
 	isGripperOpen2 = false;
@@ -38,10 +39,15 @@ __fastcall TdoorForm::TdoorForm(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall TdoorForm::ShowError(AnsiString MainStr, AnsiString SubStr, int errCode)
 {
+	if(errCode < 0 || errCode > 5) return;
+	if(errCode == 0 && !robostar->IsSafetyDoorOpen(1)) return;
+	if(errCode == 1 && !robostar->IsSafetyDoorOpen(2)) return;
+
 	MainForm->pause_stopBtnClick(this);
 
 	FormStyle = fsStayOnTop;
-	text[errCode]->Visible = true;
+	if(errCode == 5) StaticText4->Visible = true;
+	else text[errCode]->Visible = true;
 
 	flag = true;
 	if(this->Visible == false){
@@ -86,6 +92,7 @@ void __fastcall TdoorForm::FormHide(TObject *Sender)
 		text[i]->Visible = false;
 		perr[i]->Visible = false;
 	}
+	StaticText4->Visible = false;
 
 	MainForm->NotifyEquipStatus("CLEAR");
 }
@@ -129,7 +136,8 @@ void __fastcall TdoorForm::errTimerTimer(TObject *Sender)
 	text[1]->Visible = robostar->IsSafetyDoorOpen(2);
 	text[2]->Visible = robostar->IsEmergencyStopActive();
 	text[3]->Visible = false;
-	text[4]->Visible = !robostar->IsKeyLockActive();
+	text[4]->Visible = robostar->IsKeyLockActive();
+	StaticText4->Visible = MainForm->popen->Color != clLime;
 
 	//btnSetKEYLOCK->Visible = robostar->output.SAFETY_DOOR;
 	//btnSetKEYLOCK->Visible = robostar->gripper.DOOR_OPEN_SELECT;
