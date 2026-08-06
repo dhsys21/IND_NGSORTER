@@ -433,6 +433,7 @@ public:		// User declarations
 	AnsiString __fastcall GetAlarmMsg(int code);
 	void __fastcall NotifyAlarm(bool alarm, AnsiString code = -1,  bool warning = true);
 
+	void __fastcall AddStatusLog(AnsiString source, AnsiString msg);
 	void __fastcall memoMainLineAdd(AnsiString msg);
 	void __fastcall memoGripperLineAdd(AnsiString msg);
 	void __fastcall memoRobostarLineAdd(AnsiString msg);

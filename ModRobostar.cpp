@@ -95,14 +95,17 @@ void __fastcall Trobostar::InitSequence(robotSequence data, robotSequence reserv
 
 bool __fastcall Trobostar::WriteLog(int status, UnicodeString msg)
 {
-	if(status != SSC_OK) {
-		MainForm->memoRobostarLineAdd(msg + " 실패 : " + IntToHex(sscGetLastError(),6));
-		return false;
-	}
-	else{
-		MainForm->memoRobostarLineAdd(msg + " 성공");
-        return true;
-	}
+	bool success = (status == SSC_OK);
+	UnicodeString logMsg;
+
+	if(success)
+		logMsg = msg + " 성공";
+	else
+		logMsg = msg + " 실패 : " + IntToHex(sscGetLastError(), 6);
+
+	if(MainForm != NULL)
+		MainForm->memoRobostarLineAdd(logMsg);
+	return success;
 }
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::Init()

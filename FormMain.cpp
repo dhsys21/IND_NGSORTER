@@ -1262,12 +1262,39 @@ AnsiString __fastcall TMainForm::GetAlarmMsg(int code)
 	}
 }
 //---------------------------------------------------------------------------
+void __fastcall TMainForm::AddStatusLog(AnsiString source, AnsiString msg)
+{
+	AnsiString logMsg = "[" + source + "] " + msg;
+
+	WriteProgLog(logMsg);
+
+	if(memoLog == NULL)
+		return;
+
+	const int maxLogLines = 1000;
+	AnsiString displayMsg = Now().FormatString("yyyy-mm-dd hh:nn:ss.zzz ") + logMsg;
+
+	memoLog->Lines->BeginUpdate();
+	try{
+		memoLog->Lines->Insert(0, displayMsg);
+		while(memoLog->Lines->Count > maxLogLines)
+			memoLog->Lines->Delete(memoLog->Lines->Count - 1);
+	}
+	__finally{
+		memoLog->Lines->EndUpdate();
+	}
+
+	memoLog->SelStart = 0;
+	memoLog->SelLength = 0;
+	memoLog->Perform(EM_SCROLLCARET, 0, 0);
+}
+//---------------------------------------------------------------------------
 void __fastcall TMainForm::memoMainLineAdd(AnsiString msg)
 {
 	if(pmainMsg->Hint != msg){
 		pmainMsg->Caption = msg;
 		pmainMsg->Hint = msg;
-		WriteProgLog(msg);
+		AddStatusLog("MAIN", msg);
 	}
 }
 //---------------------------------------------------------------------------
@@ -1276,7 +1303,7 @@ void __fastcall TMainForm::memoGripperLineAdd(AnsiString msg)
 	if(pgripperMsg->Hint != msg){
 		pgripperMsg->Caption = msg;
 		pgripperMsg->Hint = msg;
-		WriteProgLog(msg);
+		AddStatusLog("GRIPPER", msg);
 	}
 }
 //---------------------------------------------------------------------------
@@ -1285,7 +1312,7 @@ void __fastcall TMainForm::memoRobostarLineAdd(AnsiString msg)
 	if(probostarMsg->Hint != msg){
 		probostarMsg->Caption = msg;
 		probostarMsg->Hint = msg;
-		WriteProgLog(msg);
+		AddStatusLog("ROBOT", msg);
 	}
 }
 //---------------------------------------------------------------------------
