@@ -1465,6 +1465,13 @@ bool __fastcall Trobostar::IsEmergencyStopActive() const
 	return !input.EMS_SWITCH;
 }
 //---------------------------------------------------------------------------
+bool __fastcall Trobostar::IsSafetyDoorOpen(int doorNo) const
+{
+	if(doorNo == 1) return !input.SAFETY_DOOR_1;
+	if(doorNo == 2) return !input.SAFETY_DOOR_2;
+	return false;
+}
+//---------------------------------------------------------------------------
 bool __fastcall Trobostar::IsKeyLockActive() const
 {
 	return gripper.DOOR_OPEN_SELECT;

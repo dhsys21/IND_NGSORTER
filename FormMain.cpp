@@ -297,7 +297,7 @@ void __fastcall TMainForm::autoBtnClick(TObject *Sender)
 void __fastcall TMainForm::manualBtnClick(TObject *Sender)
 {
 	if(autoBtn->Down == true){
-		if(robostar->input.SAFETY_DOOR_1 || robostar->input.SAFETY_DOOR_2 || robostar->input.SAFETY_DOOR_3 || robostar->IsEmergencyStopActive())
+		if(robostar->IsSafetyDoorOpen(1) || robostar->IsSafetyDoorOpen(2) || robostar->IsEmergencyStopActive())
 		{
 			plcOutput.SRC_MANUAL_WORK = plcInput.SRC_READY;
 
@@ -660,7 +660,7 @@ void __fastcall TMainForm::CreateIoMonitoringPanel()
 		"CP09 TRIP", "CP10 SERVO1 TRIP", "CP11 SERVO2 TRIP", "CP12 SERVO3 TRIP", "CP13 BCR01 TRIP", "CP14 BCR02 TRIP", "MS01 TRIP", "",
 		"SERVO01 INPOS", "SERVO01 ALARM", "SERVO01 OK HOME", "SERVO02 INPOS", "SERVO02 ALARM", "SERVO02 OK HOME", "SERVO03 INPOS", "SERVO03 ALARM",
 		"SERVO03 OK HOME", "", "", "", "", "", "", "",
-		"GRIPPER1 CHUCK", "GRIPPER1 UNCHUCK", "GRIPPER1 CELL DETECT", "GRIPPER1 BUFFER", "EMS NORMAL", "OPBOX RESET SWITCH", "SAFETY DOOR NO.1 LEFT", "SAFETY DOOR NO.2 RIGHT",
+		"GRIPPER1 CHUCK", "GRIPPER1 UNCHUCK", "GRIPPER1 CELL DETECT", "GRIPPER1 BUFFER", "EMS NORMAL", "OPBOX RESET SWITCH", "SAFETY DOOR #1 NORMAL", "SAFETY DOOR #2 NORMAL",
 		"SAFETY RESET SW ON", "BY-PASS S/W ON", "BY-PASS S/W OFF", "SAFETY EMG ERROR", "SAFETY DOOR ERROR", "", "", ""
 	};
 	for(int i = 0; i < 48; ++i){
@@ -992,10 +992,10 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
         puse1->Visible = gripper->tool[i].disable;
     }
 
-	if( robostar->input.SAFETY_DOOR_1)pdoor_left->Color = clRed;
+	if(robostar->IsSafetyDoorOpen(1))pdoor_left->Color = clRed;
 	else pdoor_left->Color = clSilver;
 
-	if(robostar->input.SAFETY_DOOR_2)pdoor_right->Color = clRed;
+	if(robostar->IsSafetyDoorOpen(2))pdoor_right->Color = clRed;
 	else pdoor_right->Color = clSilver;
 
 	if(robostar->IsEmergencyStopActive())pemergency->Color = clRed;
@@ -1012,12 +1012,10 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	}
 
 	//* 테스트 위해 주석처리 2019 05 15
-	if(robostar->input.SAFETY_DOOR_1)
+	if(robostar->IsSafetyDoorOpen(1))
 		doorForm->ShowError("DOOR #1 Open", BaseForm->GetLangStr("MSG_CLOSE_DOOR"), 0);
-	if(robostar->input.SAFETY_DOOR_2)
+	if(robostar->IsSafetyDoorOpen(2))
 		doorForm->ShowError("DOOR #2 Open", BaseForm->GetLangStr("MSG_CLOSE_DOOR"), 1);
-	if(robostar->input.SAFETY_DOOR_3)
-		doorForm->ShowError("DOOR #3 Open", BaseForm->GetLangStr("MSG_CLOSE_DOOR"), 3);
 	if(robostar->IsEmergencyStopActive())
 		doorForm->ShowError("Emergency Stop", BaseForm->GetLangStr("MSG_CHECK_EMGSWITCH"), 2);
 	if(!robostar->IsKeyLockActive())

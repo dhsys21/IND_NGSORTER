@@ -62,8 +62,8 @@ typedef struct{
 	uint8_t GRIPPER1_BUFFER:1; //X0023 GRIPPER1 BUFFER
 	uint8_t EMS_SWITCH:1; //X0024 ON: normal, OFF: emergency stop
 	uint8_t OPBOX_RESET_SWITCH:1; //X0025 OPBOX RESET SWITCH
-	uint8_t SAFETY_DOOR_1:1; //X0026 SAFETY DOOR #1 LEFT
-	uint8_t SAFETY_DOOR_2:1; //X0027 SAFETY DOOR #2 RIGHT
+	uint8_t SAFETY_DOOR_1:1; //X0026 ON: door #1 closed, OFF: open
+	uint8_t SAFETY_DOOR_2:1; //X0027 ON: door #2 closed, OFF: open
 	uint8_t SAFETY_RESET_SW_ON:1; //X0028 SAFETY RESET SW ON
 	uint8_t BYPASS_SW_ON:1; //X0029 BY-PASS S/W ON
 	uint8_t BYPASS_SW_OFF:1; //X002A BY-PASS S/W OFF
@@ -395,6 +395,7 @@ public:		// User declarations
 	bool __fastcall CheckEjectCell_before(int pos);
 	bool __fastcall KeyLock(bool on);
 	bool __fastcall IsEmergencyStopActive() const;
+	bool __fastcall IsSafetyDoorOpen(int doorNo) const;
 	bool __fastcall IsKeyLockActive() const;
 	bool m_bInsertSave;
 
