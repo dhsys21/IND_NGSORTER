@@ -1,6 +1,7 @@
 object robostar: Trobostar
   OldCreateOrder = False
   OnCreate = DataModuleCreate
+  OnDestroy = DataModuleDestroy
   Height = 227
   Width = 331
   object senTimer: TTimer

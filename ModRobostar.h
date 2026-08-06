@@ -275,6 +275,7 @@ __published:	// IDE-managed Components
 	TTimer *Timer_zUpTest;
 	void __fastcall senTimerTimer(TObject *Sender);
 	void __fastcall DataModuleCreate(TObject *Sender);
+	void __fastcall DataModuleDestroy(TObject *Sender);
 private:	// User declarations
 	typedef struct{
 		int step;
@@ -331,6 +332,7 @@ private:	// User declarations
 	int board_id;   // mr2 제어 보드용
 	int channel_id;
 	int timeout;
+	bool sscOpened;
     PNT_DATA_EX point[AxisCnt];
     bool bSetPoint;
 	bool __fastcall setPoint(int axnum_id, unsigned long int pos);

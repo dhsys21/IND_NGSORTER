@@ -440,8 +440,8 @@ object InterfaceForm: TInterfaceForm
     end
   end
   object Timer_PLC_Update: TTimer
-    Enabled = False
-    Interval = 500
+    Enabled = True
+    Interval = 1000
     OnTimer = Timer_PLC_UpdateTimer
     Left = 250
     Top = 112

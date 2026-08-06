@@ -23,6 +23,7 @@ __fastcall Trobostar::Trobostar(TComponent* Owner)
 	board_id = 0;
 	channel_id = 1;
 	timeout = 10000;
+	sscOpened = false;
 
 	point[0].position = 0;
 }
@@ -111,8 +112,6 @@ bool __fastcall Trobostar::WriteLog(int status, UnicodeString msg)
 void __fastcall Trobostar::Init()
 {
 	int sts;
-	sts = sscOpen(board_id);
-	WriteLog(sts, "SSC_OPEN");
 	sts = sscReboot(board_id, channel_id, timeout);
 	WriteLog(sts, "REBOOT");
 	sts = sscResetAllParameter(board_id, channel_id, timeout);
@@ -772,9 +771,7 @@ void __fastcall Trobostar::EmgAutoRun()
 	int bitInfo = 0;
 
 	switch(step.step){
-		case 0: //  서보 OPEN
-			sts = sscOpen(board_id);
-			WriteLog(sts, "SSC_OPEN");
+		case 0: //  서보 시스템 초기화
 			sts = sscReboot(board_id, channel_id, timeout);
 			WriteLog(sts, "REBOOT");
 			sts = sscResetAllParameter(board_id, channel_id, timeout);
@@ -867,9 +864,7 @@ void __fastcall Trobostar::AutoRun()
 	int bitInfo = 0;
     short num[4] = {0x024E, 0, 0, 0};
 	switch(step.step){
-		case 0: //  서보 OPEN
-			sts = sscOpen(board_id);
-			WriteLog(sts, "SSC_OPEN");
+		case 0: //  서보 시스템 초기화
 			sts = sscReboot(board_id, channel_id, timeout);
 			WriteLog(sts, "REBOOT");
 			sts = sscResetAllParameter(board_id, channel_id, timeout);
@@ -1457,10 +1452,19 @@ void __fastcall Trobostar::DataModuleCreate(TObject *Sender)
 {
 	int sts = 0;
 	sts = sscOpen(board_id);
-	WriteLog(sts, "SSC_OPEN");
+	sscOpened = WriteLog(sts, "SSC_OPEN");
 	mdOpen(81,-1,&config.path);
 	io_Init();
 	req_Speed(1000, 1000, 1000);
+}
+//---------------------------------------------------------------------------
+void __fastcall Trobostar::DataModuleDestroy(TObject *Sender)
+{
+	if(sscOpened){
+		int sts = sscClose(board_id);
+		WriteLog(sts, "SSC_CLOSE");
+		sscOpened = false;
+	}
 }
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::KeyLock(bool on)
