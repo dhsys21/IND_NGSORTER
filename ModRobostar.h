@@ -60,7 +60,7 @@ typedef struct{
 	uint8_t GRIPPER1_DOWN:1; //X0021 GRIPPER1 UNCHUCK, old code compatibility
 	uint8_t GRIPPER1_CELL_DETECT:1; //X0022 GRIPPER1 CELL DETECT
 	uint8_t GRIPPER1_BUFFER:1; //X0023 GRIPPER1 BUFFER
-	uint8_t EMS_SWITCH:1; //X0024 EMERGENCY SWITCH
+	uint8_t EMS_SWITCH:1; //X0024 ON: normal, OFF: emergency stop
 	uint8_t OPBOX_RESET_SWITCH:1; //X0025 OPBOX RESET SWITCH
 	uint8_t SAFETY_DOOR_1:1; //X0026 SAFETY DOOR #1 LEFT
 	uint8_t SAFETY_DOOR_2:1; //X0027 SAFETY DOOR #2 RIGHT
@@ -394,6 +394,8 @@ public:		// User declarations
 	void __fastcall setTx();
 	bool __fastcall CheckEjectCell_before(int pos);
 	bool __fastcall KeyLock(bool on);
+	bool __fastcall IsEmergencyStopActive() const;
+	bool __fastcall IsKeyLockActive() const;
 	bool m_bInsertSave;
 
 	__fastcall Trobostar(TComponent* Owner);

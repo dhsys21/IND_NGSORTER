@@ -135,7 +135,7 @@ object doorForm: TdoorForm
       Color = 16744448
       ParentFont = False
       TabOrder = 6
-      Visible = False
+      Visible = True
       Version = '2.1.1.5'
       OnClick = btnSetKEYLOCKClick
       TMSStyle = 8

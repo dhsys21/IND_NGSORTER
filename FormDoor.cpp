@@ -98,7 +98,7 @@ void __fastcall TdoorForm::errTimerTimer(TObject *Sender)
 		pnlOpenGripper->Visible = false;
 
 	if(robostar->input.SAFETY_DOOR_1 || robostar->input.SAFETY_DOOR_2 || robostar->input.SAFETY_DOOR_3
-		|| robostar->input.EMS_SWITCH || MainForm->popen->Color != clLime) // || !robostar->input.s .SERVO_POWER){
+		|| robostar->IsEmergencyStopActive() || MainForm->popen->Color != clLime) // || !robostar->input.s .SERVO_POWER){
 	{
 		okBtn->Visible = false;
 	}else{
@@ -117,7 +117,7 @@ void __fastcall TdoorForm::errTimerTimer(TObject *Sender)
 //		robostar->KeyLock(true);
 //	}
 
-	if(isDoorOpen || robostar->input.EMS_SWITCH || !robostar->gripper.DOOR_OPEN_SELECT)
+	if(isDoorOpen || robostar->IsEmergencyStopActive() || !robostar->IsKeyLockActive())
 		robostar->KeyLock(false);
 
 //	if(isDoorOpen == true && robostar->input.SAFETY_DOOR_1 == 0 && robostar->input.SAFETY_DOOR_2 == 0 && robostar->input.SAFETY_DOOR_3 == 0)
@@ -130,9 +130,9 @@ void __fastcall TdoorForm::errTimerTimer(TObject *Sender)
 
 	text[0]->Visible = robostar->input.SAFETY_DOOR_1;
 	text[1]->Visible = robostar->input.SAFETY_DOOR_2;
-	text[2]->Visible = robostar->input.EMS_SWITCH;
+	text[2]->Visible = robostar->IsEmergencyStopActive();
 	text[3]->Visible = robostar->input.SAFETY_DOOR_3;
-	text[4]->Visible = !robostar->gripper.DOOR_OPEN_SELECT;
+	text[4]->Visible = !robostar->IsKeyLockActive();
 
 	//btnSetKEYLOCK->Visible = robostar->output.SAFETY_DOOR;
 	//btnSetKEYLOCK->Visible = robostar->gripper.DOOR_OPEN_SELECT;

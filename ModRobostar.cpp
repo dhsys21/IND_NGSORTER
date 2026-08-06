@@ -1460,4 +1460,14 @@ bool __fastcall Trobostar::KeyLock(bool on)
 	return gripper.DOOR_OPEN_SELECT == on;
 }
 //---------------------------------------------------------------------------
+bool __fastcall Trobostar::IsEmergencyStopActive() const
+{
+	return !input.EMS_SWITCH;
+}
+//---------------------------------------------------------------------------
+bool __fastcall Trobostar::IsKeyLockActive() const
+{
+	return gripper.DOOR_OPEN_SELECT;
+}
+//---------------------------------------------------------------------------
 
