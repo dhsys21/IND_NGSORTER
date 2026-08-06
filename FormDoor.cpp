@@ -169,8 +169,7 @@ void __fastcall TdoorForm::btnSetKEYLOCKClick(TObject *Sender)
 
 void __fastcall TdoorForm::btnServoOpenClick(TObject *Sender)
 {
-	//robostar->req_AutoRun();
-    robostar->req_EmgAutoRun();
+	robostar->req_Init();
 	if(gripper->seq == 4) gripper->step.step = 0;   //  seqPause
 }
 //---------------------------------------------------------------------------

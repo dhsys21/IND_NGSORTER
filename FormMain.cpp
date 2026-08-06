@@ -68,6 +68,10 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 void __fastcall TMainForm::FormShow(TObject *Sender)
 {
 	ReadSystemInfo();
+	if(PlcBin != NULL && !BaseForm->config.plcIp.IsEmpty() &&
+		BaseForm->config.plcPortPlc > 0 && BaseForm->config.plcPortPc > 0)
+		PlcBin->Connect(BaseForm->config.plcIp,
+			BaseForm->config.plcPortPlc, BaseForm->config.plcPortPc);
 	InitBarcodeAndSmoke();
 
 	tx = new TX_DATA;
@@ -109,6 +113,13 @@ bool __fastcall TMainForm::ReadSystemInfo()
 		return false;
 
 	TIniFile *ini = new TIniFile(file);
+
+	BaseForm->config.plcIp = ini->ReadString("COMMUNICATION", "PLC_IP",
+		ini->ReadString("PLC", "IPADDRESS", BaseForm->config.plcIp));
+	BaseForm->config.plcPortPlc = ini->ReadInteger("COMMUNICATION", "PLC_PORT_PLC",
+		ini->ReadInteger("PLC", "PORT1", BaseForm->config.plcPortPlc));
+	BaseForm->config.plcPortPc = ini->ReadInteger("COMMUNICATION", "PLC_PORT_PC",
+		ini->ReadInteger("PLC", "PORT2", BaseForm->config.plcPortPc));
 
 	BaseForm->config.bcrIp[0] = ini->ReadString("COMMUNICATION", "BCR_SOURCE_IP",
 		ini->ReadString("COMMUNICATION", "BCR_IP", BaseForm->config.bcrIp[0]));

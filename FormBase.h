@@ -60,6 +60,9 @@ typedef struct{
 	int smokeId;
 	int smokeMode;
 	int smokeBaudRate;
+	AnsiString plcIp;
+	int plcPortPlc;
+	int plcPortPc;
 }MAIN_CONFIG;
 
 

@@ -120,6 +120,9 @@ void __fastcall TConfigForm::CreateCommunicationControls()
 //---------------------------------------------------------------------------
 void __fastcall TConfigForm::LoadCommunicationEdits()
 {
+	if(editPLCIpaddress != NULL) editPLCIpaddress->Text = BaseForm->config.plcIp;
+	if(editPlcPort1 != NULL) editPlcPort1->Text = IntToStr(BaseForm->config.plcPortPlc);
+	if(editPlcPort2 != NULL) editPlcPort2->Text = IntToStr(BaseForm->config.plcPortPc);
 	if(editBcrSourceIp != NULL) editBcrSourceIp->Text = BaseForm->config.bcrIp[0];
 	if(editBcrSourcePort != NULL) editBcrSourcePort->Text = IntToStr(BaseForm->config.bcrPort[0]);
 	if(editBcrTargetIp != NULL) editBcrTargetIp->Text = BaseForm->config.bcrIp[1];
@@ -132,6 +135,9 @@ void __fastcall TConfigForm::LoadCommunicationEdits()
 //---------------------------------------------------------------------------
 void __fastcall TConfigForm::UpdateCommunicationConfigFromEdits()
 {
+	if(editPLCIpaddress != NULL) BaseForm->config.plcIp = editPLCIpaddress->Text;
+	if(editPlcPort1 != NULL) BaseForm->config.plcPortPlc = editPlcPort1->Text.ToIntDef(6002);
+	if(editPlcPort2 != NULL) BaseForm->config.plcPortPc = editPlcPort2->Text.ToIntDef(6003);
 	if(editBcrSourceIp != NULL) BaseForm->config.bcrIp[0] = editBcrSourceIp->Text;
 	if(editBcrSourcePort != NULL) BaseForm->config.bcrPort[0] = editBcrSourcePort->Text.ToIntDef(9004);
 	if(editBcrTargetIp != NULL) BaseForm->config.bcrIp[1] = editBcrTargetIp->Text;
@@ -170,9 +176,12 @@ void __fastcall TConfigForm::WriteSystemInfo(AnsiString type)
 		ini->WriteString("COMMUNICATION", "FMS_IP", editFmsIp->Text);
 		ini->WriteString("COMMUNICATION", "GATEWAY_PORT", PortEdit->Text);
         // PLC
-        ini->WriteString("PLC", "IPADDRESS", editPLCIpaddress->Text);
-        ini->WriteString("PLC", "PORT1", editPlcPort1->Text);
-        ini->WriteString("PLC", "PORT2", editPlcPort2->Text);
+		ini->WriteString("COMMUNICATION", "PLC_IP", BaseForm->config.plcIp);
+		ini->WriteInteger("COMMUNICATION", "PLC_PORT_PLC", BaseForm->config.plcPortPlc);
+		ini->WriteInteger("COMMUNICATION", "PLC_PORT_PC", BaseForm->config.plcPortPc);
+		ini->WriteString("PLC", "IPADDRESS", BaseForm->config.plcIp);
+		ini->WriteInteger("PLC", "PORT1", BaseForm->config.plcPortPlc);
+		ini->WriteInteger("PLC", "PORT2", BaseForm->config.plcPortPc);
         ini->WriteString("COMMUNICATION", "BCR_SOURCE_IP", BaseForm->config.bcrIp[0]);
         ini->WriteInteger("COMMUNICATION", "BCR_SOURCE_PORT", BaseForm->config.bcrPort[0]);
         ini->WriteString("COMMUNICATION", "BCR_TARGET_IP", BaseForm->config.bcrIp[1]);
@@ -219,9 +228,12 @@ bool __fastcall TConfigForm::ReadSystemInfo()
 	BaseForm->config.fmsIp = editFmsIp->Text;
 	BaseForm->config.gatewayPort = PortEdit->Text.ToIntDef(18080);
     // PLC
-    editPLCIpaddress->Text = ini->ReadString("PLC", "IPADDRESS", "192.168.0.1");
-    editPlcPort1->Text = ini->ReadString("PLC", "PORT1", "6002");
-    editPlcPort2->Text = ini->ReadString("PLC", "PORT2", "6003");
+	BaseForm->config.plcIp = ini->ReadString("COMMUNICATION", "PLC_IP",
+		ini->ReadString("PLC", "IPADDRESS", BaseForm->config.plcIp));
+	BaseForm->config.plcPortPlc = ini->ReadInteger("COMMUNICATION", "PLC_PORT_PLC",
+		ini->ReadInteger("PLC", "PORT1", BaseForm->config.plcPortPlc));
+	BaseForm->config.plcPortPc = ini->ReadInteger("COMMUNICATION", "PLC_PORT_PC",
+		ini->ReadInteger("PLC", "PORT2", BaseForm->config.plcPortPc));
     BaseForm->config.bcrIp[0] = ini->ReadString("COMMUNICATION", "BCR_SOURCE_IP",
         ini->ReadString("COMMUNICATION", "BCR_IP", BaseForm->config.bcrIp[0]));
     BaseForm->config.bcrPort[0] = ini->ReadInteger("COMMUNICATION", "BCR_SOURCE_PORT",
@@ -270,8 +282,10 @@ void __fastcall TConfigForm::btnDisconMesClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TConfigForm::btnPlcConnClick(TObject *Sender)
 {
+	UpdateCommunicationConfigFromEdits();
 	if(PlcBin != NULL)
-		PlcBin->Connect(editPLCIpaddress->Text, editPlcPort1->Text.ToIntDef(6002), editPlcPort2->Text.ToIntDef(6003));
+		PlcBin->Connect(BaseForm->config.plcIp,
+			BaseForm->config.plcPortPlc, BaseForm->config.plcPortPc);
 }
 //---------------------------------------------------------------------------
 void __fastcall TConfigForm::btnPlcDisconnClick(TObject *Sender)

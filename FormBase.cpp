@@ -23,6 +23,9 @@ __fastcall TBaseForm::TBaseForm(TComponent* Owner)
 	config.smokeId = 1;
 	config.smokeMode = 0;
 	config.smokeBaudRate = 115200;
+	config.plcIp = "192.168.0.1";
+	config.plcPortPlc = 6002;
+	config.plcPortPc = 6003;
 	SelectedBcrIndex = 0;
 
     GetWindowThreadProcessId(this->Handle, &PID);
@@ -84,7 +87,8 @@ void __fastcall TBaseForm::ClockTimerTimer(TObject *Sender)
 	dt = Now();
 
 	setColor(pims, Mod_Fms != NULL && Mod_Fms->IsGatewayConnected());
-	setColor(pplc, plc->client->Active);
+	setColor(pplc, PlcBin != NULL &&
+		PlcBin->ClientSocket_PLC->Active && PlcBin->ClientSocket_PC->Active);
 	if(MainForm->path  == 81)setColor(pcclink, true);
 	else setColor(pcclink, false);
 

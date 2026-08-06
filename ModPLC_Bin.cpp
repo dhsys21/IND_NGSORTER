@@ -60,14 +60,18 @@ void __fastcall TPlcBin::Connect(AnsiString ip, int port1, int port2)
 	try
 	{
 		bClose = false;
+		Timer_PLC_AutoConnect->Enabled = false;
+		Timer_PC_AutoConnect->Enabled = false;
 
 		ClientSocket_PLC->Address = ip;
 		ClientSocket_PLC->Port = port1;
-		ClientSocket_PLC->Open();
+		if(!ClientSocket_PLC->Active)
+			ClientSocket_PLC->Open();
 
 		ClientSocket_PC->Address = ip;
 		ClientSocket_PC->Port = port2;
-		ClientSocket_PC->Open();
+		if(!ClientSocket_PC->Active)
+			ClientSocket_PC->Open();
 	}
 	catch(...)
 	{
@@ -122,8 +126,7 @@ void __fastcall TPlcBin::ClientSocket_PLCConnect(TObject *Sender, TCustomWinSock
 void __fastcall TPlcBin::ClientSocket_PLCDisconnect(TObject *Sender, TCustomWinSocket *Socket)
 
 {
-    if(bClose) bClose = false;
-	else Timer_PLC_AutoConnect->Enabled = true;
+	if(!bClose) Timer_PLC_AutoConnect->Enabled = true;
 }
 //---------------------------------------------------------------------------
 
@@ -195,8 +198,7 @@ void __fastcall TPlcBin::ClientSocket_PCConnect(TObject *Sender, TCustomWinSocke
 void __fastcall TPlcBin::ClientSocket_PCDisconnect(TObject *Sender, TCustomWinSocket *Socket)
 
 {
-    if(bClose) bClose = false;
-	else Timer_PC_AutoConnect->Enabled = true;
+	if(!bClose) Timer_PC_AutoConnect->Enabled = true;
 }
 //---------------------------------------------------------------------------
 
