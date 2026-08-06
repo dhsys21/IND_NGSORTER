@@ -224,6 +224,12 @@ void __fastcall Trobostar::Home()
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::ServoOn()
 {
+	if(!IsSafetyReady()){
+		MainForm->memoRobostarLineAdd("[Safety] Servo ON blocked: X002B/X002C must be ON.");
+		InitSequence(seqIdle);
+		return;
+	}
+
 	int sts = 0;
 	for(int i=1; i<=servoCnt; ++i){
 		sts = sscSetCommandBitSignalEx(board_id, channel_id, i, SSC_CMDBIT_AX_SON, SSC_BIT_ON);
@@ -1456,8 +1462,8 @@ void __fastcall Trobostar::DataModuleCreate(TObject *Sender)
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::KeyLock(bool on)
 {
-	gripper.DOOR_OPEN_SELECT = on;
-	return gripper.DOOR_OPEN_SELECT == on;
+	gripper.DOOR_OPEN_SELECT = !on;
+	return gripper.DOOR_OPEN_SELECT == !on;
 }
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::IsEmergencyStopActive() const
@@ -1465,16 +1471,21 @@ bool __fastcall Trobostar::IsEmergencyStopActive() const
 	return !input.EMS_SWITCH;
 }
 //---------------------------------------------------------------------------
+bool __fastcall Trobostar::IsSafetyReady() const
+{
+	return input.SAFETY_EMG_READY && input.SAFETY_DOOR_READY;
+}
+//---------------------------------------------------------------------------
 bool __fastcall Trobostar::IsSafetyDoorOpen(int doorNo) const
 {
-	if(doorNo == 1) return !input.SAFETY_DOOR_1;
-	if(doorNo == 2) return !input.SAFETY_DOOR_2;
+	if(doorNo == 1) return input.SAFETY_DOOR_1;
+	if(doorNo == 2) return input.SAFETY_DOOR_2;
 	return false;
 }
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::IsKeyLockActive() const
 {
-	return gripper.DOOR_OPEN_SELECT;
+	return !gripper.DOOR_OPEN_SELECT;
 }
 //---------------------------------------------------------------------------
 

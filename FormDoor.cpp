@@ -114,7 +114,7 @@ void __fastcall TdoorForm::errTimerTimer(TObject *Sender)
 //		robostar->KeyLock(true);
 //	}
 
-	if(isDoorOpen || robostar->IsEmergencyStopActive() || !robostar->IsKeyLockActive())
+	if(robostar->IsEmergencyStopActive())
 		robostar->KeyLock(false);
 
 //	if(isDoorOpen == true && robostar->input.SAFETY_DOOR_1 == 0 && robostar->input.SAFETY_DOOR_2 == 0 && robostar->input.SAFETY_DOOR_3 == 0)
@@ -155,7 +155,7 @@ void __fastcall TdoorForm::okBtnClick(TObject *Sender)
 
 void __fastcall TdoorForm::btnSetKEYLOCKClick(TObject *Sender)
 {
-	robostar->KeyLock(false);
+	robostar->KeyLock(true);
 }
 //---------------------------------------------------------------------------
 

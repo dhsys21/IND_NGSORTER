@@ -62,13 +62,13 @@ typedef struct{
 	uint8_t GRIPPER1_BUFFER:1; //X0023 GRIPPER1 BUFFER
 	uint8_t EMS_SWITCH:1; //X0024 ON: normal, OFF: emergency stop
 	uint8_t OPBOX_RESET_SWITCH:1; //X0025 OPBOX RESET SWITCH
-	uint8_t SAFETY_DOOR_1:1; //X0026 ON: door #1 closed, OFF: open
-	uint8_t SAFETY_DOOR_2:1; //X0027 ON: door #2 closed, OFF: open
+	uint8_t SAFETY_DOOR_1:1; //X0026 ON: unlocked/open, OFF: keylock locked
+	uint8_t SAFETY_DOOR_2:1; //X0027 ON: unlocked/open, OFF: keylock locked
 	uint8_t SAFETY_RESET_SW_ON:1; //X0028 SAFETY RESET SW ON
 	uint8_t BYPASS_SW_ON:1; //X0029 BY-PASS S/W ON
 	uint8_t BYPASS_SW_OFF:1; //X002A BY-PASS S/W OFF
-	uint8_t SAFETY_EMG_ERROR:1; //X002B SAFETY EMG ERROR
-	uint8_t SAFETY_DOOR_ERROR:1; //X002C SAFETY DOOR ERROR
+	uint8_t SAFETY_EMG_READY:1; //X002B ON: emergency safety circuit ready
+	uint8_t SAFETY_DOOR_READY:1; //X002C ON: door safety circuit ready
 	uint8_t SAFETY_DOOR_3:1; //X002D not used
 	uint8_t X002E:1; //X002E
 	uint8_t X002F:1; //X002F
@@ -210,7 +210,7 @@ typedef struct{
 	uint8_t TOWER_LAMP_YELLOW:1; //Y0039 TOWER LAMP YELLOW
 	uint8_t TOWER_LAMP_GREEN:1; //Y003A TOWER LAMP GREEN
 	uint8_t TOWER_LAMP_BUZZER:1; //Y003B TOWER LAMP BUZZER
-	uint8_t DOOR_OPEN_SELECT:1; //Y003C SAFETY KEY S/W
+	uint8_t DOOR_OPEN_SELECT:1; //Y003C ON: keylock released, OFF: keylock set
 	uint8_t Y003D:1; //Y003D
 	uint8_t Y003E:1; //Y003E
 	uint8_t Y003F:1; //Y003F
@@ -395,6 +395,7 @@ public:		// User declarations
 	bool __fastcall CheckEjectCell_before(int pos);
 	bool __fastcall KeyLock(bool on);
 	bool __fastcall IsEmergencyStopActive() const;
+	bool __fastcall IsSafetyReady() const;
 	bool __fastcall IsSafetyDoorOpen(int doorNo) const;
 	bool __fastcall IsKeyLockActive() const;
 	bool m_bInsertSave;

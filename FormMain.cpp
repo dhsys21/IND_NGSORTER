@@ -660,8 +660,8 @@ void __fastcall TMainForm::CreateIoMonitoringPanel()
 		"CP09 TRIP", "CP10 SERVO1 TRIP", "CP11 SERVO2 TRIP", "CP12 SERVO3 TRIP", "CP13 BCR01 TRIP", "CP14 BCR02 TRIP", "MS01 TRIP", "",
 		"SERVO01 INPOS", "SERVO01 ALARM", "SERVO01 OK HOME", "SERVO02 INPOS", "SERVO02 ALARM", "SERVO02 OK HOME", "SERVO03 INPOS", "SERVO03 ALARM",
 		"SERVO03 OK HOME", "", "", "", "", "", "", "",
-		"GRIPPER1 CHUCK", "GRIPPER1 UNCHUCK", "GRIPPER1 CELL DETECT", "GRIPPER1 BUFFER", "EMS NORMAL", "OPBOX RESET SWITCH", "SAFETY DOOR #1 NORMAL", "SAFETY DOOR #2 NORMAL",
-		"SAFETY RESET SW ON", "BY-PASS S/W ON", "BY-PASS S/W OFF", "SAFETY EMG ERROR", "SAFETY DOOR ERROR", "", "", ""
+		"GRIPPER1 CHUCK", "GRIPPER1 UNCHUCK", "GRIPPER1 CELL DETECT", "GRIPPER1 BUFFER", "EMS NORMAL", "OPBOX RESET SWITCH", "SAFETY DOOR #1 UNLOCKED", "SAFETY DOOR #2 UNLOCKED",
+		"SAFETY RESET SW ON", "BY-PASS S/W ON", "BY-PASS S/W OFF", "SAFETY EMG READY", "SAFETY DOOR READY", "", "", ""
 	};
 	for(int i = 0; i < 48; ++i){
 		AnsiString address = "X" + IntToHex(i, 4);
@@ -702,7 +702,7 @@ void __fastcall TMainForm::CreateIoMonitoringPanel()
 		"GRIPPER CHUCK SOL", "GRIPPER UNCHUCK SOL", "SAFETY RESET", "DOOR_LEFT_CLOSE",
 		"DOOR_RIGHT_CLOSE", "OPBOX RESET LAMP", "SAFETY RESET SW LAMP", "OPBOX EMERGENCY LAMP",
 		"TOWER LAMP RED", "TOWER LAMP YELLOW", "TOWER LAMP GREEN", "TOWER LAMP BUZZER",
-		"SAFETY KEY S/W", "", "", ""
+		"KEYLOCK RELEASE", "", "", ""
 	};
 	for(int i = 0; i < 16; ++i){
 		AnsiString address = "Y" + IntToHex(0x0030 + i, 4);
@@ -726,8 +726,8 @@ void __fastcall TMainForm::UpdateIoMonitoringPanel()
 		robostar->input.X001C, robostar->input.X001D, robostar->input.X001E, robostar->input.X001F,
 		robostar->input.GRIPPER1_UP, robostar->input.GRIPPER1_DOWN, robostar->input.GRIPPER1_CELL_DETECT, robostar->input.GRIPPER1_BUFFER,
 		robostar->input.EMS_SWITCH, robostar->input.OPBOX_RESET_SWITCH, robostar->input.SAFETY_DOOR_1, robostar->input.SAFETY_DOOR_2,
-		robostar->input.SAFETY_RESET_SW_ON, robostar->input.BYPASS_SW_ON, robostar->input.BYPASS_SW_OFF, robostar->input.SAFETY_EMG_ERROR,
-		robostar->input.SAFETY_DOOR_ERROR, robostar->input.SAFETY_DOOR_3, robostar->input.X002E, robostar->input.X002F
+		robostar->input.SAFETY_RESET_SW_ON, robostar->input.BYPASS_SW_ON, robostar->input.BYPASS_SW_OFF, robostar->input.SAFETY_EMG_READY,
+		robostar->input.SAFETY_DOOR_READY, robostar->input.SAFETY_DOOR_3, robostar->input.X002E, robostar->input.X002F
 	};
 
 	bool outputValue[16] = {
