@@ -201,8 +201,8 @@ typedef struct{
 	uint8_t GRIPPER1_CHUCK:1; //Y0030 GRIPPER CHUCK SOL
 	uint8_t GRIPPER1_UNCHUCK:1; //Y0031 GRIPPER UNCHUCK SOL
 	uint8_t SAFETY_RESET:1; //Y0032 SAFETY RESET
-	uint8_t DOOR_LEFT_CLOSE:1; //Y0033 DOOR_LEFT_CLOSE
-	uint8_t DOOR_RIGHT_CLOSE:1; //Y0034 DOOR_RIGHT_CLOSE
+	uint8_t DOOR_LEFT_CLOSE:1; //Y0033 KEYLOCK LEFT
+	uint8_t DOOR_RIGHT_CLOSE:1; //Y0034 KEYLOCK RIGHT
 	uint8_t OPBOX_RESET_LAMP:1; //Y0035 OPBOX RESET LAMP
 	uint8_t SAFETY_RESET_SW_LAMP:1; //Y0036 SAFETY RESET SW LAMP
 	uint8_t OPBOX_EMERGENCY_LAMP:1; //Y0037 OPBOX EMERGENCY LAMP
@@ -210,7 +210,7 @@ typedef struct{
 	uint8_t TOWER_LAMP_YELLOW:1; //Y0039 TOWER LAMP YELLOW
 	uint8_t TOWER_LAMP_GREEN:1; //Y003A TOWER LAMP GREEN
 	uint8_t TOWER_LAMP_BUZZER:1; //Y003B TOWER LAMP BUZZER
-	uint8_t DOOR_OPEN_SELECT:1; //Y003C ON: keylock released, OFF: keylock set
+	uint8_t DOOR_OPEN_SELECT:1; //Y003C BYPASS
 	uint8_t Y003D:1; //Y003D
 	uint8_t Y003E:1; //Y003E
 	uint8_t Y003F:1; //Y003F
@@ -396,10 +396,12 @@ public:		// User declarations
 	void __fastcall setTx();
 	bool __fastcall CheckEjectCell_before(int pos);
 	bool __fastcall KeyLock(bool on);
+	bool __fastcall Bypass(bool on);
 	bool __fastcall IsEmergencyStopActive() const;
 	bool __fastcall IsSafetyReady() const;
 	bool __fastcall IsSafetyDoorOpen(int doorNo) const;
 	bool __fastcall IsKeyLockActive() const;
+	bool __fastcall IsSscOpened() const;
 	bool m_bInsertSave;
 
 	__fastcall Trobostar(TComponent* Owner);

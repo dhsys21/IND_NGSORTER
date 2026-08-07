@@ -227,6 +227,28 @@ void __fastcall TBaseForm::btnKeyUnLockClick(TObject *Sender)
 	}
 }
 //---------------------------------------------------------------------------
+void __fastcall TBaseForm::btnBypassOnClick(TObject *Sender)
+{
+	if(MainForm->equipMode != modeManual)
+	{
+		ShowMessage(GetLangStr("MSG_MANUAL_CONTROL"));
+	}
+	else{
+		robostar->Bypass(true);
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TBaseForm::btnBypassOffClick(TObject *Sender)
+{
+	if(MainForm->equipMode != modeManual)
+	{
+		ShowMessage(GetLangStr("MSG_MANUAL_CONTROL"));
+	}
+	else{
+		robostar->Bypass(false);
+	}
+}
+//---------------------------------------------------------------------------
 //--------------------     언어 변경          -------------------------------
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::RadioButton1Click(TObject *Sender)

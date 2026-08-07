@@ -30,8 +30,11 @@ __fastcall Trobostar::Trobostar(TComponent* Owner)
 //---------------------------------------------------------------------------
 int __fastcall Trobostar::io_Init()
 {
-    short num[4] = {0x024E, 0, 0, 0};
-	for(int i = 1; i <= servoCnt; i++) sscSetMonitor(board_id, channel_id, i, &num[0]);
+	if(sscOpened){
+		short num[4] = {0x024E, 0, 0, 0};
+		for(int i = 1; i <= servoCnt; i++)
+			sscSetMonitor(board_id, channel_id, i, &num[0]);
+	}
 
 	senTimer->Enabled = true;
 
@@ -85,6 +88,10 @@ void __fastcall Trobostar::req_Pause(bool stop)
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::InitSequence(robotSequence data, robotSequence reserve)
 {
+	// Keep MELSEC I/O alive when the position board cannot be opened, but do not
+	// queue a sequence that would call the SSC API from the timer.
+	if(!sscOpened && data != seqIdle && data != seqPause) return;
+
 	seq = data;
 	step.step = 0;
 	step.delay = 0;
@@ -733,6 +740,7 @@ void __fastcall Trobostar::req_Stop()
 {
 	int sts = 0;
 	InitSequence(seqIdle);
+	if(!sscOpened) return;
 
 	for(int i=1; i<=servoCnt; ++i){
 		sts = sscDriveStop(board_id, channel_id, i, 0);
@@ -1209,6 +1217,8 @@ bool __fastcall Trobostar::getGripperChuckStatus()
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::mr2Sensing()
 {
+	if(!sscOpened) return;
+
 	static int seq = 0;
 	UnicodeString msg;
 
@@ -1253,7 +1263,7 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 	// 그리퍼가 모두 상승되어 있을때 ON : 안전관련 추가사항
 	output.CYLINDER_Z = input.GRIPPER1_UP;
 	this->io_WriteGripper();
-	mr2Sensing();
+	if(sscOpened) mr2Sensing();
 
 	if(seq == seqInit)Init();
 	else if(seq == seqHome)Home();
@@ -1469,8 +1479,15 @@ void __fastcall Trobostar::DataModuleDestroy(TObject *Sender)
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::KeyLock(bool on)
 {
-	gripper.DOOR_OPEN_SELECT = !on;
-	return gripper.DOOR_OPEN_SELECT == !on;
+	gripper.DOOR_LEFT_CLOSE = on;
+	gripper.DOOR_RIGHT_CLOSE = on;
+	return gripper.DOOR_LEFT_CLOSE == on && gripper.DOOR_RIGHT_CLOSE == on;
+}
+//---------------------------------------------------------------------------
+bool __fastcall Trobostar::Bypass(bool on)
+{
+	gripper.DOOR_OPEN_SELECT = on;
+	return gripper.DOOR_OPEN_SELECT == on;
 }
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::IsEmergencyStopActive() const
@@ -1492,7 +1509,12 @@ bool __fastcall Trobostar::IsSafetyDoorOpen(int doorNo) const
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::IsKeyLockActive() const
 {
-	return !gripper.DOOR_OPEN_SELECT;
+	return gripper.DOOR_LEFT_CLOSE && gripper.DOOR_RIGHT_CLOSE;
+}
+//---------------------------------------------------------------------------
+bool __fastcall Trobostar::IsSscOpened() const
+{
+	return sscOpened;
 }
 //---------------------------------------------------------------------------
 

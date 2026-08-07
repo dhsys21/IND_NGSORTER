@@ -280,8 +280,11 @@ void __fastcall TMainForm::mesTimerTimer(TObject *Sender)
 
 void __fastcall TMainForm::autoBtnClick(TObject *Sender)
 {
-	if(m_ServoHome)   						  // test
+	if(m_ServoHome || !robostar->IsSscOpened())
 	{
+		if(!robostar->IsSscOpened())
+			memoRobostarLineAdd("[Servo] SSC is not open. Auto mode continues without servo control.");
+
         int servo_speed = teachForm->speedEdit->Text.ToInt();
 		int servo_accl_speed = teachForm->acclSpeedEdit->Text.ToInt();
 		int servo_dccl_speed = teachForm->dcclSpeedEdit->Text.ToInt();
@@ -710,10 +713,10 @@ void __fastcall TMainForm::CreateIoMonitoringPanel()
 	scrOutput->Tag = 8;
 
 	const char *outputNames[16] = {
-		"GRIPPER CHUCK SOL", "GRIPPER UNCHUCK SOL", "SAFETY RESET", "DOOR_LEFT_CLOSE",
-		"DOOR_RIGHT_CLOSE", "OPBOX RESET LAMP", "SAFETY RESET SW LAMP", "OPBOX EMERGENCY LAMP",
+		"GRIPPER CHUCK SOL", "GRIPPER UNCHUCK SOL", "SAFETY RESET", "KEYLOCK LEFT",
+		"KEYLOCK RIGHT", "OPBOX RESET LAMP", "SAFETY RESET SW LAMP", "OPBOX EMERGENCY LAMP",
 		"TOWER LAMP RED", "TOWER LAMP YELLOW", "TOWER LAMP GREEN", "TOWER LAMP BUZZER",
-		"KEYLOCK RELEASE", "", "", ""
+		"BYPASS", "", "", ""
 	};
 	for(int i = 0; i < 16; ++i){
 		AnsiString address = "Y" + IntToHex(0x0030 + i, 4);
@@ -782,10 +785,12 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	sensorColor(pclose1, robostar->output.GRIPPER1_CHUCK);
     //* 2026 07 24 MR-MC axis operation status
 	bool servoRunning = false;
-	for(int i = 1; i <= servoCnt; ++i){
-		if(robostar->mr2.running[i]){
-			servoRunning = true;
-			break;
+	if(robostar->IsSscOpened()){
+		for(int i = 1; i <= servoCnt; ++i){
+			if(robostar->mr2.running[i]){
+				servoRunning = true;
+				break;
+			}
 		}
 	}
 	if(servoRunning)
@@ -804,11 +809,11 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 
 	UpdateIoMonitoringPanel();
 
-	if(robostar->mr2.system_status == SSC_STS_CODE_RUNNING) popen->Color = clLime;
+	if(robostar->IsSscOpened() && robostar->mr2.system_status == SSC_STS_CODE_RUNNING) popen->Color = clLime;
 	else popen->Color = clSilver;
 
 	bool NGflag = false;
-	if(robostar->mr2.system_detail == 0)
+	if(robostar->IsSscOpened() && robostar->mr2.system_detail == 0)
 	{
 		if(robostar->mr2.speed[Axis_x] < 0) robostar->mr2.speed[Axis_x] *= -1;
 		if(robostar->mr2.speed[Axis_y] < 0) robostar->mr2.speed[Axis_y] *= -1;
@@ -850,7 +855,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 			else status_error[i]->Color = clSilver;
 		}
 	}
-	else
+	else if(robostar->IsSscOpened())
 	{
 		NGflag = true;
 		perr->Color = clRed;
@@ -858,14 +863,16 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		perr->Caption = IntToHex(robostar->mr2.system_detail, 8);
 	}
 
-	for(int i = 1; i <= servoCnt; ++i){
-		if(robostar->mr2.mondata[i][0] > loadfactorForm->m_SetLimit)
-		{
-			loadfactorForm->m_Count++;
-			if(loadfactorForm->m_Count > 10)
+	if(robostar->IsSscOpened()){
+		for(int i = 1; i <= servoCnt; ++i){
+			if(robostar->mr2.mondata[i][0] > loadfactorForm->m_SetLimit)
 			{
-				loadfactor_AlarmForm->ShowError(BaseForm->GetLangStr("MSG_LOADFACTOR_LIMIT"), BaseForm->GetLangStr("MSG_CHECK_SERVOSTATUS"));
-				break;
+				loadfactorForm->m_Count++;
+				if(loadfactorForm->m_Count > 10)
+				{
+					loadfactor_AlarmForm->ShowError(BaseForm->GetLangStr("MSG_LOADFACTOR_LIMIT"), BaseForm->GetLangStr("MSG_CHECK_SERVOSTATUS"));
+					break;
+				}
 			}
 		}
 	}
@@ -1037,7 +1044,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
             robostar->req_Speed(200, 3000, 3000);
 	}
 
-	if(popen->Color != clLime)
+	if(robostar->IsSscOpened() && popen->Color != clLime)
 		doorForm->ShowError("RESET", BaseForm->GetLangStr("MSG_SERVO_OPEN"), 5);
 
 	pejectremainCnt->Caption = tray_source.remainCnt;

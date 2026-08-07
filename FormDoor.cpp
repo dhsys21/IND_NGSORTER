@@ -40,6 +40,7 @@ __fastcall TdoorForm::TdoorForm(TComponent* Owner)
 void __fastcall TdoorForm::ShowError(AnsiString MainStr, AnsiString SubStr, int errCode)
 {
 	if(errCode < 0 || errCode > 5) return;
+	if(errCode == 5 && !robostar->IsSscOpened()) return;
 	if(errCode == 0 && !robostar->IsSafetyDoorOpen(1)) return;
 	if(errCode == 1 && !robostar->IsSafetyDoorOpen(2)) return;
 
