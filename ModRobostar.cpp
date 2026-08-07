@@ -124,7 +124,7 @@ void __fastcall Trobostar::Init()
 	// 이미 Open된 보드에는 sscOpen()을 중복 호출하지 않는다.
 	if(!sscOpened){
 		sts = sscOpen(board_id);
-		sscOpened = WriteLog(sts, "SSC_OPEN");
+		sscOpened = WriteLog(sts, "POSITION BOARD OPEN");
 		if(!sscOpened){
 			mr2.system_status = 0;
 			InitSequence(seqIdle);
@@ -139,13 +139,22 @@ void __fastcall Trobostar::Init()
 	sts = sscLoadAllParameterFromFlashROM(board_id, channel_id, timeout);
 	if(!WriteLog(sts, "LOAD PARAMETER")) goto open_failed;
 	sts = sscSystemStart(board_id, channel_id, timeout);
-	if(!WriteLog(sts, "SERVO START")) goto open_failed;
+	if(sts != SSC_OK){
+		WriteLog(sts, "SERVO SYSTEM START COMMAND");
+		goto open_failed;
+	}
+	MainForm->memoRobostarLineAdd("SERVO SYSTEM START 명령 접수");
 
 	//* SystemStart 완료 후 실제 시스템 상태를 즉시 확인한다. 정상값은 000A(RUNNING).
 	sts = sscGetSystemStatusCode(board_id, channel_id, &mr2.system_status);
 	if(!WriteLog(sts, "GET SYSTEM STATUS")) goto open_failed;
-	MainForm->memoRobostarLineAdd("SYSTEM STATUS : " +
-		IntToHex((int)mr2.system_status, 4));
+	if(mr2.system_status != SSC_STS_CODE_RUNNING){
+		MainForm->memoRobostarLineAdd("SERVO SYSTEM OPEN 확인 실패 : STATUS " +
+			IntToHex((int)mr2.system_status, 4));
+		InitSequence(seqIdle);
+		return;
+	}
+	MainForm->memoRobostarLineAdd("SERVO SYSTEM OPEN 확인 성공 : STATUS 000A");
 	InitSequence(seqIdle);
 	return;
 
@@ -263,20 +272,38 @@ void __fastcall Trobostar::ServoOn()
 		return;
 	}
 
+	if(!sscOpened || mr2.system_status != SSC_STS_CODE_RUNNING){
+		MainForm->memoRobostarLineAdd("Servo ON 차단: 먼저 Servo System Open을 확인하세요.");
+		InitSequence(seqIdle);
+		return;
+	}
+
 	int sts = 0;
 	for(int i=1; i<=servoCnt; ++i){
 		sts = sscSetCommandBitSignalEx(board_id, channel_id, i, SSC_CMDBIT_AX_SON, SSC_BIT_ON);
-		WriteLog(sts, "[" + IntToStr(i) +  "] 서보 ON");
-		//* 2026 08 07 ON 명령 접수와 실제 Servo Ready ON 완료를 구분하여 확인
-		if(sts == SSC_OK){
-			int readySts = sscWaitStatusBitSignalEx(board_id, channel_id, i,
-				SSC_STSBIT_AX_RDY, SSC_BIT_ON, 1000);
-			WriteLog(readySts, "[" + IntToStr(i) + "] Servo Ready ON");
-			mr2.servo[i] = (readySts == SSC_OK) ? SSC_BIT_ON : SSC_BIT_OFF;
-		}
-		else{
+		if(sts != SSC_OK){
+			WriteLog(sts, "[" + IntToStr(i) + "] Servo ON COMMAND");
 			mr2.servo[i] = SSC_BIT_OFF;
+			continue;
 		}
+		MainForm->memoRobostarLineAdd("[" + IntToStr(i) + "] Servo ON 명령 접수");
+
+		//* 2026 08 07 명령 반환값이 아니라 실제 AX_RDY를 다시 읽어 ON 성공 판정
+		int readySts = sscWaitStatusBitSignalEx(board_id, channel_id, i,
+			SSC_STSBIT_AX_RDY, SSC_BIT_ON, 1000);
+		int ready = SSC_BIT_OFF;
+		int readSts = sscGetStatusBitSignalEx(board_id, channel_id, i,
+			SSC_STSBIT_AX_RDY, &ready);
+		bool servoReadyOn = readySts == SSC_OK && readSts == SSC_OK &&
+			ready == SSC_BIT_ON;
+		mr2.servo[i] = servoReadyOn ? SSC_BIT_ON : SSC_BIT_OFF;
+
+		if(servoReadyOn)
+			MainForm->memoRobostarLineAdd("[" + IntToStr(i) + "] Servo ON 확인 성공 (RDY=1)");
+		else
+			MainForm->memoRobostarLineAdd("[" + IntToStr(i) + "] Servo ON 확인 실패 (RDY=" +
+				IntToStr(ready) + ", WAIT=" + IntToHex(readySts, 8) +
+				", READ=" + IntToHex(readSts, 8) + ")");
 	}
 	InitSequence(seqIdle);
 }
@@ -829,14 +856,18 @@ void __fastcall Trobostar::EmgAutoRun()
 			sts = sscLoadAllParameterFromFlashROM(board_id, channel_id, timeout);
 			WriteLog(sts, "LOAD PARAMETER");
 			sts = sscSystemStart(board_id, channel_id, timeout);
-			WriteLog(sts, "SERVO START");
+			if(sts == SSC_OK)
+				MainForm->memoRobostarLineAdd("SERVO SYSTEM START 명령 접수");
+			else WriteLog(sts, "SERVO SYSTEM START COMMAND");
 
 			step.step += 1;
 			break;
 		case 1: //  서보 ON
 			for(int i = 1; i <= servoCnt; ++i){
 				sts = sscSetCommandBitSignalEx(board_id, channel_id, i, SSC_CMDBIT_AX_SON, SSC_BIT_ON);
-				WriteLog(sts, "[" + IntToStr(i) +  "] 서보 ON");
+				if(sts == SSC_OK)
+					MainForm->memoRobostarLineAdd("[" + IntToStr(i) + "] Servo ON 명령 접수");
+				else WriteLog(sts, "[" + IntToStr(i) + "] Servo ON COMMAND");
 			}
 			step.delay = 0;
 			step.step += 1;
@@ -922,7 +953,9 @@ void __fastcall Trobostar::AutoRun()
 			sts = sscLoadAllParameterFromFlashROM(board_id, channel_id, timeout);
 			WriteLog(sts, "LOAD PARAMETER");
 			sts = sscSystemStart(board_id, channel_id, timeout);
-			WriteLog(sts, "SERVO START");
+			if(sts == SSC_OK)
+				MainForm->memoRobostarLineAdd("SERVO SYSTEM START 명령 접수");
+			else WriteLog(sts, "SERVO SYSTEM START COMMAND");
 
             for(int i = 1; i <= servoCnt; i++) sscSetMonitor(board_id, channel_id, i, &num[0]);
 
@@ -931,7 +964,9 @@ void __fastcall Trobostar::AutoRun()
 		case 1: //  서보 ON
 			for(int i = 1; i <= servoCnt; ++i){
 				sts = sscSetCommandBitSignalEx(board_id, channel_id, i, SSC_CMDBIT_AX_SON, SSC_BIT_ON);
-				WriteLog(sts, "[" + IntToStr(i) +  "] Servo ON");
+				if(sts == SSC_OK)
+					MainForm->memoRobostarLineAdd("[" + IntToStr(i) + "] Servo ON 명령 접수");
+				else WriteLog(sts, "[" + IntToStr(i) + "] Servo ON COMMAND");
 			}
 			step.delay = 0;
 			step.step += 1;
@@ -1506,7 +1541,7 @@ void __fastcall Trobostar::DataModuleCreate(TObject *Sender)
 {
 	int sts = 0;
 	sts = sscOpen(board_id);
-	sscOpened = WriteLog(sts, "SSC_OPEN");
+	sscOpened = WriteLog(sts, "POSITION BOARD OPEN");
 	mdOpen(81,-1,&config.path);
 	io_Init();
 	req_Speed(1000, 1000, 1000);
