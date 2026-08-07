@@ -1236,23 +1236,23 @@ bool __fastcall Trobostar::getGripperChuckStatus()
 //* 2026 08 07 Servo ON 명령 성공 후 화면에 RDY 상태가 표시되지 않는 문제 대응
 bool __fastcall Trobostar::ReadServoReadyStatus(int axnum_id, int &ready)
 {
-	// 표준 RDY와 변환/구형 Win32 API의 호환 상태워드를 모두 확인한다.
-	// 일부 변환 라이브러리는 표준 함수에서 SSC_OK와 0을 반환할 수 있다.
-	int readyEx = SSC_BIT_OFF;
-	int stsEx = sscGetStatusBitSignalEx(board_id, channel_id, axnum_id,
-		SSC_STSBIT_AX_RDY, &readyEx);
+	//* 2026 08 07 변환 DLL에서 sscGetAxisStatusBits 호출 후 발생하는 AV 방지
+	// 현재 변환 DLL에서 정상 호출되는 표준 RDY 상태 함수만 사용한다.
+	ready = SSC_BIT_OFF;
+	int sts = sscGetStatusBitSignalEx(board_id, channel_id, axnum_id,
+		SSC_STSBIT_AX_RDY, &ready);
+	if(sts != SSC_OK)
+		return false;
 
-	// 호환 축 상태워드의 bit 0은 Servo Ready(RDY) 신호이다.
-	short statusBits = 0;
-	int stsCompat = sscGetAxisStatusBits(board_id, channel_id, axnum_id, &statusBits);
-	if(stsEx == SSC_OK || stsCompat == SSC_OK){
-		bool readyOn = (stsEx == SSC_OK && readyEx == SSC_BIT_ON) ||
-			(stsCompat == SSC_OK && (statusBits & 0x0001) != 0);
-		ready = readyOn ? SSC_BIT_ON : SSC_BIT_OFF;
-		return true;
+	// 표준 조회가 성공하면서 0을 반환하면, 안전한 Wait API로 RDY ON을 짧게 재확인한다.
+	if(ready != SSC_BIT_ON){
+		int readySts = sscWaitStatusBitSignalEx(board_id, channel_id, axnum_id,
+			SSC_STSBIT_AX_RDY, SSC_BIT_ON, 1);
+		if(readySts == SSC_OK)
+			ready = SSC_BIT_ON;
 	}
 
-	return false;
+	return true;
 }
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::mr2Sensing()
@@ -1568,4 +1568,3 @@ bool __fastcall Trobostar::IsSscOpened() const
 	return sscOpened;
 }
 //---------------------------------------------------------------------------
-

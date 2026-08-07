@@ -1116,12 +1116,11 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	if(plcInput.TARGET_OUT)ptargetOut->Font->Color = clRed;
 	else	ptargetOut->Font->Color = clBlack;
 
+	//* 2026 08 07 TEST: 수동모드에서도 PLC 자동모드 신호를 ON으로 전송
+	// 기존 조건: 자동모드일 때만 AUTO_RUN = 1, 수동모드에서는 AUTO_RUN = 0
+	plcOutput.AUTO_RUN = 1;
 	if(equipMode == modeAuto)
-	{
-		plcOutput.AUTO_RUN = 1;
 		plcOutput.SRC_MANUAL_WORK = 0;   // for TEST
-	}
-	else plcOutput.AUTO_RUN = 0;
 
 	WORD nData = 0;
 
@@ -1360,7 +1359,6 @@ void __fastcall TMainForm::lblTitleClick(TObject *Sender)
         CheckBox1->Checked = false;
 }
 //---------------------------------------------------------------------------
-
 
 
 
