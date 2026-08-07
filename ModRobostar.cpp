@@ -1545,8 +1545,7 @@ bool __fastcall Trobostar::CheckInsertUp(int pos)
 void __fastcall Trobostar::DataModuleCreate(TObject *Sender)
 {
 	//* 2026 08 07 sscOpen()은 Servo Open 버튼의 Init()에서 실행하여 중복 호출 방지
-	mdOpen(81,-1,&config.path);
-	io_Init();
+	//* 2026 08 07 CC-Link mdOpen()/io_Init()은 FormMain::FormShow() 한 곳에서만 실행
 	req_Speed(1000, 1000, 1000);
 }
 //---------------------------------------------------------------------------
