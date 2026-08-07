@@ -775,6 +775,16 @@ void __fastcall TMainForm::btnCloseIoPanelClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 {
+	//* 2026 08 07 PLC D10100~D10106 Word 신호를 기존 장비 시퀀스 입력에 연결
+	if(PlcBin != NULL && PlcBin->ClientSocket_PLC->Active){
+		plcInput.AUTO = PlcBin->IsPlcAutoMode();
+		plcInput.PLC_ERROR = PlcBin->IsPlcError();
+		plcInput.SRC_ARRIVE = PlcBin->IsSourceTrayIn();
+		plcInput.SRC_READY = PlcBin->IsSourceCentering();
+		plcInput.TARGET_ARRIVE = PlcBin->IsTargetTrayIn();
+		plcInput.TARGET_READY = PlcBin->IsTargetCentering();
+	}
+
 	for(int i=0; i<=3; ++i)GetZoneCount(i);
 
 	sensorColor(pcell1, robostar->input.GRIPPER1_CELL_DETECT);
@@ -1116,16 +1126,26 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	if(plcInput.TARGET_OUT)ptargetOut->Font->Color = clRed;
 	else	ptargetOut->Font->Color = clBlack;
 
-	//* 2026 08 07 TEST: 수동모드에서도 PLC 자동모드 신호를 ON으로 전송
-	// 기존 조건: 자동모드일 때만 AUTO_RUN = 1, 수동모드에서는 AUTO_RUN = 0
-	plcOutput.AUTO_RUN = 1;
+	//* 2026 08 07 PC D10150~D10158 Word 신호 전송
+	// TEST: 수동모드에서도 D10151 PC AUTO/MANUAL 신호를 ON으로 전송
 	if(equipMode == modeAuto)
 		plcOutput.SRC_MANUAL_WORK = 0;   // for TEST
 
-	WORD nData = 0;
-
-	nData = *((WORD *)&plcOutput + 0);
-	plc->WriteWordData(0x4001, 1, IntToHex(nData, 4));
+	if(PlcBin != NULL){
+		bool doorOpen = robostar->IsSafetyDoorOpen(1) || robostar->IsSafetyDoorOpen(2);
+		bool pcError = NGflag || (AlarmForm != NULL && AlarmForm->Visible) ||
+			(doorForm != NULL && doorForm->Visible);
+		bool pcAutoMode = true; // TEST: 정상 운전 시에는 Auto/AutoStop 조건으로 복구
+		// bool pcAutoMode = (equipMode == modeAuto || equipMode == modeAutoStop);
+		PlcBin->CmdPcAutoMode(pcAutoMode);
+		PlcBin->CmdPcError(pcError);
+		PlcBin->CmdTrayInReady(m_ServoHome);
+		PlcBin->CmdSourceCenteringRequest(plcOutput.SRC_WORK || plcOutput.SRC_MANUAL_WORK);
+		PlcBin->CmdSourceTrayOut(plcOutput.SRC_OUT);
+		PlcBin->CmdTargetTrayOut(plcOutput.TARGET_OUT);
+		PlcBin->CmdPcEmergency(robostar->IsEmergencyStopActive());
+		PlcBin->CmdPcDoorOpen(doorOpen);
+	}
 
 }
 //---------------------------------------------------------------------------
@@ -1359,9 +1379,5 @@ void __fastcall TMainForm::lblTitleClick(TObject *Sender)
         CheckBox1->Checked = false;
 }
 //---------------------------------------------------------------------------
-
-
-
-
 
 

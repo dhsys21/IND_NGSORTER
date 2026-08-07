@@ -254,8 +254,6 @@ void __fastcall TPlcBin::Timer_PC_WriteMsgTimer(TObject *Sender)
 				PC_DataChange(0, PC_D_INTERFACE_START_DEV_NUM, DEVCODE_D, PC_D_INTERFACE_LEN);
 
 				CmdPcHeartBeat(!IsPcHeartBeatOn());
-				CmdPcAutoMode(MainForm != NULL &&
-					(MainForm->equipMode == modeAuto || MainForm->equipMode == modeAutoStop));
                 ClientSocket_PC->Socket->SendBuf(&pc_Data, sizeof(pc_Data));        // should comment for emulator
 				ClientSocket_PC->Socket->SendBuf(&pc_Interface_Data, sizeof(pc_Interface_Data));
 
@@ -466,6 +464,12 @@ bool __fastcall TPlcBin::IsPlcAutoMode()
     return GetPlcValue(PLC_D_AUTO_MANUAL) != 0;
 }
 //---------------------------------------------------------------------------
+bool __fastcall TPlcBin::IsPlcError()             { return GetPlcValue(PLC_D_ERROR) != 0; }
+bool __fastcall TPlcBin::IsSourceTrayIn()         { return GetPlcValue(PLC_D_SOURCE_TRAY_IN) != 0; }
+bool __fastcall TPlcBin::IsSourceCentering()      { return GetPlcValue(PLC_D_SOURCE_CENTERING) != 0; }
+bool __fastcall TPlcBin::IsTargetTrayIn()         { return GetPlcValue(PLC_D_TARGET_TRAY_IN) != 0; }
+bool __fastcall TPlcBin::IsTargetCentering()      { return GetPlcValue(PLC_D_TARGET_CENTERING) != 0; }
+//---------------------------------------------------------------------------
 bool __fastcall TPlcBin::IsPcHeartBeatOn()
 {
     return GetPcValue(PC_D_HEART_BEAT) != 0;
@@ -476,6 +480,14 @@ bool __fastcall TPlcBin::IsPcAutoMode()
     return GetPcValue(PC_D_AUTO_MANUAL) != 0;
 }
 //---------------------------------------------------------------------------
+bool __fastcall TPlcBin::IsPcErrorOn()                    { return GetPcValue(PC_D_ERROR) != 0; }
+bool __fastcall TPlcBin::IsTrayInReadyOn()                { return GetPcValue(PC_D_TRAY_IN_READY) != 0; }
+bool __fastcall TPlcBin::IsSourceCenteringRequestOn()     { return GetPcValue(PC_D_SOURCE_CENTERING_REQ) != 0; }
+bool __fastcall TPlcBin::IsSourceTrayOutOn()              { return GetPcValue(PC_D_SOURCE_TRAY_OUT) != 0; }
+bool __fastcall TPlcBin::IsTargetTrayOutOn()              { return GetPcValue(PC_D_TARGET_TRAY_OUT) != 0; }
+bool __fastcall TPlcBin::IsPcEmergencyOn()                { return GetPcValue(PC_D_EMERGENCY) != 0; }
+bool __fastcall TPlcBin::IsPcDoorOpenOn()                 { return GetPcValue(PC_D_DOOR_OPEN) != 0; }
+//---------------------------------------------------------------------------
 void __fastcall TPlcBin::CmdPcHeartBeat(bool bOn)
 {
     SetPcValue(PC_D_HEART_BEAT, bOn ? 1 : 0);
@@ -485,4 +497,12 @@ void __fastcall TPlcBin::CmdPcAutoMode(bool bAuto)
 {
     SetPcValue(PC_D_AUTO_MANUAL, bAuto ? 1 : 0);
 }
+//---------------------------------------------------------------------------
+void __fastcall TPlcBin::CmdPcError(bool bOn)                  { SetPcValue(PC_D_ERROR, bOn ? 1 : 0); }
+void __fastcall TPlcBin::CmdTrayInReady(bool bOn)              { SetPcValue(PC_D_TRAY_IN_READY, bOn ? 1 : 0); }
+void __fastcall TPlcBin::CmdSourceCenteringRequest(bool bOn)   { SetPcValue(PC_D_SOURCE_CENTERING_REQ, bOn ? 1 : 0); }
+void __fastcall TPlcBin::CmdSourceTrayOut(bool bOn)            { SetPcValue(PC_D_SOURCE_TRAY_OUT, bOn ? 1 : 0); }
+void __fastcall TPlcBin::CmdTargetTrayOut(bool bOn)            { SetPcValue(PC_D_TARGET_TRAY_OUT, bOn ? 1 : 0); }
+void __fastcall TPlcBin::CmdPcEmergency(bool bOn)              { SetPcValue(PC_D_EMERGENCY, bOn ? 1 : 0); }
+void __fastcall TPlcBin::CmdPcDoorOpen(bool bOn)               { SetPcValue(PC_D_DOOR_OPEN, bOn ? 1 : 0); }
 //---------------------------------------------------------------------------

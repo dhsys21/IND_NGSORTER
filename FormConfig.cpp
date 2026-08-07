@@ -26,13 +26,6 @@ void __fastcall TConfigForm::ApplyConfig()
 	if(Mod_Fms != NULL)
 		Mod_Fms->Configure(BaseForm->config.fmsIp, BaseForm->config.gatewayPort);
 
-	plc->Tag = 2;
-	plc->client->Port = 8197;
-
-	if(plc->client->Active == false){
-    	plc->client->Active = true;
-	}
-
 	if(MainForm != NULL){
 		for(int i = 0; i < 2; ++i){
 			if(MainForm->comBcr[i] != NULL && MainForm->comBcr[i]->ClientSocketBcr->Active)
@@ -362,4 +355,3 @@ void __fastcall TConfigForm::AdvSmoothButton3Click(TObject *Sender)
 	}	
 }
 //---------------------------------------------------------------------------
-

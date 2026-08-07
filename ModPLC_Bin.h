@@ -32,11 +32,11 @@ const int PC_INDEX_INTERFACE					=		11;
 //---------------------------------------------------------------------------
 //	시작 번지
 //---------------------------------------------------------------------------
-const int PLC_D_INTERFACE_START_DEV_NUM	 			=	10000;
-const int PLC_D_INTERFACE_LEN 						= 	50;
+const int PLC_D_INTERFACE_START_DEV_NUM	 			=	10100;
+const int PLC_D_INTERFACE_LEN 						= 	7;
 //---------------------------------------------------------------------------
-const int PC_D_INTERFACE_START_DEV_NUM				=	10050;
-const int PC_D_INTERFACE_LEN	 					= 	50;
+const int PC_D_INTERFACE_START_DEV_NUM				=	10150;
+const int PC_D_INTERFACE_LEN	 					= 	9;
 
 //---------------------------------------------------------------------------
 //	PLC - PC Interface
@@ -46,8 +46,8 @@ const int PLC_D_AUTO_MANUAL			                =   1;
 const int PLC_D_ERROR    	  				        =   2;
 const int PLC_D_SOURCE_TRAY_IN 				        =   3;
 const int PLC_D_SOURCE_CENTERING                    =   4;
-const int PLC_D_TARGET_TRAY_IN 				        =   3;
-const int PLC_D_TARGET_CENTERING                    =   4;
+const int PLC_D_TARGET_TRAY_IN 				        =   5;
+const int PLC_D_TARGET_CENTERING                    =   6;
 
 //---------------------------------------------------------------------------
 //	PC - PLC Interface
@@ -55,10 +55,12 @@ const int PLC_D_TARGET_CENTERING                    =   4;
 const int PC_D_HEART_BEAT			  				=	0;
 const int PC_D_AUTO_MANUAL			     	    	=   1;
 const int PC_D_ERROR    	  			    		=   2;
-const int PC_D_SOURCE_CENTERING_REQ                 =   3;
-const int PC_D_TARGET_CENTERING_REQ	    			=   4;
+const int PC_D_TRAY_IN_READY                        =   3;
+const int PC_D_SOURCE_CENTERING_REQ                 =   4;
 const int PC_D_SOURCE_TRAY_OUT 		    			=   5;
 const int PC_D_TARGET_TRAY_OUT                      =   6;
+const int PC_D_EMERGENCY                            =   7;
+const int PC_D_DOOR_OPEN                            =   8;
 
 //---------------------------------------------------------------------------
 //	PLC Header
@@ -171,12 +173,31 @@ public:		// User declarations
     // PLC -> PC status words.
     bool __fastcall IsPlcHeartBeatOn();
     bool __fastcall IsPlcAutoMode();
+    bool __fastcall IsPlcError();
+    bool __fastcall IsSourceTrayIn();
+    bool __fastcall IsSourceCentering();
+    bool __fastcall IsTargetTrayIn();
+    bool __fastcall IsTargetCentering();
 
     // PC -> PLC command buffer values.
     bool __fastcall IsPcHeartBeatOn();
     bool __fastcall IsPcAutoMode();
+    bool __fastcall IsPcErrorOn();
+    bool __fastcall IsTrayInReadyOn();
+    bool __fastcall IsSourceCenteringRequestOn();
+    bool __fastcall IsSourceTrayOutOn();
+    bool __fastcall IsTargetTrayOutOn();
+    bool __fastcall IsPcEmergencyOn();
+    bool __fastcall IsPcDoorOpenOn();
     void __fastcall CmdPcHeartBeat(bool bOn);
     void __fastcall CmdPcAutoMode(bool bAuto);
+    void __fastcall CmdPcError(bool bOn);
+    void __fastcall CmdTrayInReady(bool bOn);
+    void __fastcall CmdSourceCenteringRequest(bool bOn);
+    void __fastcall CmdSourceTrayOut(bool bOn);
+    void __fastcall CmdTargetTrayOut(bool bOn);
+    void __fastcall CmdPcEmergency(bool bOn);
+    void __fastcall CmdPcDoorOpen(bool bOn);
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TPlcBin *PlcBin;

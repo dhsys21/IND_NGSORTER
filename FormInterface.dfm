@@ -222,17 +222,17 @@ object InterfaceForm: TInterfaceForm
         Width = 225
         Height = 21
         TabOrder = 0
-        Text = '10052'
+        Text = '10152'
         Items.Strings = (
-          '10050'
-          '10051'
-          '10052'
-          '10053'
-          '10054'
-          '10055'
-          '10056'
-          '10057'
-          '10058'
+          '10150'
+          '10151'
+          '10152'
+          '10153'
+          '10154'
+          '10155'
+          '10156'
+          '10157'
+          '10158'
           '')
       end
       object editPcValue: TEdit

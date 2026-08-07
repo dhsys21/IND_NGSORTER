@@ -1,4 +1,4 @@
-ï»¿//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 
 #include <vcl.h>
 #pragma hdrstop
@@ -64,7 +64,7 @@ void __fastcall TInterfaceForm::SetListViewPLC()
         ListView_PLC->Items->EndUpdate();
     }
 
-    // ë³´í†µ EndUpdateë¡œ ì¶©ë¶„í•˜ì§€ë§Œ, ì¦‰ì‹œ í™”ë©´ ë°˜ì˜ì´ í•„ìš”í•˜ë©´:
+    // º¸Åë EndUpdate·Î ÃæºÐÇÏÁö¸¸, Áï½Ã È­¸é ¹Ý¿µÀÌ ÇÊ¿äÇÏ¸é:
     ListView_PLC->Invalidate();
     ListView_PLC->Update();
 }
@@ -79,17 +79,19 @@ void __fastcall TInterfaceForm::SetListViewPC()
         AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_HEART_BEAT), "PC HEART BEAT");
         AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_AUTO_MANUAL), "PC AUTO MANUAL");
         AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_ERROR), "PC ERROR");
+        AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_TRAY_IN_READY), "TRAY IN READY (SERVO HOME)");
         AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_SOURCE_CENTERING_REQ), "SOURCE CENTERING REQ");
-        AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_TARGET_CENTERING_REQ), "TARGET CENTERING REQ");
         AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_SOURCE_TRAY_OUT), "SOURCE TRAY OUT");
         AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_TARGET_TRAY_OUT), "TARGET TRAY OUT");
+        AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_EMERGENCY), "PC EMERGENCY");
+        AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_DOOR_OPEN), "PC DOOR OPEN");
     }
     __finally
     {
         ListView_PC->Items->EndUpdate();
     }
 
-    // ë³´í†µ EndUpdateë¡œ ì¶©ë¶„í•˜ì§€ë§Œ, ì¦‰ì‹œ í™”ë©´ ë°˜ì˜ì´ í•„ìš”í•˜ë©´:
+    // º¸Åë EndUpdate·Î ÃæºÐÇÏÁö¸¸, Áï½Ã È­¸é ¹Ý¿µÀÌ ÇÊ¿äÇÏ¸é:
     ListView_PC->Invalidate();
     ListView_PC->Update();
 }
@@ -118,10 +120,12 @@ void __fastcall TInterfaceForm::Timer_PLC_UpdateTimer(TObject *Sender)
         ListView_PC->Items->Item[index++]->SubItems->Strings[1] = IntToStr(PlcBin->IsPcHeartBeatOn() ? 1 : 0);
         ListView_PC->Items->Item[index++]->SubItems->Strings[1] = IntToStr(PlcBin->IsPcAutoMode() ? 1 : 0);
         ListView_PC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPcValue(PC_D_ERROR);
+        ListView_PC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPcValue(PC_D_TRAY_IN_READY);
         ListView_PC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPcValue(PC_D_SOURCE_CENTERING_REQ);
-        ListView_PC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPcValue(PC_D_TARGET_CENTERING_REQ);
         ListView_PC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPcValue(PC_D_SOURCE_TRAY_OUT);
         ListView_PC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPcValue(PC_D_TARGET_TRAY_OUT);
+        ListView_PC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPcValue(PC_D_EMERGENCY);
+        ListView_PC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPcValue(PC_D_DOOR_OPEN);
     }
 }
 //---------------------------------------------------------------------------
@@ -135,9 +139,10 @@ void __fastcall TInterfaceForm::btnPlcWriteValueClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TInterfaceForm::WritePcValue()
 {
-    int address = cbAddress->Text.ToIntDef(10052) - PC_D_INTERFACE_START_DEV_NUM;
+    int address = cbAddress->Text.ToIntDef(10152) - PC_D_INTERFACE_START_DEV_NUM;
     int value = editPcValue->Text.ToIntDef(1);
-    PlcBin->SetPcValue(address, value);
+    if(address >= 0 && address < PC_D_INTERFACE_LEN)
+        PlcBin->SetPcValue(address, value);
 }
 //---------------------------------------------------------------------------
 

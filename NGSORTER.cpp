@@ -11,7 +11,6 @@ USEFORM("ModGripper.cpp", gripper); /* TDataModule: File Type */
 USEFORM("FormTeaching.cpp", teachForm);
 USEFORM("FormServoAlarmList.cpp", ServoAlarmListForm);
 USEFORM("ModPLC_Bin.cpp", PlcBin); /* TDataModule: File Type */
-USEFORM("Modplc.cpp", plc); /* TDataModule: File Type */
 USEFORM("ModRobostar.cpp", robostar); /* TDataModule: File Type */
 USEFORM("FormBase.cpp", BaseForm);
 USEFORM("FormAlarm_TrayInfo.cpp", trayinfoForm);
@@ -64,7 +63,6 @@ int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 		Application->CreateForm(__classid(TErrorForm_mes), &ErrorForm_mes);
 		Application->CreateForm(__classid(TAlarmForm), &AlarmForm);
 		Application->CreateForm(__classid(TErrorForm_insert), &ErrorForm_insert);
-		Application->CreateForm(__classid(Tplc), &plc);
 		Application->CreateForm(__classid(TConfigForm), &ConfigForm);
 		Application->CreateForm(__classid(TdoorForm), &doorForm);
 		Application->CreateForm(__classid(TErrorForm_bcr), &ErrorForm_bcr);

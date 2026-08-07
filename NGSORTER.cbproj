@@ -278,13 +278,6 @@
             <DependentOn>ModMes_OPCUA.h</DependentOn>
             <BuildOrder>39</BuildOrder>
         </CppCompile>
-        <CppCompile Include="Modplc.cpp">
-            <Form>plc</Form>
-            <FormType>dfm</FormType>
-            <DesignClass>TDataModule</DesignClass>
-            <DependentOn>Modplc.h</DependentOn>
-            <BuildOrder>19</BuildOrder>
-        </CppCompile>
         <CppCompile Include="ModPLC_Bin.cpp">
             <Form>PlcBin</Form>
             <FormType>dfm</FormType>
@@ -336,7 +329,6 @@
         <FormResources Include="Modmes.dfm"/>
         <FormResources Include="ModGripper.dfm"/>
         <FormResources Include="ModMes_Gateway.dfm"/>
-        <FormResources Include="Modplc.dfm"/>
         <FormResources Include="ModMes_OPCUA.dfm"/>
         <FormResources Include="SmokeDetector_comm.dfm"/>
         <FormResources Include="ModRobostar.dfm"/>

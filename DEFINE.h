@@ -10,8 +10,6 @@
 #define PROG_LOG					LOG"PROG_LOG\\"
 #define ERROR_LOG					LOG"ERROR_LOG\\"
 
-#define UM_PLC	WM_USER+3000
-
 typedef struct
 {
 	AnsiString MSG_ID;
@@ -80,13 +78,13 @@ typedef struct{
 //---------------------------------------------------------------------------
 typedef struct{
 	uint8_t AUTO:1; 		//	물류 자동
-	uint8_t EMERGENCY:1; 	//	물류 비상정지
+	uint8_t PLC_ERROR:1; 	//	PLC ERROR
 	uint8_t SRC_ARRIVE:1; 	//	선별 도착
 	uint8_t SRC_READY:1; 	//	선별 센터링
 	uint8_t SRC_OUT:1; 		//	선별 배출
 	uint8_t TARGET_READY:1; //	대상 센터링
 	uint8_t TARGET_OUT:1; 	//	대상 배출
-	uint8_t IN_08:1; 		//
+	uint8_t TARGET_ARRIVE:1;//	대상 도착
 
 	uint8_t IN_09:1;
 	uint8_t IN_10:1;
@@ -100,7 +98,7 @@ typedef struct{
 //---------------------------------------------------------------------------
 typedef struct{
 	uint8_t OUT_01:1;
-	uint8_t AUTO_RUN:1; 	// 선별기 자동 모드
+	uint8_t OUT_02:1;
 
 	uint8_t SRC_WORK:1; 	//	선별 센터링 명령
 	uint8_t SRC_OUT:1; 		//	선별 배출
