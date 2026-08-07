@@ -813,6 +813,11 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	else popen->Color = clSilver;
 
 	bool NGflag = false;
+	for(int i = 1; i <= servoCnt; ++i){
+		if(robostar->mr2.servo[i] == SSC_BIT_ON) status_on[i]->Color = clLime;
+		else status_on[i]->Color = clSilver;
+	}
+
 	if(robostar->IsSscOpened() && robostar->mr2.system_detail == 0)
 	{
 		if(robostar->mr2.speed[Axis_x] < 0) robostar->mr2.speed[Axis_x] *= -1;
@@ -823,9 +828,6 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 			loadfactorForm->Panel_Position[i]->Caption = FormatFloat("0 %", robostar->mr2.mondata[i][0]);
 			teachForm->lblLoadFactor[i]->Caption = FormatFloat("0 %", robostar->mr2.mondata[i][0]);
 			status_pos[i]->Caption = FloatToStr(robostar->mr2.pos[i]);
-			if(robostar->mr2.servo[i]) status_on[i]->Color = clLime;
-			else status_on[i]->Color = clSilver;
-
 			if(!robostar->mr2.zero[i] && popen->Color == clLime) status_org[i]->Color = clLime;
 			else status_org[i]->Color = clSilver;
 

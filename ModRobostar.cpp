@@ -1215,6 +1215,25 @@ bool __fastcall Trobostar::getGripperChuckStatus()
 	}
 }
 //---------------------------------------------------------------------------
+bool __fastcall Trobostar::ReadServoReadyStatus(int axnum_id, int &ready)
+{
+	ready = SSC_BIT_OFF;
+	int sts = sscGetStatusBitSignalEx(board_id, channel_id, axnum_id,
+		SSC_STSBIT_AX_RDY, &ready);
+	if(sts == SSC_OK) return true;
+
+	// Compatibility fallback for older/converted Win32 API libraries.
+	// Bit 0 of the compatible axis status word is Servo Ready (RDY).
+	short statusBits = 0;
+	sts = sscGetAxisStatusBits(board_id, channel_id, axnum_id, &statusBits);
+	if(sts == SSC_OK){
+		ready = (statusBits & 0x0001) ? SSC_BIT_ON : SSC_BIT_OFF;
+		return true;
+	}
+
+	return false;
+}
+//---------------------------------------------------------------------------
 void __fastcall Trobostar::mr2Sensing()
 {
 	if(!sscOpened) return;
@@ -1241,14 +1260,24 @@ void __fastcall Trobostar::mr2Sensing()
 				sscGetMonitor(board_id, channel_id, i, &mr2.monnum[i][0], &mr2.mondata[i][0]);
 			}
 			break;
-		case 2:
+		case 2: {
+			static bool readyReadErrorLogged[AxisCnt] = {false, false, false, false};
 			for(int i=1; i<=servoCnt; ++i){
-				sscGetStatusBitSignalEx(board_id, channel_id, i, SSC_STSBIT_AX_RDY, &mr2.servo[i]);
+				int ready = SSC_BIT_OFF;
+				if(ReadServoReadyStatus(i, ready)){
+					mr2.servo[i] = ready;
+					readyReadErrorLogged[i] = false;
+				}
+				else if(!readyReadErrorLogged[i]){
+					WriteLog(SSC_NG, "[" + IntToStr(i) + "] Servo Ready status read");
+					readyReadErrorLogged[i] = true;
+				}
 				sscGetStatusBitSignalEx(board_id, channel_id, i, SSC_STSBIT_AX_ZREQ, &mr2.zero[i]);
 				sscGetStatusBitSignalEx(board_id, channel_id, i, SSC_STSBIT_AX_OP, &mr2.running[i]);
 			}
 			seq = -1;
 			break;
+		}
 	}
     seq += 1;
 }

@@ -337,6 +337,7 @@ private:	// User declarations
     bool bSetPoint;
 	bool __fastcall setPoint(int axnum_id, unsigned long int pos);
 	bool __fastcall rangeCheck(int axnum_id);
+	bool __fastcall ReadServoReadyStatus(int axnum_id, int &ready);
 	void __fastcall mr2Sensing();
 
 	bool __fastcall SetPositionValue();
