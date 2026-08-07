@@ -88,9 +88,9 @@ void __fastcall Trobostar::req_Pause(bool stop)
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::InitSequence(robotSequence data, robotSequence reserve)
 {
-	// Keep MELSEC I/O alive when the position board cannot be opened, but do not
-	// queue a sequence that would call the SSC API from the timer.
-	if(!sscOpened && data != seqIdle && data != seqPause) return;
+	// Keep MELSEC I/O alive when the position board cannot be opened, but allow
+	// seqInit so the Servo Open button can retry sscOpen().
+	if(!sscOpened && data != seqIdle && data != seqPause && data != seqInit) return;
 
 	seq = data;
 	step.step = 0;
@@ -118,15 +118,39 @@ bool __fastcall Trobostar::WriteLog(int status, UnicodeString msg)
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::Init()
 {
-	int sts;
+	int sts = SSC_OK;
+
+	//* 2026 08 07 Servo Open 버튼에서 최초 Open 실패 후에도 다시 연결할 수 있도록 처리
+	// 이미 Open된 보드에는 sscOpen()을 중복 호출하지 않는다.
+	if(!sscOpened){
+		sts = sscOpen(board_id);
+		sscOpened = WriteLog(sts, "SSC_OPEN");
+		if(!sscOpened){
+			mr2.system_status = 0;
+			InitSequence(seqIdle);
+			return;
+		}
+	}
+
 	sts = sscReboot(board_id, channel_id, timeout);
-	WriteLog(sts, "REBOOT");
+	if(!WriteLog(sts, "REBOOT")) goto open_failed;
 	sts = sscResetAllParameter(board_id, channel_id, timeout);
-	WriteLog(sts, "RESET PARAMETER");
+	if(!WriteLog(sts, "RESET PARAMETER")) goto open_failed;
 	sts = sscLoadAllParameterFromFlashROM(board_id, channel_id, timeout);
-	WriteLog(sts, "LOAD PARAMETER");
+	if(!WriteLog(sts, "LOAD PARAMETER")) goto open_failed;
 	sts = sscSystemStart(board_id, channel_id, timeout);
-	WriteLog(sts, "SERVO START");
+	if(!WriteLog(sts, "SERVO START")) goto open_failed;
+
+	//* SystemStart 완료 후 실제 시스템 상태를 즉시 확인한다. 정상값은 000A(RUNNING).
+	sts = sscGetSystemStatusCode(board_id, channel_id, &mr2.system_status);
+	if(!WriteLog(sts, "GET SYSTEM STATUS")) goto open_failed;
+	MainForm->memoRobostarLineAdd("SYSTEM STATUS : " +
+		IntToHex((int)mr2.system_status, 4));
+	InitSequence(seqIdle);
+	return;
+
+open_failed:
+	mr2.system_status = 0;
 	InitSequence(seqIdle);
 }
 //---------------------------------------------------------------------------
