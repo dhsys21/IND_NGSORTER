@@ -337,8 +337,6 @@ private:	// User declarations
     bool bSetPoint;
 	bool __fastcall setPoint(int axnum_id, unsigned long int pos);
 	bool __fastcall rangeCheck(int axnum_id);
-	//* 2026 08 07 Servo ON 완료(RDY) 상태 읽기 및 구형 Win32 API 호환 처리
-	bool __fastcall ReadServoReadyStatus(int axnum_id, int &ready);
 	void __fastcall mr2Sensing();
 
 	bool __fastcall SetPositionValue();
@@ -412,5 +410,4 @@ public:		// User declarations
 extern PACKAGE Trobostar *robostar;
 //---------------------------------------------------------------------------
 #endif
-
 

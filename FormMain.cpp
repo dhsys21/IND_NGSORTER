@@ -819,13 +819,16 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 
 	UpdateIoMonitoringPanel();
 
-	if(robostar->IsSscOpened() && robostar->mr2.system_status == SSC_STS_CODE_RUNNING) popen->Color = clLime;
+	//* 2026 08 07 천안 불량선별기와 동일하게 OPEN은 SSC 시스템 RUNNING 상태로 표시
+	if(robostar->IsSscOpened() && robostar->mr2.system_status == SSC_STS_CODE_RUNNING)
+		popen->Color = clLime;
 	else popen->Color = clSilver;
 
 	bool NGflag = false;
-	//* 2026 08 07 시스템 알람 표시와 분리하여 실제 RDY ON이면 Lime으로 표시
+	//* 2026 08 07 천안 불량선별기와 동일하게 각 축의 실제 AX_RDY로 Servo ON 표시
 	for(int i = 1; i <= servoCnt; ++i){
-		if(robostar->mr2.servo[i] == SSC_BIT_ON) status_on[i]->Color = clLime;
+		if(robostar->IsSscOpened() && robostar->mr2.servo[i] == SSC_BIT_ON)
+			status_on[i]->Color = clLime;
 		else status_on[i]->Color = clSilver;
 	}
 
@@ -899,13 +902,16 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		{
 			m_ServoON = true;
 
-			if(status_org[Axis_x]->Color == clLime && status_org[Axis_y]->Color == clLime
-				&& status_org[Axis_z]->Color == clLime) {
-				m_ServoHome = true;
+			//* 2026 08 07 천안 불량선별기와 동일하게 원점 완료와 실제 대기 위치(0)를 모두 확인
+			bool allServoOrigin = true;
+			bool allServoAtWaitPosition = true;
+			for(int i = 1; i <= servoCnt; ++i){
+				if(status_org[i]->Color != clLime)
+					allServoOrigin = false;
+				if(robostar->mr2.pos[i] != 0)
+					allServoAtWaitPosition = false;
 			}
-			else {
-				m_ServoHome = false;
-			}
+			m_ServoHome = allServoOrigin && allServoAtWaitPosition;
             if(status_org[Axis_x]->Color == clLime && status_org[Axis_y]->Color == clLime
 				&& status_org[Axis_z]->Color == clLime) {
 				m_ServoHomeEmg = true;
@@ -1379,5 +1385,3 @@ void __fastcall TMainForm::lblTitleClick(TObject *Sender)
         CheckBox1->Checked = false;
 }
 //---------------------------------------------------------------------------
-
-

@@ -1233,28 +1233,6 @@ bool __fastcall Trobostar::getGripperChuckStatus()
 	}
 }
 //---------------------------------------------------------------------------
-//* 2026 08 07 Servo ON 명령 성공 후 화면에 RDY 상태가 표시되지 않는 문제 대응
-bool __fastcall Trobostar::ReadServoReadyStatus(int axnum_id, int &ready)
-{
-	//* 2026 08 07 변환 DLL에서 sscGetAxisStatusBits 호출 후 발생하는 AV 방지
-	// 현재 변환 DLL에서 정상 호출되는 표준 RDY 상태 함수만 사용한다.
-	ready = SSC_BIT_OFF;
-	int sts = sscGetStatusBitSignalEx(board_id, channel_id, axnum_id,
-		SSC_STSBIT_AX_RDY, &ready);
-	if(sts != SSC_OK)
-		return false;
-
-	// 표준 조회가 성공하면서 0을 반환하면, 안전한 Wait API로 RDY ON을 짧게 재확인한다.
-	if(ready != SSC_BIT_ON){
-		int readySts = sscWaitStatusBitSignalEx(board_id, channel_id, axnum_id,
-			SSC_STSBIT_AX_RDY, SSC_BIT_ON, 1);
-		if(readySts == SSC_OK)
-			ready = SSC_BIT_ON;
-	}
-
-	return true;
-}
-//---------------------------------------------------------------------------
 void __fastcall Trobostar::mr2Sensing()
 {
 	if(!sscOpened) return;
@@ -1281,25 +1259,16 @@ void __fastcall Trobostar::mr2Sensing()
 				sscGetMonitor(board_id, channel_id, i, &mr2.monnum[i][0], &mr2.mondata[i][0]);
 			}
 			break;
-		case 2: {
-			//* 2026 08 07 축별 RDY 값을 저장하고 읽기 오류는 최초 1회만 기록
-			static bool readyReadErrorLogged[AxisCnt] = {false, false, false, false};
+		case 2:
+			//* 2026 08 07 천안 불량선별기와 동일하게 AX_RDY와 AX_ZREQ를 직접 갱신
 			for(int i=1; i<=servoCnt; ++i){
-				int ready = SSC_BIT_OFF;
-				if(ReadServoReadyStatus(i, ready)){
-					mr2.servo[i] = ready;
-					readyReadErrorLogged[i] = false;
-				}
-				else if(!readyReadErrorLogged[i]){
-					WriteLog(SSC_NG, "[" + IntToStr(i) + "] Servo Ready status read");
-					readyReadErrorLogged[i] = true;
-				}
+				sscGetStatusBitSignalEx(board_id, channel_id, i,
+					SSC_STSBIT_AX_RDY, &mr2.servo[i]);
 				sscGetStatusBitSignalEx(board_id, channel_id, i, SSC_STSBIT_AX_ZREQ, &mr2.zero[i]);
 				sscGetStatusBitSignalEx(board_id, channel_id, i, SSC_STSBIT_AX_OP, &mr2.running[i]);
 			}
 			seq = -1;
 			break;
-		}
 	}
     seq += 1;
 }
