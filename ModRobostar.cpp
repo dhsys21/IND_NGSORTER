@@ -243,6 +243,16 @@ void __fastcall Trobostar::ServoOn()
 	for(int i=1; i<=servoCnt; ++i){
 		sts = sscSetCommandBitSignalEx(board_id, channel_id, i, SSC_CMDBIT_AX_SON, SSC_BIT_ON);
 		WriteLog(sts, "[" + IntToStr(i) +  "] 서보 ON");
+		//* 2026 08 07 ON 명령 접수와 실제 Servo Ready ON 완료를 구분하여 확인
+		if(sts == SSC_OK){
+			int readySts = sscWaitStatusBitSignalEx(board_id, channel_id, i,
+				SSC_STSBIT_AX_RDY, SSC_BIT_ON, 1000);
+			WriteLog(readySts, "[" + IntToStr(i) + "] Servo Ready ON");
+			mr2.servo[i] = (readySts == SSC_OK) ? SSC_BIT_ON : SSC_BIT_OFF;
+		}
+		else{
+			mr2.servo[i] = SSC_BIT_OFF;
+		}
 	}
 	InitSequence(seqIdle);
 }
@@ -253,6 +263,14 @@ void __fastcall Trobostar::ServoOff()
 	for(int i=1; i<=servoCnt; ++i){
 		sts = sscSetCommandBitSignalEx(board_id, channel_id, i, SSC_CMDBIT_AX_SON, SSC_BIT_OFF);
 		WriteLog(sts, "[" + IntToStr(i) +  "] 서보 OFF");
+		//* 2026 08 07 OFF 명령 후 실제 Servo Ready OFF 완료를 확인하여 화면에 즉시 반영
+		if(sts == SSC_OK){
+			int readySts = sscWaitStatusBitSignalEx(board_id, channel_id, i,
+				SSC_STSBIT_AX_RDY, SSC_BIT_OFF, 1000);
+			WriteLog(readySts, "[" + IntToStr(i) + "] Servo Ready OFF");
+			if(readySts == SSC_OK)
+				mr2.servo[i] = SSC_BIT_OFF;
+		}
 	}
 	InitSequence(seqIdle);
 }
@@ -1215,19 +1233,22 @@ bool __fastcall Trobostar::getGripperChuckStatus()
 	}
 }
 //---------------------------------------------------------------------------
+//* 2026 08 07 Servo ON 명령 성공 후 화면에 RDY 상태가 표시되지 않는 문제 대응
 bool __fastcall Trobostar::ReadServoReadyStatus(int axnum_id, int &ready)
 {
-	ready = SSC_BIT_OFF;
-	int sts = sscGetStatusBitSignalEx(board_id, channel_id, axnum_id,
-		SSC_STSBIT_AX_RDY, &ready);
-	if(sts == SSC_OK) return true;
+	// 표준 RDY와 변환/구형 Win32 API의 호환 상태워드를 모두 확인한다.
+	// 일부 변환 라이브러리는 표준 함수에서 SSC_OK와 0을 반환할 수 있다.
+	int readyEx = SSC_BIT_OFF;
+	int stsEx = sscGetStatusBitSignalEx(board_id, channel_id, axnum_id,
+		SSC_STSBIT_AX_RDY, &readyEx);
 
-	// Compatibility fallback for older/converted Win32 API libraries.
-	// Bit 0 of the compatible axis status word is Servo Ready (RDY).
+	// 호환 축 상태워드의 bit 0은 Servo Ready(RDY) 신호이다.
 	short statusBits = 0;
-	sts = sscGetAxisStatusBits(board_id, channel_id, axnum_id, &statusBits);
-	if(sts == SSC_OK){
-		ready = (statusBits & 0x0001) ? SSC_BIT_ON : SSC_BIT_OFF;
+	int stsCompat = sscGetAxisStatusBits(board_id, channel_id, axnum_id, &statusBits);
+	if(stsEx == SSC_OK || stsCompat == SSC_OK){
+		bool readyOn = (stsEx == SSC_OK && readyEx == SSC_BIT_ON) ||
+			(stsCompat == SSC_OK && (statusBits & 0x0001) != 0);
+		ready = readyOn ? SSC_BIT_ON : SSC_BIT_OFF;
 		return true;
 	}
 
@@ -1261,6 +1282,7 @@ void __fastcall Trobostar::mr2Sensing()
 			}
 			break;
 		case 2: {
+			//* 2026 08 07 축별 RDY 값을 저장하고 읽기 오류는 최초 1회만 기록
 			static bool readyReadErrorLogged[AxisCnt] = {false, false, false, false};
 			for(int i=1; i<=servoCnt; ++i){
 				int ready = SSC_BIT_OFF;

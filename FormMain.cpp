@@ -813,6 +813,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	else popen->Color = clSilver;
 
 	bool NGflag = false;
+	//* 2026 08 07 시스템 알람 표시와 분리하여 실제 RDY ON이면 Lime으로 표시
 	for(int i = 1; i <= servoCnt; ++i){
 		if(robostar->mr2.servo[i] == SSC_BIT_ON) status_on[i]->Color = clLime;
 		else status_on[i]->Color = clSilver;
