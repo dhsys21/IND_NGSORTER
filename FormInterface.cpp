@@ -103,8 +103,8 @@ void __fastcall TInterfaceForm::Timer_PLC_UpdateTimer(TObject *Sender)
     if(PlcBin->ClientSocket_PLC->Active)
     {
         index = 0;
-        ListView_PLC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPlcValue(PLC_D_HEART_BEAT);
-        ListView_PLC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPlcValue(PLC_D_AUTO_MANUAL);
+        ListView_PLC->Items->Item[index++]->SubItems->Strings[1] = IntToStr(PlcBin->IsPlcHeartBeatOn() ? 1 : 0);
+        ListView_PLC->Items->Item[index++]->SubItems->Strings[1] = IntToStr(PlcBin->IsPlcAutoMode() ? 1 : 0);
         ListView_PLC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPlcValue(PLC_D_ERROR);
         ListView_PLC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPlcValue(PLC_D_SOURCE_TRAY_IN);
         ListView_PLC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPlcValue(PLC_D_SOURCE_CENTERING);
@@ -115,8 +115,8 @@ void __fastcall TInterfaceForm::Timer_PLC_UpdateTimer(TObject *Sender)
     if(PlcBin->ClientSocket_PC->Active)
     {
         index = 0;
-        ListView_PC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPcValue(PC_D_HEART_BEAT);
-        ListView_PC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPcValue(PC_D_AUTO_MANUAL);
+        ListView_PC->Items->Item[index++]->SubItems->Strings[1] = IntToStr(PlcBin->IsPcHeartBeatOn() ? 1 : 0);
+        ListView_PC->Items->Item[index++]->SubItems->Strings[1] = IntToStr(PlcBin->IsPcAutoMode() ? 1 : 0);
         ListView_PC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPcValue(PC_D_ERROR);
         ListView_PC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPcValue(PC_D_SOURCE_CENTERING_REQ);
         ListView_PC->Items->Item[index++]->SubItems->Strings[1] = PlcBin->GetPcValue(PC_D_TARGET_CENTERING_REQ);

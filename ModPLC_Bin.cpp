@@ -17,8 +17,8 @@ __fastcall TPlcBin::TPlcBin(TComponent* Owner)
     // PLC
 	plc_Data.SubHeader[0] = 0x50;
 	plc_Data.SubHeader[1] = 0x00;
-	plc_Data.NetNum = 0x03;
-	plc_Data.PlcNum = 0x01;
+	plc_Data.NetNum = 0x00;
+	plc_Data.PlcNum = 0xff;
 	plc_Data.ReqIONum[0] = 0xff;
 	plc_Data.ReqIONum[1] = 0x03;
 	plc_Data.ReqOfficeNum = 0x00;
@@ -34,8 +34,8 @@ __fastcall TPlcBin::TPlcBin(TComponent* Owner)
 	// PC
 	pc_Data.SubHeader[0] = 0x50;
 	pc_Data.SubHeader[1] = 0x00;
-	pc_Data.NetNum = 0x03;
-	pc_Data.PlcNum = 0x01;
+	pc_Data.NetNum = 0x00;
+	pc_Data.PlcNum = 0xff;
 	pc_Data.ReqIONum[0] = 0xff;
 	pc_Data.ReqIONum[1] = 0x03;
 	pc_Data.ReqOfficeNum = 0x00;
@@ -245,7 +245,6 @@ void __fastcall TPlcBin::ClientSocket_PCRead(TObject *Sender, TCustomWinSocket *
 
 void __fastcall TPlcBin::Timer_PC_WriteMsgTimer(TObject *Sender)
 {
-    bool flag = false;
     if(ClientSocket_PC->Active)
 	{
 		if(pc_ReadFlag)
@@ -254,11 +253,9 @@ void __fastcall TPlcBin::Timer_PC_WriteMsgTimer(TObject *Sender)
 			{
 				PC_DataChange(0, PC_D_INTERFACE_START_DEV_NUM, DEVCODE_D, PC_D_INTERFACE_LEN);
 
-				if(MainForm->Client->Active)
-				{
-					bool flag = GetData(pc_Interface_Data, PC_D_HEART_BEAT, 0);
-					SetDouble(pc_Interface_Data, PC_D_HEART_BEAT, (int)!flag);
-				}
+				CmdPcHeartBeat(!IsPcHeartBeatOn());
+				CmdPcAutoMode(MainForm != NULL &&
+					(MainForm->equipMode == modeAuto || MainForm->equipMode == modeAutoStop));
                 ClientSocket_PC->Socket->SendBuf(&pc_Data, sizeof(pc_Data));        // should comment for emulator
 				ClientSocket_PC->Socket->SendBuf(&pc_Interface_Data, sizeof(pc_Interface_Data));
 
@@ -453,6 +450,39 @@ void __fastcall TPlcBin::SetPcData(int pc_address, int bit_num, bool bValue)
 //---------------------------------------------------------------------------
 void __fastcall TPlcBin::SetPcValue(int pc_address, int value)
 {
+    if((int)GetPcValue(pc_address) == value)
+        return;
+
     SetDouble(pc_Interface_Data, pc_address, value);
+}
+//---------------------------------------------------------------------------
+bool __fastcall TPlcBin::IsPlcHeartBeatOn()
+{
+    return GetPlcValue(PLC_D_HEART_BEAT) != 0;
+}
+//---------------------------------------------------------------------------
+bool __fastcall TPlcBin::IsPlcAutoMode()
+{
+    return GetPlcValue(PLC_D_AUTO_MANUAL) != 0;
+}
+//---------------------------------------------------------------------------
+bool __fastcall TPlcBin::IsPcHeartBeatOn()
+{
+    return GetPcValue(PC_D_HEART_BEAT) != 0;
+}
+//---------------------------------------------------------------------------
+bool __fastcall TPlcBin::IsPcAutoMode()
+{
+    return GetPcValue(PC_D_AUTO_MANUAL) != 0;
+}
+//---------------------------------------------------------------------------
+void __fastcall TPlcBin::CmdPcHeartBeat(bool bOn)
+{
+    SetPcValue(PC_D_HEART_BEAT, bOn ? 1 : 0);
+}
+//---------------------------------------------------------------------------
+void __fastcall TPlcBin::CmdPcAutoMode(bool bAuto)
+{
+    SetPcValue(PC_D_AUTO_MANUAL, bAuto ? 1 : 0);
 }
 //---------------------------------------------------------------------------

@@ -167,6 +167,16 @@ public:		// User declarations
     double __fastcall GetPcValue(int pc_address);
     void __fastcall SetPcData(int pc_address, int bit_num, bool bValue);
     void __fastcall SetPcValue(int pc_address, int value);
+
+    // PLC -> PC status words.
+    bool __fastcall IsPlcHeartBeatOn();
+    bool __fastcall IsPlcAutoMode();
+
+    // PC -> PLC command buffer values.
+    bool __fastcall IsPcHeartBeatOn();
+    bool __fastcall IsPcAutoMode();
+    void __fastcall CmdPcHeartBeat(bool bOn);
+    void __fastcall CmdPcAutoMode(bool bAuto);
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TPlcBin *PlcBin;
