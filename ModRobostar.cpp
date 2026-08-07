@@ -119,9 +119,10 @@ bool __fastcall Trobostar::WriteLog(int status, UnicodeString msg)
 void __fastcall Trobostar::Init()
 {
 	int sts = SSC_OK;
+	short monitorNum[4] = {0x024E, 0, 0, 0};
 
-	//* 2026 08 07 Servo Open 버튼에서 최초 Open 실패 후에도 다시 연결할 수 있도록 처리
-	// 이미 Open된 보드에는 sscOpen()을 중복 호출하지 않는다.
+	//* 2026 08 07 천안 불량선별기처럼 Servo Open 시퀀스의 첫 단계에서 보드를 Open
+	// 재실행 시에는 이미 Open된 보드에 sscOpen()을 중복 호출하지 않는다.
 	if(!sscOpened){
 		sts = sscOpen(board_id);
 		sscOpened = WriteLog(sts, "POSITION BOARD OPEN");
@@ -155,6 +156,10 @@ void __fastcall Trobostar::Init()
 		return;
 	}
 	MainForm->memoRobostarLineAdd("SERVO SYSTEM OPEN 확인 성공 : STATUS 000A");
+
+	//* 시작 시점에는 SSC 보드를 열지 않으므로 SystemStart 후 Monitor를 설정한다.
+	for(int i = 1; i <= servoCnt; ++i)
+		sscSetMonitor(board_id, channel_id, i, &monitorNum[0]);
 	InitSequence(seqIdle);
 	return;
 
@@ -1539,9 +1544,7 @@ bool __fastcall Trobostar::CheckInsertUp(int pos)
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::DataModuleCreate(TObject *Sender)
 {
-	int sts = 0;
-	sts = sscOpen(board_id);
-	sscOpened = WriteLog(sts, "POSITION BOARD OPEN");
+	//* 2026 08 07 sscOpen()은 Servo Open 버튼의 Init()에서 실행하여 중복 호출 방지
 	mdOpen(81,-1,&config.path);
 	io_Init();
 	req_Speed(1000, 1000, 1000);
