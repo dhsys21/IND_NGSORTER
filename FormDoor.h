@@ -28,25 +28,20 @@ __published:	// IDE-managed Components
 	TPanel *perr3;
 	TTimer *errTimer;
 	TPanel *perr1;
-	TPanel *perr4;
-	TAdvSmoothPanel *AdvSmoothPanel3;
-	TLabel *Label2;
-	TStaticText *MainErr4;
 	TAdvSmoothPanel *AdvSmoothPanel4;
 	TLabel *Label4;
 	TStaticText *StaticText1;
-	TStaticText *StaticText3;
 	TStaticText *StaticText2;
 	TImage *Image1;
 	TAdvSmoothPanel *AdvSmoothPanel5;
 	TLabel *Label5;
 	TPanel *perr5;
 	TAdvSmoothButton *btnSetKEYLOCK;
+	TAdvSmoothButton *btnSetBypass;
 	TImage *Image2;
 	TPanel *Panel2;
 	TStaticText *MainErr5;
 	TAdvSmoothButton *btnServoOpen;
-	TStaticText *StaticText4;
 	TAdvSmoothPanel *pnlOpenGripper;
 	TLabel *Label6;
 	TAdvSmoothButton *btnGripper1Open;
@@ -63,6 +58,7 @@ __published:	// IDE-managed Components
 	void __fastcall errTimerTimer(TObject *Sender);
 	void __fastcall okBtnClick(TObject *Sender);
 	void __fastcall btnSetKEYLOCKClick(TObject *Sender);
+	void __fastcall btnSetBypassClick(TObject *Sender);
 	void __fastcall btnServoOpenClick(TObject *Sender);
 	void __fastcall stopBtnClick(TObject *Sender);
 	void __fastcall btnGripper1OpenMouseUp(TObject *Sender, TMouseButton Button, TShiftState Shift,
@@ -77,8 +73,8 @@ __published:	// IDE-managed Components
 	void __fastcall PasswordBtnClick(TObject *Sender);
 	void __fastcall PassEditKeyUp(TObject *Sender, WORD &Key, TShiftState Shift);
 private:	// User declarations
-	TStaticText *text[5];
-	TPanel *perr[5];
+	TStaticText *text[4];
+	TPanel *perr[4];
 
 
 	int m_errCode;

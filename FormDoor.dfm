@@ -66,7 +66,7 @@ object doorForm: TdoorForm
     end
     object MainErr5: TStaticText
       Left = 3
-      Top = 210
+      Top = 150
       Width = 424
       Height = 60
       Alignment = taCenter
@@ -81,25 +81,6 @@ object doorForm: TdoorForm
       ParentColor = False
       ParentFont = False
       TabOrder = 7
-      Visible = False
-    end
-    object StaticText4: TStaticText
-      Left = 3
-      Top = 240
-      Width = 424
-      Height = 60
-      Alignment = taCenter
-      AutoSize = False
-      Caption = 'Push the Reset Button'
-      Color = clWhite
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clRed
-      Font.Height = -40
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentColor = False
-      ParentFont = False
-      TabOrder = 9
       Visible = False
     end
     object btnSetKEYLOCK: TAdvSmoothButton
@@ -138,6 +119,44 @@ object doorForm: TdoorForm
       Visible = True
       Version = '2.1.1.5'
       OnClick = btnSetKEYLOCKClick
+      TMSStyle = 8
+    end
+    object btnSetBypass: TAdvSmoothButton
+      Left = 19
+      Top = 335
+      Width = 400
+      Height = 50
+      Appearance.Font.Charset = DEFAULT_CHARSET
+      Appearance.Font.Color = clWindowText
+      Appearance.Font.Height = -20
+      Appearance.Font.Name = 'Tahoma'
+      Appearance.Font.Style = [fsBold]
+      Appearance.Spacing = 0
+      Appearance.Rounding = 3
+      Appearance.WordWrapping = False
+      Status.Caption = '0'
+      Status.Appearance.Fill.Color = clRed
+      Status.Appearance.Fill.ColorMirror = clNone
+      Status.Appearance.Fill.ColorMirrorTo = clNone
+      Status.Appearance.Fill.GradientType = gtSolid
+      Status.Appearance.Fill.GradientMirrorType = gtSolid
+      Status.Appearance.Fill.BorderColor = clGray
+      Status.Appearance.Fill.Rounding = 0
+      Status.Appearance.Fill.ShadowOffset = 0
+      Status.Appearance.Fill.Glow = gmNone
+      Status.Appearance.Font.Charset = DEFAULT_CHARSET
+      Status.Appearance.Font.Color = clWhite
+      Status.Appearance.Font.Height = -11
+      Status.Appearance.Font.Name = 'Tahoma'
+      Status.Appearance.Font.Style = []
+      BevelColor = clMedGray
+      Caption = 'BYPASS '#49444#51221
+      Color = 16744448
+      ParentFont = False
+      TabOrder = 9
+      Visible = True
+      Version = '2.1.1.5'
+      OnClick = btnSetBypassClick
       TMSStyle = 8
     end
     object MainErr1: TStaticText
@@ -253,7 +272,7 @@ object doorForm: TdoorForm
     end
     object MainErr3: TStaticText
       Left = 3
-      Top = 270
+      Top = 210
       Width = 424
       Height = 60
       Alignment = taCenter
@@ -269,28 +288,9 @@ object doorForm: TdoorForm
       ParentFont = False
       TabOrder = 4
     end
-    object MainErr4: TStaticText
-      Left = 3
-      Top = 150
-      Width = 424
-      Height = 60
-      Alignment = taCenter
-      AutoSize = False
-      Caption = 'DOOR #3 Open'
-      Color = clWhite
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clRed
-      Font.Height = -40
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentColor = False
-      ParentFont = False
-      TabOrder = 5
-      Visible = False
-    end
     object btnServoOpen: TAdvSmoothButton
       Left = 19
-      Top = 335
+      Top = 270
       Width = 400
       Height = 50
       Appearance.Font.Charset = DEFAULT_CHARSET
@@ -669,24 +669,6 @@ object doorForm: TdoorForm
       ParentColor = False
       ParentFont = False
       TabOrder = 0
-    end
-    object StaticText3: TStaticText
-      Left = 135
-      Top = 272
-      Width = 283
-      Height = 81
-      Alignment = taCenter
-      AutoSize = False
-      Caption = 'And Push the Reset Button'
-      Color = clWhite
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clRed
-      Font.Height = -32
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentColor = False
-      ParentFont = False
-      TabOrder = 1
     end
     object StaticText2: TStaticText
       Left = 135
@@ -5214,71 +5196,8 @@ object doorForm: TdoorForm
       ParentFont = False
       TabOrder = 2
     end
-    object AdvSmoothPanel3: TAdvSmoothPanel
-      Left = 256
-      Top = 44
-      Width = 295
-      Height = 93
-      Cursor = crDefault
-      Caption.HTMLFont.Charset = DEFAULT_CHARSET
-      Caption.HTMLFont.Color = clWindowText
-      Caption.HTMLFont.Height = -11
-      Caption.HTMLFont.Name = 'Tahoma'
-      Caption.HTMLFont.Style = []
-      Caption.Font.Charset = DEFAULT_CHARSET
-      Caption.Font.Color = clWindowText
-      Caption.Font.Height = -16
-      Caption.Font.Name = 'Tahoma'
-      Caption.Font.Style = []
-      Fill.Color = clWhite
-      Fill.ColorTo = clWhite
-      Fill.ColorMirror = clWhite
-      Fill.ColorMirrorTo = 16773863
-      Fill.GradientType = gtVertical
-      Fill.GradientMirrorType = gtVertical
-      Fill.BorderColor = clRed
-      Fill.BorderWidth = 12
-      Fill.Rounding = 3
-      Fill.ShadowColor = clWhite
-      Fill.ShadowOffset = 0
-      Fill.Glow = gmNone
-      Version = '1.5.2.1'
-      TabOrder = 4
-      TMSStyle = 0
-      object Label2: TLabel
-        Left = 62
-        Top = 21
-        Width = 156
-        Height = 47
-        Caption = 'DOOR #3'
-        Color = clBlack
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -35
-        Font.Name = '@'#47569#51008' '#44256#46357
-        Font.Style = [fsBold]
-        ParentColor = False
-        ParentFont = False
-      end
-    end
-    object perr4: TPanel
-      Left = 256
-      Top = 44
-      Width = 295
-      Height = 93
-      BevelOuter = bvNone
-      Caption = 'DOOR #3'
-      Color = clRed
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWhite
-      Font.Height = -35
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentFont = False
-      TabOrder = 3
-    end
     object AdvSmoothPanel5: TAdvSmoothPanel
-      Left = 584
+      Left = 256
       Top = 44
       Width = 295
       Height = 93
@@ -5325,7 +5244,7 @@ object doorForm: TdoorForm
       end
     end
     object perr5: TPanel
-      Left = 584
+      Left = 256
       Top = 44
       Width = 295
       Height = 93

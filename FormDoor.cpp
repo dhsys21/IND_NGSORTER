@@ -16,20 +16,17 @@ __fastcall TdoorForm::TdoorForm(TComponent* Owner)
 	text[0] = MainErr1;
 	text[1] = MainErr2;
 	text[2] = MainErr3;
-	text[3] = MainErr4;
-	text[4] = MainErr5;
+	text[3] = MainErr5;
 
 	perr[0] = perr1;
 	perr[1] = perr2;
 	perr[2] = perr3;
-	perr[3] = perr4;
-	perr[4] = perr5;
+	perr[3] = perr5;
 
-	for(int i = 0; i < 5; ++i){
+	for(int i = 0; i < 4; ++i){
 		text[i]->Visible = false;
 		perr[i]->Visible = false;
 	}
-	StaticText4->Visible = false;
 
 	isGripperOpen1 = false;
 	isGripperOpen2 = false;
@@ -39,7 +36,7 @@ __fastcall TdoorForm::TdoorForm(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall TdoorForm::ShowError(AnsiString MainStr, AnsiString SubStr, int errCode)
 {
-	if(errCode < 0 || errCode > 5) return;
+	if(errCode < 0 || errCode > 5 || errCode == 3) return;
 	if(errCode == 5 && !robostar->IsSscOpened()) return;
 	if(errCode == 0 && !robostar->IsSafetyDoorOpen(1)) return;
 	if(errCode == 1 && !robostar->IsSafetyDoorOpen(2)) return;
@@ -47,8 +44,10 @@ void __fastcall TdoorForm::ShowError(AnsiString MainStr, AnsiString SubStr, int 
 	MainForm->pause_stopBtnClick(this);
 
 	FormStyle = fsStayOnTop;
-	if(errCode == 5) StaticText4->Visible = true;
-	else text[errCode]->Visible = true;
+	if(errCode >= 0 && errCode <= 2)
+		text[errCode]->Visible = true;
+	else if(errCode == 4)
+		text[3]->Visible = true;
 
 	flag = true;
 	if(this->Visible == false){
@@ -89,11 +88,10 @@ void __fastcall TdoorForm::FormHide(TObject *Sender)
 	MainForm->BuzzerOn(false);
 	MainForm->LampModeChange(MainForm->beforeLampMode);
 	MainForm->NotifyAlarm(false, m_errCode, false);
-	for(int i = 0; i < 5; ++i){
+	for(int i = 0; i < 4; ++i){
 		text[i]->Visible = false;
 		perr[i]->Visible = false;
 	}
-	StaticText4->Visible = false;
 
 	MainForm->NotifyEquipStatus("CLEAR");
 }
@@ -136,16 +134,14 @@ void __fastcall TdoorForm::errTimerTimer(TObject *Sender)
 	text[0]->Visible = robostar->IsSafetyDoorOpen(1);
 	text[1]->Visible = robostar->IsSafetyDoorOpen(2);
 	text[2]->Visible = robostar->IsEmergencyStopActive();
-	text[3]->Visible = false;
-	text[4]->Visible = robostar->IsKeyLockActive();
-	StaticText4->Visible = MainForm->popen->Color != clLime;
+	text[3]->Visible = robostar->IsKeyLockActive();
 
 	//btnSetKEYLOCK->Visible = robostar->output.SAFETY_DOOR;
 	//btnSetKEYLOCK->Visible = robostar->gripper.DOOR_OPEN_SELECT;
 	if(MainForm->popen->Color != clLime) btnServoOpen->Visible = true;
     else btnServoOpen->Visible = false;
 
-	for(int i = 0; i < 5; ++i)
+	for(int i = 0; i < 4; ++i)
 		if(text[i]->Visible){
 			perr[i]->Visible = !perr[i]->Visible;
 		}
@@ -165,6 +161,12 @@ void __fastcall TdoorForm::okBtnClick(TObject *Sender)
 void __fastcall TdoorForm::btnSetKEYLOCKClick(TObject *Sender)
 {
 	robostar->KeyLock(true);
+}
+//---------------------------------------------------------------------------
+void __fastcall TdoorForm::btnSetBypassClick(TObject *Sender)
+{
+	//* 2026 08 07 FormDoor에서 BYPASS 출력 ON
+	robostar->Bypass(true);
 }
 //---------------------------------------------------------------------------
 
@@ -290,5 +292,4 @@ void __fastcall TdoorForm::PassEditKeyUp(TObject *Sender, WORD &Key, TShiftState
     }
 }
 //---------------------------------------------------------------------------
-
 
