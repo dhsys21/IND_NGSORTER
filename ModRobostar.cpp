@@ -1,6 +1,7 @@
 //---------------------------------------------------------------------------
 
 #include <vcl.h>
+#include <vector>
 #pragma hdrstop
 
 #include "FormBase.h"
@@ -11,6 +12,32 @@
 Trobostar *robostar;
 //---------------------------------------------------------------------------
 const int errCnt = 100;//300;
+static const wchar_t *MR_MC2XX_PARAMETER_FILE = L"D:\\IND_NGSORTER_SERVO\\SampleData.prm2";
+
+struct MR_MC2XX_PARAMETER_ENTRY{
+	int lineNumber;
+	int axis;
+	short number;
+	short value;
+};
+
+static bool TryParseParameterWord(const UnicodeString &text, short &value)
+{
+	UnicodeString token = text.Trim();
+	if(token.Length() >= 2 &&
+		(token.SubString(1, 2) == L"0x" || token.SubString(1, 2) == L"0X"))
+	{
+		token = token.SubString(3, token.Length() - 2);
+	}
+
+	int parsed = 0;
+	if(token.IsEmpty() || !TryStrToInt(L"0x" + token, parsed) || parsed < 0 || parsed > 0xFFFF)
+		return false;
+
+	value = (short)(unsigned short)parsed;
+	return true;
+}
+
 __fastcall Trobostar::Trobostar(TComponent* Owner)
 	: TDataModule(Owner)
 {
@@ -116,10 +143,258 @@ bool __fastcall Trobostar::WriteLog(int status, UnicodeString msg)
 	return success;
 }
 //---------------------------------------------------------------------------
+bool __fastcall Trobostar::StartServoSystemFromParameterFile()
+{
+	std::vector<MR_MC2XX_PARAMETER_ENTRY> parameters;
+	parameters.reserve(4000);
+	bool foundExternalForcedStop = false;
+	bool foundOperationControl[4] = {false, false, false, false};
+	bool foundServoNetwork[4] = {false, false, false, false};
+	UnicodeString validationError;
+	UnicodeString parameterPath = MR_MC2XX_PARAMETER_FILE;
+
+	if(!FileExists(parameterPath)){
+		MainForm->memoRobostarLineAdd("[PARAMETER FILE] not found: " + parameterPath);
+		return false;
+	}
+
+	TStringList *lines = new TStringList();
+	TStringList *fields = new TStringList();
+	fields->StrictDelimiter = true;
+	fields->Delimiter = ',';
+	try{
+		lines->LoadFromFile(parameterPath);
+		for(int i = 0; i < lines->Count; ++i){
+			UnicodeString rawLine = lines->Strings[i].Trim();
+			if(rawLine.IsEmpty()) continue;
+
+			fields->DelimitedText = rawLine;
+			int axis = 0;
+			short number = 0;
+			short value = 0;
+			if(fields->Count != 3 ||
+				!TryStrToInt(fields->Strings[0].Trim(), axis) ||
+				!TryParseParameterWord(fields->Strings[1], number) ||
+				!TryParseParameterWord(fields->Strings[2], value))
+			{
+				validationError = "invalid record at line " + IntToStr(i + 1) + ": " + rawLine;
+				break;
+			}
+
+			// The machine uses only the system and axes 1-3. Ignore axes 4-32 and RIO records.
+			if(axis != 0 && (axis < 1 || axis > servoCnt)) continue;
+
+			MR_MC2XX_PARAMETER_ENTRY entry;
+			entry.lineNumber = i + 1;
+			entry.axis = axis;
+			entry.number = number;
+			entry.value = value;
+			parameters.push_back(entry);
+
+			if(axis == 0 && (unsigned short)number == 0x000E){
+				foundExternalForcedStop = ((unsigned short)value == 0x5AE1);
+				if(!foundExternalForcedStop){
+					validationError = "system parameter 000E must be 5AE1";
+					break;
+				}
+			}
+			if(axis >= 1 && axis <= servoCnt){
+				if((unsigned short)number == 0x0200 && (unsigned short)value == 0x0001)
+					foundOperationControl[axis] = true;
+				if((unsigned short)number == 0x0203 && (unsigned short)value == (unsigned short)axis)
+					foundServoNetwork[axis] = true;
+			}
+		}
+	}
+	catch(Exception &exception){
+		validationError = exception.Message;
+	}
+	delete fields;
+	delete lines;
+
+	if(validationError.IsEmpty() && !foundExternalForcedStop)
+		validationError = "required system parameter 000E=5AE1 is missing";
+	for(int axis = 1; validationError.IsEmpty() && axis <= servoCnt; ++axis){
+		if(!foundOperationControl[axis])
+			validationError = "axis " + IntToStr(axis) + " parameter 0200=0001 is missing";
+		else if(!foundServoNetwork[axis])
+			validationError = "axis " + IntToStr(axis) + " parameter 0203=" +
+				IntToHex(axis, 4) + " is missing";
+	}
+
+	if(!validationError.IsEmpty()){
+		MainForm->memoRobostarLineAdd("[PARAMETER FILE] validation failed: " + validationError);
+		return false;
+	}
+
+	MainForm->memoRobostarLineAdd("[PARAMETER FILE] validated: path=" + parameterPath +
+		", applyCount=" + IntToStr((int)parameters.size()));
+	MainForm->memoRobostarLineAdd("[SAFETY CONFIG] system 000E=5AE1; external CC-Link/Safety Relay must remain operational.");
+
+	int sts = sscReboot(board_id, channel_id, timeout);
+	if(!WriteLog(sts, "REBOOT")) return false;
+	sts = sscResetAllParameter(board_id, channel_id, timeout);
+	if(!WriteLog(sts, "RESET PARAMETER")) return false;
+
+	DWORD applyStarted = GetTickCount();
+	int appliedCount = 0;
+	for(size_t i = 0; i < parameters.size(); ++i){
+		const MR_MC2XX_PARAMETER_ENTRY &parameter = parameters[i];
+		if(parameter.axis != 0) continue;
+		sts = sscChangeParameter(board_id, channel_id, parameter.axis,
+			parameter.number, parameter.value);
+		if(sts != SSC_OK){
+			MainForm->memoRobostarLineAdd("[PARAMETER FILE] APPLY failed: line=" +
+				IntToStr(parameter.lineNumber) + ", axis=0, parameter=0x" +
+				IntToHex((int)(unsigned short)parameter.number, 4) + ", value=0x" +
+				IntToHex((int)(unsigned short)parameter.value, 4) + ", return=0x" +
+				IntToHex(sts, 8) + ", lastError=0x" + IntToHex(sscGetLastError(), 8));
+			return false;
+		}
+		++appliedCount;
+	}
+
+	for(int axis = 1; axis <= servoCnt; ++axis){
+		std::vector<MR_MC2XX_PARAMETER_ENTRY> axisParameters;
+		axisParameters.reserve(1200);
+		for(size_t i = 0; i < parameters.size(); ++i){
+			if(parameters[i].axis == axis) axisParameters.push_back(parameters[i]);
+		}
+
+		for(size_t i = 0; i < axisParameters.size(); i += 2){
+			const MR_MC2XX_PARAMETER_ENTRY &first = axisParameters[i];
+			if(i + 1 >= axisParameters.size()){
+				sts = sscChangeParameter(board_id, channel_id, axis, first.number, first.value);
+				if(sts != SSC_OK){
+					MainForm->memoRobostarLineAdd("[PARAMETER FILE] APPLY failed: line=" +
+						IntToStr(first.lineNumber) + ", axis=" + IntToStr(axis) +
+						", parameter=0x" + IntToHex((int)(unsigned short)first.number, 4) +
+						", value=0x" + IntToHex((int)(unsigned short)first.value, 4) +
+						", return=0x" + IntToHex(sts, 8) + ", lastError=0x" +
+						IntToHex(sscGetLastError(), 8));
+					return false;
+				}
+				++appliedCount;
+			}
+			else{
+				const MR_MC2XX_PARAMETER_ENTRY &second = axisParameters[i + 1];
+				short numbers[2] = {first.number, second.number};
+				short values[2] = {first.value, second.value};
+				char status[2] = {0, 0};
+				sts = sscChange2Parameter(board_id, channel_id, axis, numbers, values, status);
+				if(sts != SSC_OK){
+					MainForm->memoRobostarLineAdd("[PARAMETER FILE] PAIR APPLY failed: axis=" +
+						IntToStr(axis) + ", lines=" + IntToStr(first.lineNumber) + "/" +
+						IntToStr(second.lineNumber) + ", parameters=0x" +
+						IntToHex((int)(unsigned short)first.number, 4) + "/0x" +
+						IntToHex((int)(unsigned short)second.number, 4) + ", return=0x" +
+						IntToHex(sts, 8) + ", lastError=0x" + IntToHex(sscGetLastError(), 8));
+					return false;
+				}
+				appliedCount += 2;
+			}
+
+			if(appliedCount > 0 && appliedCount % 500 == 0)
+				MainForm->memoRobostarLineAdd("[PARAMETER FILE] applying: " +
+					IntToStr(appliedCount) + "/" + IntToStr((int)parameters.size()));
+		}
+	}
+
+	if(appliedCount != (int)parameters.size()){
+		MainForm->memoRobostarLineAdd("[PARAMETER FILE] APPLY count mismatch: applied=" +
+			IntToStr(appliedCount) + ", expected=" + IntToStr((int)parameters.size()));
+		return false;
+	}
+	MainForm->memoRobostarLineAdd("[PARAMETER FILE] apply success: count=" +
+		IntToStr(appliedCount) + ", elapsedMs=" + IntToStr((int)(GetTickCount() - applyStarted)) +
+		", FlashROM=unchanged");
+
+	// Read back the same safety, operation-control and network-number values used by the x64 program.
+	short checkedValue = 0;
+	sts = sscCheckParameter(board_id, channel_id, 0, (short)0x000E, &checkedValue);
+	MainForm->memoRobostarLineAdd("[WORKING PARAMETER] axis=0, parameter=0x000E, value=0x" +
+		IntToHex((int)(unsigned short)checkedValue, 4) + ", expected=0x5AE1, read=0x" + IntToHex(sts, 8));
+	for(int axis = 1; axis <= servoCnt; ++axis){
+		short checkNumbers[2] = {(short)0x0200, (short)0x0203};
+		short expectedValues[2] = {(short)0x0001, (short)axis};
+		for(int index = 0; index < 2; ++index){
+			checkedValue = 0;
+			sts = sscCheckParameter(board_id, channel_id, axis, checkNumbers[index], &checkedValue);
+			MainForm->memoRobostarLineAdd("[WORKING PARAMETER] axis=" + IntToStr(axis) +
+				", parameter=0x" + IntToHex((int)(unsigned short)checkNumbers[index], 4) +
+				", value=0x" + IntToHex((int)(unsigned short)checkedValue, 4) +
+				", expected=0x" + IntToHex((int)(unsigned short)expectedValues[index], 4) +
+				", read=0x" + IntToHex(sts, 8));
+		}
+	}
+
+	sts = sscSystemStart(board_id, channel_id, timeout);
+	if(!WriteLog(sts, "SERVO SYSTEM START COMMAND")) return false;
+
+	DWORD waitStarted = GetTickCount();
+	do{
+		sts = sscGetSystemStatusCode(board_id, channel_id, &mr2.system_status);
+		if(sts != SSC_OK){
+			WriteLog(sts, "GET SYSTEM STATUS");
+			return false;
+		}
+		if(mr2.system_status == SSC_STS_CODE_RUNNING) break;
+		Sleep(100);
+	}while((DWORD)(GetTickCount() - waitStarted) < (DWORD)timeout);
+
+	if(mr2.system_status != SSC_STS_CODE_RUNNING){
+		MainForm->memoRobostarLineAdd("SERVO SYSTEM START timeout: status=0x" +
+			IntToHex((int)(unsigned short)mr2.system_status, 4));
+		return false;
+	}
+	MainForm->memoRobostarLineAdd("SERVO SYSTEM RUNNING: status=0x000A");
+
+	int mesv[4] = {-1, -1, -1, -1};
+	waitStarted = GetTickCount();
+	bool allConnected = false;
+	do{
+		allConnected = true;
+		for(int axis = 1; axis <= servoCnt; ++axis){
+			sts = sscGetStatusBitSignalEx(board_id, channel_id, axis,
+				SSC_STSBIT_AX_MESV, &mesv[axis]);
+			if(sts != SSC_OK){
+				WriteLog(sts, "[" + IntToStr(axis) + "] GET SERVO COMMUNICATION STATUS");
+				return false;
+			}
+			if(mesv[axis] != SSC_BIT_OFF) allConnected = false;
+		}
+		if(allConnected) break;
+		Sleep(100);
+	}while((DWORD)(GetTickCount() - waitStarted) < (DWORD)timeout);
+
+	if(!allConnected){
+		short emergencyStatus = 0;
+		sscGetEmgStatus(board_id, channel_id, &emergencyStatus);
+		MainForm->memoRobostarLineAdd("SSCNET servo communication timeout: AXIS1 MESV=" +
+			IntToStr(mesv[1]) + ", AXIS2 MESV=" + IntToStr(mesv[2]) +
+			", AXIS3 MESV=" + IntToStr(mesv[3]) + ", EMIO=" + IntToStr(emergencyStatus));
+		return false;
+	}
+	MainForm->memoRobostarLineAdd("SSCNET servo amplifier communication ready: MESV=0 (AXIS 1/2/3)");
+
+	short monitorNum[4] = {0x024E, 0, 0, 0};
+	for(int axis = 1; axis <= servoCnt; ++axis)
+		WriteLog(sscSetMonitor(board_id, channel_id, axis, &monitorNum[0]),
+			"[" + IntToStr(axis) + "] MONITOR");
+
+	short emergencyStatus = 0;
+	sts = sscGetEmgStatus(board_id, channel_id, &emergencyStatus);
+	if(sts == SSC_OK && emergencyStatus != 0)
+		MainForm->memoRobostarLineAdd("SERVO SYSTEM OPEN completed with forced stop active: EMIO=" +
+			IntToStr(emergencyStatus));
+
+	MainForm->memoRobostarLineAdd("SERVO SYSTEM OPEN complete: status=0x000A");
+	return true;
+}
+//---------------------------------------------------------------------------
 void __fastcall Trobostar::Init()
 {
 	int sts = SSC_OK;
-	short monitorNum[4] = {0x024E, 0, 0, 0};
 
 	//* 2026 08 07 천안 불량선별기처럼 Servo Open 시퀀스의 첫 단계에서 보드를 Open
 	// 재실행 시에는 이미 Open된 보드에 sscOpen()을 중복 호출하지 않는다.
@@ -133,33 +408,7 @@ void __fastcall Trobostar::Init()
 		}
 	}
 
-	sts = sscReboot(board_id, channel_id, timeout);
-	if(!WriteLog(sts, "REBOOT")) goto open_failed;
-	sts = sscResetAllParameter(board_id, channel_id, timeout);
-	if(!WriteLog(sts, "RESET PARAMETER")) goto open_failed;
-	sts = sscLoadAllParameterFromFlashROM(board_id, channel_id, timeout);
-	if(!WriteLog(sts, "LOAD PARAMETER")) goto open_failed;
-	sts = sscSystemStart(board_id, channel_id, timeout);
-	if(sts != SSC_OK){
-		WriteLog(sts, "SERVO SYSTEM START COMMAND");
-		goto open_failed;
-	}
-	MainForm->memoRobostarLineAdd("SERVO SYSTEM START 명령 접수");
-
-	//* SystemStart 완료 후 실제 시스템 상태를 즉시 확인한다. 정상값은 000A(RUNNING).
-	sts = sscGetSystemStatusCode(board_id, channel_id, &mr2.system_status);
-	if(!WriteLog(sts, "GET SYSTEM STATUS")) goto open_failed;
-	if(mr2.system_status != SSC_STS_CODE_RUNNING){
-		MainForm->memoRobostarLineAdd("SERVO SYSTEM OPEN 확인 실패 : STATUS " +
-			IntToHex((int)mr2.system_status, 4));
-		InitSequence(seqIdle);
-		return;
-	}
-	MainForm->memoRobostarLineAdd("SERVO SYSTEM OPEN 확인 성공 : STATUS 000A");
-
-	//* 시작 시점에는 SSC 보드를 열지 않으므로 SystemStart 후 Monitor를 설정한다.
-	for(int i = 1; i <= servoCnt; ++i)
-		sscSetMonitor(board_id, channel_id, i, &monitorNum[0]);
+	if(!StartServoSystemFromParameterFile()) goto open_failed;
 	InitSequence(seqIdle);
 	return;
 
@@ -283,19 +532,32 @@ void __fastcall Trobostar::ServoOn()
 		return;
 	}
 
+	short emergencyStatus = 0;
+	int emergencyResult = sscGetEmgStatus(board_id, channel_id, &emergencyStatus);
+	if(emergencyResult != SSC_OK || emergencyStatus != 0){
+		MainForm->memoRobostarLineAdd("Servo ON blocked: forced stop status EMIO=" +
+			IntToStr(emergencyStatus) + ", return=0x" + IntToHex(emergencyResult, 8));
+		InitSequence(seqIdle);
+		return;
+	}
+
 	int sts = 0;
+	//* 2026 08 10 Position Board Utility/legacy test program과 동일한 전용 Servo ON API 사용
+	//* 모든 축에 ON 명령을 먼저 전송한 뒤 Ready를 확인하여 축별 대기 때문에 후속 축이 지연되지 않게 한다.
 	for(int i=1; i<=servoCnt; ++i){
-		sts = sscSetCommandBitSignalEx(board_id, channel_id, i, SSC_CMDBIT_AX_SON, SSC_BIT_ON);
+		sts = sscServoOn(board_id, channel_id, i);
 		if(sts != SSC_OK){
 			WriteLog(sts, "[" + IntToStr(i) + "] Servo ON COMMAND");
 			mr2.servo[i] = SSC_BIT_OFF;
 			continue;
 		}
 		MainForm->memoRobostarLineAdd("[" + IntToStr(i) + "] Servo ON 명령 접수");
+	}
 
-		//* 2026 08 07 명령 반환값이 아니라 실제 AX_RDY를 다시 읽어 ON 성공 판정
+	for(int i=1; i<=servoCnt; ++i){
+		//* 앰프 초기 통신(Ab -> Cxx/dxx)에 필요한 시간을 고려하여 최대 10초 대기한다.
 		int readySts = sscWaitStatusBitSignalEx(board_id, channel_id, i,
-			SSC_STSBIT_AX_RDY, SSC_BIT_ON, 1000);
+			SSC_STSBIT_AX_RDY, SSC_BIT_ON, 10000);
 		int ready = SSC_BIT_OFF;
 		int readSts = sscGetStatusBitSignalEx(board_id, channel_id, i,
 			SSC_STSBIT_AX_RDY, &ready);
@@ -317,14 +579,13 @@ void __fastcall Trobostar::ServoOff()
 {
 	int sts = 0;
 	for(int i=1; i<=servoCnt; ++i){
-		sts = sscSetCommandBitSignalEx(board_id, channel_id, i, SSC_CMDBIT_AX_SON, SSC_BIT_OFF);
+		sts = sscServoOff(board_id, channel_id, i);
 		WriteLog(sts, "[" + IntToStr(i) +  "] 서보 OFF");
-		//* 2026 08 07 OFF 명령 후 실제 Servo Ready OFF 완료를 확인하여 화면에 즉시 반영
+		//* 전용 Servo OFF API의 완료 상태를 확인하여 화면에 즉시 반영한다.
 		if(sts == SSC_OK){
-			int readySts = sscWaitStatusBitSignalEx(board_id, channel_id, i,
-				SSC_STSBIT_AX_RDY, SSC_BIT_OFF, 1000);
-			WriteLog(readySts, "[" + IntToStr(i) + "] Servo Ready OFF");
-			if(readySts == SSC_OK)
+			int offSts = sscCheckServoOff(board_id, channel_id, i);
+			WriteLog(offSts, "[" + IntToStr(i) + "] Servo OFF CHECK");
+			if(offSts == SSC_OK)
 				mr2.servo[i] = SSC_BIT_OFF;
 		}
 	}
@@ -851,25 +1112,27 @@ void __fastcall Trobostar::EmgAutoRun()
 
 	int sts = 0;
 	int bitInfo = 0;
+	short emergencyStatus = 0;
 
 	switch(step.step){
 		case 0: //  서보 시스템 초기화
-			sts = sscReboot(board_id, channel_id, timeout);
-			WriteLog(sts, "REBOOT");
-			sts = sscResetAllParameter(board_id, channel_id, timeout);
-			WriteLog(sts, "RESET PARAMETER");
-			sts = sscLoadAllParameterFromFlashROM(board_id, channel_id, timeout);
-			WriteLog(sts, "LOAD PARAMETER");
-			sts = sscSystemStart(board_id, channel_id, timeout);
-			if(sts == SSC_OK)
-				MainForm->memoRobostarLineAdd("SERVO SYSTEM START 명령 접수");
-			else WriteLog(sts, "SERVO SYSTEM START COMMAND");
-
+			if(!StartServoSystemFromParameterFile()){
+				InitSequence(seqIdle);
+				return;
+			}
 			step.step += 1;
 			break;
 		case 1: //  서보 ON
+			if(!IsSafetyReady() ||
+				sscGetEmgStatus(board_id, channel_id, &emergencyStatus) != SSC_OK ||
+				emergencyStatus != 0)
+			{
+				MainForm->memoRobostarLineAdd("[Safety] Auto Servo ON blocked: X002B/X002C or EMIO is not ready.");
+				InitSequence(seqIdle);
+				return;
+			}
 			for(int i = 1; i <= servoCnt; ++i){
-				sts = sscSetCommandBitSignalEx(board_id, channel_id, i, SSC_CMDBIT_AX_SON, SSC_BIT_ON);
+				sts = sscServoOn(board_id, channel_id, i);
 				if(sts == SSC_OK)
 					MainForm->memoRobostarLineAdd("[" + IntToStr(i) + "] Servo ON 명령 접수");
 				else WriteLog(sts, "[" + IntToStr(i) + "] Servo ON COMMAND");
@@ -948,27 +1211,26 @@ void __fastcall Trobostar::AutoRun()
 
 	int sts = 0;
 	int bitInfo = 0;
-    short num[4] = {0x024E, 0, 0, 0};
+	short emergencyStatus = 0;
 	switch(step.step){
 		case 0: //  서보 시스템 초기화
-			sts = sscReboot(board_id, channel_id, timeout);
-			WriteLog(sts, "REBOOT");
-			sts = sscResetAllParameter(board_id, channel_id, timeout);
-			WriteLog(sts, "RESET PARAMETER");
-			sts = sscLoadAllParameterFromFlashROM(board_id, channel_id, timeout);
-			WriteLog(sts, "LOAD PARAMETER");
-			sts = sscSystemStart(board_id, channel_id, timeout);
-			if(sts == SSC_OK)
-				MainForm->memoRobostarLineAdd("SERVO SYSTEM START 명령 접수");
-			else WriteLog(sts, "SERVO SYSTEM START COMMAND");
-
-            for(int i = 1; i <= servoCnt; i++) sscSetMonitor(board_id, channel_id, i, &num[0]);
-
+			if(!StartServoSystemFromParameterFile()){
+				InitSequence(seqIdle);
+				return;
+			}
 			step.step += 1;
 			break;
 		case 1: //  서보 ON
+			if(!IsSafetyReady() ||
+				sscGetEmgStatus(board_id, channel_id, &emergencyStatus) != SSC_OK ||
+				emergencyStatus != 0)
+			{
+				MainForm->memoRobostarLineAdd("[Safety] Auto Servo ON blocked: X002B/X002C or EMIO is not ready.");
+				InitSequence(seqIdle);
+				return;
+			}
 			for(int i = 1; i <= servoCnt; ++i){
-				sts = sscSetCommandBitSignalEx(board_id, channel_id, i, SSC_CMDBIT_AX_SON, SSC_BIT_ON);
+				sts = sscServoOn(board_id, channel_id, i);
 				if(sts == SSC_OK)
 					MainForm->memoRobostarLineAdd("[" + IntToStr(i) + "] Servo ON 명령 접수");
 				else WriteLog(sts, "[" + IntToStr(i) + "] Servo ON COMMAND");

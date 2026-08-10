@@ -7,7 +7,7 @@ void __fastcall TMainForm::WriteProgLog(AnsiString msg)
 	AnsiString str;
 	int file_handle;
 
-	str = (AnsiString)PROG_LOG + Now().FormatString("yymmdd") + ".csv";
+	str = (AnsiString)PROG_LOG + "STATUS_" + Now().FormatString("yymmdd") + ".log";
 
 	if(FileExists(str))
 		file_handle = FileOpen(str, fmOpenWrite);
@@ -51,7 +51,7 @@ void __fastcall TMainForm::WriteErrorLog(AnsiString str1, AnsiString str2)
 	AnsiString str;
 	int file_handle;
 
-	str = (AnsiString)ERROR_LOG + Now().FormatString("yymmdd") + ".csv";
+	str = (AnsiString)ERROR_LOG + "ERROR_" + Now().FormatString("yymmdd") + ".log";
 
 	if(FileExists(str))
 		file_handle = FileOpen(str, fmOpenWrite);

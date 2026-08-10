@@ -329,6 +329,7 @@ private:	// User declarations
 	bool btx;
 
 	bool __fastcall WriteLog(int status, UnicodeString msg);
+	bool __fastcall StartServoSystemFromParameterFile();
 	int board_id;   // mr2 제어 보드용
 	int channel_id;
 	int timeout;

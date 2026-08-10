@@ -153,11 +153,11 @@ void __fastcall TBaseForm::FileDeleteTimerTimer(TObject *Sender)
 		DeleteIndex += 1;
 		break;
 	case 3:
-		DeleteLogFile((AnsiString)ERROR_LOG + dt.FormatString("yymmdd") + ".csv");
+		DeleteLogFile((AnsiString)ERROR_LOG + "ERROR_" + dt.FormatString("yymmdd") + ".log");
 		DeleteIndex += 1;
 		break;
 	case 4:    // 검사결과 파일
-		DeleteLogFile((AnsiString)PROG_LOG + dt.FormatString("yymmdd") + ".csv");
+		DeleteLogFile((AnsiString)PROG_LOG + "STATUS_" + dt.FormatString("yymmdd") + ".log");
 		DeleteIndex = 0;
 		DeleteDay += 1;
 		break;
