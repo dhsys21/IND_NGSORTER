@@ -239,8 +239,8 @@ object teachForm: TteachForm
       28A0028A28A0028A28A0028A28A0028A28A0028A28A0028A28A0028A28A0028A
       28A0028A28A0028A28A00E97C03FF2189BFEB837FE84B451E01FF90C4DFF005C
       1BFF00425A2BDCC0FF00051D54BE13FFD9}
-    ExplicitWidth = 1766
     OnMouseDown = TitleMouseDown
+    ExplicitWidth = 1766
   end
   object Label33: TLabel
     Left = 16
@@ -2019,7 +2019,6 @@ object teachForm: TteachForm
         Padding.Bottom = 5
         TMSStyle = 0
         object lblUpAllGripper: TLabel
-          Visible = False
           Left = 425
           Top = 2
           Width = 47
@@ -2034,9 +2033,9 @@ object teachForm: TteachForm
           ParentShowHint = False
           ShowHint = False
           Transparent = True
+          Visible = False
         end
         object lblDownAllGripper: TLabel
-          Visible = False
           Left = 499
           Top = 2
           Width = 47
@@ -2052,6 +2051,7 @@ object teachForm: TteachForm
           ParentShowHint = False
           ShowHint = False
           Transparent = True
+          Visible = False
         end
         object lblOpenAllGripper: TLabel
           Left = 427
@@ -2362,7 +2362,6 @@ object teachForm: TteachForm
             Transparent = True
           end
           object lblUpDown: TLabel
-            Visible = False
             Tag = 1
             Left = 130
             Top = 119
@@ -2379,6 +2378,7 @@ object teachForm: TteachForm
             ParentShowHint = False
             ShowHint = False
             Transparent = True
+            Visible = False
           end
           object lblOpenClose: TLabel
             Tag = 1
@@ -2399,7 +2399,6 @@ object teachForm: TteachForm
             Transparent = True
           end
           object pdn1: TPanel
-            Visible = False
             Tag = 1
             Left = 56
             Top = 166
@@ -2418,9 +2417,9 @@ object teachForm: TteachForm
             ParentShowHint = False
             ShowHint = False
             TabOrder = 0
+            Visible = False
           end
           object pup1: TPanel
-            Visible = False
             Tag = 1
             Left = 49
             Top = 28
@@ -2439,6 +2438,7 @@ object teachForm: TteachForm
             ParentShowHint = False
             ShowHint = False
             TabOrder = 1
+            Visible = False
           end
           object pflow1: TPanel
             Tag = 1
@@ -2781,7 +2781,6 @@ object teachForm: TteachForm
             TMSStyle = 8
           end
           object btnUpGripper: TAdvSmoothButton
-            Visible = False
             Tag = 1
             Left = 109
             Top = 134
@@ -2906,11 +2905,11 @@ object teachForm: TteachForm
               4AF0CAEFE645397FFFF11F423A84EE0100E1AA1D215AE135BF0000000049454E
               44AE426082}
             TabOrder = 8
+            Visible = False
             Version = '2.1.1.5'
             TMSStyle = 8
           end
           object btnDownGripper: TAdvSmoothButton
-            Visible = False
             Tag = 1
             Left = 145
             Top = 134
@@ -3035,6 +3034,7 @@ object teachForm: TteachForm
               17C14863F7BB6D98451B296DD23500039E240FA02CCFDE0000000049454E44AE
               426082}
             TabOrder = 9
+            Visible = False
             Version = '2.1.1.5'
             TMSStyle = 8
           end
@@ -3360,7 +3360,6 @@ object teachForm: TteachForm
             Transparent = True
           end
           object pdn2: TPanel
-            Visible = False
             Tag = 2
             Left = 45
             Top = 166
@@ -3379,9 +3378,9 @@ object teachForm: TteachForm
             ParentShowHint = False
             ShowHint = False
             TabOrder = 0
+            Visible = False
           end
           object pup2: TPanel
-            Visible = False
             Tag = 2
             Left = 38
             Top = 28
@@ -3400,6 +3399,7 @@ object teachForm: TteachForm
             ParentShowHint = False
             ShowHint = False
             TabOrder = 1
+            Visible = False
           end
           object pflow2: TPanel
             Tag = 2
@@ -3742,7 +3742,6 @@ object teachForm: TteachForm
             TMSStyle = 8
           end
           object AdvSmoothButton17: TAdvSmoothButton
-            Visible = False
             Tag = 2
             Left = 5
             Top = 253
@@ -3867,11 +3866,11 @@ object teachForm: TteachForm
               4AF0CAEFE645397FFFF11F423A84EE0100E1AA1D215AE135BF0000000049454E
               44AE426082}
             TabOrder = 8
+            Visible = False
             Version = '2.1.1.5'
             TMSStyle = 8
           end
           object AdvSmoothButton18: TAdvSmoothButton
-            Visible = False
             Tag = 2
             Left = 41
             Top = 253
@@ -3996,6 +3995,7 @@ object teachForm: TteachForm
               17C14863F7BB6D98451B296DD23500039E240FA02CCFDE0000000049454E44AE
               426082}
             TabOrder = 9
+            Visible = False
             Version = '2.1.1.5'
             TMSStyle = 8
           end
@@ -4321,7 +4321,6 @@ object teachForm: TteachForm
             Transparent = True
           end
           object pdn3: TPanel
-            Visible = False
             Tag = 3
             Left = 45
             Top = 166
@@ -4340,9 +4339,9 @@ object teachForm: TteachForm
             ParentShowHint = False
             ShowHint = False
             TabOrder = 0
+            Visible = False
           end
           object pup3: TPanel
-            Visible = False
             Tag = 3
             Left = 38
             Top = 28
@@ -4361,6 +4360,7 @@ object teachForm: TteachForm
             ParentShowHint = False
             ShowHint = False
             TabOrder = 1
+            Visible = False
           end
           object pflow3: TPanel
             Tag = 3
@@ -4701,7 +4701,6 @@ object teachForm: TteachForm
             TMSStyle = 8
           end
           object AdvSmoothButton21: TAdvSmoothButton
-            Visible = False
             Tag = 3
             Left = 5
             Top = 253
@@ -4826,11 +4825,11 @@ object teachForm: TteachForm
               4AF0CAEFE645397FFFF11F423A84EE0100E1AA1D215AE135BF0000000049454E
               44AE426082}
             TabOrder = 8
+            Visible = False
             Version = '2.1.1.5'
             TMSStyle = 8
           end
           object AdvSmoothButton22: TAdvSmoothButton
-            Visible = False
             Tag = 3
             Left = 41
             Top = 253
@@ -4955,6 +4954,7 @@ object teachForm: TteachForm
               17C14863F7BB6D98451B296DD23500039E240FA02CCFDE0000000049454E44AE
               426082}
             TabOrder = 9
+            Visible = False
             Version = '2.1.1.5'
             TMSStyle = 8
           end
@@ -5280,7 +5280,6 @@ object teachForm: TteachForm
             Transparent = True
           end
           object pdn4: TPanel
-            Visible = False
             Tag = 4
             Left = 45
             Top = 166
@@ -5299,9 +5298,9 @@ object teachForm: TteachForm
             ParentShowHint = False
             ShowHint = False
             TabOrder = 0
+            Visible = False
           end
           object pup4: TPanel
-            Visible = False
             Tag = 4
             Left = 38
             Top = 28
@@ -5320,6 +5319,7 @@ object teachForm: TteachForm
             ParentShowHint = False
             ShowHint = False
             TabOrder = 1
+            Visible = False
           end
           object pflow4: TPanel
             Tag = 4
@@ -5660,7 +5660,6 @@ object teachForm: TteachForm
             TMSStyle = 8
           end
           object AdvSmoothButton25: TAdvSmoothButton
-            Visible = False
             Tag = 4
             Left = 5
             Top = 253
@@ -5785,11 +5784,11 @@ object teachForm: TteachForm
               4AF0CAEFE645397FFFF11F423A84EE0100E1AA1D215AE135BF0000000049454E
               44AE426082}
             TabOrder = 8
+            Visible = False
             Version = '2.1.1.5'
             TMSStyle = 8
           end
           object AdvSmoothButton26: TAdvSmoothButton
-            Visible = False
             Tag = 4
             Left = 41
             Top = 253
@@ -5914,6 +5913,7 @@ object teachForm: TteachForm
               17C14863F7BB6D98451B296DD23500039E240FA02CCFDE0000000049454E44AE
               426082}
             TabOrder = 9
+            Visible = False
             Version = '2.1.1.5'
             TMSStyle = 8
           end
@@ -6239,7 +6239,6 @@ object teachForm: TteachForm
             Transparent = True
           end
           object pdn5: TPanel
-            Visible = False
             Tag = 5
             Left = 44
             Top = 166
@@ -6258,9 +6257,9 @@ object teachForm: TteachForm
             ParentShowHint = False
             ShowHint = False
             TabOrder = 0
+            Visible = False
           end
           object pup5: TPanel
-            Visible = False
             Tag = 5
             Left = 38
             Top = 28
@@ -6279,6 +6278,7 @@ object teachForm: TteachForm
             ParentShowHint = False
             ShowHint = False
             TabOrder = 1
+            Visible = False
           end
           object pflow5: TPanel
             Tag = 5
@@ -6619,7 +6619,6 @@ object teachForm: TteachForm
             TMSStyle = 8
           end
           object AdvSmoothButton29: TAdvSmoothButton
-            Visible = False
             Tag = 5
             Left = 5
             Top = 253
@@ -6744,11 +6743,11 @@ object teachForm: TteachForm
               4AF0CAEFE645397FFFF11F423A84EE0100E1AA1D215AE135BF0000000049454E
               44AE426082}
             TabOrder = 8
+            Visible = False
             Version = '2.1.1.5'
             TMSStyle = 8
           end
           object AdvSmoothButton30: TAdvSmoothButton
-            Visible = False
             Tag = 5
             Left = 41
             Top = 253
@@ -6873,6 +6872,7 @@ object teachForm: TteachForm
               17C14863F7BB6D98451B296DD23500039E240FA02CCFDE0000000049454E44AE
               426082}
             TabOrder = 9
+            Visible = False
             Version = '2.1.1.5'
             TMSStyle = 8
           end
@@ -7198,7 +7198,6 @@ object teachForm: TteachForm
             Transparent = True
           end
           object pdn6: TPanel
-            Visible = False
             Tag = 6
             Left = 45
             Top = 166
@@ -7217,9 +7216,9 @@ object teachForm: TteachForm
             ParentShowHint = False
             ShowHint = False
             TabOrder = 0
+            Visible = False
           end
           object pup6: TPanel
-            Visible = False
             Tag = 6
             Left = 38
             Top = 28
@@ -7238,6 +7237,7 @@ object teachForm: TteachForm
             ParentShowHint = False
             ShowHint = False
             TabOrder = 1
+            Visible = False
           end
           object pflow6: TPanel
             Tag = 6
@@ -7578,7 +7578,6 @@ object teachForm: TteachForm
             TMSStyle = 8
           end
           object AdvSmoothButton33: TAdvSmoothButton
-            Visible = False
             Tag = 6
             Left = 5
             Top = 253
@@ -7703,11 +7702,11 @@ object teachForm: TteachForm
               4AF0CAEFE645397FFFF11F423A84EE0100E1AA1D215AE135BF0000000049454E
               44AE426082}
             TabOrder = 8
+            Visible = False
             Version = '2.1.1.5'
             TMSStyle = 8
           end
           object AdvSmoothButton34: TAdvSmoothButton
-            Visible = False
             Tag = 6
             Left = 41
             Top = 253
@@ -7832,6 +7831,7 @@ object teachForm: TteachForm
               17C14863F7BB6D98451B296DD23500039E240FA02CCFDE0000000049454E44AE
               426082}
             TabOrder = 9
+            Visible = False
             Version = '2.1.1.5'
             TMSStyle = 8
           end
@@ -7855,7 +7855,6 @@ object teachForm: TteachForm
           end
         end
         object btnDownAllGripper: TAdvSmoothButton
-          Visible = False
           Left = 488
           Top = 16
           Width = 75
@@ -7979,11 +7978,11 @@ object teachForm: TteachForm
             17C14863F7BB6D98451B296DD23500039E240FA02CCFDE0000000049454E44AE
             426082}
           TabOrder = 6
+          Visible = False
           Version = '2.1.1.5'
           TMSStyle = 8
         end
         object btnUpAllGripper: TAdvSmoothButton
-          Visible = False
           Left = 410
           Top = 16
           Width = 75
@@ -8107,6 +8106,7 @@ object teachForm: TteachForm
             4AF0CAEFE645397FFFF11F423A84EE0100E1AA1D215AE135BF0000000049454E
             44AE426082}
           TabOrder = 7
+          Visible = False
           Version = '2.1.1.5'
           TMSStyle = 8
         end

@@ -65,8 +65,8 @@ typedef struct{
 	uint8_t SAFETY_DOOR_1:1; //X0026 ON: unlocked/open, OFF: keylock locked
 	uint8_t SAFETY_DOOR_2:1; //X0027 ON: unlocked/open, OFF: keylock locked
 	uint8_t SAFETY_RESET_SW_ON:1; //X0028 SAFETY RESET SW ON
-	uint8_t BYPASS_SW_ON:1; //X0029 BY-PASS S/W ON
-	uint8_t BYPASS_SW_OFF:1; //X002A BY-PASS S/W OFF
+	uint8_t BYPASS_SW_ON:1; //X0029 contact ON: actual hardware BY-PASS OFF confirmation
+	uint8_t BYPASS_SW_OFF:1; //X002A contact ON: actual hardware BY-PASS ON confirmation
 	uint8_t SAFETY_EMG_READY:1; //X002B ON: emergency safety circuit ready
 	uint8_t SAFETY_DOOR_READY:1; //X002C ON: door safety circuit ready
 	uint8_t SAFETY_DOOR_3:1; //X002D not used
@@ -210,7 +210,7 @@ typedef struct{
 	uint8_t TOWER_LAMP_YELLOW:1; //Y0039 TOWER LAMP YELLOW
 	uint8_t TOWER_LAMP_GREEN:1; //Y003A TOWER LAMP GREEN
 	uint8_t TOWER_LAMP_BUZZER:1; //Y003B TOWER LAMP BUZZER
-	uint8_t DOOR_OPEN_SELECT:1; //Y003C BYPASS
+	uint8_t DOOR_OPEN_SELECT:1; //Y003C active-low: OFF=BYPASS ON, ON=BYPASS OFF
 	uint8_t Y003D:1; //Y003D
 	uint8_t Y003E:1; //Y003E
 	uint8_t Y003F:1; //Y003F
@@ -332,7 +332,8 @@ private:	// User declarations
 	int channel_id;
 	int timeout;
 	bool sscOpened;
-    PNT_DATA_EX point[AxisCnt];
+	DWORD safetyResetPulseUntilTick;
+	PNT_DATA_EX point[AxisCnt];
     bool bSetPoint;
 	long jogSpeed;
 	bool __fastcall setPoint(int axnum_id, unsigned long int pos);
@@ -396,6 +397,8 @@ public:		// User declarations
 	bool __fastcall CheckEjectCell_before(int pos);
 	bool __fastcall KeyLock(bool on);
 	bool __fastcall Bypass(bool on);
+	bool __fastcall RequestSafetyResetPulse();
+	bool __fastcall IsSoftwareSafetyResetActive() const;
 	bool __fastcall IsEmergencyStopActive() const;
 	bool __fastcall IsSafetyReady() const;
 	bool __fastcall IsSafetyDoorOpen(int doorNo) const;

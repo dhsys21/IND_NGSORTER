@@ -52,6 +52,7 @@ __fastcall Trobostar::Trobostar(TComponent* Owner)
 	timeout = 10000;
 	sscOpened = false;
 	jogSpeed = 100;
+	safetyResetPulseUntilTick = 0;
 	move.pallet = 0;
 	move.channel = 0;
 
@@ -1594,8 +1595,20 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 	MainForm->Caption = step.step;
 
 	this->io_Read();
-	gripper.SAFETY_RESET = input.OPBOX_RESET_SWITCH || input.SAFETY_RESET_SW_ON;
+	bool softwareSafetyResetActive = IsSoftwareSafetyResetActive();
+	bool softwareSafetyResetCompleted = safetyResetPulseUntilTick != 0
+		&& !softwareSafetyResetActive;
+	gripper.SAFETY_RESET = input.OPBOX_RESET_SWITCH
+		|| input.SAFETY_RESET_SW_ON || softwareSafetyResetActive;
 	this->io_WriteGripper();
+
+	if(softwareSafetyResetCompleted){
+		safetyResetPulseUntilTick = 0;
+		if(input.SAFETY_DOOR_READY)
+			MainForm->memoRobostarLineAdd("[SAFETY RESET] Y0032 pulse complete: X002C=1 (READY)");
+		else
+			MainForm->memoRobostarLineAdd("[SAFETY RESET] Y0032 pulse complete: X002C=0 (NOT READY)");
+	}
 	if(sscOpened) mr2Sensing();
 
 	if(seq == seqInit)Init();
@@ -1742,12 +1755,34 @@ bool __fastcall Trobostar::KeyLock(bool on)
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::Bypass(bool on)
 {
-	// BY-PASS can be turned OFF only after KEYLOCK has been set.
-	if(!on && !IsKeyLockActive())
+	// BY-PASS OFF is allowed after the KEYLOCK set outputs have been requested.
+	// The physical lock completes after BY-PASS changes to OFF, so do not wait
+	// for the final X0026/X0027 lock confirmation here.
+	if(!on && !(gripper.DOOR_LEFT_CLOSE && gripper.DOOR_RIGHT_CLOSE))
 		return false;
 
-	gripper.DOOR_OPEN_SELECT = on;
-	return gripper.DOOR_OPEN_SELECT == on;
+	// Y003C is active-low in this machine: OFF=BY-PASS ON, ON=BY-PASS OFF.
+	gripper.DOOR_OPEN_SELECT = !on;
+	return gripper.DOOR_OPEN_SELECT == !on;
+}
+//---------------------------------------------------------------------------
+bool __fastcall Trobostar::RequestSafetyResetPulse()
+{
+	// Follow the C# utility: X0025/X0028 remain physical inputs and the
+	// software button drives the same final Y0032 output for 1.5 seconds.
+	if(MainForm == NULL || MainForm->path != 81)
+		return false;
+
+	safetyResetPulseUntilTick = GetTickCount() + 1500;
+	MainForm->memoRobostarLineAdd("[SAFETY RESET] Software Y0032 pulse accepted (1500ms)");
+	return true;
+}
+//---------------------------------------------------------------------------
+bool __fastcall Trobostar::IsSoftwareSafetyResetActive() const
+{
+	if(safetyResetPulseUntilTick == 0)
+		return false;
+	return (LONG)(safetyResetPulseUntilTick - GetTickCount()) > 0;
 }
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::IsEmergencyStopActive() const
@@ -1769,12 +1804,14 @@ bool __fastcall Trobostar::IsSafetyDoorOpen(int doorNo) const
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::IsKeyLockActive() const
 {
-	return gripper.DOOR_LEFT_CLOSE && gripper.DOOR_RIGHT_CLOSE;
+	// X0026/X0027: both OFF confirms KEYLOCK set.
+	return !input.SAFETY_DOOR_1 && !input.SAFETY_DOOR_2;
 }
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::IsBypassActive() const
 {
-	return gripper.DOOR_OPEN_SELECT;
+	// X002A(BYPASS_SW_OFF)=ON confirms actual hardware BY-PASS ON.
+	return !input.BYPASS_SW_ON && input.BYPASS_SW_OFF;
 }
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::IsSscOpened() const

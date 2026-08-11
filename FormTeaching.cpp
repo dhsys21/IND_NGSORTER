@@ -756,7 +756,7 @@ void __fastcall TteachForm::ApplyTeaching()
 			return;
 		}
 
-        if(MessageBox(Handle, BaseForm->GetLangStr("MSG_INPUT_VALUE").c_str(), L"SAVE", MB_YESNO|MB_ICONWARNING) == ID_YES){
+        if(MessageBox(Handle, BaseForm->GetLangStr("MSG_APPLY").c_str(), L"SAVE", MB_YESNO|MB_ICONWARNING) == ID_YES){
 			if(SaveTeaching(teachingFilePath)){
 				SetTrayMaxPosition();
 				MessageBox(Handle, L"96-channel Servo teaching values were saved.", L"Teaching", MB_OK|MB_ICONINFORMATION);

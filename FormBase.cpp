@@ -96,6 +96,21 @@ void __fastcall TBaseForm::ClockTimerTimer(TObject *Sender)
 	setColor(pbcr2, MainForm->comBcr[1] != NULL && MainForm->comBcr[1]->ClientSocketBcr->Active);
 	setColor(psmokedetector, MainForm->comSmoke[0] != NULL && MainForm->comSmoke[0]->Comm->Connected);
 
+	// Display the confirmed hardware I/O state. Invalid/intermediate states keep the normal color.
+	bool keyLockSetIo = !robostar->input.SAFETY_DOOR_1 && !robostar->input.SAFETY_DOOR_2;
+	bool keyLockReleaseIo = robostar->input.SAFETY_DOOR_1 && robostar->input.SAFETY_DOOR_2;
+	// Input names follow the contact labels and are opposite to the actual hardware state.
+	bool bypassOnIo = !robostar->input.BYPASS_SW_ON && robostar->input.BYPASS_SW_OFF;
+	bool bypassOffIo = robostar->input.BYPASS_SW_ON && !robostar->input.BYPASS_SW_OFF;
+
+	btnKeyLock->Color = keyLockSetIo ? clLime : clWhite;
+	btnKeyUnLock->Color = keyLockReleaseIo ? clLime : clWhite;
+	btnBypassOn->Color = bypassOnIo ? clLime : clWhite;
+	btnBypassOff->Color = bypassOffIo ? clLime : clWhite;
+	btnSafetyReset->Enabled = MainForm->path == 81
+		&& !robostar->IsSoftwareSafetyResetActive();
+	btnSafetyReset->Color = robostar->gripper.SAFETY_RESET ? clLime : clWhite;
+
 	if(dt.FormatString("hhnn") == "0700") {
 		DeleteDay = 90;	// 12시가 되면 DeleteDay를 90으로 초기화
 	}
@@ -249,6 +264,12 @@ void __fastcall TBaseForm::btnBypassOffClick(TObject *Sender)
 		if(!robostar->Bypass(false))
 			ShowMessage(L"키락 설정 상태에서만 BY-PASS를 OFF할 수 있습니다.");
 	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TBaseForm::btnSafetyResetClick(TObject *Sender)
+{
+	if(!robostar->RequestSafetyResetPulse())
+		ShowMessage(L"CC-Link가 연결되어 있지 않아 SAFETY RESET을 출력할 수 없습니다.");
 }
 //---------------------------------------------------------------------------
 //--------------------     언어 변경          -------------------------------

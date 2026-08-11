@@ -606,7 +606,7 @@ void __fastcall TMainForm::CreateIoMonitoringPanel()
 	grp_io->Parent = this;
 	grp_io->Left = 570;
 	grp_io->Top = 92;
-	grp_io->Width = 600;
+	grp_io->Width = 870;
 	grp_io->Height = 720;
 	grp_io->BevelKind = bkFlat;
 	grp_io->Color = clWhite;
@@ -639,7 +639,7 @@ void __fastcall TMainForm::CreateIoMonitoringPanel()
 	inputPanel->Parent = grp_io;
 	inputPanel->Left = 8;
 	inputPanel->Top = 40;
-	inputPanel->Width = 584;
+	inputPanel->Width = 854;
 	inputPanel->Height = 432;
 	inputPanel->BevelKind = bkFlat;
 	inputPanel->Color = clWhite;
@@ -658,10 +658,11 @@ void __fastcall TMainForm::CreateIoMonitoringPanel()
 	scrInput->Parent = inputPanel;
 	scrInput->Left = 4;
 	scrInput->Top = 26;
-	scrInput->Width = 574;
+	scrInput->Width = 844;
 	scrInput->Height = 398;
 	scrInput->HorzScrollBar->Visible = false;
 	scrInput->Color = clWhite;
+	scrInput->Tag = 16;
 
 	const char *inputNames[48] = {
 		"CP01 TRIP", "CP02 TRIP", "CP03 TRIP", "CP04 TRIP", "CP05 TRIP", "CP06 TRIP", "CP07 TRIP", "CP08 TRIP",
@@ -681,7 +682,7 @@ void __fastcall TMainForm::CreateIoMonitoringPanel()
 	outputPanel->Parent = grp_io;
 	outputPanel->Left = 8;
 	outputPanel->Top = 480;
-	outputPanel->Width = 584;
+	outputPanel->Width = 854;
 	outputPanel->Height = 232;
 	outputPanel->BevelKind = bkFlat;
 	outputPanel->Color = clWhite;
@@ -700,11 +701,11 @@ void __fastcall TMainForm::CreateIoMonitoringPanel()
 	scrOutput->Parent = outputPanel;
 	scrOutput->Left = 4;
 	scrOutput->Top = 26;
-	scrOutput->Width = 574;
+	scrOutput->Width = 844;
 	scrOutput->Height = 204;
 	scrOutput->HorzScrollBar->Visible = false;
 	scrOutput->Color = clWhite;
-	scrOutput->Tag = 8;
+	scrOutput->Tag = 6;
 
 	const char *outputNames[16] = {
 		"GRIPPER CHUCK SOL", "GRIPPER UNCHUCK SOL", "SAFETY RESET", "KEYLOCK LEFT",
@@ -781,9 +782,9 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 
 	for(int i=0; i<=3; ++i)GetZoneCount(i);
 
-	// Display the physical X0022 state as wired: ON=no cell, OFF=cell detected.
-	// Motion sequences use getCellDetectStatus(), which converts it to true=cell present.
-	sensorColor(pcell1, robostar->input.GRIPPER1_CELL_DETECT);
+	// X0022 is active-low. This status panel shows logical cell presence,
+	// while the I/O monitoring panel continues to show the physical X0022 state.
+	sensorColor(pcell1, robostar->getCellDetectStatus());
 	// X0023 vertical-cylinder/buffer input is not used on this machine.
 	sensorColor(pflow1, false);
 	sensorColor(popen1, robostar->input.GRIPPER1_UNCHUCK);
