@@ -203,7 +203,7 @@ void __fastcall TdoorForm::btnGripper1OpenMouseDown(TObject *Sender, TMouseButto
 		robostar->req_JogMove(btn->Tag);
 
     // 2019 07 05 HOME 위치에서 그리퍼 [열기]
-	if(robostar->getCellDetectStatus(btn->Tag) == false) // getCellDetectStatus(btn->Tag) == false =>셀이 있을 때
+	if(robostar->getCellDetectStatus(btn->Tag)) // active-low sensor: true => cell detected
 	{
 		if(isGripperOpen1 == false && MainForm->m_ServoHomeEmg)
 		{
@@ -232,7 +232,7 @@ void __fastcall TdoorForm::btnGripper2OpenMouseDown(TObject *Sender, TMouseButto
 		robostar->req_JogMove(btn->Tag);
 
     // 2019 07 05 HOME 위치에서 그리퍼 [열기]
-	if(robostar->getCellDetectStatus(btn->Tag) == false) // getCellDetectStatus(btn->Tag) == false =>셀이 있을 때
+	if(robostar->getCellDetectStatus(btn->Tag)) // active-low sensor: true => cell detected
 	{
 		if(isGripperOpen2 == false && MainForm->m_ServoHomeEmg)
 		{
@@ -253,7 +253,8 @@ void __fastcall TdoorForm::btnGripper2OpenMouseDown(TObject *Sender, TMouseButto
 
 void __fastcall TdoorForm::btnKeyUnlockClick(TObject *Sender)
 {
-	robostar->KeyLock(false);
+	if(!robostar->KeyLock(false))
+		ShowMessage(L"BY-PASS ON 상태에서만 키락을 해제할 수 있습니다.");
 }
 //---------------------------------------------------------------------------
 void __fastcall TdoorForm::Label3DblClick(TObject *Sender)

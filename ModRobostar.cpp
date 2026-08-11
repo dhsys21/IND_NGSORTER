@@ -51,6 +51,9 @@ __fastcall Trobostar::Trobostar(TComponent* Owner)
 	channel_id = 1;
 	timeout = 10000;
 	sscOpened = false;
+	jogSpeed = 100;
+	move.pallet = 0;
+	move.channel = 0;
 
 	point[0].position = 0;
 }
@@ -67,9 +70,7 @@ int __fastcall Trobostar::io_Init()
 
 	short size = sizeof(gripper);
 	mdReceive(config.path, config.stno, DevY, 0x0020, &size, &gripper);	// IO 상태는 초기 상태를 불러온다 : 셀을 놓을 수 있기 때문에
-	for(int i = 1; i <= gripCnt; ++i)GripperDown(i, false, true);
-
-	return 0;	// 그리퍼는 모두 상승시킨다.
+	return 0;
 
 }
 //---------------------------------------------------------------------------
@@ -118,6 +119,13 @@ void __fastcall Trobostar::InitSequence(robotSequence data, robotSequence reserv
 	// Keep MELSEC I/O alive when the position board cannot be opened, but allow
 	// seqInit so the Servo Open button can retry sscOpen().
 	if(!sscOpened && data != seqIdle && data != seqPause && data != seqInit) return;
+
+	// This machine has no gripper vertical cylinder. Always close the moving
+	// overlay when a servo sequence returns to idle, including error/stop paths.
+	if(data == seqIdle && teachForm != NULL){
+		teachForm->pnlMovingAlarm->Visible = false;
+		teachForm->pnlMovingAlarm2->Visible = false;
+	}
 
 	seq = data;
 	step.step = 0;
@@ -420,12 +428,6 @@ open_failed:
 // 2019 07 05 홈위치 이동시 그리퍼 움직이지 않고 x, y, z 축 원점 후에 그리퍼에 셀이 있는지 확인하는 버전
 void __fastcall Trobostar::Home()
 {
-	if(output.CYLINDER_Z == false){
-		MainForm->memoRobostarLineAdd("[C_Maint] 실린더 / 도어 상태 비정상");
-		InitSequence(seqIdle);
-		return;
-	}
-
 	if(!MainForm->m_ServoOpen)
 	{
 		InitSequence(seqIdle);
@@ -445,21 +447,14 @@ void __fastcall Trobostar::Home()
 	int bitInfo = 0;
 
 	switch(step.step){
-		case 0: // 실린더 상승
+		case 0: // Z축 원점 시작
             teachForm->pnlMovingAlarm->Visible = true;
 			teachForm->pnlMovingAlarm->BringToFront();
 			teachForm->pnlMovingAlarm2->Visible = true;
 			teachForm->pnlMovingAlarm2->BringToFront();
-			for(int i=1; i<=gripCnt; ++i)GripperDown(i, false, true);	// 그리퍼는 모두 상승시킨다.
-			step.step += 1;
-			break;
-		case 1:
 			sts = sscHomeReturnStart(board_id, channel_id, Axis_z);
 			WriteLog(sts, "Z Axis Servo Home - Request");
-			step.step += 1;
-			break;
-		case 2: // Z축 원점
-			if(getGripperUpStatus())step.step += 1;
+			step.step = 3;
 			break;
 		case 3: // Z축 완료 확인
 			sts = sscGetStatusBitSignalEx(board_id, channel_id, Axis_z, SSC_STSBIT_AX_ZREQ, &bitInfo);
@@ -505,7 +500,7 @@ void __fastcall Trobostar::Home()
 			teachForm->pnlMovingAlarm->Visible = false;
 			teachForm->pnlMovingAlarm2->Visible = false;
 
-			if(input.GRIPPER1_CELL_DETECT == true)
+			if(getCellDetectStatus())
 			{
 				MainForm->memoRobostarLineAdd("[B_Ignition] 그리퍼에 셀이 있습니다. 셀을 제거 후 원점으로 이동 해 주세요");
                 step.step = 99;
@@ -595,7 +590,7 @@ void __fastcall Trobostar::ServoOff()
 
 void __fastcall Trobostar::MoveJog(int ntype)
 {
-	long speed_id = 100;
+	long speed_id = jogSpeed;
 	short actime_id = 300;
 	short dctime_id = 300;
 	int axnum_id = 0;
@@ -644,6 +639,20 @@ void __fastcall Trobostar::MoveJog(int ntype)
     InitSequence(seqIdle);
 }
 //---------------------------------------------------------------------------
+bool __fastcall Trobostar::SetJogSpeed(int speed)
+{
+	if(speed < 1 || speed > 200)
+		return false;
+
+	jogSpeed = speed;
+	return true;
+}
+//---------------------------------------------------------------------------
+int __fastcall Trobostar::GetJogSpeed() const
+{
+	return jogSpeed;
+}
+//---------------------------------------------------------------------------
 void __fastcall Trobostar::Reset()
 {
 	int sts = 0;
@@ -659,27 +668,24 @@ void __fastcall Trobostar::Reset()
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::setPoint(int axnum_id, unsigned long int pos)
 {
-	bool bsetPoint;
-	int sts, stsZ1, stsZ2, sts1, sts2;
+	bool pointAccepted = false;
+	bool moveAccepted = false;
+	int sts = SSC_OK;
 
 	if(axnum_id == Axis_zUp){
 		sts = sscSetPointDataEx(board_id, channel_id, Axis_z, 0, &point[0]);
-		stsZ1 = WriteLog(sts, "[" + IntToStr(Axis_z) +  "] POINT");
+		pointAccepted = WriteLog(sts, "[" + IntToStr(Axis_z) +  "] POINT");
 		sts = sscAutoStart(board_id, channel_id, Axis_z, 0, 0);
-		stsZ2 = WriteLog(sts, "[" + IntToStr(Axis_z) +  "] MOVE");
+		moveAccepted = WriteLog(sts, "[" + IntToStr(Axis_z) +  "] MOVE");
 	}else{
 		point[axnum_id].position = pos;
 		sts = sscSetPointDataEx(board_id, channel_id, axnum_id, 0, &point[axnum_id]);
-		sts1 = WriteLog(sts, "[" + IntToStr(axnum_id) +  "] POINT");
+		pointAccepted = WriteLog(sts, "[" + IntToStr(axnum_id) +  "] POINT");
 		sts = sscAutoStart(board_id, channel_id, axnum_id, 0, 0);
-		sts2 = WriteLog(sts, "[" + IntToStr(axnum_id) +  "] MOVE");
+		moveAccepted = WriteLog(sts, "[" + IntToStr(axnum_id) +  "] MOVE");
 	}
 
-	if(stsZ1 == true && stsZ2 == true)
-		bsetPoint = true;
-	else
-		bsetPoint = false;
-	return bsetPoint;
+	return pointAccepted && moveAccepted;
 }
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::rangeCheck(int axnum_id)
@@ -703,12 +709,6 @@ void __fastcall Trobostar::AutoMove()
 {
 	AnsiString loadfactor = "", px = "", py = "", zpoint = "", msg1 = "", msg2 = "";
 	UnicodeString msg = "";
-	if(output.CYLINDER_Z == false)
-	{
-		MainForm->memoRobostarLineAdd("Cylinder / Door condition abnormal");
-		InitSequence(seqIdle);
-		return;
-	}
 	if(!MainForm->m_ServoOpen)
 	{
 		InitSequence(seqIdle);
@@ -775,17 +775,20 @@ void __fastcall Trobostar::AutoMove()
             zUpCount++;
 
 			if(bSetPoint == false){
-				step.step = 0;
 				MainForm->memoRobostarLineAdd("setPoint(Axis_zUp, 0) 에러");
+				req_Stop();
+				return;
 			}
 
 			if(zUpCount > 200){
-				loadfactor = teachForm->lblLoadFactor4->Caption;
+				loadfactor = teachForm->lblLoadFactor3->Caption;
 				zpoint = MainForm->pz->Caption;
 				msg1 = "대기상태로 이동 후 다시 시작하세요. \r\n(부하율 : " + loadfactor	+ ", z축 위치 : " + zpoint + ")";
 				MainForm->memoRobostarLineAdd("Z 축 이동실패" + msg1);
 				AlarmForm->ShowError("Z 축 이동실패", msg1);
 				zUpCount = 0;
+				req_Stop();
+				return;
 			}
 			if(rangeCheck(Axis_zUp))step.step = 10;
 			break;
@@ -825,12 +828,6 @@ void __fastcall Trobostar::AutoMove()
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::WaitPosition()
 {
-	if(output.CYLINDER_Z == false){
-		MainForm->memoRobostarLineAdd("Cylinder / Door condition abnormal");
-		InitSequence(seqIdle);
-		return;
-	}
-
 	if(!MainForm->m_ServoOpen)
 	{
 		InitSequence(seqIdle);
@@ -855,6 +852,7 @@ void __fastcall Trobostar::WaitPosition()
 
 	switch(step.step){
 		case 0: // Z축 상승
+			zUpCount = 0;
 			teachForm->pnlMovingAlarm->Visible = true;
 			teachForm->pnlMovingAlarm->BringToFront();
 			teachForm->pnlMovingAlarm2->Visible = true;
@@ -863,7 +861,17 @@ void __fastcall Trobostar::WaitPosition()
 			step.step += 1;
 			break;
 		case 1:
-			rangeCheck(Axis_zUp);
+			zUpCount++;
+			if(rangeCheck(Axis_zUp)){
+				zUpCount = 0;
+				break;
+			}
+			if(zUpCount > 200){
+				MainForm->memoRobostarLineAdd("WaitPosition Z Axis Up timeout");
+				AlarmForm->ShowError("Z 축 이동실패", "Z축 상승 완료 신호를 확인하세요.");
+				req_Stop();
+				return;
+			}
 			break;
 		case 2:
 			setPoint(Axis_x, Wait_xAxis);   // x 위치 이동
@@ -882,7 +890,7 @@ void __fastcall Trobostar::WaitPosition()
 		case 5:
             teachForm->pnlMovingAlarm->Visible = false;
 			teachForm->pnlMovingAlarm2->Visible = false;
-			if(input.GRIPPER1_CELL_DETECT == true)
+			if(getCellDetectStatus())
 				step.step = 9;
 			else
 				step.step += 1;
@@ -897,15 +905,63 @@ void __fastcall Trobostar::zUp()
 {
 	switch(step.step){
 		case 0: // Z축 상승
-			setPoint(Axis_zUp, 0);
+			zUpCount = 0;
+			bSetPoint = setPoint(Axis_zUp, 0);
+			teachForm->pnlMovingAlarm->Visible = true;
+			teachForm->pnlMovingAlarm->BringToFront();
+			teachForm->pnlMovingAlarm2->Visible = true;
+			teachForm->pnlMovingAlarm2->BringToFront();
 			step.step += 1;
 			break;
 		case 1:
-			rangeCheck(Axis_zUp);
+			if(!bSetPoint){
+				MainForm->memoRobostarLineAdd("Z Axis Up command failed");
+				req_Stop();
+				return;
+			}
+			zUpCount++;
+			if(rangeCheck(Axis_zUp)) break;
+			if(zUpCount > 200){
+				AlarmForm->ShowError("Z 축 이동실패", "Z축 상승 완료 신호를 확인하세요.");
+				req_Stop();
+				return;
+			}
 			break;
 		case 2:
 			InitSequence(seqIdle);
     		break;
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall Trobostar::zDown()
+{
+	switch(step.step){
+		case 0:
+			zUpCount = 0;
+			bSetPoint = setPoint(Axis_z, point[Axis_z].position);
+			teachForm->pnlMovingAlarm->Visible = true;
+			teachForm->pnlMovingAlarm->BringToFront();
+			teachForm->pnlMovingAlarm2->Visible = true;
+			teachForm->pnlMovingAlarm2->BringToFront();
+			step.step += 1;
+			break;
+		case 1:
+			if(!bSetPoint){
+				MainForm->memoRobostarLineAdd("Z Axis Teaching Down command failed");
+				req_Stop();
+				return;
+			}
+			zUpCount++;
+			if(rangeCheck(Axis_z)) break;
+			if(zUpCount > 200){
+				AlarmForm->ShowError("Z 축 이동실패", "Z축 티칭 위치 도착 여부를 확인하세요.");
+				req_Stop();
+				return;
+			}
+			break;
+		case 2:
+			InitSequence(seqIdle);
+			break;
 	}
 }
 //---------------------------------------------------------------------------
@@ -1059,6 +1115,45 @@ void __fastcall Trobostar::req_zUp()
 	InitSequence(seqZup);
 }
 //---------------------------------------------------------------------------
+bool __fastcall Trobostar::req_zDown()
+{
+	if(seq != seqIdle && seq != seqPause){
+		MainForm->memoRobostarLineAdd("[Z Axis Teaching Down] blocked: another servo sequence is running");
+		return false;
+	}
+	if(!MainForm->m_ServoOpen || !MainForm->m_ServoON){
+		MainForm->memoRobostarLineAdd("[Z Axis Teaching Down] blocked: Servo Open/ON is not ready");
+		return false;
+	}
+	if(move.channel < 1 || move.channel > TraySlotCount ||
+		(move.pallet != 1 && move.pallet != 2)){
+		MainForm->memoRobostarLineAdd("[Z Axis Teaching Down] blocked: Source/Target channel is not selected");
+		return false;
+	}
+	if(mr2.pos[Axis_x] != point[Axis_x].position ||
+		mr2.pos[Axis_y] != point[Axis_y].position)
+	{
+		MainForm->memoRobostarLineAdd("[Z Axis Teaching Down] blocked: X/Y actual=" +
+			IntToStr((__int64)mr2.pos[Axis_x]) + "/" + IntToStr((__int64)mr2.pos[Axis_y]) +
+			", target=" + IntToStr((__int64)point[Axis_x].position) + "/" +
+			IntToStr((__int64)point[Axis_y].position));
+		return false;
+	}
+
+	TEdit *zEdit = move.pallet == 1 ? teachForm->edit_SZ : teachForm->edit_TZ;
+	int teachingZ = 0;
+	if(zEdit == NULL || !TryStrToInt(zEdit->Text.Trim(), teachingZ)){
+		MainForm->memoRobostarLineAdd("[Z Axis Teaching Down] blocked: invalid Z teaching value");
+		return false;
+	}
+
+	point[Axis_z].position = teachingZ;
+	InitSequence(seqZdown);
+	MainForm->memoRobostarLineAdd("[Z Axis Teaching Down] X/Y position confirmed, target Z=" +
+		IntToStr(teachingZ));
+	return true;
+}
+//---------------------------------------------------------------------------
 void __fastcall Trobostar::req_Speed(int speed, int accl, int dccl)
 {
 	for(int i=0; i<=servoCnt; ++i){
@@ -1083,16 +1178,6 @@ void __fastcall Trobostar::req_Stop()
 	}
 }
 //---------------------------------------------------------------------------
-void __fastcall Trobostar::GripperDown(int num, bool down, bool up)
-{
-	switch(num){
-		case 1:
-			gripper.GRIPPER1_DOWN_SOL = down;
-			gripper.GRIPPER1_UP_SOL = up;
-			break;
-	}
-}
-//---------------------------------------------------------------------------
 void __fastcall Trobostar::GripperChuck(int num, bool open, bool close)
 {
 	switch(num){
@@ -1105,11 +1190,6 @@ void __fastcall Trobostar::GripperChuck(int num, bool open, bool close)
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::EmgAutoRun()
 {
-    if(output.CYLINDER_Z == false){
-		MainForm->memoRobostarLineAdd("[C_Maint] 실린더 / 도어 상태 비정상");
-		return;
-	}
-
 	int sts = 0;
 	int bitInfo = 0;
 	short emergencyStatus = 0;
@@ -1144,17 +1224,10 @@ void __fastcall Trobostar::EmgAutoRun()
 			if(step.delay >= 10) step.step += 1;
 			else step.delay += 1;
 			break;
-		case 3:	//  서보 HOME
-			for(int i=1; i<=2; ++i)GripperDown(i, false, true);	// 그리퍼는 모두 상승시킨다.
-			step.step += 1;
-			break;
-		case 4:
+		case 3:	// Z축 서보 HOME
 			sts = sscHomeReturnStart(board_id, channel_id, Axis_z);
 			WriteLog(sts, "Z Axis Servo Home - Request");
-			step.step += 1;
-			break;
-		case 5: // Z축 원점
-			if(getGripperUpStatus())step.step += 1;
+			step.step = 6;
 			break;
 		case 6: // Z축 완료 확인
 			sts = sscGetStatusBitSignalEx(board_id, channel_id, Axis_z, SSC_STSBIT_AX_ZREQ, &bitInfo);
@@ -1204,11 +1277,6 @@ void __fastcall Trobostar::EmgAutoRun()
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::AutoRun()
 {
-	if(output.CYLINDER_Z == false){
-		MainForm->memoRobostarLineAdd("[C_Maint] 실린더 / 도어 상태 비정상");
-		return;
-	}
-
 	int sts = 0;
 	int bitInfo = 0;
 	short emergencyStatus = 0;
@@ -1242,17 +1310,10 @@ void __fastcall Trobostar::AutoRun()
 			if(step.delay >= 10) step.step += 1;
 			else step.delay += 1;
 			break;
-		case 3:	//  서보 HOME
-			for(int i=1; i<=2; ++i)GripperDown(i, false, true);	// 그리퍼는 모두 상승시킨다.
-			step.step += 1;
-			break;
-		case 4:
+		case 3:	// Z축 서보 HOME
 			sts = sscHomeReturnStart(board_id, channel_id, Axis_z);
 			WriteLog(sts, "Z Axis Servo Home - Request");
-			step.step += 1;
-			break;
-		case 5: // Z축 원점
-			if(getGripperUpStatus())step.step += 1;
+			step.step = 6;
 			break;
 		case 6: // Z축 완료 확인
 			sts = sscGetStatusBitSignalEx(board_id, channel_id, Axis_z, SSC_STSBIT_AX_ZREQ, &bitInfo);
@@ -1295,7 +1356,7 @@ void __fastcall Trobostar::AutoRun()
 			}
 			break;
 		case 11: // 2019 07 05 x, y, z 축 원점 이동 후 그리퍼에 셀이 있는지 확인
-			if(input.GRIPPER1_CELL_DETECT == true)
+			if(getCellDetectStatus())
 			{
 				MainForm->memoRobostarLineAdd("[C_Maint] 그리퍼에 셀이 있습니다. 셀을 제거 후 원점으로 이동 해 주세요");
 			}
@@ -1312,7 +1373,7 @@ void __fastcall Trobostar::AutoRun()
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::AutoEject()
 {
-	int nresult = CheckFlow();
+	int nresult = 0;
 	AnsiString msg;
 
 	if(nresult == 0){
@@ -1350,24 +1411,13 @@ void __fastcall Trobostar::AutoEject()
 				}
 				break;
 			case 2:
-                //* 2023 11 22 그리퍼 내리기 전 센터링 다시 확인
+				// 척 동작 전 선별 트레이 센터링 재확인
 				if(MainForm->psrcReady->Color != clLime)
 				{
 					AlarmForm->ShowError("[C_Maint] 선별 트레이 센터링 여부를 확인해주세요.", "확인하고 재시작 하세요.");
 				}else{
-					for(int i=0; i<move.cnt; ++i)
-						nresult += CheckEjectDown(move.tool + i);
-					if(nresult == move.cnt){
-						step.step += 1;
-						step.timeout = 0;
-					}
-					else{
-						step.timeout += 1;
-						if(step.timeout == errCnt){
-							ErrorForm_eject->ShowError("[B_Ignition] " + msg + " DOWN 센서 감시 실패", "취출 3단계. 그리퍼 DOWN 에러", move.tool, 15);
-						}
-						MainForm->memoRobostarLineAdd("[C_Maint] 취출3. GRIPPER DOWN");
-					}
+					step.step += 1;
+					step.timeout = 0;
 				}
 				break;
 			case 3:
@@ -1379,24 +1429,9 @@ void __fastcall Trobostar::AutoEject()
 				MainForm->memoRobostarLineAdd("[C_Maint] 취출4. GRIPPER CHUCK");
 				break;
 			case 4:
-				if(step.delay >= 5)step.step += 1;
+				if(step.delay >= 5)step.step = 6;
 				else step.delay += 1;
-				MainForm->memoRobostarLineAdd("[C_Maint] 취출5. 대기");
-				break;
-			case 5:
-				for(int i=0; i<move.cnt; ++i)nresult += CheckEjectUp(move.tool + i);
-				if(nresult == move.cnt){
-					step.step += 1;
-					step.timeout = 0;
-				}
-				else{
-					step.timeout += 1;
-					if(step.timeout == errCnt){
-						ErrorForm_eject->ShowError("[B_Ignition] " + msg + " UP 센서 감시 실패", "취출 6단계. 그리퍼 UP 에러", move.tool, 16);
-					}
-					MainForm->memoRobostarLineAdd("[C_Maint] 취출6. GRIPPER UP");
-				}
-
+				MainForm->memoRobostarLineAdd("[C_Maint] 취출4. 척 안정화 대기");
 				break;
 			case 6:
 				for(int i=0; i<move.cnt; ++i)nresult += CheckEjectCell_after(move.tool + i);
@@ -1419,7 +1454,7 @@ void __fastcall Trobostar::AutoEject()
 	}
 	else{
 		msg = "그리퍼 #" + IntToStr(nresult);
-		ErrorForm_eject->ShowError("[B_Ignition] " + msg + " 하강시 충돌이 발생했습니다.", msg + " 완충센서 감지", move.tool, 17);
+		ErrorForm_eject->ShowError("[B_Ignition] " + msg + " 완충센서가 감지되었습니다.", msg + " Z축 이동 충돌 확인", move.tool, 17);
 
 	}
 }
@@ -1427,7 +1462,7 @@ void __fastcall Trobostar::AutoEject()
 void __fastcall Trobostar::AutoInsert()
 {
 
-	int nresult = CheckFlow();
+	int nresult = 0;
 	AnsiString msg;
 
 	if(nresult == 0){
@@ -1449,29 +1484,19 @@ void __fastcall Trobostar::AutoInsert()
 				}
 				break;
 			case 1:
-				//* 2023 11 22 그리퍼 내리기 전 센터링 다시 확인
+				// 언척 동작 전 대상 트레이 센터링 재확인
 				if(MainForm->ptargetReady->Color != clLime)
 				{
 					AlarmForm->ShowError("[C_Maint] 대상 트레이 센터링 여부를 확인해주세요.", "확인하고 재시작 하세요.");
 				}else{
-					for(int i=0; i<move.cnt; ++i)nresult += CheckInsertDown(move.tool + i);
-					if(nresult == move.cnt){
-						step.step += 1;
-						step.timeout = 0;
-					}
-					else{
-						step.timeout += 1;
-						if(step.timeout == errCnt){
-							ErrorForm_insert->ShowError("[B_Ignition] " + msg + " DOWN 센서 감지 실패", "이재 2단계. 그리퍼 DOWN 에러", move.tool, 22);
-						}
-						MainForm->memoRobostarLineAdd("[C_Maint] 삽입2. GRIPPER DOWN");
-					}
+					step.step += 1;
+					step.timeout = 0;
 				}
 				break;
 			case 2:
 				for(int i=0; i<move.cnt; ++i)nresult += CheckInsertUnchuck(move.tool + i);
 				if(nresult == move.cnt){
-					step.step += 1;
+					step.step = 4;
 					step.timeout = 0;
 				}
 				else{
@@ -1483,23 +1508,10 @@ void __fastcall Trobostar::AutoInsert()
 				}
 
 				break;
-			case 3:
-				for(int i=0; i<move.cnt; ++i)nresult += CheckInsertUp(move.tool + i);
-				if(nresult == move.cnt){
-					step.step += 1;
-					step.timeout = 0;
-				}else{
-					step.timeout += 1;
-					if(step.timeout == errCnt){
-						ErrorForm_insert->ShowError("[B_Ignition] " + msg + " UP 센서 감지 실패", "이재 4단계. 그리퍼 UP 에러", move.tool, 0);
-					}
-					MainForm->memoRobostarLineAdd("[C_Maint] 삽입4. GRIPPER UP");
-				}
-				break;
 			case 4:
 				if(step.delay >= 2)step.step += 1;
 				else step.delay += 1;
-				MainForm->memoRobostarLineAdd("[C_Maint] 삽입5. 대기");
+				MainForm->memoRobostarLineAdd("[C_Maint] 삽입3. 언척 안정화 대기");
 				break;
 			default:
 				InitSequence(seqAutoInsertComplete);
@@ -1507,47 +1519,24 @@ void __fastcall Trobostar::AutoInsert()
 		}
 	}else{
 		msg = "그리퍼 #" + IntToStr(nresult);
-		ErrorForm_insert->ShowError("[B_Ignition] " + msg + " 하강시 충돌이 발생했습니다.", msg + " 완충센서 감지", move.tool, 21);
+		ErrorForm_insert->ShowError("[B_Ignition] " + msg + " 완충센서가 감지되었습니다.", msg + " Z축 이동 충돌 확인", move.tool, 21);
 
 	}
 }
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
-bool __fastcall Trobostar::getGripperDownStatus()
-{
-	if(	input.GRIPPER1_DOWN){
-		return false;
-	}else{
-		return true;
-	}
-}
-//---------------------------------------------------------------------------
-bool __fastcall Trobostar::getGripperUpStatus()
-{
-	if(	input.GRIPPER1_UP){
-		return true;
-	}else{
-		return false;
-	}
-}
-//---------------------------------------------------------------------------
 bool __fastcall Trobostar::getCellDetectStatus()
 {
-	if(	input.GRIPPER1_CELL_DETECT){
-		return false;
-	}else{
-		return true;
-	}
+	// X0022 is active-low: ON means no cell, OFF means a cell is detected.
+	return !input.GRIPPER1_CELL_DETECT;
 }
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::getCellDetectStatus(int pos)
 {
-	switch(pos){
-		case 1:
-			if(input.GRIPPER1_CELL_DETECT && !input.GRIPPER1_DOWN)return false;
-			break;
-	}
-	return true;
+	// FormTeaching uses gripper number 1; the legacy Door button uses tag 7.
+	if(pos == 1 || pos == 7)
+		return getCellDetectStatus();
+	return false;
 }
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::getGripperChuckStatus()
@@ -1606,8 +1595,6 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 
 	this->io_Read();
 	gripper.SAFETY_RESET = input.OPBOX_RESET_SWITCH || input.SAFETY_RESET_SW_ON;
-	// 그리퍼가 모두 상승되어 있을때 ON : 안전관련 추가사항
-	output.CYLINDER_Z = input.GRIPPER1_UP;
 	this->io_WriteGripper();
 	if(sscOpened) mr2Sensing();
 
@@ -1624,6 +1611,7 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 
 	else if(seq == seqWait)WaitPosition();
 	else if(seq == seqZup)zUp();
+	else if(seq == seqZdown)zDown();
 
 	else if(seq == seqJOGx_Plus)MoveJog(0);
 	else if(seq == seqJOGx_Minus)MoveJog(1);
@@ -1645,24 +1633,13 @@ void __fastcall Trobostar::req_InsertComplete()
 	InitSequence(seqAutoInsertComplete);
 }
 //---------------------------------------------------------------------------
-int __fastcall Trobostar::CheckFlow()
-{
-	int nvalue = 0;
-	if(input.GRIPPER1_BUFFER == true){
-		for(int i=1; i<=gripCnt; ++i)	GripperDown(i, false, true);
-		req_zUp();
-		nvalue = 1;
-	}
-	return nvalue;
-}
-//---------------------------------------------------------------------------
 bool __fastcall Trobostar::CheckEjectCell_after(int pos)
 {
 	// 6.셀을 들고 있는지 확인한다.
 	bool bresult = false;
 	switch(pos){
 		case 1:
-			if(input.GRIPPER1_CELL_DETECT == true){
+			if(getCellDetectStatus()){
 				bresult = true;
 			}
 			break;
@@ -1676,7 +1653,7 @@ bool __fastcall Trobostar::CheckEjectCell_before(int pos)
 	bool bresult = false;
 	switch(pos){
 		case 1:
-			if(input.GRIPPER1_CELL_DETECT == false){
+			if(!getCellDetectStatus()){
 				bresult = true;
 			}
 			break;
@@ -1687,11 +1664,11 @@ bool __fastcall Trobostar::CheckEjectCell_before(int pos)
 
 bool __fastcall Trobostar::CheckEjectUnchuck(int pos)
 {
-	// 2. 언척하고
+	// 언척 센서 확인 후 언척 출력
 	bool bresult = false;
 	switch(pos){
 		case 1:
-			if(input.GRIPPER1_DOWN){
+			if(input.GRIPPER1_UNCHUCK){
 				bresult = true;
 			}else{
 				gripper.GRIPPER1_CHUCK = false;
@@ -1704,11 +1681,11 @@ bool __fastcall Trobostar::CheckEjectUnchuck(int pos)
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::CheckEjectChuck(int pos)
 {
-	// 4. 척하고
+	// 척 센서 확인 후 척 출력
 	bool bresult = false;
 	switch(pos){
 		case 1:
-			if(input.GRIPPER1_DOWN == false){
+			if(input.GRIPPER1_CHUCK){
 				bresult = true;
 			}else{
 				gripper.GRIPPER1_CHUCK = true;
@@ -1719,85 +1696,17 @@ bool __fastcall Trobostar::CheckEjectChuck(int pos)
 	return bresult;
 }
 //---------------------------------------------------------------------------
-bool __fastcall Trobostar::CheckEjectDown(int pos)
-{
-	// 3. 그리퍼 내리고
-	bool bresult = false;
-	switch(pos){
-		case 1:
-			if(input.GRIPPER1_DOWN){
-				bresult = true;
-			}else{
-				gripper.GRIPPER1_DOWN_SOL = true;
-				gripper.GRIPPER1_UP_SOL = false;
-			}
-			break;
-	}
-	return bresult;
-}
-//---------------------------------------------------------------------------
-bool __fastcall Trobostar::CheckEjectUp(int pos)
-{
-	// 5. 그리퍼 올리고
-	bool bresult = false;
-	switch(pos){
-		case 1:
-			if(input.GRIPPER1_UP){
-				bresult = true;
-			}else{
-				gripper.GRIPPER1_DOWN_SOL = false;
-				gripper.GRIPPER1_UP_SOL = true;
-			}
-			break;
-	}
-	return bresult;
-}
-//---------------------------------------------------------------------------
-bool __fastcall Trobostar::CheckInsertDown(int pos)
-{
-	bool bresult = false;
-	switch(pos){
-		case 1:
-			if(input.GRIPPER1_DOWN == true){
-				bresult = true;
-			}else{
-				gripper.GRIPPER1_DOWN_SOL = true;
-				gripper.GRIPPER1_UP_SOL = false;
-			}
-			break;
-	}
-	return bresult;
-}
-//---------------------------------------------------------------------------
 bool __fastcall Trobostar::CheckInsertUnchuck(int pos)
 {
-	// 셀이 없으면 언척
+	// 언척 센서 확인 후 언척 출력
 	bool bresult = false;
 	switch(pos){
 		case 1:
-			if(input.GRIPPER1_DOWN == true){
+			if(input.GRIPPER1_UNCHUCK){
 					bresult = true;
 			}else{
 				gripper.GRIPPER1_CHUCK = false;
 				gripper.GRIPPER1_UNCHUCK = true;
-			}
-			break;
-	}
-	return bresult;
-}
-//---------------------------------------------------------------------------
-bool __fastcall Trobostar::CheckInsertUp(int pos)
-{
-	// 언척이 아니면 실린더 상승
-	bool bresult = false;
-	switch(pos){
-		case 1:
-			if(input.GRIPPER1_UP){
-				bresult = true;
-			}
-			else{
-				gripper.GRIPPER1_DOWN_SOL = false;
-				gripper.GRIPPER1_UP_SOL = true;
 			}
 			break;
 	}
@@ -1822,6 +1731,10 @@ void __fastcall Trobostar::DataModuleDestroy(TObject *Sender)
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::KeyLock(bool on)
 {
+	// KEYLOCK can be released only while BY-PASS is ON.
+	if(!on && !IsBypassActive())
+		return false;
+
 	gripper.DOOR_LEFT_CLOSE = on;
 	gripper.DOOR_RIGHT_CLOSE = on;
 	return gripper.DOOR_LEFT_CLOSE == on && gripper.DOOR_RIGHT_CLOSE == on;
@@ -1829,6 +1742,10 @@ bool __fastcall Trobostar::KeyLock(bool on)
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::Bypass(bool on)
 {
+	// BY-PASS can be turned OFF only after KEYLOCK has been set.
+	if(!on && !IsKeyLockActive())
+		return false;
+
 	gripper.DOOR_OPEN_SELECT = on;
 	return gripper.DOOR_OPEN_SELECT == on;
 }
@@ -1853,6 +1770,11 @@ bool __fastcall Trobostar::IsSafetyDoorOpen(int doorNo) const
 bool __fastcall Trobostar::IsKeyLockActive() const
 {
 	return gripper.DOOR_LEFT_CLOSE && gripper.DOOR_RIGHT_CLOSE;
+}
+//---------------------------------------------------------------------------
+bool __fastcall Trobostar::IsBypassActive() const
+{
+	return gripper.DOOR_OPEN_SELECT;
 }
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::IsSscOpened() const

@@ -223,7 +223,8 @@ void __fastcall TBaseForm::btnKeyUnLockClick(TObject *Sender)
         ShowMessage(GetLangStr("MSG_UNLOCK_KEY"));
 	}
 	else{
-		robostar->KeyLock(false);
+		if(!robostar->KeyLock(false))
+			ShowMessage(L"BY-PASS ON 상태에서만 키락을 해제할 수 있습니다.");
 	}
 }
 //---------------------------------------------------------------------------
@@ -245,7 +246,8 @@ void __fastcall TBaseForm::btnBypassOffClick(TObject *Sender)
 		ShowMessage(GetLangStr("MSG_MANUAL_CONTROL"));
 	}
 	else{
-		robostar->Bypass(false);
+		if(!robostar->Bypass(false))
+			ShowMessage(L"키락 설정 상태에서만 BY-PASS를 OFF할 수 있습니다.");
 	}
 }
 //---------------------------------------------------------------------------
@@ -318,11 +320,9 @@ void __fastcall TBaseForm::ChangeLanguage()
 	MainForm->btnApplyNgLimitCount->Caption = GetLangStr("CAP_APPLY");
 	MainForm->CLR1->Caption = GetLangStr("CAP_GRIPPER") + " #1";
 	MainForm->CLR2->Caption = GetLangStr("CAP_GRIPPER") + " #2";
-	MainForm->pup1->Caption = GetLangStr("CAP_UP");
 	MainForm->pflow1->Caption = GetLangStr("CAP_FLOW");
 	MainForm->popen1->Caption = GetLangStr("CAP_OPEN");
 	MainForm->pclose1->Caption = GetLangStr("CAP_CLOSE");
-	MainForm->pdn1->Caption = GetLangStr("CAP_DOWN");
 	MainForm->pcell1->Caption = GetLangStr("CAP_CELL");
 	MainForm->puse1->Caption = GetLangStr("CAP_STOP_USING");
 	MainForm->pnlCode->Caption = GetLangStr("CAP_CODE");
@@ -366,13 +366,10 @@ void __fastcall TBaseForm::ChangeLanguage()
     teachForm->pnlSpeed->Caption = GetLangStr("CAP_SPEED");
     teachForm->pnlSettingSpeed->Caption = GetLangStr("CAP_SETTING_SPEED");
     teachForm->lblJogControl->Caption = GetLangStr("CAP_JOG_CONTROL");
-    teachForm->lblUpDown->Caption = GetLangStr("CAP_UP_DOWN");
     teachForm->lblOpenClose->Caption = GetLangStr("CAP_OPEN_CLOSE");
     teachForm->AdvSmoothButton_LoadFactorInfo->Caption = GetLangStr("CAP_LOAD_FACTOR");
     teachForm->lblLoadFactorTitle->Caption = GetLangStr("CAP_LOAD");
     teachForm->disableChk1->Caption = GetLangStr("CAP_USING");
-    teachForm->pup1->Caption = GetLangStr("CAP_UP");
-    teachForm->pdn1->Caption = GetLangStr("CAP_DOWN");
     teachForm->pflow1->Caption = GetLangStr("CAP_FLOW");
     teachForm->popen1->Caption = GetLangStr("CAP_OPEN");
     teachForm->pclose1->Caption = GetLangStr("CAP_CLOSE");
@@ -401,10 +398,7 @@ void __fastcall TBaseForm::ChangeLanguage()
     ErrorForm_insert->btnMoveSource->Caption = GetLangStr("CAP_MOVE");
     ErrorForm_insert->btnMoveTarget->Caption = GetLangStr("CAP_MOVE");
     ErrorForm_insert->CLR1->Caption = GetLangStr("CAP_GRIPPER1");
-    ErrorForm_insert->lblUpDown->Caption = GetLangStr("CAP_UP_DOWN");
     ErrorForm_insert->lblOpenClose->Caption = GetLangStr("CAP_OPEN_CLOSE");
-    ErrorForm_insert->pup1->Caption = GetLangStr("CAP_UP");
-    ErrorForm_insert->pdn1->Caption = GetLangStr("CAP_DOWN");
     ErrorForm_insert->pflow1->Caption = GetLangStr("CAP_FLOW");
     ErrorForm_insert->popen1->Caption = GetLangStr("CAP_OPEN");
     ErrorForm_insert->pclose1->Caption = GetLangStr("CAP_CLOSE");
@@ -419,10 +413,7 @@ void __fastcall TBaseForm::ChangeLanguage()
     ErrorForm_eject->btnMoveSource->Caption = GetLangStr("CAP_MOVE");
     ErrorForm_eject->btnMoveTarget->Caption = GetLangStr("CAP_MOVE");
     ErrorForm_eject->CLR1->Caption = GetLangStr("CAP_GRIPPER1");
-    ErrorForm_eject->lblUpDown->Caption = GetLangStr("CAP_UP_DOWN");
     ErrorForm_eject->lblOpenClose->Caption = GetLangStr("CAP_OPEN_CLOSE");
-    ErrorForm_eject->pup1->Caption = GetLangStr("CAP_UP");
-    ErrorForm_eject->pdn1->Caption = GetLangStr("CAP_DOWN");
     ErrorForm_eject->pflow1->Caption = GetLangStr("CAP_FLOW");
     ErrorForm_eject->popen1->Caption = GetLangStr("CAP_OPEN");
     ErrorForm_eject->pclose1->Caption = GetLangStr("CAP_CLOSE");

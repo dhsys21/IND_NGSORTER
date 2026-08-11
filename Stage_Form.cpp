@@ -125,7 +125,7 @@ void __fastcall TMainForm::MakePanel()
 
 	nw = 146; // 196 -> 146
 	nh = 16;
-    nx = 2;
+    nx = 2 + (3 * (30 + nw + 3));
 	ny = pBase->Height - nh - 3;//490;
 
 	for(int index = 0; index < 96;){
@@ -148,7 +148,7 @@ void __fastcall TMainForm::MakePanel()
 
 		if(index % 12 == 0) ny -= 3;
 		if(index % 24 == 0){
-			nx = nx + 30 + nw + 3;
+			nx = nx - 30 - nw - 3;
 			ny = pBase->Height - nh - 3;
 		}
 	}
@@ -244,7 +244,7 @@ void __fastcall TMainForm::MakePanel_TargetTray()
 
     nw = 145;
 	nh = 16;
-	nx = 2;
+	nx = 2 + (3 * (30 + nw + 4));
 	ny = pTargetBase->Height - nh - 3;
 
 	for(int index = 0; index < 96;){
@@ -261,7 +261,7 @@ void __fastcall TMainForm::MakePanel_TargetTray()
 		index += 1;
         if(index % 12 == 0) ny -= 3;
 		if(index % 24 == 0){
-			nx = nx + 30 + nw + 4;
+			nx = nx - 30 - nw - 4;
 			ny = pTargetBase->Height - nh - 3;
 		}
 	}

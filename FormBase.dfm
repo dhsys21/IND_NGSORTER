@@ -476,7 +476,7 @@ object BaseForm: TBaseForm
     Top = 52
     Width = 183
     Height = 13
-    Caption = 'Ver. 2026-08-10 / SN: 20260810-03'
+    Caption = 'Ver. 2026-08-11 / SN: 20260811-08'
   end
   object pims: TAdvSmoothPanel
     Left = 1522

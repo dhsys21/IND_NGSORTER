@@ -410,6 +410,7 @@ object ErrorForm_eject: TErrorForm_eject
         Transparent = True
       end
       object pdn2: TPanel
+        Visible = False
         Tag = 2
         Left = 45
         Top = 166
@@ -430,6 +431,7 @@ object ErrorForm_eject: TErrorForm_eject
         TabOrder = 0
       end
       object pup2: TPanel
+        Visible = False
         Tag = 2
         Left = 38
         Top = 28
@@ -788,6 +790,7 @@ object ErrorForm_eject: TErrorForm_eject
         TMSStyle = 8
       end
       object AdvSmoothButton17: TAdvSmoothButton
+        Visible = False
         Tag = 2
         Left = 5
         Top = 253
@@ -913,10 +916,10 @@ object ErrorForm_eject: TErrorForm_eject
           44AE426082}
         TabOrder = 8
         Version = '2.1.1.5'
-        OnClick = AdvSmoothButton13Click
         TMSStyle = 8
       end
       object AdvSmoothButton18: TAdvSmoothButton
+        Visible = False
         Tag = 2
         Left = 41
         Top = 253
@@ -1042,7 +1045,6 @@ object ErrorForm_eject: TErrorForm_eject
           426082}
         TabOrder = 9
         Version = '2.1.1.5'
-        OnClick = AdvSmoothButton14Click
         TMSStyle = 8
       end
     end
@@ -1349,6 +1351,7 @@ object ErrorForm_eject: TErrorForm_eject
         Transparent = True
       end
       object pdn3: TPanel
+        Visible = False
         Tag = 3
         Left = 45
         Top = 166
@@ -1369,6 +1372,7 @@ object ErrorForm_eject: TErrorForm_eject
         TabOrder = 0
       end
       object pup3: TPanel
+        Visible = False
         Tag = 3
         Left = 39
         Top = 28
@@ -1727,6 +1731,7 @@ object ErrorForm_eject: TErrorForm_eject
         TMSStyle = 8
       end
       object AdvSmoothButton21: TAdvSmoothButton
+        Visible = False
         Tag = 3
         Left = 5
         Top = 253
@@ -1852,10 +1857,10 @@ object ErrorForm_eject: TErrorForm_eject
           44AE426082}
         TabOrder = 8
         Version = '2.1.1.5'
-        OnClick = AdvSmoothButton13Click
         TMSStyle = 8
       end
       object AdvSmoothButton22: TAdvSmoothButton
+        Visible = False
         Tag = 3
         Left = 41
         Top = 253
@@ -1981,7 +1986,6 @@ object ErrorForm_eject: TErrorForm_eject
           426082}
         TabOrder = 9
         Version = '2.1.1.5'
-        OnClick = AdvSmoothButton14Click
         TMSStyle = 8
       end
     end
@@ -2288,6 +2292,7 @@ object ErrorForm_eject: TErrorForm_eject
         Transparent = True
       end
       object pdn4: TPanel
+        Visible = False
         Tag = 4
         Left = 45
         Top = 166
@@ -2308,6 +2313,7 @@ object ErrorForm_eject: TErrorForm_eject
         TabOrder = 0
       end
       object pup4: TPanel
+        Visible = False
         Tag = 4
         Left = 39
         Top = 28
@@ -2666,6 +2672,7 @@ object ErrorForm_eject: TErrorForm_eject
         TMSStyle = 8
       end
       object AdvSmoothButton25: TAdvSmoothButton
+        Visible = False
         Tag = 4
         Left = 5
         Top = 253
@@ -2791,10 +2798,10 @@ object ErrorForm_eject: TErrorForm_eject
           44AE426082}
         TabOrder = 8
         Version = '2.1.1.5'
-        OnClick = AdvSmoothButton13Click
         TMSStyle = 8
       end
       object AdvSmoothButton26: TAdvSmoothButton
+        Visible = False
         Tag = 4
         Left = 41
         Top = 253
@@ -2920,7 +2927,6 @@ object ErrorForm_eject: TErrorForm_eject
           426082}
         TabOrder = 9
         Version = '2.1.1.5'
-        OnClick = AdvSmoothButton14Click
         TMSStyle = 8
       end
     end
@@ -3227,6 +3233,7 @@ object ErrorForm_eject: TErrorForm_eject
         Transparent = True
       end
       object pdn5: TPanel
+        Visible = False
         Tag = 5
         Left = 45
         Top = 166
@@ -3247,6 +3254,7 @@ object ErrorForm_eject: TErrorForm_eject
         TabOrder = 0
       end
       object pup5: TPanel
+        Visible = False
         Tag = 5
         Left = 38
         Top = 28
@@ -3605,6 +3613,7 @@ object ErrorForm_eject: TErrorForm_eject
         TMSStyle = 8
       end
       object AdvSmoothButton29: TAdvSmoothButton
+        Visible = False
         Tag = 5
         Left = 5
         Top = 253
@@ -3730,10 +3739,10 @@ object ErrorForm_eject: TErrorForm_eject
           44AE426082}
         TabOrder = 8
         Version = '2.1.1.5'
-        OnClick = AdvSmoothButton13Click
         TMSStyle = 8
       end
       object AdvSmoothButton30: TAdvSmoothButton
+        Visible = False
         Tag = 5
         Left = 41
         Top = 253
@@ -3859,7 +3868,6 @@ object ErrorForm_eject: TErrorForm_eject
           426082}
         TabOrder = 9
         Version = '2.1.1.5'
-        OnClick = AdvSmoothButton14Click
         TMSStyle = 8
       end
     end
@@ -4166,6 +4174,7 @@ object ErrorForm_eject: TErrorForm_eject
         Transparent = True
       end
       object pdn6: TPanel
+        Visible = False
         Tag = 6
         Left = 45
         Top = 166
@@ -4186,6 +4195,7 @@ object ErrorForm_eject: TErrorForm_eject
         TabOrder = 0
       end
       object pup6: TPanel
+        Visible = False
         Tag = 6
         Left = 38
         Top = 28
@@ -4544,6 +4554,7 @@ object ErrorForm_eject: TErrorForm_eject
         TMSStyle = 8
       end
       object AdvSmoothButton33: TAdvSmoothButton
+        Visible = False
         Tag = 6
         Left = 5
         Top = 253
@@ -4669,10 +4680,10 @@ object ErrorForm_eject: TErrorForm_eject
           44AE426082}
         TabOrder = 8
         Version = '2.1.1.5'
-        OnClick = AdvSmoothButton13Click
         TMSStyle = 8
       end
       object AdvSmoothButton34: TAdvSmoothButton
+        Visible = False
         Tag = 6
         Left = 41
         Top = 253
@@ -4798,7 +4809,6 @@ object ErrorForm_eject: TErrorForm_eject
           426082}
         TabOrder = 9
         Version = '2.1.1.5'
-        OnClick = AdvSmoothButton14Click
         TMSStyle = 8
       end
     end
@@ -5326,6 +5336,7 @@ object ErrorForm_eject: TErrorForm_eject
         Transparent = True
       end
       object lblUpDown: TLabel
+        Visible = False
         Tag = 1
         Left = 26
         Top = 239
@@ -5362,6 +5373,7 @@ object ErrorForm_eject: TErrorForm_eject
         Transparent = True
       end
       object pdn1: TPanel
+        Visible = False
         Tag = 1
         Left = 44
         Top = 166
@@ -5382,6 +5394,7 @@ object ErrorForm_eject: TErrorForm_eject
         TabOrder = 0
       end
       object pup1: TPanel
+        Visible = False
         Tag = 1
         Left = 38
         Top = 28
@@ -5740,6 +5753,7 @@ object ErrorForm_eject: TErrorForm_eject
         TMSStyle = 8
       end
       object AdvSmoothButton13: TAdvSmoothButton
+        Visible = False
         Tag = 1
         Left = 5
         Top = 253
@@ -5865,10 +5879,10 @@ object ErrorForm_eject: TErrorForm_eject
           44AE426082}
         TabOrder = 8
         Version = '2.1.1.5'
-        OnClick = AdvSmoothButton13Click
         TMSStyle = 8
       end
       object AdvSmoothButton14: TAdvSmoothButton
+        Visible = False
         Tag = 1
         Left = 41
         Top = 253
@@ -5994,7 +6008,6 @@ object ErrorForm_eject: TErrorForm_eject
           426082}
         TabOrder = 9
         Version = '2.1.1.5'
-        OnClick = AdvSmoothButton14Click
         TMSStyle = 8
       end
     end

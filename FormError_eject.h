@@ -131,8 +131,6 @@ __published:	// IDE-managed Components
 	void __fastcall retryBtnClick(TObject *Sender);
 	void __fastcall ignoreBtnClick(TObject *Sender);
 	void __fastcall manualBtnClick(TObject *Sender);
-	void __fastcall AdvSmoothButton13Click(TObject *Sender);
-	void __fastcall AdvSmoothButton14Click(TObject *Sender);
 	void __fastcall AdvSmoothButton12Click(TObject *Sender);
 	void __fastcall AdvSmoothButton11Click(TObject *Sender);
 	void __fastcall btnMoveTargetClick(TObject *Sender);

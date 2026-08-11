@@ -101,24 +101,6 @@ void __fastcall TErrorForm_insert::btnMoveTargetClick(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TErrorForm_insert::btnUpClick(TObject *Sender)
-{
-	TAdvSmoothButton *btn;
-	btn = (TAdvSmoothButton*)Sender;
-
-	robostar->GripperDown(btn->Tag, false, true);	
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TErrorForm_insert::btnDownClick(TObject *Sender)
-{
-	TAdvSmoothButton *btn;
-	btn = (TAdvSmoothButton*)Sender;
-
-	robostar->GripperDown(btn->Tag, true, false);	
-}
-//---------------------------------------------------------------------------
-
 void __fastcall TErrorForm_insert::btnOpenClick(TObject *Sender)
 {
 	TAdvSmoothButton *btn;

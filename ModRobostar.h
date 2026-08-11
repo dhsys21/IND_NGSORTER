@@ -56,10 +56,10 @@ typedef struct{
 	uint8_t X001E:1; //X001E
 	uint8_t X001F:1; //X001F
 //--------------------------
-	uint8_t GRIPPER1_UP:1; //X0020 GRIPPER1 CHUCK, old code compatibility
-	uint8_t GRIPPER1_DOWN:1; //X0021 GRIPPER1 UNCHUCK, old code compatibility
-	uint8_t GRIPPER1_CELL_DETECT:1; //X0022 GRIPPER1 CELL DETECT
-	uint8_t GRIPPER1_BUFFER:1; //X0023 GRIPPER1 BUFFER
+	uint8_t GRIPPER1_CHUCK:1; //X0020 GRIPPER1 CHUCK
+	uint8_t GRIPPER1_UNCHUCK:1; //X0021 GRIPPER1 UNCHUCK
+	uint8_t GRIPPER1_CELL_DETECT:1; //X0022 active-low: ON=no cell, OFF=cell detected
+	uint8_t X0023_UNUSED:1; //X0023 reserved (gripper vertical cylinder not used)
 	uint8_t EMS_SWITCH:1; //X0024 ON: normal, OFF: emergency stop
 	uint8_t OPBOX_RESET_SWITCH:1; //X0025 OPBOX RESET SWITCH
 	uint8_t SAFETY_DOOR_1:1; //X0026 ON: unlocked/open, OFF: keylock locked
@@ -97,7 +97,7 @@ typedef struct{
 typedef struct{
 	uint8_t SERVO_ON[3];
 	uint8_t SERVO_HOME[3];
-	uint8_t CYLINDER_Z:1;
+	uint8_t RX02_RESERVED:1;
 
 	uint8_t SERVO03_OK_HOME:1; //RX09
 	uint8_t SERVO04_INPOS:1; //RX0A
@@ -124,8 +124,8 @@ typedef struct{
 	uint8_t RX1E:1; //RX1E
 	uint8_t RX1F:1; //RX1F
 //--------------------------
-	uint8_t GRIPPER1_UP:1; //RX20
-	uint8_t GRIPPER1_DN:1; //RX21
+	uint8_t RX20_RESERVED:1; //RX20
+	uint8_t RX21_RESERVED:1; //RX21
 	uint8_t GRIPPER1_CHUCK:1; //RX22
 	uint8_t GRIPPER1_FLOAT:1; //RX23
 	uint8_t GRIPPER1_DETECT:1; //RX24
@@ -183,8 +183,8 @@ typedef struct{
 //--------------------------
 	uint8_t Y0020:1; //Y0020
 	uint8_t Y0021:1; //Y0021
-	uint8_t GRIPPER1_DOWN_SOL:1; //Y0022 reserved, old code compatibility
-	uint8_t GRIPPER1_UP_SOL:1; //Y0023 reserved, old code compatibility
+	uint8_t Y0022:1; //Y0022 reserved (gripper vertical cylinder not used)
+	uint8_t Y0023:1; //Y0023 reserved (gripper vertical cylinder not used)
 	uint8_t Y0024:1; //Y0024
 	uint8_t Y0025:1; //Y0025
 	uint8_t Y0026:1; //Y0026
@@ -242,6 +242,7 @@ typedef enum Sequence
 	seqReset,
 	seqWait,
 	seqZup,
+	seqZdown,
 	seqPause,		// 일시 중지 상태 : 에러발생시
 	seqAutoRun,
     seqEmgAutoRun
@@ -311,20 +312,17 @@ private:	// User declarations
 	void __fastcall Reset();
 	void __fastcall WaitPosition();
 	void __fastcall zUp();
+	void __fastcall zDown();
 
 	STEP step;
 	STEP step_save;
 
 	// IO 용
 	bool __fastcall CheckEjectUnchuck(int pos);
-	bool __fastcall CheckEjectDown(int pos);
 	bool __fastcall CheckEjectChuck(int pos);
-	bool __fastcall CheckEjectUp(int pos);
 	bool __fastcall CheckEjectCell_after(int pos);
 
-	bool __fastcall CheckInsertDown(int pos);
 	bool __fastcall CheckInsertUnchuck(int pos);
-	bool __fastcall CheckInsertUp(int pos);
 
 	bool btx;
 
@@ -336,6 +334,7 @@ private:	// User declarations
 	bool sscOpened;
     PNT_DATA_EX point[AxisCnt];
     bool bSetPoint;
+	long jogSpeed;
 	bool __fastcall setPoint(int axnum_id, unsigned long int pos);
 	bool __fastcall rangeCheck(int axnum_id);
 	void __fastcall mr2Sensing();
@@ -376,17 +375,16 @@ public:		// User declarations
 	void __fastcall req_Reset();
 	void __fastcall req_WaitPosition();
 	void __fastcall req_zUp();
+	bool __fastcall req_zDown();
+	bool __fastcall SetJogSpeed(int speed);
+	int __fastcall GetJogSpeed() const;
 
-	void __fastcall GripperDown(int num, bool down, bool up);
 	void __fastcall GripperChuck(int num, bool open, bool close);
 
-	bool __fastcall getGripperDownStatus();
-	bool __fastcall getGripperUpStatus();
 	bool __fastcall getGripperChuckStatus();
 	bool __fastcall getCellDetectStatus();
 	bool __fastcall getCellDetectStatus(int pos);
 
-	int __fastcall CheckFlow();
     int zUpCount;
     int xyMoveCount;
     int zUpStep;
@@ -402,6 +400,7 @@ public:		// User declarations
 	bool __fastcall IsSafetyReady() const;
 	bool __fastcall IsSafetyDoorOpen(int doorNo) const;
 	bool __fastcall IsKeyLockActive() const;
+	bool __fastcall IsBypassActive() const;
 	bool __fastcall IsSscOpened() const;
 	bool m_bInsertSave;
 

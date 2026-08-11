@@ -86,24 +86,6 @@ void __fastcall TErrorForm_eject::manualBtnClick(TObject *Sender)
 //---------------------------------------------------------------------------
 
 
-void __fastcall TErrorForm_eject::AdvSmoothButton13Click(TObject *Sender)
-{
-	TAdvSmoothButton *btn;
-	btn = (TAdvSmoothButton*)Sender;
-
-	robostar->GripperDown(btn->Tag, false, true);	
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TErrorForm_eject::AdvSmoothButton14Click(TObject *Sender)
-{
-	TAdvSmoothButton *btn;
-	btn = (TAdvSmoothButton*)Sender;
-
-	robostar->GripperDown(btn->Tag, true, false);	
-}
-//---------------------------------------------------------------------------
-
 void __fastcall TErrorForm_eject::AdvSmoothButton12Click(TObject *Sender)
 {
 	TAdvSmoothButton *btn;

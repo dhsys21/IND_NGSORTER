@@ -164,12 +164,6 @@ void __fastcall TMainForm::CmdTrayOut(int pos)
 {
 	Sleep(3000);
 
-	if(robostar->getGripperUpStatus() == false)
-	{
-		AlarmForm->ShowError(BaseForm->GetLangStr("MSG_DOWN_STATE"), BaseForm->GetLangStr("MSG_CHECK_TRAYOUT"));
-        return;
-	}
-
     if(pos == 0){
 		NotifyEquipStatus("IDLE");
 
@@ -674,7 +668,7 @@ void __fastcall TMainForm::CreateIoMonitoringPanel()
 		"CP09 TRIP", "CP10 SERVO1 TRIP", "CP11 SERVO2 TRIP", "CP12 SERVO3 TRIP", "CP13 BCR01 TRIP", "CP14 BCR02 TRIP", "MS01 TRIP", "",
 		"SERVO01 INPOS", "SERVO01 ALARM", "SERVO01 OK HOME", "SERVO02 INPOS", "SERVO02 ALARM", "SERVO02 OK HOME", "SERVO03 INPOS", "SERVO03 ALARM",
 		"SERVO03 OK HOME", "", "", "", "", "", "", "",
-		"GRIPPER1 CHUCK", "GRIPPER1 UNCHUCK", "GRIPPER1 CELL DETECT", "GRIPPER1 BUFFER", "EMS NORMAL", "OPBOX RESET SWITCH", "SAFETY DOOR #1 UNLOCKED", "SAFETY DOOR #2 UNLOCKED",
+		"GRIPPER1 CHUCK", "GRIPPER1 UNCHUCK", "GRIPPER1 CELL DETECT", "X0023 UNUSED", "EMS NORMAL", "OPBOX RESET SWITCH", "SAFETY DOOR #1 UNLOCKED", "SAFETY DOOR #2 UNLOCKED",
 		"SAFETY RESET SW ON", "BY-PASS S/W ON", "BY-PASS S/W OFF", "SAFETY EMG READY", "SAFETY DOOR READY", "", "", ""
 	};
 	for(int i = 0; i < 48; ++i){
@@ -738,7 +732,7 @@ void __fastcall TMainForm::UpdateIoMonitoringPanel()
 		robostar->input.SERVO02_ALARM, robostar->input.SERVO02_OK_HOME, robostar->input.SERVO03_INPOS, robostar->input.SERVO03_ALARM,
 		robostar->input.SERVO03_OK_HOME, robostar->input.X0019, robostar->input.X001A, robostar->input.X001B,
 		robostar->input.X001C, robostar->input.X001D, robostar->input.X001E, robostar->input.X001F,
-		robostar->input.GRIPPER1_UP, robostar->input.GRIPPER1_DOWN, robostar->input.GRIPPER1_CELL_DETECT, robostar->input.GRIPPER1_BUFFER,
+		robostar->input.GRIPPER1_CHUCK, robostar->input.GRIPPER1_UNCHUCK, robostar->input.GRIPPER1_CELL_DETECT, robostar->input.X0023_UNUSED,
 		robostar->input.EMS_SWITCH, robostar->input.OPBOX_RESET_SWITCH, robostar->input.SAFETY_DOOR_1, robostar->input.SAFETY_DOOR_2,
 		robostar->input.SAFETY_RESET_SW_ON, robostar->input.BYPASS_SW_ON, robostar->input.BYPASS_SW_OFF, robostar->input.SAFETY_EMG_READY,
 		robostar->input.SAFETY_DOOR_READY, robostar->input.SAFETY_DOOR_3, robostar->input.X002E, robostar->input.X002F
@@ -787,12 +781,13 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 
 	for(int i=0; i<=3; ++i)GetZoneCount(i);
 
+	// Display the physical X0022 state as wired: ON=no cell, OFF=cell detected.
+	// Motion sequences use getCellDetectStatus(), which converts it to true=cell present.
 	sensorColor(pcell1, robostar->input.GRIPPER1_CELL_DETECT);
-	sensorColor(pup1, robostar->input.GRIPPER1_UP);
-	sensorColor(pdn1, robostar->input.GRIPPER1_DOWN);
-	sensorColor(pflow1, robostar->input.GRIPPER1_BUFFER);
-	sensorColor(popen1, !robostar->output.GRIPPER1_CHUCK);
-	sensorColor(pclose1, robostar->output.GRIPPER1_CHUCK);
+	// X0023 vertical-cylinder/buffer input is not used on this machine.
+	sensorColor(pflow1, false);
+	sensorColor(popen1, robostar->input.GRIPPER1_UNCHUCK);
+	sensorColor(pclose1, robostar->input.GRIPPER1_CHUCK);
     //* 2026 07 24 MR-MC axis operation status
 	bool servoRunning = false;
 	if(robostar->IsSscOpened()){
@@ -809,13 +804,6 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		pRun->Color = clGray;
 
 	setLamp();
-
-	int flowValue = robostar->CheckFlow();
-	if(flowValue != 0)
-	{
-		robostar->req_JogMove(-1);
-		AlarmForm->ShowError("No." + IntToStr(flowValue) + " " + BaseForm->GetLangStr("MSG_GRIPPER_FLOW"), BaseForm->GetLangStr("MSG_CHECK_RESTART"));
-	}
 
 	UpdateIoMonitoringPanel();
 
@@ -939,12 +927,6 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		teachForm->pcell1->Color = pcell1->Color;
 		teachForm->pcell2->Color = pcell2->Color;
 
-		teachForm->pup1->Color = pup1->Color;
-		teachForm->pup2->Color = pup2->Color;
-
-		teachForm->pdn1->Color = pdn1->Color;
-		teachForm->pdn2->Color = pdn2->Color;
-
 		teachForm->pflow1->Color = pflow1->Color;
 		teachForm->pflow2->Color = pflow2->Color;
 
@@ -958,23 +940,18 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		teachForm->pOnX1->Color = pOnX1->Color;
 		teachForm->pOnY->Color = pOnY->Color;
 		teachForm->pOnZ->Color = pOnZ->Color;
-		teachForm->pOnG1->Color = pOnG1->Color;
 		teachForm->pOrgX1->Color = pOrgX1->Color;
 		teachForm->pOrgY->Color = pOrgY->Color;
 		teachForm->pOrgZ->Color = pOrgY->Color;
-		teachForm->pOrgG1->Color = pOrgG1->Color;
 		teachForm->pErrorX1->Color = pErrorX1->Color;
 		teachForm->pErrorY->Color = pErrorY->Color;
 		teachForm->pErrorZ->Color = pErrorZ->Color;
-		teachForm->pErrorG1->Color = pErrorG1->Color;
 		teachForm->pLspX1->Color = pLspX1->Color;
 		teachForm->pLspY->Color = pLspY->Color;
 		teachForm->pLspZ->Color = pLspZ->Color;
-		teachForm->pLspG1->Color = pLspG1->Color;
 		teachForm->pLsnX1->Color = pLsnX1->Color;
 		teachForm->pLsnY->Color = pLsnY->Color;
 		teachForm->pLsnZ->Color = pLsnZ->Color;
-		teachForm->pLsnG1->Color = pLsnG1->Color;
 
 		teachForm->px1->Caption = px1->Caption;
 		teachForm->py->Caption = py->Caption;
@@ -985,12 +962,6 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	if(ErrorForm_eject->Visible){
 		ErrorForm_eject->pcell1->Color = pcell1->Color;
 		ErrorForm_eject->pcell2->Color = pcell2->Color;
-
-		ErrorForm_eject->pup1->Color = pup1->Color;
-		ErrorForm_eject->pup2->Color = pup2->Color;
-
-		ErrorForm_eject->pdn1->Color = pdn1->Color;
-		ErrorForm_eject->pdn2->Color = pdn2->Color;
 
 		ErrorForm_eject->pflow1->Color = pflow1->Color;
 		ErrorForm_eject->pflow2->Color = pflow2->Color;
@@ -1005,12 +976,6 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	if(ErrorForm_insert->Visible){
 		ErrorForm_insert->pcell1->Color = pcell1->Color;
 		ErrorForm_insert->pcell2->Color = pcell2->Color;
-
-		ErrorForm_insert->pup1->Color = pup1->Color;
-		ErrorForm_insert->pup2->Color = pup2->Color;
-
-		ErrorForm_insert->pdn1->Color = pdn1->Color;
-		ErrorForm_insert->pdn2->Color = pdn2->Color;
 
 		ErrorForm_insert->pflow1->Color = pflow1->Color;
 		ErrorForm_insert->pflow2->Color = pflow2->Color;

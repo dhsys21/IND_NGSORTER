@@ -264,11 +264,6 @@ __published:	// IDE-managed Components
 	TMemo *Memo_Hu;
 	TAdvSmoothToggleButton *AdvSmoothToggleButton_InitWork;
 	TAdvSmoothToggleButton *pause_startBtn;
-	TPanel *pOnG1;
-	TPanel *pOrgG1;
-	TPanel *pErrorG1;
-	TPanel *pLspG1;
-	TPanel *pLsnG1;
 	TAdvSmoothPanel *pTargetBase;
 	TPanel *Panel31;
 	TPanel *pflow3;

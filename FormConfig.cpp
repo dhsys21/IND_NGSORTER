@@ -242,11 +242,13 @@ bool __fastcall TConfigForm::ReadSystemInfo()
 	editRecipe->Text = ini->ReadString("RECIPE", "NO", "1");
 	AnsiString recipe = editRecipe->Text;
 
-	//* Servo Speed, Accl Speed, Dccl Speed
-	teachForm->speedEdit->Text = ini->ReadString("SPEED", "SPEED", "500");
-	teachForm->Panel_speedEdit->Caption = ini->ReadString("SPEED", "SPEED", "500");
-	teachForm->acclSpeedEdit->Text = ini->ReadString("SPEED", "ACCL_SPEED", "1000");
-	teachForm->dcclSpeedEdit->Text = ini->ReadString("SPEED", "DCCL_SPEED", "1000");
+	//* TrayTeaching96.ini가 없거나 잘못된 경우에만 기존 Servo 속도 설정을 사용한다.
+	if(!teachForm->teachingFileLoaded){
+		teachForm->speedEdit->Text = ini->ReadString("SPEED", "SPEED", "500");
+		teachForm->Panel_speedEdit->Caption = ini->ReadString("SPEED", "SPEED", "500");
+		teachForm->acclSpeedEdit->Text = ini->ReadString("SPEED", "ACCL_SPEED", "1000");
+		teachForm->dcclSpeedEdit->Text = ini->ReadString("SPEED", "DCCL_SPEED", "1000");
+	}
 
 	LoadCommunicationEdits();
 

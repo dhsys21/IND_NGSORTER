@@ -5,6 +5,8 @@
 #define SAVE_PATH					"D:\\NGSORTER_IND\\"
 
 #define BIN							APP_PATH"Bin\\"
+#define CONFIG_PATH                 APP_PATH"Config\\"
+#define TRAY_TEACHING_FILE          CONFIG_PATH"TrayTeaching96.ini"
 #define LOG                         SAVE_PATH"Log\\"
 #define SOCK_LOG					LOG"MES_LOG\\"
 #define PROG_LOG					LOG"PROG_LOG\\"

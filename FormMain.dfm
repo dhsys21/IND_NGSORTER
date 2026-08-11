@@ -688,6 +688,7 @@ object MainForm: TMainForm
         Visible = False
       end
       object pdn1: TPanel
+        Visible = False
         Left = 75
         Top = 212
         Width = 40
@@ -707,6 +708,7 @@ object MainForm: TMainForm
         TabOrder = 0
       end
       object pup1: TPanel
+        Visible = False
         Left = 75
         Top = 23
         Width = 40
@@ -1548,6 +1550,7 @@ object MainForm: TMainForm
         Visible = False
       end
       object pdn2: TPanel
+        Visible = False
         Left = 75
         Top = 212
         Width = 40
@@ -1567,6 +1570,7 @@ object MainForm: TMainForm
         TabOrder = 0
       end
       object pup2: TPanel
+        Visible = False
         Left = 75
         Top = 23
         Width = 40
@@ -3089,7 +3093,7 @@ object MainForm: TMainForm
       Width = 50
       Height = 13
       Alignment = taRightJustify
-      Caption = 'X1'#52629' '#50948#52824
+      Caption = 'X'#52629' '#50948#52824
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Height = -11
@@ -3559,12 +3563,12 @@ object MainForm: TMainForm
       TabOrder = 16
     end
     object pLspX1: TPanel
-      Left = 16
+      Left = 15
       Top = 211
-      Width = 16
+      Width = 34
       Height = 20
       BevelOuter = bvNone
-      Caption = 'X1'
+      Caption = 'X'
       Color = clSilver
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
@@ -3578,9 +3582,9 @@ object MainForm: TMainForm
       TabOrder = 17
     end
     object pLspY: TPanel
-      Left = 50
+      Left = 49
       Top = 211
-      Width = 16
+      Width = 34
       Height = 20
       BevelOuter = bvNone
       Caption = 'Y'
@@ -3597,9 +3601,9 @@ object MainForm: TMainForm
       TabOrder = 18
     end
     object pLspZ: TPanel
-      Left = 67
+      Left = 83
       Top = 211
-      Width = 16
+      Width = 33
       Height = 20
       BevelOuter = bvNone
       Caption = 'Z'
@@ -3636,12 +3640,12 @@ object MainForm: TMainForm
       TabOrder = 20
     end
     object pLsnX1: TPanel
-      Left = 16
+      Left = 15
       Top = 249
-      Width = 16
+      Width = 34
       Height = 20
       BevelOuter = bvNone
-      Caption = 'X1'
+      Caption = 'X'
       Color = clSilver
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
@@ -3655,9 +3659,9 @@ object MainForm: TMainForm
       TabOrder = 21
     end
     object pLsnY: TPanel
-      Left = 50
+      Left = 49
       Top = 249
-      Width = 16
+      Width = 34
       Height = 20
       BevelOuter = bvNone
       Caption = 'Y'
@@ -3674,9 +3678,9 @@ object MainForm: TMainForm
       TabOrder = 22
     end
     object pLsnZ: TPanel
-      Left = 67
+      Left = 83
       Top = 249
-      Width = 16
+      Width = 33
       Height = 20
       BevelOuter = bvNone
       Caption = 'Z'
@@ -3695,10 +3699,10 @@ object MainForm: TMainForm
     object pOnX1: TPanel
       Left = 15
       Top = 95
-      Width = 16
+      Width = 34
       Height = 20
       BevelOuter = bvNone
-      Caption = 'X1'
+      Caption = 'X'
       Color = clSilver
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
@@ -3714,7 +3718,7 @@ object MainForm: TMainForm
     object pOnY: TPanel
       Left = 49
       Top = 95
-      Width = 16
+      Width = 34
       Height = 20
       BevelOuter = bvNone
       Caption = 'Y'
@@ -3731,9 +3735,9 @@ object MainForm: TMainForm
       TabOrder = 25
     end
     object pOnZ: TPanel
-      Left = 66
+      Left = 83
       Top = 95
-      Width = 16
+      Width = 33
       Height = 20
       BevelOuter = bvNone
       Caption = 'Z'
@@ -3752,10 +3756,10 @@ object MainForm: TMainForm
     object pOrgX1: TPanel
       Left = 15
       Top = 134
-      Width = 16
+      Width = 34
       Height = 20
       BevelOuter = bvNone
-      Caption = 'X1'
+      Caption = 'X'
       Color = clSilver
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
@@ -3771,7 +3775,7 @@ object MainForm: TMainForm
     object pOrgY: TPanel
       Left = 49
       Top = 134
-      Width = 16
+      Width = 34
       Height = 20
       BevelOuter = bvNone
       Caption = 'Y'
@@ -3788,9 +3792,9 @@ object MainForm: TMainForm
       TabOrder = 28
     end
     object pOrgZ: TPanel
-      Left = 66
+      Left = 83
       Top = 134
-      Width = 16
+      Width = 33
       Height = 20
       BevelOuter = bvNone
       Caption = 'Z'
@@ -3809,10 +3813,10 @@ object MainForm: TMainForm
     object pErrorX1: TPanel
       Left = 15
       Top = 173
-      Width = 16
+      Width = 34
       Height = 20
       BevelOuter = bvNone
-      Caption = 'X1'
+      Caption = 'X'
       Color = clSilver
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
@@ -3828,7 +3832,7 @@ object MainForm: TMainForm
     object pErrorY: TPanel
       Left = 49
       Top = 173
-      Width = 16
+      Width = 34
       Height = 20
       BevelOuter = bvNone
       Caption = 'Y'
@@ -3845,9 +3849,9 @@ object MainForm: TMainForm
       TabOrder = 31
     end
     object pErrorZ: TPanel
-      Left = 66
+      Left = 83
       Top = 173
-      Width = 16
+      Width = 33
       Height = 20
       BevelOuter = bvNone
       Caption = 'Z'
@@ -3900,101 +3904,6 @@ object MainForm: TMainForm
       Version = '2.1.1.5'
       OnClick = openBtnClick
       TMSStyle = 8
-    end
-    object pOnG1: TPanel
-      Left = 83
-      Top = 95
-      Width = 16
-      Height = 20
-      BevelOuter = bvNone
-      Caption = 'G1'
-      Color = clSilver
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentBackground = False
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = False
-      TabOrder = 34
-    end
-    object pOrgG1: TPanel
-      Left = 82
-      Top = 134
-      Width = 16
-      Height = 20
-      BevelOuter = bvNone
-      Caption = 'G1'
-      Color = clSilver
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentBackground = False
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = False
-      TabOrder = 35
-    end
-    object pErrorG1: TPanel
-      Left = 83
-      Top = 173
-      Width = 16
-      Height = 20
-      BevelOuter = bvNone
-      Caption = 'G1'
-      Color = clSilver
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentBackground = False
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = False
-      TabOrder = 36
-    end
-    object pLspG1: TPanel
-      Left = 84
-      Top = 211
-      Width = 16
-      Height = 20
-      BevelOuter = bvNone
-      Caption = 'G1'
-      Color = clSilver
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentBackground = False
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = False
-      TabOrder = 37
-    end
-    object pLsnG1: TPanel
-      Left = 84
-      Top = 249
-      Width = 16
-      Height = 20
-      BevelOuter = bvNone
-      Caption = 'G1'
-      Color = clSilver
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentBackground = False
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = False
-      TabOrder = 38
     end
     object pRun: TPanel
       Left = 90

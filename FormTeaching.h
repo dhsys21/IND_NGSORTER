@@ -235,6 +235,8 @@ __published:	// IDE-managed Components
 	TButton *Button6;
 	TAdvSmoothButton *AdvSmoothButton_ServoOn;
 	TAdvSmoothButton *AdvSmoothButton_Zup;
+	TAdvSmoothButton *btnZAxisDown;
+	TAdvSmoothButton *btnJogSpeed;
 	TAdvSmoothButton *homeBtn;
 	TAdvSmoothButton *stopBtn;
 	TAdvSmoothButton *AdvSmoothButton_Reset;
@@ -268,11 +270,6 @@ __published:	// IDE-managed Components
 	TPanel *pnlSettingSpeed;
 	TPanel *Panel_speedEdit;
 	TAdvSmoothButton *AdvSmoothButton_LoadFactorInfo;
-	TPanel *pOnG1;
-	TPanel *pErrorG1;
-	TPanel *pLsnG1;
-	TPanel *pOrgG1;
-	TPanel *pLspG1;
 	TPanel *pnlGripper1;
 	TPanel *pg1;
 	TAdvSmoothPanel *AdvSmoothPanel8;
@@ -281,7 +278,6 @@ __published:	// IDE-managed Components
 	TPanel *pnlAcc;
 	TEdit *acclSpeedEdit;
 	TEdit *dcclSpeedEdit;
-	TLabel *lblLoadFactor4;
 	TLabel *lblLoadFactorTitle;
 	TLabel *lblLoadFactor1;
 	TLabel *Label60;
@@ -345,16 +341,14 @@ __published:	// IDE-managed Components
 	TAdvSmoothPanel *pnlBackground;
 	TAdvSmoothButton *AdvSmoothButton1;
 	void __fastcall FormCreate(TObject *Sender);
+	void __fastcall TitleMouseDown(TObject *Sender, TMouseButton Button,
+		TShiftState Shift, int X, int Y);
 	void __fastcall sClick(TObject *Sender);
 	void __fastcall tClick(TObject *Sender);
 	void __fastcall AdvSmoothButton_ResetClick(TObject *Sender);
 	void __fastcall AdvSmoothButton_ServoOffClick(TObject *Sender);
-	void __fastcall btnUpGripperClick(TObject *Sender);
-	void __fastcall btnDownGripperClick(TObject *Sender);
 	void __fastcall btnOpenGripperClick(TObject *Sender);
 	void __fastcall btnCloseGripperClick(TObject *Sender);
-	void __fastcall btnUpAllGripperClick(TObject *Sender);
-	void __fastcall btnDownAllGripperClick(TObject *Sender);
 	void __fastcall btnOpenAllGripperClick(TObject *Sender);
 	void __fastcall btnCloseAllGripperClick(TObject *Sender);
 	void __fastcall speedEditKeyDown(TObject *Sender, WORD &Key, TShiftState Shift);
@@ -368,6 +362,8 @@ __published:	// IDE-managed Components
 	void __fastcall AdvSmoothButton_ServoOnClick(TObject *Sender);
 	void __fastcall FormShow(TObject *Sender);
 	void __fastcall AdvSmoothButton_ZupClick(TObject *Sender);
+	void __fastcall btnZAxisDownClick(TObject *Sender);
+	void __fastcall btnJogSpeedClick(TObject *Sender);
 	void __fastcall homeBtnClick(TObject *Sender);
 	void __fastcall stopBtnClick(TObject *Sender);
 	void __fastcall AdvSmoothButton_LoadFactorInfoClick(TObject *Sender);
@@ -399,16 +395,14 @@ private:	// User declarations
 	TAdvSmoothPanel *tTray[96];
 
 	TEACHING teach;
-    AnsiString teachingFilePath;
+    UnicodeString teachingFilePath;
     void __fastcall MakePanel();
 	void __fastcall ApplyTeaching();
-    void __fastcall SaveTeaching(AnsiString filePath);
-	void __fastcall LoadTeaching(AnsiString filePath);
+    bool __fastcall SaveTeaching(const UnicodeString &filePath);
+	bool __fastcall LoadTeaching(const UnicodeString &filePath);
     void __fastcall SetTrayMaxPosition();
 
 	bool __fastcall CheckPositionDown(int gripperIndex);
-	bool __fastcall CheckUnchuckPosition(int gripperIndex);
-    bool __fastcall CheckChuckPosition(int gripperIndex);
     bool __fastcall CheckMoveTargetChannel(int channel);
     bool __fastcall CheckMoveSourceChannel();
     //* 마우스 버튼 3초이상 클릭시 UnCheck
@@ -419,6 +413,7 @@ public:		// User declarations
     TLabel *lblLoadFactor[7];
 
 	TRAY_POSITION sTray_Position, tTray_Position;
+	bool teachingFileLoaded;
     TEdit* __fastcall GetTrayEdit(int channel, TrayAxisEdit editType);
     int __fastcall GetTrayPosValue(int channel, TrayAxisEdit editType);
     int __fastcall GetTrayCalculatedPosValue(int channel, TrayAxisEdit editType);
