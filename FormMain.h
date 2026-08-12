@@ -398,6 +398,10 @@ public:		// User declarations
 
 	int __fastcall GetZoneCount(int zone);
 	bool __fastcall GetZoneChannel(int zone, int ch);
+	bool __fastcall IsSourceTrayInSignal() const;
+	bool __fastcall IsSourceCenteringSignal() const;
+	bool __fastcall IsTargetTrayInSignal() const;
+	bool __fastcall IsTargetCenteringSignal() const;
 
 	void __fastcall InitTrayInfo(int pos);
 	void __fastcall DisplayTrayInfo();
@@ -414,8 +418,7 @@ public:		// User declarations
 	void __fastcall NotifyIdMatching_source();
 	void __fastcall NotifyIdMatching_target(AnsiString matchingStep);
 	void __fastcall NotifyEquipStatus(AnsiString process);
-
-	PLC_INPUT	plcInput;
+	// PLC_INPUT plcInput; // Legacy ASCII interface disabled; use ModPLC_BIN status APIs.
 	// PLC_OUTPUT plcOutput; // Legacy ASCII interface disabled; use ModPLC_BIN commands.
 	void __fastcall BuzzerOn(bool on);
 	void __fastcall LampModeChange(LampMode mode);

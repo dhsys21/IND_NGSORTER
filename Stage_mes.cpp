@@ -109,7 +109,7 @@ void __fastcall TMainForm::DisplayTrayInfo()
 			loadTrayInfo(1);
 			if(checkTrayInfo(1))
 			{
-				if(plcInput.SRC_READY){
+				if(MainForm->IsSourceCenteringSignal()){
 					memoMainLineAdd("[MES] Work start request.");
 					NotifyTransferIn(pTrayid_target2->Caption);		// 작업5. 선별 트레이가 센터링을 치고 있으면 작업 시작 보고를 한다.
 				}

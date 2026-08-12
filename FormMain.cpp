@@ -238,13 +238,13 @@ void __fastcall TMainForm::setBarcode(int pos, AnsiString strBcr)
 		switch(pos){
 			case 0:
 				this->pTrayid_source->Caption = strBcr;
-				if(plcInput.SRC_ARRIVE){
+				if(IsSourceTrayInSignal()){
 					NotifyTrayInfo(strBcr, true);
 				}
 				break;
 			case 1:
 				this->pTrayid_target->Caption = strBcr;
-				if(plcInput.TARGET_READY)NotifyTrayInfo(strBcr, false);
+				if(IsTargetCenteringSignal())NotifyTrayInfo(strBcr, false);
 				break;
 		}
 	}
@@ -306,7 +306,7 @@ void __fastcall TMainForm::manualBtnClick(TObject *Sender)
 	if(autoBtn->Down == true){
 		if(robostar->IsSafetyDoorOpen(1) || robostar->IsSafetyDoorOpen(2) || robostar->IsEmergencyStopActive())
 		{
-			if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(plcInput.SRC_READY);
+			if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(IsSourceCenteringSignal());
 
 			equipMode = modeManual;
 			nowLampMode = LampManual;
@@ -320,7 +320,7 @@ void __fastcall TMainForm::manualBtnClick(TObject *Sender)
 				gripper->req_Pause(true);
 				robostar->req_Pause(true);
 
-				if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(plcInput.SRC_READY);
+				if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(IsSourceCenteringSignal());
 
 				equipMode = modeManual;
                 nowLampMode = LampManual;
@@ -413,7 +413,7 @@ void __fastcall TMainForm::openBtnClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::trayout_srcBtnClick(TObject *Sender)
 {
-	if(plcInput.SRC_ARRIVE){
+	if(IsSourceTrayInSignal()){
 		if(MessageBox(Handle, BaseForm->GetLangStr("MSG_EJECT_SOURCETRAY").c_str(), L"Tray Out", MB_YESNO|MB_ICONQUESTION) == ID_YES){
             if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(false);
 			CmdTrayOut(0);
@@ -424,7 +424,7 @@ void __fastcall TMainForm::trayout_srcBtnClick(TObject *Sender)
 void __fastcall TMainForm::trayout_targetBtnClick(TObject *Sender)
 {
 	int reply;
-	if(plcInput.TARGET_READY){
+	if(IsTargetCenteringSignal()){
 		if(MessageBox(Handle, BaseForm->GetLangStr("MSG_EJECT_TARGETTRAY").c_str(), L"Tray Out", MB_YESNO|MB_ICONQUESTION) == ID_YES){
 			reply = MessageBox(Handle, BaseForm->GetLangStr("MSG_MES_REQUEST").c_str(), L"MES", MB_YESNOCANCEL|MB_ICONQUESTION);
 			if(reply == ID_YES){
@@ -439,6 +439,32 @@ void __fastcall TMainForm::trayout_targetBtnClick(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
+bool __fastcall TMainForm::IsSourceTrayInSignal() const
+{
+	// MES TEST simulates D10103 even when the PLC socket is disconnected.
+	return (CheckBox1 != NULL && CheckBox1->Checked)
+		|| (PlcBin != NULL && PlcBin->IsSourceTrayIn());
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMainForm::IsSourceCenteringSignal() const
+{
+	// MES TEST simulates D10104.
+	return (CheckBox1 != NULL && CheckBox1->Checked)
+		|| (PlcBin != NULL && PlcBin->IsSourceCentering());
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMainForm::IsTargetTrayInSignal() const
+{
+	return PlcBin != NULL && PlcBin->IsTargetTrayIn();
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMainForm::IsTargetCenteringSignal() const
+{
+	// MES TEST simulates D10106 (bad/target tray centering).
+	return (CheckBox1 != NULL && CheckBox1->Checked)
+		|| (PlcBin != NULL && PlcBin->IsTargetCentering());
+}
+//---------------------------------------------------------------------------
 void __fastcall TMainForm::InitStep(STEP *data)
 {
 	data->step = 0;
@@ -454,14 +480,14 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 		return;
 	}
 
-	if(plcInput.SRC_ARRIVE == 0)InitStep(&step[0]);
-	if(plcInput.TARGET_READY == 0)InitStep(&step[1]);
+	if(IsSourceTrayInSignal() == 0)InitStep(&step[0]);
+	if(IsTargetCenteringSignal() == 0)InitStep(&step[1]);
 
     if(!gripper->pauseStatus && !robostar->pauseStatus)
 	{
 		switch(step[0].step){
 			case 0:
-				if(plcInput.SRC_ARRIVE){
+				if(IsSourceTrayInSignal()){
 					NotifyEquipStatus("PROCESS");
 					if(chkBypass->Checked == false){
 						pTrayid_source->Caption = "";
@@ -476,7 +502,7 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 					}
 				}
 				else{
-					if(plcInput.TARGET_READY && pTrayid_target->Caption.IsEmpty()){
+					if(IsTargetCenteringSignal() && pTrayid_target->Caption.IsEmpty()){
 						memoMainLineAdd(BaseForm->GetLangStr("MSG_TARGETTRAY_SCAN"));
 						comBcr[1]->GetBarcode();                                            // test
 					}else{
@@ -485,7 +511,7 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 				}
 				break;
 			case 1:
-				if(plcInput.SRC_READY){
+				if(IsSourceCenteringSignal()){
 					memoMainLineAdd(BaseForm->GetLangStr("MSG_SOURCETRAY_CENTERING_COMPL"));
 					NotifyTransferIn(pTrayid_source->Caption);	// 작업3. 센터링을 치면 작업시작 보고를 한다.
 					step[0].step += 1;
@@ -494,7 +520,7 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 				}
 				break;
 			case 2:
-				if(plcInput.TARGET_READY){
+				if(IsTargetCenteringSignal()){
 					memoMainLineAdd(BaseForm->GetLangStr("MSG_TARGETTRAY_CENTERING_COMPL"));
 					pTrayid_target->Caption = "";       // test
 					pTrayid_target2->Caption = "";      // test
@@ -512,7 +538,7 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 
 		 switch(step[1].step){
 			case 0:
-				if(plcInput.TARGET_READY && pwork1->Color == clLime){
+				if(IsTargetCenteringSignal() && pwork1->Color == clLime){
 					memoMainLineAdd("More target trays arrived.");
 					pTrayid_target->Caption = "";
 					pTrayid_target2->Caption = "";
@@ -769,16 +795,6 @@ void __fastcall TMainForm::btnCloseIoPanelClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 {
-	//* 2026 08 07 PLC D10100~D10106 Word 신호를 기존 장비 시퀀스 입력에 연결
-	if(PlcBin != NULL && PlcBin->ClientSocket_PLC->Active){
-		plcInput.AUTO = PlcBin->IsPlcAutoMode();
-		plcInput.PLC_ERROR = PlcBin->IsPlcError();
-		plcInput.SRC_ARRIVE = PlcBin->IsSourceTrayIn();
-		plcInput.SRC_READY = PlcBin->IsSourceCentering();
-		plcInput.TARGET_ARRIVE = PlcBin->IsTargetTrayIn();
-		plcInput.TARGET_READY = PlcBin->IsTargetCentering();
-	}
-
 	for(int i=0; i<=3; ++i)GetZoneCount(i);
 
 	// X0022 is active-low. This status panel shows logical cell presence,
@@ -1036,14 +1052,8 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 
 	//* for mes test START
 	if(CheckBox1->Checked){
-		plcInput.SRC_READY = 1;
-		plcInput.TARGET_READY = 1;
-
-		plcInput.SRC_ARRIVE = 1;
 		psrcArrive->Color = clLime;
 		psrcReady->Color = clLime;
-
-		plcInput.TARGET_READY = 1;
 		ptargetReady->Color = clLime;
 
 		pTrayid_source2->Caption = "MPA0001";
@@ -1054,24 +1064,19 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	/*
 	* 테스트 위해 아래 코드 주석처리
 	*/
-	if(plcInput.SRC_OUT)
-	{
-		if(PlcBin != NULL) PlcBin->CmdSourceTrayOut(false);
-	}
-	if(plcInput.TARGET_OUT)if(PlcBin != NULL) PlcBin->CmdTargetTrayOut(false);
 
 	// D10104 Source Centering complete resets D10154 through ModPLC_BIN.
-	if(plcInput.SRC_READY && PlcBin != NULL)
+	if(IsSourceCenteringSignal() && PlcBin != NULL)
 		PlcBin->CmdSourceCenteringRequest(false);
 
-	if(plcInput.SRC_ARRIVE)psrcArrive->Color = clLime;   		   // test
+	if(IsSourceTrayInSignal())psrcArrive->Color = clLime;   		   // test
 	else{
 		psrcArrive->Color = clSilver;
 		pwork1->Color = clSilver;
 		pwork2->Color = clSilver;
 		psrcReady->Font->Color = clBlack;
 	}
-	if(plcInput.SRC_READY)  // gsm test 2018 09 14
+	if(IsSourceCenteringSignal())  // gsm test 2018 09 14
 	{
 		psrcReady->Color = clLime;
 	}
@@ -1079,7 +1084,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		psrcReady->Color = clSilver;
 		psrcReady->Font->Color = clBlack;
 	}
-	if(plcInput.TARGET_READY)ptargetReady->Color = clLime;
+	if(IsTargetCenteringSignal())ptargetReady->Color = clLime;
 	else{
 		ptargetReady->Color = clSilver;
 		pwork2->Color = clSilver;
@@ -1090,31 +1095,48 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 
 	if(PlcBin != NULL && PlcBin->IsTargetTrayOutOn())ptargetOut->Color = clLime;
 	else	ptargetOut->Color = clSilver;
-
-	if(plcInput.SRC_OUT)psrcOut->Font->Color = clRed;
-	else	psrcOut->Font->Color = clBlack;
-
-	if(plcInput.TARGET_OUT)ptargetOut->Font->Color = clRed;
-	else	ptargetOut->Font->Color = clBlack;
+	psrcOut->Font->Color = clBlack;
+	ptargetOut->Font->Color = clBlack;
 
 	//* 2026 08 07 PC D10150~D10158 Word 신호 전송
-	// TEST: 수동모드에서도 D10151 PC AUTO/MANUAL 신호를 ON으로 전송
-	if(equipMode == modeAuto)
-		if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(false);   // for TEST
 
 	if(PlcBin != NULL){
 		bool doorOpen = robostar->IsSafetyDoorOpen(1) || robostar->IsSafetyDoorOpen(2);
 		bool pcError = NGflag || (AlarmForm != NULL && AlarmForm->Visible) ||
 			(doorForm != NULL && doorForm->Visible);
-		bool pcAutoMode = true; // TEST: 정상 운전 시에는 Auto/AutoStop 조건으로 복구
-		// bool pcAutoMode = (equipMode == modeAuto || equipMode == modeAutoStop);
+		bool pcAutoMode = (equipMode == modeAuto);
+		bool sourceTrayIn = IsSourceTrayInSignal();
+		bool sourceCentering = IsSourceCenteringSignal();
+		bool targetTrayIn = IsTargetTrayInSignal();
+
+		// D10151 follows PC mode: AUTO=1, MANUAL/other=0.
 		PlcBin->CmdPcAutoMode(pcAutoMode);
 		PlcBin->CmdPcError(pcError);
-		PlcBin->CmdTrayInReady(m_ServoHome);
+
+		// D10153 is ready only in AUTO, at Servo Home, with D10103 OFF.
+		PlcBin->CmdTrayInReady(pcAutoMode && m_ServoHome && !sourceTrayIn);
+
+		if(pcAutoMode){
+			// D10103 ON requests centering; D10104 ON resets D10154.
+			if(sourceTrayIn && !sourceCentering)
+				PlcBin->CmdSourceCenteringRequest(true);
+			else if(sourceCentering)
+				PlcBin->CmdSourceCenteringRequest(false);
+
+			// After centering, checked BYPASS requests immediate source tray out.
+			if(sourceTrayIn && sourceCentering && chkBypass->Checked)
+				PlcBin->CmdSourceTrayOut(true);
+		}
+
+		// No separate tray-out completion exists; D10103 OFF completes D10155.
+		if(!sourceTrayIn)
+			PlcBin->CmdSourceTrayOut(false);
+		if(!targetTrayIn)
+			PlcBin->CmdTargetTrayOut(false);
+
 		PlcBin->CmdPcEmergency(robostar->IsEmergencyStopActive());
 		PlcBin->CmdPcDoorOpen(doorOpen);
 	}
-
 }
 //---------------------------------------------------------------------------
 

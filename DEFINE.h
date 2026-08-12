@@ -78,6 +78,7 @@ typedef struct{
      bool empTray;
 }TRAY_INFO;
 //---------------------------------------------------------------------------
+/* Legacy ASCII PLC input structure. Use TPlcBin status APIs.
 typedef struct{
 	uint8_t AUTO:1; 		//	물류 자동
 	uint8_t PLC_ERROR:1; 	//	PLC ERROR
@@ -97,6 +98,7 @@ typedef struct{
 	uint8_t IN_15:1;
 	uint8_t IN_16:1;
 }PLC_INPUT;
+*/
 //---------------------------------------------------------------------------
 /* Legacy ASCII PLC output structure. Use TPlcBin command/status APIs.
 typedef struct{

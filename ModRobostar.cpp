@@ -739,52 +739,24 @@ void __fastcall Trobostar::AutoMove()
 		AlarmForm->ShowError("The servo is not turned ON.", "Please check and restart.");
 		return;
 	}
-	else if(!MainForm->m_ServoHome)
+	else if(!MainForm->m_ServoHomeEmg)
 	{
 		InitSequence(seqIdle);
-		MainForm->memoRobostarLineAdd("Please check servo HOME status.");
+		MainForm->memoRobostarLineAdd("Please check servo origin-return status.");
 		AlarmForm->ShowError("The servo is not HOME.", "Please check and restart.");
 		return;
 	}
 
 	switch(step.step){
-		case 0: // Z축 상승
+		case 0: // Always raise Z before any X/Y positioning move.
 			zUpCount = 0;
+			bSetPoint = setPoint(Axis_zUp, 0);
+			MainForm->memoRobostarLineAdd("[MOVE ORDER] Z UP before X/Y");
+			teachForm->pnlMovingAlarm->Visible = true;
+			teachForm->pnlMovingAlarm->BringToFront();
+			teachForm->pnlMovingAlarm2->Visible = true;
+			teachForm->pnlMovingAlarm2->BringToFront();
 			step.step = 1;
-			//ch1 : 120900   (gripper1), 30900 (gripper2)
-			//ch24 : 1231900
-            bSetPoint = false;
-			if(ConfigForm->chkZAxisUp->Checked == true){
-                //* 2026 06 z축을 0위치까지 이동. => 헝가리는 티칭값만큼만 이동.
-				bSetPoint = setPoint(Axis_zUp, 0);
-
-				MainForm->memoRobostarLineAdd("[Z Axis Up] 0");
-				teachForm->pnlMovingAlarm->Visible = true;
-				teachForm->pnlMovingAlarm->BringToFront();
-				teachForm->pnlMovingAlarm2->Visible = true;
-				teachForm->pnlMovingAlarm2->BringToFront();
-			}
-			else{
-                if(point[Axis_x].position <= 600000 && mr2.pos[Axis_x] >= 600000){
-					bSetPoint = setPoint(Axis_zUp, -1000);
-					MainForm->memoRobostarLineAdd("[Z Axis Up] -1000");
-				}
-				else if(point[Axis_x].position >= 600000 && mr2.pos[Axis_x] <= 600000){
-					bSetPoint = setPoint(Axis_zUp, -1000);
-					MainForm->memoRobostarLineAdd("[Z Axis Up] -1000");
-				}
-				else{
-					bSetPoint = setPoint(Axis_z, point[Axis_z].position);
-					MainForm->memoRobostarLineAdd("Z Axis Up - setPoint");
-					msg = "[Z Axis Up] " + point[Axis_z].position;
-					MainForm->memoRobostarLineAdd(msg);
-					teachForm->pnlMovingAlarm->Visible = true;
-					teachForm->pnlMovingAlarm->BringToFront();
-					teachForm->pnlMovingAlarm2->Visible = true;
-					teachForm->pnlMovingAlarm2->BringToFront();
-					step.step = 10;
-				}
-			}
 			break;
 		case 1:
 			//* Z축 이동 확인. 20초 이내 0으로 이동하지 않으면
@@ -821,7 +793,8 @@ void __fastcall Trobostar::AutoMove()
 			MainForm->memoRobostarLineAdd("[CHECK] X");
 			break;
 		case 12:
-			rangeCheck(Axis_y);
+			if(rangeCheck(Axis_y) && step.reserve == seqIdle)
+				step.step = 15; // Teaching channel move ends after X/Y.
 			MainForm->memoRobostarLineAdd("[CHECK] Y");
 			break;
 		case 13:
@@ -858,10 +831,10 @@ void __fastcall Trobostar::WaitPosition()
 		AlarmForm->ShowError("The servo is not turned ON.", "Please check and restart.");
 		return;
 	}
-	else if(!MainForm->m_ServoHome)
+	else if(!MainForm->m_ServoHomeEmg)
 	{
 		InitSequence(seqIdle);
-		MainForm->memoRobostarLineAdd("Please check servo HOME status.");
+		MainForm->memoRobostarLineAdd("Please check servo origin-return status.");
 		AlarmForm->ShowError("The servo is not HOME.", "Please check and restart.");
 		return;
 	}
@@ -1066,8 +1039,10 @@ bool __fastcall Trobostar::SetPositionValue()
     long channelOffset = ((move.channel - 1) % TrayTeachingGroupSize) * (long)TrayCellPitch;
     long toolOffset = (move.tool - 1) * 90000L;
 
-    position[Axis_x] = (long)baseX + channelOffset - toolOffset;
-    position[Axis_y] = baseY;
+    // Each 12-channel group stores one X/Y base point (CH01, CH13, ... CH85).
+    // Channels inside the group advance along Y by 45,000 per channel.
+    position[Axis_x] = (long)baseX - toolOffset;
+    position[Axis_y] = (long)baseY + channelOffset;
     position[Axis_z] = zPosition;
 
     for(int i = 1; i <= servoCnt; ++i)
@@ -1088,19 +1063,40 @@ void __fastcall Trobostar::req_EmgAutoRun()
 void __fastcall Trobostar::req_AutoMove(int pallet, int tool, int channel, int type)
 {
     bSetPoint = false;
-	if(seq == seqIdle || seq == seqPause || MainForm->equipMode == modeManual){
-		move.pallet = pallet;
-		move.type = type;
-		move.tool = tool;
-		move.channel = channel;
-		move.cnt = 0;
-
-		if(!SetPositionValue()){
-			MainForm->memoMainLineAdd("[Robot] Invalid tray move request.");
-			return;
-		}
-		InitSequence(seqAutoMove, seq);
+	if(!MainForm->m_ServoOpen || !MainForm->m_ServoON || !MainForm->m_ServoHomeEmg){
+		UnicodeString message = L"Channel move is not ready.";
+		if(!MainForm->m_ServoOpen) message += L"\r\nServo Open: OFF";
+		if(!MainForm->m_ServoON) message += L"\r\nServo ON: OFF";
+		if(!MainForm->m_ServoHomeEmg) message += L"\r\nOrigin return: NOT COMPLETE";
+		MainForm->memoRobostarLineAdd(message);
+		ShowMessage(message);
+		return;
 	}
+
+	if(!(seq == seqIdle || seq == seqPause || MainForm->equipMode == modeManual)){
+		ShowMessage(L"Another servo sequence is running.");
+		return;
+	}
+
+	move.pallet = pallet;
+	move.type = type;
+	move.tool = tool;
+	move.channel = channel;
+	move.cnt = 0;
+
+	if(!SetPositionValue()){
+		MainForm->memoMainLineAdd("[Robot] Invalid tray move request.");
+		ShowMessage(L"Invalid teaching value or channel.");
+		return;
+	}
+
+	MainForm->memoRobostarLineAdd("[CHANNEL MOVE] tray=" + IntToStr(pallet) +
+		", channel=" + IntToStr(channel) +
+		", target X/Y/Z=" + IntToStr((__int64)point[Axis_x].position) + "/" +
+		IntToStr((__int64)point[Axis_y].position) + "/" +
+		IntToStr((__int64)point[Axis_z].position));
+	// Direct channel selection is an X/Y-only positioning request.
+	InitSequence(seqAutoMove, seqIdle);
 }
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::req_AutoEject(int pallet, int tool, int channel, int cnt, int type)

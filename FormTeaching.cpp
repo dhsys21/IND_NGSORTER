@@ -55,6 +55,10 @@ void __fastcall TteachForm::FormShow(TObject *Sender)
     pnlMovingAlarm->Align = alClient;
 
     robostar->io_Init();
+
+	// Apply the values loaded from TrayTeaching96.ini to every servo axis.
+	robostar->req_Speed(speedEdit->Text.ToIntDef(1000),
+		acclSpeedEdit->Text.ToIntDef(1000), dcclSpeedEdit->Text.ToIntDef(1000));
 }
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::TitleMouseDown(TObject *Sender, TMouseButton Button,
@@ -461,24 +465,34 @@ void __fastcall TteachForm::btnCloseAllGripperClick(TObject *Sender)
 void __fastcall TteachForm::speedEditKeyDown(TObject *Sender, WORD &Key,
 	  TShiftState Shift)
 {
-	int speed = 600, acclSpeed = 1000, dcclSpeed = 1000;
-	TEdit *edit;
-	edit = (TEdit*)Sender;
+	if(Key != VK_RETURN)
+		return;
 
-	speed = speedEdit->Text.ToInt();
-	acclSpeed = acclSpeedEdit->Text.ToInt();
-	dcclSpeed = dcclSpeedEdit->Text.ToInt();
-
-    ConfigForm->WriteSystemInfo("speed");
-
-	if(Key == VK_RETURN){
-		if(speed >= 200 && speed <= 1200)
-		{
-			Panel_speedEdit->Caption = speed;
-			robostar->req_Speed(speed, acclSpeed, dcclSpeed);
-		}
-		else ShowMessage(BaseForm->GetLangStr("MSG_SETSPEED_ALARM"));
+	int speed = speedEdit->Text.ToIntDef(0);
+	if(speed < 200 || speed > 1200){
+		ShowMessage(BaseForm->GetLangStr("MSG_SETSPEED_ALARM"));
+		return;
 	}
+
+	TEdit *edit = (TEdit*)Sender;
+	if(edit == speedEdit){
+		// Keep the acceleration/deceleration setting in sync with Speed.
+		acclSpeedEdit->Text = IntToStr(speed);
+		dcclSpeedEdit->Text = IntToStr(speed);
+	}
+
+	int acclSpeed = acclSpeedEdit->Text.ToIntDef(0);
+	int dcclSpeed = dcclSpeedEdit->Text.ToIntDef(0);
+	if(acclSpeed < 1 || acclSpeed > 32767 || dcclSpeed < 1 || dcclSpeed > 32767){
+		ShowMessage(L"Acceleration/Deceleration time must be between 1 and 32767.");
+		return;
+	}
+
+	Panel_speedEdit->Caption = IntToStr(speed);
+	robostar->req_Speed(speed, acclSpeed, dcclSpeed);
+	ConfigForm->WriteSystemInfo("speed");
+	MainForm->memoRobostarLineAdd("[SERVO SPEED] speed/acc/dec=" +
+		IntToStr(speed) + "/" + IntToStr(acclSpeed) + "/" + IntToStr(dcclSpeed));
 }
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::disableChk1Click(TObject *Sender)
@@ -946,7 +960,9 @@ int __fastcall TteachForm::GetTrayCalculatedPosValue(int channel, TrayAxisEdit e
         return 0;
 
     int value = GetTrayPosValue(channel, editType);
-    if(editType == asSourceX || editType == asTargetX)
+    // Source and target trays share the same rule: advance Y within each
+    // 12-channel teaching group while X remains at the saved base value.
+    if(editType == asSourceY || editType == asTargetY)
         value += ((channel - 1) % TrayTeachingGroupSize) * TrayCellPitch;
 
     return value;
