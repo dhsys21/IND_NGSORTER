@@ -1,4 +1,4 @@
-﻿//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 
 #include <vcl.h>
 #pragma hdrstop
@@ -27,6 +27,7 @@ using namespace Xml::Xmlintf;
 static const UnicodeString FMS_BIND_IP = L"127.0.0.1";
 static const int FMS_BIND_PORT = 18080;
 static const int FMS_MAX_JSON_LINE_LENGTH = 4 * 1024 * 1024;
+static const int FMS_RECONNECT_INTERVAL_MS = 5000;
 
 TMod_Fms *Mod_Fms;
 
@@ -35,6 +36,8 @@ static UnicodeString ResolveFmsTagConfigFile()
 	UnicodeString ExeDir = ExtractFilePath(Application->ExeName);
 	UnicodeString Candidates[] =
 	{
+		// Use the deployed OPC UA Gateway NodeSet first.
+		L"D:\\Program\\DHS.Equipment.OpcUaGateway\\DHS.Equipment.OpcUaGateway\\Config\\NGSORTER.Config.xml",
 		ExeDir + L"Config\\NGSORTER.Config.xml",
 		ExeDir + L"NGSORTER.Config.xml",
 		L"D:\\NGSORTER_IND\\Config\\NGSORTER.Config.xml",
@@ -225,13 +228,16 @@ __fastcall TMod_Fms::TMod_Fms(TComponent* Owner)
 	  FGatewayConnected(false),
 	  FAliveValue(false),
 	  FBindIp(FMS_BIND_IP),
-	  FBindPort(FMS_BIND_PORT)
+	  FBindPort(FMS_BIND_PORT),
+	  FAutoStartEnabled(false)
 {
 	FLock = new TCriticalSection();
 	FSendLock = new TCriticalSection();
 
 	Timer_Alive->Enabled = false;
 	Timer_Alive->Interval = 1000;
+	Timer_Reconnect->Enabled = false;
+	Timer_Reconnect->Interval = FMS_RECONNECT_INTERVAL_MS;
 	TcpServer->Active = false;
 	TcpServer->DefaultPort = FBindPort;
 	TcpServer->Bindings->Clear();
@@ -250,31 +256,52 @@ __fastcall TMod_Fms::~TMod_Fms(void)
 	FSendLock = NULL;
 }
 //---------------------------------------------------------------------------
-void __fastcall TMod_Fms::Start(void)
+bool __fastcall TMod_Fms::TryStartServer(void)
 {
-	if (TcpServer != NULL && !TcpServer->Active)
+	if (TcpServer == NULL)
+		return false;
+	if (TcpServer->Active)
+		return true;
+
+	try
 	{
 		if (!FTagConfigLoaded)
 			LoadTagConfig(ResolveFmsTagConfigFile());
 
 		TcpServer->Active = true;
 		Timer_Alive->Enabled = true;
-		LogOpcUa(L"SERVER", L"START " + FBindIp + L":" + IntToStr(FBindPort));
+		LogOpcUa(L"SERVER", L"LISTEN " + FBindIp + L":" + IntToStr(FBindPort));
+		return true;
 	}
+	catch (Exception &E)
+	{
+		Timer_Alive->Enabled = false;
+		LogOpcUa(L"ERROR", L"Gateway listen failed; retry in 5 seconds: " + E.Message);
+		return false;
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::Start(void)
+{
+	FAutoStartEnabled = true;
+	Timer_Reconnect->Enabled = true;
+	TryStartServer();
 }
 //---------------------------------------------------------------------------
 void __fastcall TMod_Fms::Stop(void)
 {
+	FAutoStartEnabled = false;
+	Timer_Reconnect->Enabled = false;
+	Timer_Alive->Enabled = false;
+
 	if (TcpServer != NULL && TcpServer->Active)
 	{
-		Timer_Alive->Enabled = false;
 		TcpServer->Active = false;
-		{
-			TLockGuard Guard(FLock);
-			FGatewayConnected = false;
-		}
 		LogOpcUa(L"SERVER", L"STOP");
 	}
+
+	TLockGuard Guard(FLock);
+	FGatewayConnected = false;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMod_Fms::Configure(const UnicodeString &BindIp, int BindPort)
@@ -283,8 +310,12 @@ void __fastcall TMod_Fms::Configure(const UnicodeString &BindIp, int BindPort)
 		return;
 
 	bool WasActive = TcpServer->Active;
+	bool WasAutoStartEnabled = FAutoStartEnabled;
 	if (WasActive)
-		Stop();
+	{
+		Timer_Alive->Enabled = false;
+		TcpServer->Active = false;
+	}
 
 	FBindIp = BindIp;
 	FBindPort = BindPort;
@@ -295,8 +326,14 @@ void __fastcall TMod_Fms::Configure(const UnicodeString &BindIp, int BindPort)
 	Binding->IP = FBindIp;
 	Binding->Port = FBindPort;
 
-	if (WasActive)
+	if (WasActive || WasAutoStartEnabled)
 		Start();
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::Timer_ReconnectTimer(TObject *Sender)
+{
+	if (FAutoStartEnabled && (TcpServer == NULL || !TcpServer->Active))
+		TryStartServer();
 }
 //---------------------------------------------------------------------------
 void __fastcall TMod_Fms::Timer_AliveTimer(TObject *Sender)
@@ -346,6 +383,7 @@ void __fastcall TMod_Fms::TcpServerExecute(TIdContext *AContext)
 
 		UnicodeString Response = HandleMessage(Line);
 		bool Snapshot = IsSnapshotLine(Line);
+		bool ChangedUpdate = Line.UpperCase().Pos(L"FMS_CHANGED") > 0;
 		if (Snapshot)
 		{
 			int FmsTagCount = 0;
@@ -357,14 +395,13 @@ void __fastcall TMod_Fms::TcpServerExecute(TIdContext *AContext)
 			}
 
 			UTF8String SnapshotUtf8(Line);
-			UnicodeString Summary =
-				L"SNAPSHOT: FmsTags=" + IntToStr(FmsTagCount) +
+			UnicodeString Summary = L"SNAPSHOT: FmsTags=" + IntToStr(FmsTagCount) +
 				L", PcTags=" + IntToStr(PcTagCount) +
 				L", Bytes=" + IntToStr(SnapshotUtf8.Length() + 1);
 			LogOpcUa(L"RX", Summary);
 			LogOpcUa(L"TX", Response, false);
 		}
-		else
+		else if (!ChangedUpdate)
 		{
 			LogOpcUa(L"RX", Line);
 			LogOpcUa(L"TX", Response);
@@ -559,6 +596,17 @@ bool __fastcall TMod_Fms::KeyMatchesDefinition(const UnicodeString &Key, const T
 //---------------------------------------------------------------------------
 bool __fastcall TMod_Fms::FindTagDefinitionForDirection(const UnicodeString &Key, TFmsTagDirection Direction, TFmsTagDefinition &Definition)
 {
+	// Most runtime calls use a full key or a registered alias. Resolve that in
+	// O(log N) before using the compatibility scan over the full NodeSet.
+	TFmsTagDefinition Direct;
+	if (FindTagDefinition(Key, Direct) &&
+		(Direct.Direction == Direction || Direct.Direction == ftdBoth ||
+		 IsImplicitDirectionTag(Direct, Direction)))
+	{
+		Definition = Direct;
+		return true;
+	}
+
 	for (TTagDefinitionMap::iterator it = FTagDefinitions.begin(); it != FTagDefinitions.end(); ++it)
 	{
 		const TFmsTagDefinition &Candidate = it->second;
@@ -754,7 +802,27 @@ void __fastcall TMod_Fms::CopyChangedTags(TJSONObject *Tags)
 		UnicodeString Key = Pair->JsonString->Value();
 		bool Applied = false;
 
-		for (TTagDefinitionMap::iterator it = FTagDefinitions.begin(); it != FTagDefinitions.end(); ++it)
+		// Changed messages normally contain a registered full key or alias.
+		// Resolve it directly instead of scanning the complete XML NodeSet.
+		TFmsTagDefinition Direct;
+		if (FindTagDefinition(Key, Direct))
+		{
+			if (!ValidateJsonValue(Direct, Pair->JsonValue))
+				LogOpcUa(L"WARN", L"Type mismatch: " + Key + L" expected " + Direct.DataType);
+
+			if (Direct.Direction == ftdEqpOnly || IsImplicitDirectionTag(Direct, ftdEqpOnly))
+				FPcTags[Direct.FullKey] = Value;
+			else if (Direct.Direction == ftdBoth)
+			{
+				FFmsTags[Direct.FullKey] = Value;
+				FPcTags[Direct.FullKey] = Value;
+			}
+			else
+				FFmsTags[Direct.FullKey] = Value;
+			Applied = true;
+		}
+
+		for (TTagDefinitionMap::iterator it = FTagDefinitions.begin(); !Applied && it != FTagDefinitions.end(); ++it)
 		{
 			const TFmsTagDefinition &Definition = it->second;
 			if (it->first != Definition.FullKey || !KeyMatchesDefinition(Key, Definition))

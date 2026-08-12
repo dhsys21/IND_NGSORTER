@@ -18,4 +18,11 @@ object Mod_Fms: TMod_Fms
     Left = 128
     Top = 32
   end
+  object Timer_Reconnect: TTimer
+    Enabled = False
+    Interval = 5000
+    OnTimer = Timer_ReconnectTimer
+    Left = 208
+    Top = 32
+  end
 end

@@ -73,7 +73,6 @@ int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 		Application->CreateForm(__classid(TPlcBin), &PlcBin);
 		Application->CreateForm(__classid(TSmokeDetector), &SmokeDetector);
 		Application->CreateForm(__classid(TInterfaceForm), &InterfaceForm);
-		Application->CreateForm(__classid(TMesOpc), &MesOpc);
 		Application->Run();
 	}
 	catch (Exception &exception)

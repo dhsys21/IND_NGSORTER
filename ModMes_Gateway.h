@@ -1,4 +1,4 @@
-﻿//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 
 #ifndef ModMes_GatewayH
 #define ModMes_GatewayH
@@ -49,10 +49,12 @@ class TMod_Fms : public TDataModule
 __published:	// IDE-managed Components
 	TIdTCPServer *TcpServer;
 	TTimer *Timer_Alive;
+	TTimer *Timer_Reconnect;
 	void __fastcall TcpServerConnect(TIdContext *AContext);
 	void __fastcall TcpServerDisconnect(TIdContext *AContext);
 	void __fastcall TcpServerExecute(TIdContext *AContext);
 	void __fastcall Timer_AliveTimer(TObject *Sender);
+	void __fastcall Timer_ReconnectTimer(TObject *Sender);
 
 private:	// User declarations
 	typedef std::map<System::UnicodeString, System::UnicodeString> TTagMap;
@@ -72,7 +74,9 @@ private:	// User declarations
 	System::UnicodeString FLastTimestamp;
 	System::UnicodeString FBindIp;
 	int FBindPort;
+	bool FAutoStartEnabled;
 
+	bool __fastcall TryStartServer(void);
 	void __fastcall LogOpcUa(const System::UnicodeString &Type, const System::UnicodeString &Msg, bool bDisplay = true);
 	void __fastcall LoadTagConfig(const System::UnicodeString &FileName);
 	void __fastcall ReadTagNodes(Xml::Xmlintf::_di_IXMLNode Node);

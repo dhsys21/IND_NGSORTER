@@ -53,8 +53,15 @@ void __fastcall TConfigForm::FormCreate(TObject *Sender)
 		BaseForm->config.file_exists = true;
 	}
 	else{
+		// Apply the defaults shown on FormConfig when the INI is absent.
+		ApplyConfig();
 		BaseForm->config.file_exists = false;
 	}
+
+	// Start listening automatically using the FormConfig FMS Gateway IP/port.
+	// When the listen socket cannot be opened, TMod_Fms retries every 5 seconds.
+	if(Mod_Fms != NULL)
+		Mod_Fms->Start();
 }
 //---------------------------------------------------------------------------
 TPanel* __fastcall TConfigForm::AddFieldLabel(TWinControl *Parent, int Left, int Top, int Width, AnsiString Caption)
