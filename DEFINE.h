@@ -98,6 +98,7 @@ typedef struct{
 	uint8_t IN_16:1;
 }PLC_INPUT;
 //---------------------------------------------------------------------------
+/* Legacy ASCII PLC output structure. Use TPlcBin command/status APIs.
 typedef struct{
 	uint8_t OUT_01:1;
 	uint8_t OUT_02:1;
@@ -119,6 +120,7 @@ typedef struct{
 	uint8_t OUT_15:1;
 	uint8_t SRC_MANUAL_WORK:1;
 }PLC_OUTPUT;
+*/
 //---------------------------------------------------------------------------
 
 const int SEND = 1;

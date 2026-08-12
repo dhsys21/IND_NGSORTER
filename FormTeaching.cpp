@@ -151,7 +151,7 @@ void __fastcall TteachForm::sClick(TObject *Sender)
 		if(MessageBox(Handle, BaseForm->GetLangStr("MSG_SOURCETRAY_CENTERING_Q").c_str(),
 			L"Centering DOWN", MB_YESNO|MB_ICONQUESTION) == ID_YES)
 		{
-			MainForm->plcOutput.SRC_MANUAL_WORK = 1;
+			if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(true);
 		}
 	}
 	else
@@ -189,7 +189,7 @@ void __fastcall TteachForm::tClick(TObject *Sender)
 	{
 		if(MessageBox(Handle, BaseForm->GetLangStr("MSG_SOURCETRAY_CENTERING_Q").c_str(),
 											L"Centering DOWN", MB_YESNO|MB_ICONQUESTION) == ID_YES)
-			MainForm->plcOutput.SRC_MANUAL_WORK = 1;
+			if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(true);
 	}
 	else
 	{
@@ -496,7 +496,7 @@ void __fastcall TteachForm::waitBtnClick(TObject *Sender)
 	{
 		if(MessageBox(Handle, BaseForm->GetLangStr("MSG_GRIPPER_DOWN").c_str(),
 			L"Centering DOWN", MB_YESNO|MB_ICONQUESTION) == ID_YES){
-				MainForm->plcOutput.SRC_MANUAL_WORK = 1;
+				if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(true);
 		}
 	}
 	else {
@@ -533,7 +533,7 @@ void __fastcall TteachForm::Button1MouseDown(TObject *Sender, TMouseButton Butto
 		{
 			if(MessageBox(Handle, BaseForm->GetLangStr("MSG_SOURCETRAY_CENTERING_Q").c_str(),
 				L"Centering DOWN", MB_YESNO|MB_ICONQUESTION) == ID_YES){
-					MainForm->plcOutput.SRC_MANUAL_WORK = 1;
+					if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(true);
 				}
 		}
 		else if((btn->Tag < 4) && robostar->mr2.pos[Axis_z] != 0)
@@ -590,6 +590,12 @@ void __fastcall TteachForm::btnApplyTeachingClick(TObject *Sender)
 	ApplyTeaching();
 }
 //---------------------------------------------------------------------------
+void __fastcall TteachForm::btnCenteringReqClick(TObject *Sender)
+{
+	// D10154 Source Centering REQ via the binary PLC interface.
+	if(PlcBin != NULL)
+		PlcBin->CmdSourceCenteringRequest(true);
+}//---------------------------------------------------------------------------
 void __fastcall TteachForm::btnZAxisDownMouseDown(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y)
 {

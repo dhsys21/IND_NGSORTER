@@ -416,8 +416,7 @@ public:		// User declarations
 	void __fastcall NotifyEquipStatus(AnsiString process);
 
 	PLC_INPUT	plcInput;
-	PLC_OUTPUT	plcOutput;
-
+	// PLC_OUTPUT plcOutput; // Legacy ASCII interface disabled; use ModPLC_BIN commands.
 	void __fastcall BuzzerOn(bool on);
 	void __fastcall LampModeChange(LampMode mode);
 

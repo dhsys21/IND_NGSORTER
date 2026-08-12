@@ -86,7 +86,7 @@ object doorForm: TdoorForm
     object btnSetKEYLOCK: TAdvSmoothButton
       Left = 19
       Top = 390
-      Width = 400
+      Width = 195
       Height = 50
       Appearance.Font.Charset = DEFAULT_CHARSET
       Appearance.Font.Color = clWindowText
@@ -119,6 +119,44 @@ object doorForm: TdoorForm
       Visible = True
       Version = '2.1.1.5'
       OnClick = btnSetKEYLOCKClick
+      TMSStyle = 8
+    end
+    object btnKeyUnlock: TAdvSmoothButton
+      Left = 224
+      Top = 390
+      Width = 195
+      Height = 50
+      Appearance.Font.Charset = DEFAULT_CHARSET
+      Appearance.Font.Color = clWindowText
+      Appearance.Font.Height = -20
+      Appearance.Font.Name = 'Tahoma'
+      Appearance.Font.Style = [fsBold]
+      Appearance.Spacing = 0
+      Appearance.Rounding = 3
+      Appearance.WordWrapping = False
+      Status.Caption = '0'
+      Status.Appearance.Fill.Color = clRed
+      Status.Appearance.Fill.ColorMirror = clNone
+      Status.Appearance.Fill.ColorMirrorTo = clNone
+      Status.Appearance.Fill.GradientType = gtSolid
+      Status.Appearance.Fill.GradientMirrorType = gtSolid
+      Status.Appearance.Fill.BorderColor = clGray
+      Status.Appearance.Fill.Rounding = 0
+      Status.Appearance.Fill.ShadowOffset = 0
+      Status.Appearance.Fill.Glow = gmNone
+      Status.Appearance.Font.Charset = DEFAULT_CHARSET
+      Status.Appearance.Font.Color = clWhite
+      Status.Appearance.Font.Height = -11
+      Status.Appearance.Font.Name = 'Tahoma'
+      Status.Appearance.Font.Style = []
+      BevelColor = clMedGray
+      Caption = 'KEYLOCK '#54644#51228
+      Color = 16744448
+      ParentFont = False
+      TabOrder = 10
+      Visible = True
+      Version = '2.1.1.5'
+      OnClick = btnKeyUnlockClick
       TMSStyle = 8
     end
     object btnSetBypass: TAdvSmoothButton
@@ -5601,44 +5639,6 @@ object doorForm: TdoorForm
         TabOrder = 2
         Version = '2.1.1.5'
         OnClick = stopBtnClick
-        TMSStyle = 8
-      end
-      object btnKeyUnlock: TAdvSmoothButton
-        Left = 19
-        Top = 196
-        Width = 145
-        Height = 50
-        Appearance.Font.Charset = DEFAULT_CHARSET
-        Appearance.Font.Color = clWindowText
-        Appearance.Font.Height = -16
-        Appearance.Font.Name = 'Tahoma'
-        Appearance.Font.Style = [fsBold]
-        Appearance.Spacing = 0
-        Appearance.Rounding = 3
-        Appearance.WordWrapping = False
-        Status.Caption = '0'
-        Status.Appearance.Fill.Color = clRed
-        Status.Appearance.Fill.ColorMirror = clNone
-        Status.Appearance.Fill.ColorMirrorTo = clNone
-        Status.Appearance.Fill.GradientType = gtSolid
-        Status.Appearance.Fill.GradientMirrorType = gtSolid
-        Status.Appearance.Fill.BorderColor = clGray
-        Status.Appearance.Fill.Rounding = 0
-        Status.Appearance.Fill.ShadowOffset = 0
-        Status.Appearance.Fill.Glow = gmNone
-        Status.Appearance.Font.Charset = DEFAULT_CHARSET
-        Status.Appearance.Font.Color = clWhite
-        Status.Appearance.Font.Height = -11
-        Status.Appearance.Font.Name = 'Tahoma'
-        Status.Appearance.Font.Style = []
-        BevelColor = clMedGray
-        Caption = 'KEYLOCK '#54644#51228
-        Color = 16744448
-        ParentFont = False
-        TabOrder = 3
-        Visible = False
-        Version = '2.1.1.5'
-        OnClick = btnKeyUnlockClick
         TMSStyle = 8
       end
     end

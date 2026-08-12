@@ -167,13 +167,12 @@ void __fastcall TMainForm::CmdTrayOut(int pos)
     if(pos == 0){
 		NotifyEquipStatus("IDLE");
 
-		if(tray_source.empTray && tray_source.remainCnt == 0) plcOutput.SRC_EMP = 1;
-		else plcOutput.SRC_EMP = 0;
+		// Legacy SRC_EMP omitted: no corresponding ModPLC_BIN word in D10150-D10158.
 
-		plcOutput.SRC_OUT = 1;
-		plcOutput.SRC_WORK = 0;
+		if(PlcBin != NULL) PlcBin->CmdSourceTrayOut(true);
+		if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(false);
 	}else{
-		plcOutput.TARGET_OUT = 1;
+		if(PlcBin != NULL) PlcBin->CmdTargetTrayOut(true);
 	}
 }
 //---------------------------------------------------------------------------
@@ -307,7 +306,7 @@ void __fastcall TMainForm::manualBtnClick(TObject *Sender)
 	if(autoBtn->Down == true){
 		if(robostar->IsSafetyDoorOpen(1) || robostar->IsSafetyDoorOpen(2) || robostar->IsEmergencyStopActive())
 		{
-			plcOutput.SRC_MANUAL_WORK = plcInput.SRC_READY;
+			if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(plcInput.SRC_READY);
 
 			equipMode = modeManual;
 			nowLampMode = LampManual;
@@ -321,7 +320,7 @@ void __fastcall TMainForm::manualBtnClick(TObject *Sender)
 				gripper->req_Pause(true);
 				robostar->req_Pause(true);
 
-				plcOutput.SRC_MANUAL_WORK = plcInput.SRC_READY;
+				if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(plcInput.SRC_READY);
 
 				equipMode = modeManual;
                 nowLampMode = LampManual;
@@ -416,7 +415,7 @@ void __fastcall TMainForm::trayout_srcBtnClick(TObject *Sender)
 {
 	if(plcInput.SRC_ARRIVE){
 		if(MessageBox(Handle, BaseForm->GetLangStr("MSG_EJECT_SOURCETRAY").c_str(), L"Tray Out", MB_YESNO|MB_ICONQUESTION) == ID_YES){
-            plcOutput.SRC_MANUAL_WORK = 0;
+            if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(false);
 			CmdTrayOut(0);
 		}
 	}
@@ -1057,13 +1056,13 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	*/
 	if(plcInput.SRC_OUT)
 	{
-        plcOutput.SRC_EMP = 0;
-		plcOutput.SRC_OUT = 0;
+		if(PlcBin != NULL) PlcBin->CmdSourceTrayOut(false);
 	}
-	if(plcInput.TARGET_OUT)plcOutput.TARGET_OUT = 0;
+	if(plcInput.TARGET_OUT)if(PlcBin != NULL) PlcBin->CmdTargetTrayOut(false);
 
-	if(plcInput.SRC_READY)
-		plcOutput.SRC_WORK = 0;
+	// D10104 Source Centering complete resets D10154 through ModPLC_BIN.
+	if(plcInput.SRC_READY && PlcBin != NULL)
+		PlcBin->CmdSourceCenteringRequest(false);
 
 	if(plcInput.SRC_ARRIVE)psrcArrive->Color = clLime;   		   // test
 	else{
@@ -1086,10 +1085,10 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		pwork2->Color = clSilver;
 	}
 
-	if(plcOutput.SRC_OUT)psrcOut->Color = clLime;
+	if(PlcBin != NULL && PlcBin->IsSourceTrayOutOn())psrcOut->Color = clLime;
 	else	psrcOut->Color = clSilver;
 
-	if(plcOutput.TARGET_OUT)ptargetOut->Color = clLime;
+	if(PlcBin != NULL && PlcBin->IsTargetTrayOutOn())ptargetOut->Color = clLime;
 	else	ptargetOut->Color = clSilver;
 
 	if(plcInput.SRC_OUT)psrcOut->Font->Color = clRed;
@@ -1101,7 +1100,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	//* 2026 08 07 PC D10150~D10158 Word 신호 전송
 	// TEST: 수동모드에서도 D10151 PC AUTO/MANUAL 신호를 ON으로 전송
 	if(equipMode == modeAuto)
-		plcOutput.SRC_MANUAL_WORK = 0;   // for TEST
+		if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(false);   // for TEST
 
 	if(PlcBin != NULL){
 		bool doorOpen = robostar->IsSafetyDoorOpen(1) || robostar->IsSafetyDoorOpen(2);
@@ -1112,9 +1111,6 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		PlcBin->CmdPcAutoMode(pcAutoMode);
 		PlcBin->CmdPcError(pcError);
 		PlcBin->CmdTrayInReady(m_ServoHome);
-		PlcBin->CmdSourceCenteringRequest(plcOutput.SRC_WORK || plcOutput.SRC_MANUAL_WORK);
-		PlcBin->CmdSourceTrayOut(plcOutput.SRC_OUT);
-		PlcBin->CmdTargetTrayOut(plcOutput.TARGET_OUT);
 		PlcBin->CmdPcEmergency(robostar->IsEmergencyStopActive());
 		PlcBin->CmdPcDoorOpen(doorOpen);
 	}
@@ -1327,7 +1323,7 @@ void __fastcall TMainForm::AdvSmoothToggleButton_InitWorkClick(TObject *Sender)
             gripper->seq_save = seqIdle;
 			robostar->seq_save = seqIdle;
 
-            plcOutput.SRC_WORK = 0;
+            if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(false);
 
 			InitStep(&step[0]);
 			InitStep(&step[1]);

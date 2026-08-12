@@ -137,6 +137,13 @@ void __fastcall TdoorForm::errTimerTimer(TObject *Sender)
 	// KEYLOCK release is an alarm; a confirmed locked state is normal.
 	text[3]->Visible = !robostar->IsKeyLockActive();
 
+	bool keyLockSetOutput = robostar->gripper.DOOR_LEFT_CLOSE
+		&& robostar->gripper.DOOR_RIGHT_CLOSE;
+	bool keyLockReleaseOutput = !robostar->gripper.DOOR_LEFT_CLOSE
+		&& !robostar->gripper.DOOR_RIGHT_CLOSE;
+	btnSetKEYLOCK->Color = keyLockSetOutput ? clLime : (TColor)16744448;
+	btnKeyUnlock->Color = keyLockReleaseOutput ? clLime : (TColor)16744448;
+	btnSetBypass->Color = robostar->gripper.DOOR_OPEN_SELECT ? clLime : (TColor)16744448;
 	//btnSetKEYLOCK->Visible = robostar->output.SAFETY_DOOR;
 	//btnSetKEYLOCK->Visible = robostar->gripper.DOOR_OPEN_SELECT;
 	if(MainForm->popen->Color != clLime) btnServoOpen->Visible = true;

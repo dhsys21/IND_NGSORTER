@@ -35,7 +35,7 @@ void __fastcall TErrorForm_limit::ShowError()
 void __fastcall TErrorForm_limit::ignoreBtnClick(TObject *Sender)
 {
 	MainForm->memoMainLineAdd("정상 진행(선별)");
-	MainForm->plcOutput.SRC_WORK = 1;
+	if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(true);
 	this->Visible = false;
 }
 //---------------------------------------------------------------------------

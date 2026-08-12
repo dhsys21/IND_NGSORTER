@@ -8519,6 +8519,44 @@ object teachForm: TteachForm
           OnClick = btnApplyTeachingClick
           TMSStyle = 8
         end
+        object btnCenteringReq: TAdvSmoothButton
+          Left = 108
+          Top = 160
+          Width = 165
+          Height = 84
+          Appearance.GlowPercentage = 50
+          Appearance.Font.Charset = DEFAULT_CHARSET
+          Appearance.Font.Color = clWindowText
+          Appearance.Font.Height = -16
+          Appearance.Font.Name = 'Tahoma'
+          Appearance.Font.Style = [fsBold]
+          Appearance.Spacing = 0
+          Appearance.Rounding = 3
+          Appearance.WordWrapping = False
+          Status.Caption = '0'
+          Status.Appearance.Fill.Color = clRed
+          Status.Appearance.Fill.ColorMirror = clNone
+          Status.Appearance.Fill.ColorMirrorTo = clNone
+          Status.Appearance.Fill.GradientType = gtSolid
+          Status.Appearance.Fill.GradientMirrorType = gtSolid
+          Status.Appearance.Fill.BorderColor = clGray
+          Status.Appearance.Fill.Rounding = 0
+          Status.Appearance.Fill.ShadowOffset = 0
+          Status.Appearance.Fill.Glow = gmNone
+          Status.Appearance.Font.Charset = DEFAULT_CHARSET
+          Status.Appearance.Font.Color = clWhite
+          Status.Appearance.Font.Height = -11
+          Status.Appearance.Font.Name = 'Tahoma'
+          Status.Appearance.Font.Style = []
+          BevelColor = clMedGray
+          Caption = 'Centering'
+          Color = clWhite
+          ParentFont = False
+          TabOrder = 1
+          Version = '2.1.1.5'
+          OnClick = btnCenteringReqClick
+          TMSStyle = 8
+        end
       end
     end
     object pnlSourceBase: TAdvSmoothPanel

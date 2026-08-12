@@ -338,6 +338,7 @@ __published:	// IDE-managed Components
 	TPanel *pnlSelectGripper;
 	TLabel *lblMsgRobot;
 	TAdvSmoothButton *btnApplyTeaching;
+	TAdvSmoothButton *btnCenteringReq;
 	TAdvSmoothPanel *pnlBackground;
 	TAdvSmoothButton *AdvSmoothButton1;
 	void __fastcall FormCreate(TObject *Sender);
@@ -368,6 +369,7 @@ __published:	// IDE-managed Components
 	void __fastcall stopBtnClick(TObject *Sender);
 	void __fastcall AdvSmoothButton_LoadFactorInfoClick(TObject *Sender);
 	void __fastcall btnApplyTeachingClick(TObject *Sender);
+	void __fastcall btnCenteringReqClick(TObject *Sender);
 	void __fastcall btnZAxisDownMouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift,
           int X, int Y);
 	void __fastcall btnZAxisDownMouseUp(TObject *Sender, TMouseButton Button, TShiftState Shift,

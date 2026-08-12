@@ -65,7 +65,7 @@ void __fastcall TMainForm::DisplayTrayInfo()
             {
                 if(pbad_sum->Caption.ToInt() <= stage.limitCnt){
                     memoMainLineAdd("[C_Maint] [PLC] 선별 트레이 센터링 요청");
-                    plcOutput.SRC_WORK = 1;	// 작업2.선별을 해야 할 경우 센터링을 친다. -> stepTimer
+                    if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(true);	// 작업2.선별을 해야 할 경우 센터링을 친다. -> stepTimer
                 }else{
                     memoMainLineAdd("[C_Maint] NG 수가 설정값을 초과 했습니다.");
                     ErrorForm_limit->ShowError();
