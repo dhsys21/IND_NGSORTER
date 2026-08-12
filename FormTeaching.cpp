@@ -755,13 +755,20 @@ void __fastcall TteachForm::ApplyTeaching()
 			MessageBox(Handle, L"Acceleration/Deceleration time must be between 1 and 32767.", L"Warning", MB_OK|MB_ICONWARNING);
 			return;
 		}
-
-        if(MessageBox(Handle, BaseForm->GetLangStr("MSG_APPLY").c_str(), L"SAVE", MB_YESNO|MB_ICONWARNING) == ID_YES){
+		if(MessageBox(Handle, BaseForm->GetLangStr("MSG_APPLY").c_str(), L"SAVE", MB_YESNO|MB_ICONWARNING) == ID_YES){
 			if(SaveTeaching(teachingFilePath)){
-				SetTrayMaxPosition();
-				MessageBox(Handle, L"96-channel Servo teaching values were saved.", L"Teaching", MB_OK|MB_ICONINFORMATION);
+				// Reload the saved values into live controls, then refresh the motion data.
+				if(!LoadTeaching(teachingFilePath)){
+					MessageBox(Handle, L"Teaching was saved but could not be applied.",
+						L"Teaching", MB_OK|MB_ICONERROR);
+					return;
+				}
+				robostar->req_Speed(speedEdit->Text.ToIntDef(0),
+					acclSpeedEdit->Text.ToIntDef(0), dcclSpeedEdit->Text.ToIntDef(0));
+				MessageBox(Handle, L"96-channel Servo teaching values were saved and applied.",
+					L"Teaching", MB_OK|MB_ICONINFORMATION);
 			}
-        }
+		}
 	}catch(...){
 		MessageBox(Handle, L"정보를 입력 하세요.", L"Warning", MB_OK|MB_ICONWARNING);
 	}

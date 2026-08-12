@@ -408,7 +408,7 @@ void __fastcall TMainForm::buzzerBtnClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::openBtnClick(TObject *Sender)
 {
-	robostar->req_AutoRun();
+	robostar->req_Init();
 	if(gripper->seq == 4) gripper->step.step = 0;   //  seqPause
 }
 //---------------------------------------------------------------------------

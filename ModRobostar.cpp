@@ -407,6 +407,19 @@ void __fastcall Trobostar::Init()
 {
 	int sts = SSC_OK;
 
+	// Servo Open requires both safety-ready inputs. Report every failed input.
+	if(!IsSafetyReady()){
+		UnicodeString message = L"Servo Open blocked by safety I/O.";
+		if(!input.SAFETY_EMG_READY)
+			message += L"\r\nX002B SAFETY EMG READY: OFF";
+		if(!input.SAFETY_DOOR_READY)
+			message += L"\r\nX002C SAFETY DOOR READY: OFF";
+		MainForm->memoRobostarLineAdd(message);
+		ShowMessage(message);
+		InitSequence(seqIdle);
+		return;
+	}
+
 	//* 2026 08 07 천안 불량선별기처럼 Servo Open 시퀀스의 첫 단계에서 보드를 Open
 	// 재실행 시에는 이미 Open된 보드에 sscOpen()을 중복 호출하지 않는다.
 	if(!sscOpened){
@@ -970,6 +983,18 @@ void __fastcall Trobostar::zDown()
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::req_Init()
 {
+	// Validate at the button/request boundary so the operator sees the error immediately.
+	if(!IsSafetyReady()){
+		UnicodeString message = L"Servo Open blocked by safety I/O.";
+		if(!input.SAFETY_EMG_READY)
+			message += L"\r\nX002B SAFETY EMG READY: OFF";
+		if(!input.SAFETY_DOOR_READY)
+			message += L"\r\nX002C SAFETY DOOR READY: OFF";
+		MainForm->memoRobostarLineAdd(message);
+		ShowMessage(message);
+		return;
+	}
+
 	InitSequence(seqInit);
 }
 //---------------------------------------------------------------------------
