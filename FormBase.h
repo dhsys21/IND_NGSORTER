@@ -132,7 +132,6 @@ __published:	// IDE-managed Components
 	TAdvSmoothButton *btnKeyLock;
 	TAdvSmoothButton *btnKeyUnLock;
 	TAdvSmoothButton *btnBypassOn;
-	TAdvSmoothButton *btnBypassOff;
 	TAdvSmoothButton *btnSafetyReset;
 	TAdvSmoothButton *AdvSmoothButton4;
 	void __fastcall FormShow(TObject *Sender);
@@ -148,7 +147,6 @@ __published:	// IDE-managed Components
 	void __fastcall btnKeyLockClick(TObject *Sender);
 	void __fastcall btnKeyUnLockClick(TObject *Sender);
 	void __fastcall btnBypassOnClick(TObject *Sender);
-	void __fastcall btnBypassOffClick(TObject *Sender);
 	void __fastcall btnSafetyResetClick(TObject *Sender);
 	void __fastcall FormCreate(TObject *Sender);
 	void __fastcall AdvSmoothButton4Click(TObject *Sender);

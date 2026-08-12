@@ -134,7 +134,8 @@ void __fastcall TdoorForm::errTimerTimer(TObject *Sender)
 	text[0]->Visible = robostar->IsSafetyDoorOpen(1);
 	text[1]->Visible = robostar->IsSafetyDoorOpen(2);
 	text[2]->Visible = robostar->IsEmergencyStopActive();
-	text[3]->Visible = robostar->IsKeyLockActive();
+	// KEYLOCK release is an alarm; a confirmed locked state is normal.
+	text[3]->Visible = !robostar->IsKeyLockActive();
 
 	//btnSetKEYLOCK->Visible = robostar->output.SAFETY_DOOR;
 	//btnSetKEYLOCK->Visible = robostar->gripper.DOOR_OPEN_SELECT;
@@ -165,8 +166,8 @@ void __fastcall TdoorForm::btnSetKEYLOCKClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TdoorForm::btnSetBypassClick(TObject *Sender)
 {
-	//* 2026 08 07 FormDoor에서 BYPASS 출력 ON
-	robostar->Bypass(true);
+	if(!robostar->Bypass(true))
+		ShowMessage(L"Close both doors and set KEYLOCK before turning BY-PASS ON.");
 }
 //---------------------------------------------------------------------------
 
@@ -254,7 +255,7 @@ void __fastcall TdoorForm::btnGripper2OpenMouseDown(TObject *Sender, TMouseButto
 void __fastcall TdoorForm::btnKeyUnlockClick(TObject *Sender)
 {
 	if(!robostar->KeyLock(false))
-		ShowMessage(L"BY-PASS ON 상태에서만 키락을 해제할 수 있습니다.");
+		ShowMessage(L"KEYLOCK release requires manual mode and the hardware BY-PASS switch ON.");
 }
 //---------------------------------------------------------------------------
 void __fastcall TdoorForm::Label3DblClick(TObject *Sender)

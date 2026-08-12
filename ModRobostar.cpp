@@ -51,6 +51,8 @@ __fastcall Trobostar::Trobostar(TComponent* Owner)
 	channel_id = 1;
 	timeout = 10000;
 	sscOpened = false;
+	keyLockSetPending = false;
+	keyLockReleasePending = false;
 	jogSpeed = 100;
 	safetyResetPulseUntilTick = 0;
 	move.pallet = 0;
@@ -1595,6 +1597,22 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 	MainForm->Caption = step.step;
 
 	this->io_Read();
+
+	// Opening either door always turns Y003C OFF.
+	if(input.SAFETY_DOOR_1 || input.SAFETY_DOOR_2)
+		Bypass(false);
+
+	// Complete each key-lock request after the physical contacts confirm it.
+	if(keyLockSetPending && IsKeyLockActive()){
+		keyLockSetPending = false;
+		MainForm->memoRobostarLineAdd("[KEYLOCK] Set confirmed; BY-PASS is ready.");
+	}
+	if(keyLockReleasePending
+		&& input.SAFETY_DOOR_1 && input.SAFETY_DOOR_2){
+		Bypass(false);
+		keyLockReleasePending = false;
+		MainForm->memoRobostarLineAdd("[KEYLOCK] Release confirmed; Y003C OFF.");
+	}
 	bool softwareSafetyResetActive = IsSoftwareSafetyResetActive();
 	bool softwareSafetyResetCompleted = safetyResetPulseUntilTick != 0
 		&& !softwareSafetyResetActive;
@@ -1744,26 +1762,32 @@ void __fastcall Trobostar::DataModuleDestroy(TObject *Sender)
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::KeyLock(bool on)
 {
-	// KEYLOCK can be released only while BY-PASS is ON.
-	if(!on && !IsBypassActive())
-		return false;
+	if(!on){
+		// Automatic operation must never release the key lock.
+		if(MainForm == NULL || MainForm->equipMode != modeManual)
+			return false;
+		// X002A ON confirms that the hardware BY-PASS switch is in ON position.
+		if(!IsBypassActive())
+			return false;
+	}
 
 	gripper.DOOR_LEFT_CLOSE = on;
 	gripper.DOOR_RIGHT_CLOSE = on;
+	keyLockSetPending = on;
+	keyLockReleasePending = !on;
 	return gripper.DOOR_LEFT_CLOSE == on && gripper.DOOR_RIGHT_CLOSE == on;
 }
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::Bypass(bool on)
 {
-	// BY-PASS OFF is allowed after the KEYLOCK set outputs have been requested.
-	// The physical lock completes after BY-PASS changes to OFF, so do not wait
-	// for the final X0026/X0027 lock confirmation here.
-	if(!on && !(gripper.DOOR_LEFT_CLOSE && gripper.DOOR_RIGHT_CLOSE))
+	// Y003C may turn ON only after both key-lock outputs are ON and both
+	// door contacts confirm the locked/closed state. Turning it OFF is unconditional.
+	if(on && (!(gripper.DOOR_LEFT_CLOSE && gripper.DOOR_RIGHT_CLOSE)
+		|| !IsKeyLockActive()))
 		return false;
 
-	// Y003C is active-low in this machine: OFF=BY-PASS ON, ON=BY-PASS OFF.
-	gripper.DOOR_OPEN_SELECT = !on;
-	return gripper.DOOR_OPEN_SELECT == !on;
+	gripper.DOOR_OPEN_SELECT = on;
+	return gripper.DOOR_OPEN_SELECT == on;
 }
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::RequestSafetyResetPulse()
@@ -1810,8 +1834,8 @@ bool __fastcall Trobostar::IsKeyLockActive() const
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::IsBypassActive() const
 {
-	// X002A(BYPASS_SW_OFF)=ON confirms actual hardware BY-PASS ON.
-	return !input.BYPASS_SW_ON && input.BYPASS_SW_OFF;
+	// X002A(BYPASS_SW_ON)=ON confirms actual hardware BY-PASS ON.
+	return !input.BYPASS_SW_OFF && input.BYPASS_SW_ON;
 }
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::IsSscOpened() const

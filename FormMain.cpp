@@ -670,7 +670,7 @@ void __fastcall TMainForm::CreateIoMonitoringPanel()
 		"SERVO01 INPOS", "SERVO01 ALARM", "SERVO01 OK HOME", "SERVO02 INPOS", "SERVO02 ALARM", "SERVO02 OK HOME", "SERVO03 INPOS", "SERVO03 ALARM",
 		"SERVO03 OK HOME", "", "", "", "", "", "", "",
 		"GRIPPER1 CHUCK", "GRIPPER1 UNCHUCK", "GRIPPER1 CELL DETECT", "X0023 UNUSED", "EMS NORMAL", "OPBOX RESET SWITCH", "SAFETY DOOR #1 UNLOCKED", "SAFETY DOOR #2 UNLOCKED",
-		"SAFETY RESET SW ON", "BY-PASS S/W ON", "BY-PASS S/W OFF", "SAFETY EMG READY", "SAFETY DOOR READY", "", "", ""
+		"SAFETY RESET SW ON", "BY-PASS S/W OFF", "BY-PASS S/W ON", "SAFETY EMG READY", "SAFETY DOOR READY", "", "", ""
 	};
 	for(int i = 0; i < 48; ++i){
 		AnsiString address = "X" + IntToHex(i, 4);
@@ -735,7 +735,7 @@ void __fastcall TMainForm::UpdateIoMonitoringPanel()
 		robostar->input.X001C, robostar->input.X001D, robostar->input.X001E, robostar->input.X001F,
 		robostar->input.GRIPPER1_CHUCK, robostar->input.GRIPPER1_UNCHUCK, robostar->input.GRIPPER1_CELL_DETECT, robostar->input.X0023_UNUSED,
 		robostar->input.EMS_SWITCH, robostar->input.OPBOX_RESET_SWITCH, robostar->input.SAFETY_DOOR_1, robostar->input.SAFETY_DOOR_2,
-		robostar->input.SAFETY_RESET_SW_ON, robostar->input.BYPASS_SW_ON, robostar->input.BYPASS_SW_OFF, robostar->input.SAFETY_EMG_READY,
+		robostar->input.SAFETY_RESET_SW_ON, robostar->input.BYPASS_SW_OFF, robostar->input.BYPASS_SW_ON, robostar->input.SAFETY_EMG_READY,
 		robostar->input.SAFETY_DOOR_READY, robostar->input.SAFETY_DOOR_3, robostar->input.X002E, robostar->input.X002F
 	};
 

@@ -65,8 +65,8 @@ typedef struct{
 	uint8_t SAFETY_DOOR_1:1; //X0026 ON: unlocked/open, OFF: keylock locked
 	uint8_t SAFETY_DOOR_2:1; //X0027 ON: unlocked/open, OFF: keylock locked
 	uint8_t SAFETY_RESET_SW_ON:1; //X0028 SAFETY RESET SW ON
-	uint8_t BYPASS_SW_ON:1; //X0029 contact ON: actual hardware BY-PASS OFF confirmation
-	uint8_t BYPASS_SW_OFF:1; //X002A contact ON: actual hardware BY-PASS ON confirmation
+	uint8_t BYPASS_SW_OFF:1; //X0029 contact ON: actual hardware BY-PASS OFF confirmation
+	uint8_t BYPASS_SW_ON:1; //X002A contact ON: actual hardware BY-PASS ON confirmation
 	uint8_t SAFETY_EMG_READY:1; //X002B ON: emergency safety circuit ready
 	uint8_t SAFETY_DOOR_READY:1; //X002C ON: door safety circuit ready
 	uint8_t SAFETY_DOOR_3:1; //X002D not used
@@ -332,6 +332,8 @@ private:	// User declarations
 	int channel_id;
 	int timeout;
 	bool sscOpened;
+	bool keyLockSetPending;
+	bool keyLockReleasePending;
 	DWORD safetyResetPulseUntilTick;
 	PNT_DATA_EX point[AxisCnt];
     bool bSetPoint;

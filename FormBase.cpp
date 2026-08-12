@@ -96,17 +96,16 @@ void __fastcall TBaseForm::ClockTimerTimer(TObject *Sender)
 	setColor(pbcr2, MainForm->comBcr[1] != NULL && MainForm->comBcr[1]->ClientSocketBcr->Active);
 	setColor(psmokedetector, MainForm->comSmoke[0] != NULL && MainForm->comSmoke[0]->Comm->Connected);
 
-	// Display the confirmed hardware I/O state. Invalid/intermediate states keep the normal color.
-	bool keyLockSetIo = !robostar->input.SAFETY_DOOR_1 && !robostar->input.SAFETY_DOOR_2;
-	bool keyLockReleaseIo = robostar->input.SAFETY_DOOR_1 && robostar->input.SAFETY_DOOR_2;
-	// Input names follow the contact labels and are opposite to the actual hardware state.
-	bool bypassOnIo = !robostar->input.BYPASS_SW_ON && robostar->input.BYPASS_SW_OFF;
-	bool bypassOffIo = robostar->input.BYPASS_SW_ON && !robostar->input.BYPASS_SW_OFF;
-
-	btnKeyLock->Color = keyLockSetIo ? clLime : clWhite;
-	btnKeyUnLock->Color = keyLockReleaseIo ? clLime : clWhite;
-	btnBypassOn->Color = bypassOnIo ? clLime : clWhite;
-	btnBypassOff->Color = bypassOffIo ? clLime : clWhite;
+	// KEYLOCK button colors follow the commanded Y0033/Y0034 output state.
+	// If the two outputs disagree, neither state is shown as complete.
+	bool keyLockSetOutput = robostar->gripper.DOOR_LEFT_CLOSE
+		&& robostar->gripper.DOOR_RIGHT_CLOSE;
+	bool keyLockReleaseOutput = !robostar->gripper.DOOR_LEFT_CLOSE
+		&& !robostar->gripper.DOOR_RIGHT_CLOSE;
+	btnKeyLock->Color = keyLockSetOutput ? clLime : clWhite;
+	btnKeyUnLock->Color = keyLockReleaseOutput ? clLime : clWhite;
+	// The single BY-PASS button displays the actual Y003C output state.
+	btnBypassOn->Color = robostar->gripper.DOOR_OPEN_SELECT ? clLime : clWhite;
 	btnSafetyReset->Enabled = MainForm->path == 81
 		&& !robostar->IsSoftwareSafetyResetActive();
 	btnSafetyReset->Color = robostar->gripper.SAFETY_RESET ? clLime : clWhite;
@@ -239,31 +238,15 @@ void __fastcall TBaseForm::btnKeyUnLockClick(TObject *Sender)
 	}
 	else{
 		if(!robostar->KeyLock(false))
-			ShowMessage(L"BY-PASS ON 상태에서만 키락을 해제할 수 있습니다.");
+			ShowMessage(L"KEYLOCK release requires manual mode and the hardware BY-PASS switch ON.");
 	}
 }
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::btnBypassOnClick(TObject *Sender)
 {
-	if(MainForm->equipMode != modeManual)
-	{
-		ShowMessage(GetLangStr("MSG_MANUAL_CONTROL"));
-	}
-	else{
-		robostar->Bypass(true);
-	}
-}
-//---------------------------------------------------------------------------
-void __fastcall TBaseForm::btnBypassOffClick(TObject *Sender)
-{
-	if(MainForm->equipMode != modeManual)
-	{
-		ShowMessage(GetLangStr("MSG_MANUAL_CONTROL"));
-	}
-	else{
-		if(!robostar->Bypass(false))
-			ShowMessage(L"키락 설정 상태에서만 BY-PASS를 OFF할 수 있습니다.");
-	}
+	// Manual operation only requests Y003C ON; door opening turns it OFF automatically.
+	if(!robostar->Bypass(true))
+		ShowMessage(L"Close both doors and set KEYLOCK before turning BY-PASS ON.");
 }
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::btnSafetyResetClick(TObject *Sender)

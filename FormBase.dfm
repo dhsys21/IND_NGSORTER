@@ -474,7 +474,7 @@ object BaseForm: TBaseForm
   object Label2: TLabel
     Left = 216
     Top = 52
-    Width = 183
+    Width = 173
     Height = 13
     Caption = 'Ver. 2026-08-11 / SN: 20260811-12'
   end
@@ -974,10 +974,10 @@ object BaseForm: TBaseForm
     OnClick = AdvSmoothButton3Click
     TMSStyle = 8
   end
-  object btnBypassOff: TAdvSmoothButton
+  object btnBypassOn: TAdvSmoothButton
     Left = 651
     Top = 1
-    Width = 103
+    Width = 212
     Height = 28
     Appearance.GlowPercentage = 50
     Appearance.PictureAlignment = taCenter
@@ -1005,46 +1005,7 @@ object BaseForm: TBaseForm
     Status.Appearance.Font.Name = 'Tahoma'
     Status.Appearance.Font.Style = []
     BevelColor = clBlack
-    Caption = 'BY-PASS OFF'
-    Color = clWhite
-    ParentFont = False
-    TabOrder = 20
-    Version = '2.1.1.5'
-    OnClick = btnBypassOffClick
-    TMSStyle = 8
-  end
-  object btnBypassOn: TAdvSmoothButton
-    Left = 760
-    Top = 1
-    Width = 103
-    Height = 28
-    Appearance.GlowPercentage = 50
-    Appearance.PictureAlignment = taCenter
-    Appearance.Font.Charset = DEFAULT_CHARSET
-    Appearance.Font.Color = clBlack
-    Appearance.Font.Height = -13
-    Appearance.Font.Name = 'Tahoma'
-    Appearance.Font.Style = [fsBold]
-    Appearance.Spacing = 0
-    Appearance.Rounding = 3
-    Appearance.WordWrapping = False
-    Status.Caption = '0'
-    Status.Appearance.Fill.Color = clRed
-    Status.Appearance.Fill.ColorMirror = clNone
-    Status.Appearance.Fill.ColorMirrorTo = clNone
-    Status.Appearance.Fill.GradientType = gtSolid
-    Status.Appearance.Fill.GradientMirrorType = gtSolid
-    Status.Appearance.Fill.BorderColor = clGray
-    Status.Appearance.Fill.Rounding = 0
-    Status.Appearance.Fill.ShadowOffset = 0
-    Status.Appearance.Fill.Glow = gmNone
-    Status.Appearance.Font.Charset = DEFAULT_CHARSET
-    Status.Appearance.Font.Color = clWhite
-    Status.Appearance.Font.Height = -11
-    Status.Appearance.Font.Name = 'Tahoma'
-    Status.Appearance.Font.Style = []
-    BevelColor = clBlack
-    Caption = 'BY-PASS ON'
+    Caption = 'BY-PASS'
     Color = clWhite
     ParentFont = False
     TabOrder = 21
@@ -1163,9 +1124,9 @@ object BaseForm: TBaseForm
     BevelColor = clBlack
     Caption = 'SAFETY RESET'
     Color = clWhite
-    Enabled = False
     ParentFont = False
-    TabOrder = 22
+    TabOrder = 20
+    Enabled = False
     Version = '2.1.1.5'
     OnClick = btnSafetyResetClick
     TMSStyle = 8
