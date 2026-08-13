@@ -496,8 +496,11 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 						comBcr[0]->GetBarcode();	// 작업1. 선별 바코드 읽고  -> DisplayTrayInfo  	// test
 						step[0].step += 1;
 					}else{
+						// AUTO + D10103 Tray In + BYPASS: cancel centering and eject.
+						if(PlcBin != NULL)
+							PlcBin->CmdSourceCenteringRequest(false); // D10154 OFF
 						memoMainLineAdd(BaseForm->GetLangStr("MSG_BYPASS_TRAYOUT"));
-						CmdTrayOut(0);
+						CmdTrayOut(0);                            // D10155 ON
 						step[0].step += 100;
 					}
 				}
@@ -553,7 +556,7 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::chkBypassClick(TObject *Sender)
 {
-	if(chkBypass->Checked)this->InitStep(&step[0]);	
+	// State only. The automatic sequence evaluates BYPASS after D10103 Tray In.
 }
 //---------------------------------------------------------------------------
 
@@ -1113,22 +1116,23 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		PlcBin->CmdPcAutoMode(pcAutoMode);
 		PlcBin->CmdPcError(pcError);
 
-		// D10153 is ready only in AUTO, at Servo Home, with D10103 OFF.
-		PlcBin->CmdTrayInReady(pcAutoMode && m_ServoHome && !sourceTrayIn);
+		// D10153 follows only the physical servo-home/XYZ=0 condition.
+		PlcBin->CmdTrayInReady(m_ServoHome);
 
 		if(pcAutoMode){
-			// D10103 ON requests centering; D10104 ON resets D10154.
-			if(sourceTrayIn && !sourceCentering)
-				PlcBin->CmdSourceCenteringRequest(true);
-			else if(sourceCentering)
+			if(sourceTrayIn && chkBypass->Checked){
+				// Tray Out itself is issued by the automatic sequence.
 				PlcBin->CmdSourceCenteringRequest(false);
-
-			// After centering, checked BYPASS requests immediate source tray out.
-			if(sourceTrayIn && sourceCentering && chkBypass->Checked)
-				PlcBin->CmdSourceTrayOut(true);
+			}
+			else if(sourceTrayIn && !sourceCentering){
+				PlcBin->CmdSourceCenteringRequest(true);
+			}
+			else if(sourceCentering){
+				PlcBin->CmdSourceCenteringRequest(false);
+			}
 		}
 
-		// No separate tray-out completion exists; D10103 OFF completes D10155.
+		// D10103 OFF completes D10155.
 		if(!sourceTrayIn)
 			PlcBin->CmdSourceTrayOut(false);
 		if(!targetTrayIn)

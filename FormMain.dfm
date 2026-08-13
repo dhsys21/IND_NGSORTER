@@ -688,7 +688,6 @@ object MainForm: TMainForm
         Visible = False
       end
       object pdn1: TPanel
-        Visible = False
         Left = 75
         Top = 212
         Width = 40
@@ -706,9 +705,9 @@ object MainForm: TMainForm
         ParentShowHint = False
         ShowHint = False
         TabOrder = 0
+        Visible = False
       end
       object pup1: TPanel
-        Visible = False
         Left = 75
         Top = 23
         Width = 40
@@ -726,6 +725,7 @@ object MainForm: TMainForm
         ParentShowHint = False
         ShowHint = False
         TabOrder = 1
+        Visible = False
       end
       object pflow1: TPanel
         Left = 90
@@ -1550,7 +1550,6 @@ object MainForm: TMainForm
         Visible = False
       end
       object pdn2: TPanel
-        Visible = False
         Left = 75
         Top = 212
         Width = 40
@@ -1568,9 +1567,9 @@ object MainForm: TMainForm
         ParentShowHint = False
         ShowHint = False
         TabOrder = 0
+        Visible = False
       end
       object pup2: TPanel
-        Visible = False
         Left = 75
         Top = 23
         Width = 40
@@ -1588,6 +1587,7 @@ object MainForm: TMainForm
         ParentShowHint = False
         ShowHint = False
         TabOrder = 1
+        Visible = False
       end
       object pflow2: TPanel
         Left = 90
@@ -2122,7 +2122,6 @@ object MainForm: TMainForm
       ParentShowHint = False
       ShowHint = False
       TabOrder = 6
-      Visible = False
       OnClick = chkBypassClick
     end
     object pdoor_left: TPanel
@@ -3088,9 +3087,9 @@ object MainForm: TMainForm
       Transparent = True
     end
     object lblXPos: TLabel
-      Left = 70
+      Left = 77
       Top = 604
-      Width = 50
+      Width = 43
       Height = 13
       Alignment = taRightJustify
       Caption = 'X'#52629' '#50948#52824
@@ -3922,7 +3921,7 @@ object MainForm: TMainForm
       ParentFont = False
       ParentShowHint = False
       ShowHint = False
-      TabOrder = 39
+      TabOrder = 34
     end
   end
   object pnlLog: TAdvSmoothPanel
