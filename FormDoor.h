@@ -48,6 +48,11 @@ __published:	// IDE-managed Components
 	TAdvSmoothButton *btnGripper2Open;
 	TAdvSmoothButton *stopBtn;
 	TAdvSmoothButton *btnKeyUnlock;
+	TAdvSmoothButton *btnSafetyResetDoor;
+	TPanel *pSafetyEmgReady;
+	TPanel *pSafetyDoorReady;
+	TLabel *lblRecoverySequence;
+	TLabel *lblSafetyResetGuide;
 	TPanel *pPassword;
 	TPanel *Panel61;
 	TEdit *PassEdit;
@@ -68,6 +73,7 @@ __published:	// IDE-managed Components
 	void __fastcall btnGripper2OpenMouseDown(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y);
 	void __fastcall btnKeyUnlockClick(TObject *Sender);
+	void __fastcall btnSafetyResetDoorClick(TObject *Sender);
 	void __fastcall Label3DblClick(TObject *Sender);
 	void __fastcall cancelBtn2Click(TObject *Sender);
 	void __fastcall PasswordBtnClick(TObject *Sender);

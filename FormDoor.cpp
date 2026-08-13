@@ -31,6 +31,14 @@ __fastcall TdoorForm::TdoorForm(TComponent* Owner)
 	isGripperOpen1 = false;
 	isGripperOpen2 = false;
 
+	// Keep the compact safety I/O indicators visible inside AdvSmoothPanel4.
+	pSafetyEmgReady->Parent = AdvSmoothPanel4;
+	pSafetyDoorReady->Parent = AdvSmoothPanel4;
+	pSafetyEmgReady->Visible = true;
+	pSafetyDoorReady->Visible = true;
+	pSafetyEmgReady->BringToFront();
+	pSafetyDoorReady->BringToFront();
+	lblRecoverySequence->BringToFront();
 	errTimer->Enabled = false;
 }
 //---------------------------------------------------------------------------
@@ -144,6 +152,15 @@ void __fastcall TdoorForm::errTimerTimer(TObject *Sender)
 	btnSetKEYLOCK->Color = keyLockSetOutput ? clLime : (TColor)16744448;
 	btnKeyUnlock->Color = keyLockReleaseOutput ? clLime : (TColor)16744448;
 	btnSetBypass->Color = robostar->gripper.DOOR_OPEN_SELECT ? clLime : (TColor)16744448;
+
+	bool safetyEmgReady = robostar->input.SAFETY_EMG_READY;
+	bool safetyDoorReady = robostar->input.SAFETY_DOOR_READY;
+	btnSafetyResetDoor->Enabled = MainForm->path == 81
+		&& !robostar->IsSoftwareSafetyResetActive();
+	btnSafetyResetDoor->Color = robostar->gripper.SAFETY_RESET ? clLime : clWhite;
+	pSafetyEmgReady->Color = safetyEmgReady ? clLime : clSilver;
+	pSafetyDoorReady->Color = safetyDoorReady ? clLime : clSilver;
+	lblSafetyResetGuide->Visible = !(safetyEmgReady && safetyDoorReady);
 	//btnSetKEYLOCK->Visible = robostar->output.SAFETY_DOOR;
 	//btnSetKEYLOCK->Visible = robostar->gripper.DOOR_OPEN_SELECT;
 	if(MainForm->popen->Color != clLime) btnServoOpen->Visible = true;
@@ -265,6 +282,11 @@ void __fastcall TdoorForm::btnKeyUnlockClick(TObject *Sender)
 		ShowMessage(L"KEYLOCK release requires manual mode and the hardware BY-PASS switch ON.");
 }
 //---------------------------------------------------------------------------
+void __fastcall TdoorForm::btnSafetyResetDoorClick(TObject *Sender)
+{
+	if(!robostar->RequestSafetyResetPulse())
+		ShowMessage(L"Cannot output SAFETY RESET because CC-Link is not connected.");
+}//---------------------------------------------------------------------------
 void __fastcall TdoorForm::Label3DblClick(TObject *Sender)
 {
     pPassword->Visible = !pPassword->Visible;

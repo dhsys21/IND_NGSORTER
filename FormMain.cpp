@@ -617,18 +617,6 @@ void __fastcall TMainForm::CreateIoMonitoringPanel()
 	ioInputCount = 0;
 	ioOutputCount = 0;
 
-	btnIOMonitoring = new TAdvSmoothButton(this);
-	btnIOMonitoring->Parent = this;
-	btnIOMonitoring->Left = pemergency->Left;
-	btnIOMonitoring->Top = 1;
-	btnIOMonitoring->Width = pemergency->Width;
-	btnIOMonitoring->Height = 24;
-	btnIOMonitoring->Caption = "I/O Monitoring";
-	btnIOMonitoring->Color = clWhite;
-	btnIOMonitoring->BevelColor = clBlack;
-	btnIOMonitoring->Appearance->Font->Style = TFontStyles() << fsBold;
-	btnIOMonitoring->OnClick = btnIOMonitoringClick;
-	btnIOMonitoring->BringToFront();
 
 	grp_io = new TPanel(this);
 	grp_io->Parent = this;

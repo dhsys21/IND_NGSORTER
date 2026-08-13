@@ -16,6 +16,7 @@ object MainForm: TMainForm
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
+
   object Label6: TLabel
     Left = 11
     Top = 50
@@ -1830,6 +1831,43 @@ object MainForm: TMainForm
     Version = '1.5.2.1'
     TabOrder = 0
     TMSStyle = 0
+    object btnIOMonitoring: TAdvSmoothButton
+      Left = 570
+      Top = 1
+      Width = 161
+      Height = 24
+      Appearance.Font.Charset = DEFAULT_CHARSET
+      Appearance.Font.Color = clWindowText
+      Appearance.Font.Height = -11
+      Appearance.Font.Name = 'Tahoma'
+      Appearance.Font.Style = [fsBold]
+      Appearance.Spacing = 0
+      Appearance.Rounding = 3
+      Appearance.WordWrapping = False
+      Status.Caption = '0'
+      Status.Appearance.Fill.Color = clRed
+      Status.Appearance.Fill.ColorMirror = clNone
+      Status.Appearance.Fill.ColorMirrorTo = clNone
+      Status.Appearance.Fill.GradientType = gtSolid
+      Status.Appearance.Fill.GradientMirrorType = gtSolid
+      Status.Appearance.Fill.BorderColor = clGray
+      Status.Appearance.Fill.Rounding = 0
+      Status.Appearance.Fill.ShadowOffset = 0
+      Status.Appearance.Fill.Glow = gmNone
+      Status.Appearance.Font.Charset = DEFAULT_CHARSET
+      Status.Appearance.Font.Color = clWhite
+      Status.Appearance.Font.Height = -11
+      Status.Appearance.Font.Name = 'Tahoma'
+      Status.Appearance.Font.Style = []
+      BevelColor = clBlack
+      Caption = 'I/O Monitoring'
+      Color = clWhite
+      ParentFont = False
+      TabOrder = 12
+      Version = '2.1.1.5'
+      OnClick = btnIOMonitoringClick
+      TMSStyle = 8
+    end
     object lblTitle: TLabel
       Left = 10
       Top = 4

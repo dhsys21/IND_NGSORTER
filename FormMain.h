@@ -65,6 +65,7 @@ class TMainForm : public TForm
 __published:	// IDE-managed Components
 	TClientSocket *Client;
 	TLabel *Label6;
+	TAdvSmoothButton *btnIOMonitoring;
 	TAdvSmoothPanel *pback;
 	TLabel *lblTitle;
 	TAdvSmoothPanel *AdvSmoothPanel2;
@@ -359,7 +360,6 @@ private:	// User declarations
 	void __fastcall ReadZoneList();
 
 	TPanel *status_on[AxisCnt], *status_org[AxisCnt], *status_error[AxisCnt], *status_lsp[AxisCnt], *status_lsn[AxisCnt], *status_pos[AxisCnt];
-	TAdvSmoothButton *btnIOMonitoring;
 	TPanel *grp_io;
 	TPanel *ioInputState[64];
 	TPanel *ioOutputState[32];
