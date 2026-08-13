@@ -8560,7 +8560,7 @@ object teachForm: TteachForm
       end
     end
     object pnlSourceBase: TAdvSmoothPanel
-      Left = 8
+      Left = 630
       Top = 316
       Width = 593
       Height = 644
@@ -9421,7 +9421,7 @@ object teachForm: TteachForm
       end
     end
     object pnlTargetBase: TAdvSmoothPanel
-      Left = 630
+      Left = 8
       Top = 316
       Width = 593
       Height = 644

@@ -798,6 +798,12 @@ void __fastcall Trobostar::AutoMove()
 			MainForm->memoRobostarLineAdd("[CHECK] Y");
 			break;
 		case 13:
+			if(move.pallet == 1 && getGripperChuckStatus()){
+				MainForm->memoRobostarLineAdd("[Source Tray Z Down] blocked in automatic move: gripper is CHUCK");
+				AlarmForm->ShowError("Source Tray Z Down Interlock", "Open the gripper before lowering Z at the Source Tray.");
+				req_Stop();
+				return;
+			}
 			setPoint(Axis_z, point[Axis_z].position);   // z 위치 이동
 			MainForm->memoRobostarLineAdd("[MOVE] Z");
 			step.step += 1;
@@ -926,6 +932,11 @@ void __fastcall Trobostar::zDown()
 {
 	switch(step.step){
 		case 0:
+			if(move.pallet == 1 && getGripperChuckStatus()){
+				MainForm->memoRobostarLineAdd("[Source Tray Z Down] blocked at execution: gripper is CHUCK");
+				InitSequence(seqIdle);
+				return;
+			}
 			zUpCount = 0;
 			bSetPoint = setPoint(Axis_z, point[Axis_z].position);
 			teachForm->pnlMovingAlarm->Visible = true;
@@ -988,6 +999,12 @@ void __fastcall Trobostar::req_ServoOff()
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::req_JogMove(int ntype)
 {
+	// Tag 4 is Z DOWN(+). Source Tray must never descend while the gripper is CHUCK.
+	if(ntype == 4 && move.pallet == 1 && getGripperChuckStatus()){
+		MainForm->memoRobostarLineAdd("[Source Tray Z Down] blocked: gripper is CHUCK");
+		return;
+	}
+
 	switch(ntype){
 		case 0: InitSequence(seqJOGx_Plus);break;
 		case 1: InitSequence(seqJOGx_Minus);break;
@@ -1152,6 +1169,10 @@ bool __fastcall Trobostar::req_zDown()
 	if(move.channel < 1 || move.channel > TraySlotCount ||
 		(move.pallet != 1 && move.pallet != 2)){
 		MainForm->memoRobostarLineAdd("[Z Axis Teaching Down] blocked: Source/Target channel is not selected");
+		return false;
+	}
+	if(move.pallet == 1 && getGripperChuckStatus()){
+		MainForm->memoRobostarLineAdd("[Source Tray Z Down] blocked: gripper is CHUCK");
 		return false;
 	}
 	if(mr2.pos[Axis_x] != point[Axis_x].position ||
@@ -1565,11 +1586,8 @@ bool __fastcall Trobostar::getCellDetectStatus(int pos)
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::getGripperChuckStatus()
 {
-	if(output.GRIPPER1_CHUCK){
-		return true;
-	}else{
-		return false;
-	}
+	// X0020 is the physical CHUCK confirmation; Y0030 covers the command-to-feedback gap.
+	return input.GRIPPER1_CHUCK || gripper.GRIPPER1_CHUCK;
 }
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::mr2Sensing()

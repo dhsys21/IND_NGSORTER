@@ -263,10 +263,16 @@ void __fastcall TteachForm::AdvSmoothButton_ZupClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::btnZAxisDownClick(TObject *Sender)
 {
+	if(robostar->move.pallet == 1 && robostar->getGripperChuckStatus()){
+		MessageBox(Handle,
+			L"The gripper is CHUCK. Z DOWN is blocked at the Source Tray.",
+			L"Source Tray Z Down Interlock", MB_OK|MB_ICONWARNING);
+		return;
+	}
 	if(!robostar->req_zDown()){
 		MessageBox(Handle,
-			L"먼저 Source 또는 Target 채널을 선택하고 서보 상태와 Z축 티칭값을 확인하세요.",
-			L"Z축 하강", MB_OK|MB_ICONWARNING);
+			L"Check the selected Source/Target channel, servo status, and Z teaching value.",
+			L"Z Axis Down", MB_OK|MB_ICONWARNING);
 	}
 }
 //---------------------------------------------------------------------------
@@ -554,6 +560,12 @@ void __fastcall TteachForm::Button1MouseDown(TObject *Sender, TMouseButton Butto
 			ShowMessage(BaseForm->GetLangStr("MSG_JOG_ZAXIS_ALARM"));
 		else if(btn->Tag == 4)
 		{
+			if(robostar->move.pallet == 1 && robostar->getGripperChuckStatus()){
+				MessageBox(Handle,
+					L"The gripper is CHUCK. Z DOWN is blocked at the Source Tray.",
+					L"Source Tray Z Down Interlock", MB_OK|MB_ICONWARNING);
+				return;
+			}
 			bool flag = true;
 			for(int i=1; i<=gripCnt; ++i)
 			{
@@ -613,10 +625,15 @@ void __fastcall TteachForm::btnCenteringReqClick(TObject *Sender)
 void __fastcall TteachForm::btnZAxisDownMouseDown(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y)
 {
-    TButton *btn;
-	btn = (TButton*)Sender;
+	TButton *btn = (TButton*)Sender;
 
 	if(Button == mbLeft){
+		if(btn->Tag == 4 && robostar->move.pallet == 1 && robostar->getGripperChuckStatus()){
+			MessageBox(Handle,
+				L"The gripper is CHUCK. Z DOWN is blocked at the Source Tray.",
+				L"Source Tray Z Down Interlock", MB_OK|MB_ICONWARNING);
+			return;
+		}
 		robostar->req_JogMove(btn->Tag);
 	}
 }

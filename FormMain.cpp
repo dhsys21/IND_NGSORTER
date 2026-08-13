@@ -794,7 +794,8 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	// X0023 vertical-cylinder/buffer input is not used on this machine.
 	sensorColor(pflow1, false);
 	sensorColor(popen1, robostar->input.GRIPPER1_UNCHUCK);
-	sensorColor(pclose1, robostar->input.GRIPPER1_CHUCK);
+	// CLOSE follows the actual X0020 input and remains visible while Y0030 is commanded.
+	sensorColor(pclose1, robostar->getGripperChuckStatus());
     //* 2026 07 24 MR-MC axis operation status
 	bool servoRunning = false;
 	if(robostar->IsSscOpened()){
