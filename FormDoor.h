@@ -9,6 +9,7 @@
 #include <Forms.hpp>
 #include <ExtCtrls.hpp>
 #include <jpeg.hpp>
+#include <pngimage.hpp>
 #include "AdvSmoothButton.hpp"
 #include "AdvSmoothPanel.hpp"
 //---------------------------------------------------------------------------
@@ -39,7 +40,7 @@ __published:	// IDE-managed Components
 	TAdvSmoothButton *btnSetKEYLOCK;
 	TAdvSmoothButton *btnSetBypass;
 	TImage *Image2;
-	TPanel *Panel2;
+	TImage *imgMachineDrawing;
 	TStaticText *MainErr5;
 	TAdvSmoothButton *btnServoOpen;
 	TAdvSmoothPanel *pnlOpenGripper;
@@ -58,6 +59,7 @@ __published:	// IDE-managed Components
 	TEdit *PassEdit;
 	TAdvSmoothButton *cancelBtn2;
 	TAdvSmoothButton *PasswordBtn;
+	TImage *Image3;
 	void __fastcall AdvSmoothButton4Click(TObject *Sender);
 	void __fastcall FormHide(TObject *Sender);
 	void __fastcall errTimerTimer(TObject *Sender);

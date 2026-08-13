@@ -309,6 +309,7 @@ __published:	// IDE-managed Components
 	void __fastcall AdvSmoothToggleButton_InitWorkClick(TObject *Sender);
 	void __fastcall pnlSource2Click(TObject *Sender);
 	void __fastcall lblTitleClick(TObject *Sender);
+	void __fastcall btnIOMonitoringClick(TObject *Sender);
 private:	// User declarations
 //------------ Æû °ü·Ã -------------------//
 
@@ -344,7 +345,6 @@ private:	// User declarations
 	void __fastcall CreateIoMonitoringPanel();
 	void __fastcall CreateIoRow(TScrollBox *parent, TPanel **statePanel, int index, AnsiString address, AnsiString name);
 	void __fastcall UpdateIoMonitoringPanel();
-	void __fastcall btnIOMonitoringClick(TObject *Sender);
 	void __fastcall btnCloseIoPanelClick(TObject *Sender);
 
 	int __fastcall FindList(AnsiString strType);

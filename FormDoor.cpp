@@ -25,6 +25,9 @@ __fastcall TdoorForm::TdoorForm(TComponent* Owner)
 
 	for(int i = 0; i < 4; ++i){
 		text[i]->Visible = false;
+		perr[i]->ParentBackground = false;
+		perr[i]->Color = clRed;
+		perr[i]->Font->Color = clWhite;
 		perr[i]->Visible = false;
 	}
 
@@ -37,6 +40,27 @@ __fastcall TdoorForm::TdoorForm(TComponent* Owner)
 	pSafetyEmgReady->Visible = true;
 	pSafetyDoorReady->Visible = true;
 	pSafetyEmgReady->BringToFront();
+	// Load the large drawing after DFM streaming. Keeping Picture.Data out of
+	// the DFM prevents image-property EReadError during form construction.
+	AnsiString drawingPath = ExtractFilePath(Application->ExeName) + "NGSORTER.png";
+	if(!FileExists(drawingPath))
+		drawingPath = "D:\\Program\\NGSORTER.png";
+	if(FileExists(drawingPath)){
+		try{
+			TPngImage *drawing = new TPngImage();
+			try{
+				drawing->LoadFromFile(drawingPath);
+				imgMachineDrawing->Picture->Assign(drawing);
+			}
+			__finally{
+				delete drawing;
+			}
+		}
+		catch(const Exception &){
+			imgMachineDrawing->Picture->Assign(NULL);
+		}
+	}
+	imgMachineDrawing->SendToBack();
 	pSafetyDoorReady->BringToFront();
 	lblRecoverySequence->BringToFront();
 	errTimer->Enabled = false;
@@ -98,6 +122,9 @@ void __fastcall TdoorForm::FormHide(TObject *Sender)
 	MainForm->NotifyAlarm(false, m_errCode, false);
 	for(int i = 0; i < 4; ++i){
 		text[i]->Visible = false;
+		perr[i]->ParentBackground = false;
+		perr[i]->Color = clRed;
+		perr[i]->Font->Color = clWhite;
 		perr[i]->Visible = false;
 	}
 
@@ -166,11 +193,22 @@ void __fastcall TdoorForm::errTimerTimer(TObject *Sender)
 	if(MainForm->popen->Color != clLime) btnServoOpen->Visible = true;
     else btnServoOpen->Visible = false;
 
-	for(int i = 0; i < 4; ++i)
+	// Flash every diagram alarm by inverting its own colors. This keeps the
+	// effect even when no separate AdvSmoothPanel background exists.
+	for(int i = 0; i < 4; ++i){
 		if(text[i]->Visible){
-			perr[i]->Visible = !perr[i]->Visible;
+			bool redPhase = (perr[i]->Color == clRed);
+			perr[i]->Color = redPhase ? clWhite : clRed;
+			perr[i]->Font->Color = redPhase ? clRed : clWhite;
+			perr[i]->Visible = true;
+			perr[i]->BringToFront();
 		}
-		else perr[i]->Visible = false;
+		else{
+			perr[i]->Visible = false;
+			perr[i]->Color = clRed;
+			perr[i]->Font->Color = clWhite;
+		}
+	}
 }
 //---------------------------------------------------------------------------
 void __fastcall TdoorForm::okBtnClick(TObject *Sender)
