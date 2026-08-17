@@ -211,7 +211,7 @@ typedef struct{
 	uint8_t TOWER_LAMP_GREEN:1; //Y003A TOWER LAMP GREEN
 	uint8_t TOWER_LAMP_BUZZER:1; //Y003B TOWER LAMP BUZZER
 	uint8_t DOOR_OPEN_SELECT:1; //Y003C active-low: OFF=BYPASS ON, ON=BYPASS OFF
-	uint8_t Y003D:1; //Y003D
+	uint8_t SAFETY_BYPASS_ON:1; //Y003D servo on when door open and keylock off
 	uint8_t Y003E:1; //Y003E
 	uint8_t Y003F:1; //Y003F
 }OUTPUT_IO;
@@ -334,6 +334,8 @@ private:	// User declarations
 	bool sscOpened;
 	bool keyLockSetPending;
 	bool keyLockReleasePending;
+	DWORD keyLockSetSafetyBypassOffTick;
+	DWORD keyLockReleaseOutputOffTick;
 	DWORD safetyResetPulseUntilTick;
 	PNT_DATA_EX point[AxisCnt];
     bool bSetPoint;
@@ -408,7 +410,7 @@ public:		// User declarations
 	bool __fastcall IsBypassActive() const;
 	bool __fastcall IsSscOpened() const;
 	bool m_bInsertSave;
-
+    void __fastcall Y003D(bool bOn);
 	__fastcall Trobostar(TComponent* Owner);
 };
 //---------------------------------------------------------------------------

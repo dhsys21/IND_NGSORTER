@@ -46,23 +46,38 @@ static bool IsTargetTrayActive(void)
 	return MainForm != NULL && MainForm->tray == &MainForm->tray_target;
 }
 //---------------------------------------------------------------------------
+static UnicodeString LocationFor(bool SourceTray)
+{
+	return SourceTray ? TAG_SOURCE : TAG_TARGET;
+}
+//---------------------------------------------------------------------------
 static UnicodeString ActiveLocation(void)
 {
 	return IsTargetTrayActive() ? TAG_TARGET : TAG_SOURCE;
 }
 //---------------------------------------------------------------------------
-static TRAY_INFO* ActiveTray(void)
+static TRAY_INFO* TrayFor(bool SourceTray)
 {
 	if (MainForm == NULL)
 		return NULL;
-	return IsTargetTrayActive() ? &MainForm->tray_target : &MainForm->tray_source;
+	return SourceTray ? &MainForm->tray_source : &MainForm->tray_target;
+}
+//---------------------------------------------------------------------------
+static TRAY_INFO* ActiveTray(void)
+{
+	return TrayFor(!IsTargetTrayActive());
+}
+//---------------------------------------------------------------------------
+static TPanel* TrayIdPanelFor(bool SourceTray)
+{
+	if (MainForm == NULL)
+		return NULL;
+	return SourceTray ? MainForm->pTrayid_source : MainForm->pTrayid_target;
 }
 //---------------------------------------------------------------------------
 static TPanel* ActiveTrayIdPanel(void)
 {
-	if (MainForm == NULL)
-		return NULL;
-	return IsTargetTrayActive() ? MainForm->pTrayid_target : MainForm->pTrayid_source;
+	return TrayIdPanelFor(!IsTargetTrayActive());
 }
 //---------------------------------------------------------------------------
 static TPanel* ActiveMesTrayIdPanel(void)
@@ -237,7 +252,8 @@ static void ApplyTrayDisplay(TRAY_INFO *Tray, const UnicodeString &ProductModel,
 	Tray->RETURN_VALUE = "1";
 	Tray->ERROR_MSG = "";
 
-	TPanel *TrayIdPanel = ActiveMesTrayIdPanel();
+	TPanel *TrayIdPanel = Tray == &MainForm->tray_source ?
+		MainForm->pTrayid_source2 : MainForm->pTrayid_target2;
 	if (TrayIdPanel != NULL)
 		TrayIdPanel->Caption = LotId;
 
@@ -262,34 +278,68 @@ __fastcall TMesOpc::TMesOpc(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::TRAY_LOAD_REQUEST()
 {
+	TRAY_LOAD_REQUEST(!IsTargetTrayActive());
+}
+//---------------------------------------------------------------------------
+void __fastcall TMesOpc::TRAY_LOAD_REQUEST(bool SourceTray)
+{
 	if (MainForm == NULL)
 		return;
 
-	UnicodeString Location = ActiveLocation();
-	TPanel *TrayIdPanel = ActiveTrayIdPanel();
+	UnicodeString Location = LocationFor(SourceTray);
+	TPanel *TrayIdPanel = TrayIdPanelFor(SourceTray);
 	UnicodeString TrayId = L"";
 	if (TrayIdPanel != NULL)
 		TrayId = TrayIdPanel->Caption;
 
+	// In production, discard a stale response so only a new FMS handshake is accepted.
+	// MES test mode intentionally preserves the response/data preloaded in Gateway UI.
+	bool MesTestMode = MainForm->cbMES != NULL && MainForm->cbMES->Checked;
+	if (Mod_Fms != NULL && !MesTestMode)
+		Mod_Fms->ClearFmsTag(TrayProcessTag(Location, L"TrayLoadResponse"));
+	else if (MesTestMode)
+		LogOpcEvent("MES TEST: preserve preloaded TrayLoadResponse " + AnsiString(Location));
 	SetPcBool(TrayInfoTag(Location, L"TrayExist"), true);
 	SetPcString(TrayInfoTag(Location, L"TrayId"), TrayId);
 	SetPcBool(TrayProcessTag(Location, L"TrayLoad"), true);
 	LogOpcEvent("TRAY_LOAD_REQUEST " + AnsiString(Location) + " TrayId=" + AnsiString(TrayId), true);
 }
 //---------------------------------------------------------------------------
+void __fastcall TMesOpc::TRAY_LOAD_CANCEL(bool SourceTray)
+{
+	UnicodeString Location = LocationFor(SourceTray);
+	SetPcBool(TrayProcessTag(Location, L"TrayLoad"), false);
+	LogOpcEvent("TRAY_LOAD_CANCEL " + AnsiString(Location));
+}
+//---------------------------------------------------------------------------
 bool __fastcall TMesOpc::TRAY_LOAD_RESPONSE()
 {
-	UnicodeString Location = ActiveLocation();
-	int Response = GetFmsInt(TrayProcessTag(Location, L"TrayLoadResponse"));
+	return TRAY_LOAD_RESPONSE(!IsTargetTrayActive()) == 1;
+}
+//---------------------------------------------------------------------------
+int __fastcall TMesOpc::TRAY_LOAD_RESPONSE(bool SourceTray)
+{
+	UnicodeString Location = LocationFor(SourceTray);
+	UnicodeString ResponseKey = TrayProcessTag(Location, L"TrayLoadResponse");
+	int Response = GetFmsInt(ResponseKey);
 	if (Response == 0)
-		return false;
+		return 0;
 	if (Response != 1 && Response != 2)
 	{
 		LogOpcEvent("VALIDATION FAIL TrayLoadResponse=" + IntToStr(Response), true);
-		return false;
+		SetPcBool(TrayProcessTag(Location, L"TrayLoad"), false);
+		if (Mod_Fms != NULL) Mod_Fms->ClearFmsTag(ResponseKey);
+		return -1;
+	}
+	if (Response == 2)
+	{
+		LogOpcEvent("TRAY_LOAD_RESPONSE FAIL " + AnsiString(Location), true);
+		SetPcBool(TrayProcessTag(Location, L"TrayLoad"), false);
+		if (Mod_Fms != NULL) Mod_Fms->ClearFmsTag(ResponseKey);
+		return 2;
 	}
 
-	TRAY_INFO *Tray = ActiveTray();
+	TRAY_INFO *Tray = TrayFor(SourceTray);
 	if (Tray != NULL)
 	{
 		UnicodeString ProductModel;
@@ -302,25 +352,43 @@ bool __fastcall TMesOpc::TRAY_LOAD_RESPONSE()
 			ReadRequiredString(TrayInfoTag(Location, L"ProcessId"), ProcessId, "TrayInformation.ProcessId") &&
 			ReadRequiredString(TrayInfoTag(Location, L"LotId"), LotId, "TrayInformation.LotId");
 		if (!ValidTrayLoad)
-			return false;
+		{
+			SetPcBool(TrayProcessTag(Location, L"TrayLoad"), false);
+			if (Mod_Fms != NULL) Mod_Fms->ClearFmsTag(ResponseKey);
+			return -1;
+		}
 
 		ClearTrayCells(Tray);
-		if (Tray == &MainForm->tray_source)
+		if (SourceTray)
 		{
 			if (!ValidateSourceTrackInCells())
-				return false;
+			{
+				SetPcBool(TrayProcessTag(Location, L"TrayLoad"), false);
+				if (Mod_Fms != NULL) Mod_Fms->ClearFmsTag(ResponseKey);
+				return -1;
+			}
 			ApplySourceTrackInCells(Tray);
+			Tray->PASS = "N";
 		}
 		else
+		{
 			Tray->SLOT_COUNT = 96;
+			for (int i = 0; i < Tray->SLOT_COUNT; ++i)
+			{
+				Tray->SLOT_POSITION[i] = IntToStr(i + 1);
+				Tray->PICK[i] = "N";
+			}
+		}
 
 		Tray->TRAY_GUBUN = IntToStr(Tray->SLOT_COUNT);
 		ApplyTrayDisplay(Tray, ProductModel, ProcessId, LotId);
 	}
 
 	SetPcBool(TrayProcessTag(Location, L"TrayLoad"), false);
-	LogOpcEvent("TRAY_LOAD_RESPONSE " + AnsiString(Location) + " Response=" + IntToStr(Response));
-	return true;
+	bool MesTestMode = MainForm != NULL && MainForm->cbMES != NULL && MainForm->cbMES->Checked;
+	if (Mod_Fms != NULL && !MesTestMode) Mod_Fms->ClearFmsTag(ResponseKey);
+	LogOpcEvent("TRAY_LOAD_RESPONSE SUCCESS " + AnsiString(Location));
+	return 1;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::RECIPE_REQUEST()
@@ -335,18 +403,49 @@ bool __fastcall TMesOpc::RECIPE_RESPONSE()
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::PROCESS_START_REQUEST()
 {
+	bool MesTestMode = MainForm != NULL && MainForm->cbMES != NULL && MainForm->cbMES->Checked;
+	if (Mod_Fms != NULL && !MesTestMode)
+		Mod_Fms->ClearFmsTag(TrayProcessTag(TAG_SOURCE, L"ProcessStartResponse"));
+	else if (MesTestMode)
+		LogOpcEvent("MES TEST: preserve preloaded ProcessStartResponse");
 	SetPcBool(TrayProcessTag(TAG_SOURCE, L"ProcessStart"), true);
 	LogOpcEvent("PROCESS_START_REQUEST");
 }
 //---------------------------------------------------------------------------
+void __fastcall TMesOpc::PROCESS_START_CANCEL()
+{
+	SetPcBool(TrayProcessTag(TAG_SOURCE, L"ProcessStart"), false);
+	LogOpcEvent("PROCESS_START_CANCEL");
+}
+//---------------------------------------------------------------------------
 bool __fastcall TMesOpc::PROCESS_START_RESPONSE()
 {
-	if (!GetFmsBool(TrayProcessTag(TAG_SOURCE, L"ProcessStartResponse")))
-		return false;
+	return PROCESS_START_RESPONSE_RESULT() == 1;
+}
+//---------------------------------------------------------------------------
+int __fastcall TMesOpc::PROCESS_START_RESPONSE_RESULT()
+{
+	UnicodeString ResponseKey = TrayProcessTag(TAG_SOURCE, L"ProcessStartResponse");
+	int Response = GetFmsInt(ResponseKey);
+	if (Response == 0)
+		return 0;
 
 	SetPcBool(TrayProcessTag(TAG_SOURCE, L"ProcessStart"), false);
-	LogOpcEvent("PROCESS_START_RESPONSE");
-	return true;
+	bool MesTestMode = MainForm != NULL && MainForm->cbMES != NULL && MainForm->cbMES->Checked;
+	if (Mod_Fms != NULL && !MesTestMode) Mod_Fms->ClearFmsTag(ResponseKey);
+	if (Response == 1)
+	{
+		LogOpcEvent("PROCESS_START_RESPONSE SUCCESS");
+		return 1;
+	}
+	if (Response == 2)
+	{
+		LogOpcEvent("PROCESS_START_RESPONSE FAIL", true);
+		return 2;
+	}
+
+	LogOpcEvent("VALIDATION FAIL ProcessStartResponse=" + IntToStr(Response), true);
+	return -1;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::PROCESS_DATA_WRITE()

@@ -269,7 +269,8 @@ __published:	// IDE-managed Components
 	TPanel *Panel31;
 	TPanel *pflow3;
 	TPanel *pflow4;
-	TCheckBox *CheckBox1;
+	TCheckBox *cbMES;
+	TCheckBox *cbCycle;
 	TPanel *pRun;
 	TAdvSmoothPanel *pnlSourceTrayHeader;
 	TAdvSmoothPanel *pnlTargetTrayHeader;
@@ -346,6 +347,17 @@ private:	// User declarations
 	void __fastcall CreateIoRow(TScrollBox *parent, TPanel **statePanel, int index, AnsiString address, AnsiString name);
 	void __fastcall UpdateIoMonitoringPanel();
 	void __fastcall btnCloseIoPanelClick(TObject *Sender);
+	void __fastcall opcMesTimerTimer(TObject *Sender);
+	void __fastcall CompleteOpcTrayLoad(bool sourceTray);
+	void __fastcall TryStartOpcProcess();
+
+	TTimer *opcMesTimer;
+	bool opcTrayLoadPending[2];
+	DWORD opcTrayLoadStartTick[2];
+	bool opcTrayLoaded[2];
+	bool opcProcessStartPending;
+	bool opcProcessStarted;
+	DWORD opcProcessStartTick;
 
 	int __fastcall FindList(AnsiString strType);
 	void __fastcall AddList(AnsiString strType);
@@ -371,6 +383,7 @@ public:		// User declarations
 	TMod_Bcr *comBcr[2];
 	TSmokeDetector *comSmoke[1];
 	void __fastcall setBarcode(int pos, AnsiString strBcr);
+	void __fastcall ReadTargetTrayBarcode();
 	bool __fastcall ReadSystemInfo();
 	void __fastcall InitBarcodeAndSmoke();
 	SorterMode equipMode;
@@ -440,6 +453,8 @@ public:		// User declarations
 	void __fastcall loadTrayInfo(int index);
 	bool __fastcall checkTrayInfo(int index);
 	SAVE_TRAY_INFO m_saveTrayInfo[2];
+
+
 
 	bool m_ServoOpen, m_ServoON, m_ServoHome, m_ServoHomeEmg;//* 에러 났을 때 x,y,z축이 원점일 때 gripper 조그버튼 동작가능
     int LampCount;

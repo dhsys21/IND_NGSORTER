@@ -19,7 +19,7 @@ __fastcall TErrorForm::TErrorForm(TComponent* Owner)
 void __fastcall TErrorForm::ShowError(AnsiString MainStr, AnsiString SubStr, AnsiString SubStr2)
 {
 	ErrStr = MainStr;
-	MainErr->Caption = "S_Maint_" + MainStr;
+	MainErr->Caption = MainStr;
 	pTrayId->Caption = SubStr2;
 	SubErr->Caption = SubStr;
 	FormStyle = fsStayOnTop;

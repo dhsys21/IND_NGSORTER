@@ -16,7 +16,6 @@ object MainForm: TMainForm
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
-
   object Label6: TLabel
     Left = 11
     Top = 50
@@ -1831,6 +1830,23 @@ object MainForm: TMainForm
     Version = '1.5.2.1'
     TabOrder = 0
     TMSStyle = 0
+    object lblTitle: TLabel
+      Left = 10
+      Top = 4
+      Width = 48
+      Height = 21
+      Caption = #50868#51204#47784#46300
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = 13204573
+      Font.Height = -17
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      Transparent = True
+      OnClick = lblTitleClick
+    end
     object btnIOMonitoring: TAdvSmoothButton
       Left = 570
       Top = 1
@@ -1863,27 +1879,10 @@ object MainForm: TMainForm
       Caption = 'I/O Monitoring'
       Color = clWhite
       ParentFont = False
-      TabOrder = 12
+      TabOrder = 15
       Version = '2.1.1.5'
       OnClick = btnIOMonitoringClick
       TMSStyle = 8
-    end
-    object lblTitle: TLabel
-      Left = 10
-      Top = 4
-      Width = 48
-      Height = 21
-      Caption = #50868#51204#47784#46300
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = 13204573
-      Font.Height = -17
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = False
-      Transparent = True
-      OnClick = lblTitleClick
     end
     object manualBtn: TAdvSmoothToggleButton
       Tag = 1
@@ -2328,7 +2327,7 @@ object MainForm: TMainForm
       OnClick = pause_startBtnClick
       TMSStyle = 0
     end
-    object CheckBox1: TCheckBox
+    object cbMES: TCheckBox
       Left = 116
       Top = 3
       Width = 93
@@ -2345,6 +2344,23 @@ object MainForm: TMainForm
       TabOrder = 13
       Visible = False
       OnClick = chkBypassClick
+    end
+    object cbCycle: TCheckBox
+      Left = 220
+      Top = 3
+      Width = 110
+      Height = 20
+      Caption = 'Cycle test'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clTeal
+      Font.Height = -17
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 14
+      Visible = False
     end
   end
   object AdvSmoothPanel2: TAdvSmoothPanel

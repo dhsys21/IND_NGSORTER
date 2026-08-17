@@ -156,22 +156,129 @@ void __fastcall TMainForm::DisplayTranserIn(AnsiString trayid)
 }
 //---------------------------------------------------------------------------
 
+void __fastcall TMainForm::CompleteOpcTrayLoad(bool sourceTray)
+{
+	TRAY_INFO *loadedTray = sourceTray ? &tray_source : &tray_target;
+	tray = loadedTray;
+	loadedTray->startTime = Now();
+	loadedTray->remainCnt = 0;
+
+	if (sourceTray)
+	{
+		memoMainLineAdd("[FMS OPC UA] Source tray load response complete.");
+		pBYPASS->Caption = loadedTray->PASS;
+		pbad_sum->Caption = "0";
+		badList->Clear();
+		loadedTray->empTray = true;
+
+		for (int i = 0; i < loadedTray->SLOT_COUNT && i < 96; ++i)
+		{
+			psort_bad[i]->Color = clWhite;
+			psort_rank[i]->Color = clWhite;
+			psort_ing[i]->Color = clWhite;
+			psort_bad[i]->Caption = loadedTray->LOSS_CD[i] + "[" + loadedTray->PICK[i] + "]";
+			psort_rank[i]->Caption = loadedTray->RANK[i];
+			if (loadedTray->PICK[i] == "Y")
+			{
+				++loadedTray->remainCnt;
+				psort_ing[i]->Caption = "NG";
+				AddList(loadedTray->LOSS_CD[i]);
+			}
+			else
+			{
+				psort_ing[i]->Caption = "**";
+				if (loadedTray->empTray && !loadedTray->SLOT_ID[i].IsEmpty())
+					loadedTray->empTray = false;
+			}
+		}
+
+		setTrayInfo(0);
+		if (pbad_sum->Caption.ToIntDef(0) <= stage.limitCnt)
+		{
+			memoMainLineAdd("[FMS OPC UA] Source tray centering request.");
+			if (PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(true);
+		}
+		else
+		{
+			memoMainLineAdd("[FMS OPC UA] NG count exceeds the configured limit.");
+			ErrorForm_limit->ShowError();
+		}
+	}
+	else
+	{
+		memoMainLineAdd("[FMS OPC UA] Target tray load response complete.");
+		AnsiString cellText;
+		for (int i = 0; i < loadedTray->SLOT_COUNT && i < 96; ++i)
+		{
+			if (loadedTray->PICK[i] == "Y")
+			{
+				cellText = loadedTray->LOSS_CD[i] + "-" + getCodeName(loadedTray->LOSS_CD[i].Trim());
+				color_target[i / 24][23 - (i % 24)] = clSilver;
+				targetGrid->Cells[i / 24][23 - (i % 24)] = cellText;
+				pTarget_bad[i]->Caption = cellText;
+				pTarget_bad[i]->Color = clSilver;
+			}
+			else
+			{
+				++loadedTray->remainCnt;
+				color_target[i / 24][23 - (i % 24)] = clWhite;
+				targetGrid->Cells[i / 24][23 - (i % 24)] = "";
+				pTarget_bad[i]->Caption = "";
+				pTarget_bad[i]->Color = clWhite;
+			}
+		}
+		setTrayInfo(1);
+	}
+
+	opcTrayLoaded[sourceTray ? 0 : 1] = true;
+	TryStartOpcProcess();
+	tray = &tray_target;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::TryStartOpcProcess()
+{
+	if (opcProcessStarted || opcProcessStartPending)
+		return;
+	if (!opcTrayLoaded[0] || !opcTrayLoaded[1])
+		return;
+	if (!IsSourceCenteringSignal())
+		return;
+	if (MesOpc == NULL || Mod_Fms == NULL || !Mod_Fms->IsGatewayConnected())
+		return;
+
+	MesOpc->PROCESS_START_REQUEST();
+	opcProcessStartPending = true;
+	opcProcessStartTick = GetTickCount();
+	opcMesTimer->Enabled = true;
+	memoMainLineAdd("[FMS OPC UA] Process start request.");
+}
+//---------------------------------------------------------------------------
 void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 {
-	// 트레이 정보
-	tx->MSG_ID = "TRAY_EVENT";
-	tx->LOT_ID = strTray;
-	if(bsrc){
-		tx->DATA = "<DATA><MATCHING_TARGET></MATCHING_TARGET></DATA>";
-		tray = &tray_source;
-		tx->errMsg = "[" + tx->LOT_ID + "] Source tray TRAY_EVENT response timeout from MES";
-	}else{
-		tx->DATA = "<DATA><MATCHING_TARGET>"+ strTray +"</MATCHING_TARGET></DATA>";
-		tray = &tray_target;
-		tx->errMsg = "[" + tx->LOT_ID + "] Target tray TRAY_EVENT response timeout from MES";
+	int index = bsrc ? 0 : 1;
+	tray = bsrc ? &tray_source : &tray_target;
+	opcTrayLoaded[index] = false;
+	if (bsrc)
+	{
+		opcProcessStarted = false;
+		if (opcProcessStartPending && MesOpc != NULL)
+			MesOpc->PROCESS_START_CANCEL();
+		opcProcessStartPending = false;
 	}
-	mesTimer->Enabled = true;
-	mes->SendMsg(tx);
+	if (bsrc) pwork1->Color = clSilver;
+	else pwork2->Color = clSilver;
+
+	if (MesOpc == NULL || Mod_Fms == NULL || !Mod_Fms->IsGatewayConnected())
+	{
+		ErrorForm->ShowError("FMS Gateway is not connected",
+			"Tray load request was not sent. Check the gateway connection.");
+		return;
+	}
+
+	MesOpc->TRAY_LOAD_REQUEST(bsrc);
+	opcTrayLoadPending[index] = true;
+	opcTrayLoadStartTick[index] = GetTickCount();
+	opcMesTimer->Enabled = true;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::NotifyIdMatching_source()
@@ -220,13 +327,9 @@ void __fastcall TMainForm::NotifyIdMatching_target(AnsiString matchingStep)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::NotifyTransferIn(AnsiString strTray)
 {
-	// 작업시작 보고
-	tx->MSG_ID = "TRANSFER_IN_EVENT";
-	tx->LOT_ID = strTray;
-	tx->DATA = "<DATA><WORK_NO></WORK_NO></DATA>";
-	mes->SendMsg(tx);
-}
-//---------------------------------------------------------------------------
+	// OPC UA ProcessStart is issued after both trays are loaded and source centering is complete.
+	TryStartOpcProcess();
+}//---------------------------------------------------------------------------
 
 void __fastcall TMainForm::NotifyTransferOut(AnsiString strTray)
 {

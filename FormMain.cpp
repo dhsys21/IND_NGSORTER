@@ -60,7 +60,19 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	m_ServoON = false;
 	m_ServoHome = false;
 	m_ServoHomeEmg = false;
-	for(int i = 0; i < 2; ++i) comBcr[i] = NULL;
+	for(int i = 0; i < 2; ++i) {
+		comBcr[i] = NULL;
+		opcTrayLoadPending[i] = false;
+		opcTrayLoadStartTick[i] = 0;
+		opcTrayLoaded[i] = false;
+	}
+	opcProcessStartPending = false;
+	opcProcessStarted = false;
+	opcProcessStartTick = 0;
+	opcMesTimer = new TTimer(this);
+	opcMesTimer->Enabled = false;
+	opcMesTimer->Interval = 200;
+	opcMesTimer->OnTimer = opcMesTimerTimer;
 	comSmoke[0] = NULL;
 	CreateIoMonitoringPanel();
 }
@@ -227,7 +239,20 @@ void __fastcall TMainForm::btnScanTargetTrayClick(TObject *Sender)
 void __fastcall TMainForm::btnScanSourceTrayClick(TObject *Sender)
 {
 	pTrayid_target->Caption = BaseForm->GetLangStr("MSG_SCANNING");
-	comBcr[1]->GetBarcode();
+	ReadTargetTrayBarcode();
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::ReadTargetTrayBarcode()
+{
+	// Cycle test bypasses the unconfigured Target/NG tray barcode reader.
+	if(cbCycle != NULL && cbCycle->Checked){
+		memoMainLineAdd("[CYCLE TEST] Target tray barcode reader bypass: NG00001");
+		setBarcode(1, "NG00001");
+		return;
+	}
+
+	if(comBcr[1] != NULL)
+		comBcr[1]->GetBarcode();
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::setBarcode(int pos, AnsiString strBcr)
@@ -268,6 +293,74 @@ void __fastcall TMainForm::mesTimerTimer(TObject *Sender)
 {
 	ErrorForm_mes->ShowError(tx->LOT_ID, "MES No response", tx->errMsg);
 	mesTimer->Enabled = false;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
+{
+	const DWORD RESPONSE_TIMEOUT_MS = 10000;
+	DWORD nowTick = GetTickCount();
+
+	for (int i = 0; i < 2; ++i)
+	{
+		if (!opcTrayLoadPending[i])
+			continue;
+
+		bool sourceTray = (i == 0);
+		int response = MesOpc != NULL ? MesOpc->TRAY_LOAD_RESPONSE(sourceTray) : -1;
+		if (response == 1)
+		{
+			opcTrayLoadPending[i] = false;
+			CompleteOpcTrayLoad(sourceTray);
+		}
+		else if (response == 2 || response < 0)
+		{
+			opcTrayLoadPending[i] = false;
+			AnsiString trayName = sourceTray ? "Source" : "Target";
+			ErrorForm->ShowError(trayName + " tray load failed",
+				"Check FMS TrayLoadResponse and tray information.");
+		}
+		else if ((DWORD)(nowTick - opcTrayLoadStartTick[i]) >= RESPONSE_TIMEOUT_MS)
+		{
+			opcTrayLoadPending[i] = false;
+			if (MesOpc != NULL) MesOpc->TRAY_LOAD_CANCEL(sourceTray);
+			AnsiString trayName = sourceTray ? "Source" : "Target";
+			ErrorForm->ShowError(trayName + " tray response timeout",
+				"No TrayLoadResponse from FMS Gateway.");
+		}
+	}
+
+	if (opcProcessStartPending)
+	{
+		int response = MesOpc != NULL ? MesOpc->PROCESS_START_RESPONSE_RESULT() : -1;
+		if (response == 1)
+		{
+			opcProcessStartPending = false;
+			opcProcessStarted = true;
+			pwork1->Color = clLime;
+			pwork2->Color = clLime;
+			memoMainLineAdd("[FMS OPC UA] Process start response complete.");
+			if (gripper->seq == seqIdle && robostar->seq == seqIdle)
+				gripper->req_Init();
+		}
+		else if (response == 2 || response < 0)
+		{
+			opcProcessStartPending = false;
+			ErrorForm->ShowError("Process start failed",
+				"Check FMS ProcessStartResponse.");
+		}
+		else if ((DWORD)(nowTick - opcProcessStartTick) >= RESPONSE_TIMEOUT_MS)
+		{
+			opcProcessStartPending = false;
+			if (MesOpc != NULL) MesOpc->PROCESS_START_CANCEL();
+			ErrorForm->ShowError("Process start response timeout",
+				"No ProcessStartResponse from FMS Gateway.");
+		}
+	}
+
+	bool pending = opcProcessStartPending;
+	for (int i = 0; i < 2; ++i)
+		pending = pending || opcTrayLoadPending[i];
+	opcMesTimer->Enabled = pending;
 }
 //---------------------------------------------------------------------------
 
@@ -442,14 +535,14 @@ void __fastcall TMainForm::trayout_targetBtnClick(TObject *Sender)
 bool __fastcall TMainForm::IsSourceTrayInSignal() const
 {
 	// MES TEST simulates D10103 even when the PLC socket is disconnected.
-	return (CheckBox1 != NULL && CheckBox1->Checked)
+	return (cbMES != NULL && cbMES->Checked)
 		|| (PlcBin != NULL && PlcBin->IsSourceTrayIn());
 }
 //---------------------------------------------------------------------------
 bool __fastcall TMainForm::IsSourceCenteringSignal() const
 {
 	// MES TEST simulates D10104.
-	return (CheckBox1 != NULL && CheckBox1->Checked)
+	return (cbMES != NULL && cbMES->Checked)
 		|| (PlcBin != NULL && PlcBin->IsSourceCentering());
 }
 //---------------------------------------------------------------------------
@@ -461,7 +554,7 @@ bool __fastcall TMainForm::IsTargetTrayInSignal() const
 bool __fastcall TMainForm::IsTargetCenteringSignal() const
 {
 	// MES TEST simulates D10106 (bad/target tray centering).
-	return (CheckBox1 != NULL && CheckBox1->Checked)
+	return (cbMES != NULL && cbMES->Checked)
 		|| (PlcBin != NULL && PlcBin->IsTargetCentering());
 }
 //---------------------------------------------------------------------------
@@ -507,7 +600,7 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 				else{
 					if(IsTargetCenteringSignal() && pTrayid_target->Caption.IsEmpty()){
 						memoMainLineAdd(BaseForm->GetLangStr("MSG_TARGETTRAY_SCAN"));
-						comBcr[1]->GetBarcode();                                            // test
+						ReadTargetTrayBarcode();                                            // test
 					}else{
 						memoMainLineAdd(BaseForm->GetLangStr("MSG_SOURCETRAY_WAITING"));
 					}
@@ -527,7 +620,7 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 					memoMainLineAdd(BaseForm->GetLangStr("MSG_TARGETTRAY_CENTERING_COMPL"));
 					pTrayid_target->Caption = "";       // test
 					pTrayid_target2->Caption = "";      // test
-					comBcr[1]->GetBarcode();		// 작업4. 센터링이 되어 있으면 바코드를 읽고 -> DisplayTrayInfo 	// test
+					ReadTargetTrayBarcode();		// 작업4. 센터링이 되어 있으면 바코드를 읽고 -> DisplayTrayInfo 	// test
 					step[0].step += 1;
 					step[1].step = 1;
 				}else{
@@ -545,7 +638,7 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 					memoMainLineAdd("More target trays arrived.");
 					pTrayid_target->Caption = "";
 					pTrayid_target2->Caption = "";
-					comBcr[1]->GetBarcode();		// 작업4. 센터링이 되어 있으면 바코드를 읽고 -> DisplayTrayInfo     // test
+					ReadTargetTrayBarcode();		// 작업4. 센터링이 되어 있으면 바코드를 읽고 -> DisplayTrayInfo     // test
 					step[1].step += 1;
 				}
 			default:
@@ -727,7 +820,7 @@ void __fastcall TMainForm::CreateIoMonitoringPanel()
 		"GRIPPER CHUCK SOL", "GRIPPER UNCHUCK SOL", "SAFETY RESET", "KEYLOCK LEFT",
 		"KEYLOCK RIGHT", "OPBOX RESET LAMP", "SAFETY RESET SW LAMP", "OPBOX EMERGENCY LAMP",
 		"TOWER LAMP RED", "TOWER LAMP YELLOW", "TOWER LAMP GREEN", "TOWER LAMP BUZZER",
-		"BYPASS", "", "", ""
+		"BYPASS", "SAFETY BYPASS ON", "", ""
 	};
 	for(int i = 0; i < 16; ++i){
 		AnsiString address = "Y" + IntToHex(0x0030 + i, 4);
@@ -759,7 +852,7 @@ void __fastcall TMainForm::UpdateIoMonitoringPanel()
 		robostar->gripper.GRIPPER1_CHUCK, robostar->gripper.GRIPPER1_UNCHUCK, robostar->gripper.SAFETY_RESET, robostar->gripper.DOOR_LEFT_CLOSE,
 		robostar->gripper.DOOR_RIGHT_CLOSE, robostar->gripper.OPBOX_RESET_LAMP, robostar->gripper.SAFETY_RESET_SW_LAMP, robostar->gripper.OPBOX_EMERGENCY_LAMP,
 		robostar->gripper.TOWER_LAMP_RED, robostar->gripper.TOWER_LAMP_YELLOW, robostar->gripper.TOWER_LAMP_GREEN, robostar->gripper.TOWER_LAMP_BUZZER,
-		robostar->gripper.DOOR_OPEN_SELECT, robostar->gripper.Y003D, robostar->gripper.Y003E, robostar->gripper.Y003F
+		robostar->gripper.DOOR_OPEN_SELECT, robostar->gripper.SAFETY_BYPASS_ON, robostar->gripper.Y003E, robostar->gripper.Y003F
 	};
 
 	for(int i = 0; i < ioInputCount; ++i){
@@ -814,6 +907,8 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	setLamp();
 
 	UpdateIoMonitoringPanel();
+	if(robostar->input.BYPASS_SW_ON) robostar->Y003D(true);
+	else if(!robostar->input.BYPASS_SW_ON) robostar->Y003D(false);
 
 	//* 2026 08 07 천안 불량선별기와 동일하게 OPEN은 SSC 시스템 RUNNING 상태로 표시
 	if(robostar->IsSscOpened() && robostar->mr2.system_status == SSC_STS_CODE_RUNNING)
@@ -1043,13 +1138,13 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	pinsertremainCnt->Caption = tray_target.remainCnt;
 
 	//* for mes test START
-	if(CheckBox1->Checked){
+	if(cbMES->Checked){
 		psrcArrive->Color = clLime;
 		psrcReady->Color = clLime;
 		ptargetReady->Color = clLime;
 
-		pTrayid_source2->Caption = "MPA0001";
-		pTrayid_target2->Caption = "NG10006";
+		pTrayid_source2->Caption = pTrayid_source->Caption;
+		pTrayid_target2->Caption = pTrayid_target->Caption;
 	}
 	//* FOR MES TEST END
 
@@ -1357,8 +1452,14 @@ void __fastcall TMainForm::pnlSource2Click(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::lblTitleClick(TObject *Sender)
 {
-    CheckBox1->Visible = !CheckBox1->Visible;
-    if(CheckBox1->Visible == false)
-        CheckBox1->Checked = false;
+	bool showTestOptions = !cbMES->Visible;
+	cbMES->Visible = showTestOptions;
+	cbCycle->Visible = showTestOptions;
+
+	if(!showTestOptions){
+		cbMES->Checked = false;
+		cbCycle->Checked = false;
+	}
 }
 //---------------------------------------------------------------------------
+

@@ -53,6 +53,8 @@ __fastcall Trobostar::Trobostar(TComponent* Owner)
 	sscOpened = false;
 	keyLockSetPending = false;
 	keyLockReleasePending = false;
+	keyLockSetSafetyBypassOffTick = 0;
+	keyLockReleaseOutputOffTick = 0;
 	jogSpeed = 100;
 	safetyResetPulseUntilTick = 0;
 	move.pallet = 0;
@@ -1641,16 +1643,34 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 	if(input.SAFETY_DOOR_1 || input.SAFETY_DOOR_2)
 		Bypass(false);
 
-	// Complete each key-lock request after the physical contacts confirm it.
-	if(keyLockSetPending && IsKeyLockActive()){
-		keyLockSetPending = false;
-		MainForm->memoRobostarLineAdd("[KEYLOCK] Set confirmed; BY-PASS is ready.");
+	// KEYLOCK set: Y0033/Y0034 ON first, then Y003D OFF after at least 200 ms.
+	DWORD nowTick = GetTickCount();
+	if(keyLockSetPending && keyLockSetSafetyBypassOffTick != 0
+		&& (LONG)(nowTick - keyLockSetSafetyBypassOffTick) >= 0){
+		gripper.SAFETY_BYPASS_ON = false;
+		keyLockSetSafetyBypassOffTick = 0;
+		MainForm->memoRobostarLineAdd("[KEYLOCK] Y003D OFF (200ms after Y0033/Y0034 ON).");
 	}
-	if(keyLockReleasePending
+
+	// KEYLOCK release: Y003D ON first, then Y0033/Y0034 OFF after at least 200 ms.
+	if(keyLockReleasePending && keyLockReleaseOutputOffTick != 0
+		&& (LONG)(nowTick - keyLockReleaseOutputOffTick) >= 0){
+		gripper.DOOR_LEFT_CLOSE = false;
+		gripper.DOOR_RIGHT_CLOSE = false;
+		keyLockReleaseOutputOffTick = 0;
+		MainForm->memoRobostarLineAdd("[KEYLOCK] Y0033/Y0034 OFF (200ms after Y003D ON).");
+	}
+
+	// Complete each request only after its delayed output step and contact confirmation.
+	if(keyLockSetPending && keyLockSetSafetyBypassOffTick == 0 && IsKeyLockActive()){
+		keyLockSetPending = false;
+		MainForm->memoRobostarLineAdd("[KEYLOCK] Set confirmed; Y003D OFF.");
+	}
+	if(keyLockReleasePending && keyLockReleaseOutputOffTick == 0
 		&& input.SAFETY_DOOR_1 && input.SAFETY_DOOR_2){
 		Bypass(false);
 		keyLockReleasePending = false;
-		MainForm->memoRobostarLineAdd("[KEYLOCK] Release confirmed; Y003C OFF.");
+		MainForm->memoRobostarLineAdd("[KEYLOCK] Release confirmed; Y003D ON, Y003C OFF.");
 	}
 	bool softwareSafetyResetActive = IsSoftwareSafetyResetActive();
 	bool softwareSafetyResetCompleted = safetyResetPulseUntilTick != 0
@@ -1801,6 +1821,8 @@ void __fastcall Trobostar::DataModuleDestroy(TObject *Sender)
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::KeyLock(bool on)
 {
+	const DWORD KEYLOCK_OUTPUT_DELAY_MS = 500;
+
 	if(!on){
 		// Automatic operation must never release the key lock.
 		if(MainForm == NULL || MainForm->equipMode != modeManual)
@@ -1808,13 +1830,36 @@ bool __fastcall Trobostar::KeyLock(bool on)
 		// X002A ON confirms that the hardware BY-PASS switch is in ON position.
 		if(!IsBypassActive())
 			return false;
+//		if(keyLockReleasePending)
+//			return true;
+
+		// Release sequence: send Y003D ON now, then release Y0033/Y0034 after 200 ms.
+		gripper.SAFETY_BYPASS_ON = true;
+		keyLockSetPending = false;
+		keyLockSetSafetyBypassOffTick = 0;
+		keyLockReleasePending = true;
+		io_WriteGripper();
+		keyLockReleaseOutputOffTick = GetTickCount() + KEYLOCK_OUTPUT_DELAY_MS;
+		MainForm->memoRobostarLineAdd("[KEYLOCK] Release requested: Y003D ON; wait 200ms.");
+		return true;
 	}
 
-	gripper.DOOR_LEFT_CLOSE = on;
-	gripper.DOOR_RIGHT_CLOSE = on;
-	keyLockSetPending = on;
-	keyLockReleasePending = !on;
-	return gripper.DOOR_LEFT_CLOSE == on && gripper.DOOR_RIGHT_CLOSE == on;
+	if(keyLockSetPending)
+		return true;
+
+    Sleep(500);
+
+	// Set sequence: send Y0033/Y0034 ON now, then turn Y003D OFF after 200 ms.
+	gripper.DOOR_LEFT_CLOSE = true;
+	gripper.DOOR_RIGHT_CLOSE = true;
+	keyLockReleasePending = false;
+	keyLockReleaseOutputOffTick = 0;
+	keyLockSetPending = true;
+	io_WriteGripper();
+	keyLockSetSafetyBypassOffTick = GetTickCount() + KEYLOCK_OUTPUT_DELAY_MS;
+	if(MainForm != NULL)
+		MainForm->memoRobostarLineAdd("[KEYLOCK] Set requested: Y0033/Y0034 ON; wait 200ms.");
+	return true;
 }
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::Bypass(bool on)
@@ -1882,3 +1927,12 @@ bool __fastcall Trobostar::IsSscOpened() const
 	return sscOpened;
 }
 //---------------------------------------------------------------------------
+void __fastcall Trobostar::Y003D(bool bOn)
+{
+//	if(bOn)
+//		gripper.SAFETY_BYPASS_ON = true;
+//	else
+//		gripper.SAFETY_BYPASS_ON = false;
+    gripper.SAFETY_BYPASS_ON = bOn;
+	io_WriteGripper();
+}

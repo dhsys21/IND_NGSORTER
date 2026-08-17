@@ -97,7 +97,7 @@ void __fastcall TdoorForm::ShowError(AnsiString MainStr, AnsiString SubStr, int 
 		MainForm->BuzzerOn(true);
 		MainForm->LampModeChange(LampEmergency);
 		this->BringToFront();
-		if(MainForm->CheckBox1->Checked == true)
+		if(MainForm->cbMES->Checked == true)
 			this->Visible = false;
         else
 			this->Visible = true;
@@ -341,8 +341,8 @@ void __fastcall TdoorForm::cancelBtn2Click(TObject *Sender)
 void __fastcall TdoorForm::PasswordBtnClick(TObject *Sender)
 {
     if(PassEdit->Text == "9090"){
-        MainForm->CheckBox1->Visible = true;
-	    MainForm->CheckBox1->Checked = true;
+        MainForm->cbMES->Visible = true;
+	    MainForm->cbMES->Checked = true;
     	this->Visible = false;
     }
 }
@@ -354,8 +354,8 @@ void __fastcall TdoorForm::PassEditKeyUp(TObject *Sender, WORD &Key, TShiftState
     if(Key == VK_RETURN)
     {
         if(PassEdit->Text == "9090"){
-            MainForm->CheckBox1->Visible = true;
-            MainForm->CheckBox1->Checked = true;
+            MainForm->cbMES->Visible = true;
+            MainForm->cbMES->Checked = true;
             this->Visible = false;
         }
     }

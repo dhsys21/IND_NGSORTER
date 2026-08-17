@@ -232,7 +232,7 @@ double __fastcall TBaseForm::StringToDouble(UnicodeString str, double def)
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::btnKeyUnLockClick(TObject *Sender)
 {
-    if(MainForm->equipMode != modeManual)
+	if(MainForm->equipMode != modeManual)
 	{
         ShowMessage(GetLangStr("MSG_UNLOCK_KEY"));
 	}
@@ -525,3 +525,5 @@ void __fastcall TBaseForm::btnTriggerOffClick(TObject *Sender)
 		MainForm->comBcr[SelectedBcrIndex]->TriggerOff();
 }
 //---------------------------------------------------------------------------
+
+
