@@ -203,16 +203,42 @@ void __fastcall TMainForm::CompleteOpcTrayLoad(bool sourceTray)
 	else
 	{
 		memoMainLineAdd("[FMS OPC UA] Target tray load response complete.");
+		//* 불량트레이 관리
+		// Location2 셀 정보가 제공되기 전까지 바코드별 로컬 파일을 사용한다.
+		int restoreResult = RestoreTargetTrayInfo(pTrayid_target->Caption, false);
+		if(restoreResult < 0){
+			if(MesOpc != NULL) MesOpc->TRAY_LOAD_CANCEL(false);
+			opcTrayLoaded[1] = false;
+			pwork2->Color = clSilver;
+			memoMainLineAdd("[LOCAL TARGET] Operator cancelled target tray information load.");
+			tray = &tray_target;
+			return;
+		}
+		bool restoredLocalTarget = (restoreResult == 1);
+		if(restoredLocalTarget)
+			memoMainLineAdd("[LOCAL TARGET] Restored: " + pTrayid_target->Caption);
 		AnsiString cellText;
 		for (int i = 0; i < loadedTray->SLOT_COUNT && i < 96; ++i)
 		{
-			if (loadedTray->PICK[i] == "Y")
+			if (loadedTray->PICK[i] == "R")
+			{
+				DisplayTargetCell(-1, i);
+				DisplayTargetCellInfo(-1, i);
+				//* 불량트레이 관리
+				memoGripperLineAdd("[TARGET CELL] DISPLAY RESERVATION RESTORED TargetCh=" +
+					IntToStr(i + 1) + " PICK=R");
+			}
+			else if (loadedTray->PICK[i] == "Y")
 			{
 				cellText = loadedTray->LOSS_CD[i] + "-" + getCodeName(loadedTray->LOSS_CD[i].Trim());
 				color_target[i / 24][23 - (i % 24)] = clSilver;
 				targetGrid->Cells[i / 24][23 - (i % 24)] = cellText;
 				pTarget_bad[i]->Caption = cellText;
 				pTarget_bad[i]->Color = clSilver;
+				//* 불량트레이 관리
+				memoGripperLineAdd("[TARGET CELL] DISPLAY INSERTED NG RESTORED TargetCh=" +
+					IntToStr(i + 1) + " PICK=Y LossCode=" + loadedTray->LOSS_CD[i] +
+					" Rank=" + loadedTray->RANK[i]);
 			}
 			else
 			{
@@ -223,7 +249,10 @@ void __fastcall TMainForm::CompleteOpcTrayLoad(bool sourceTray)
 				pTarget_bad[i]->Color = clWhite;
 			}
 		}
-		setTrayInfo(1);
+		//* 불량트레이 관리
+		// 새 바코드 또는 초기화 선택 시 빈 상태의 바코드별 파일을 즉시 생성한다.
+		if(!restoredLocalTarget)
+			setTrayInfo(1);
 	}
 
 	opcTrayLoaded[sourceTray ? 0 : 1] = true;
@@ -253,6 +282,43 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 {
 	int index = bsrc ? 0 : 1;
 	tray = bsrc ? &tray_source : &tray_target;
+
+	//* 불량트레이 관리
+	// Ignore duplicate Location2 loads while the same centered tray is pending/loaded.
+	// They otherwise reset PICK=R reservations because Location2 has no cell payload.
+	if(!bsrc && IsTargetCenteringSignal() &&
+		targetTrayInfoActiveId == strTray &&
+		(opcTrayLoadPending[1] || opcTrayLoaded[1] || (gripper != NULL && gripper->seq != seqIdle))){
+		memoMainLineAdd("[LOCAL TARGET] Duplicate Location2 load ignored; target map/reservation preserved. TrayId=" + strTray);
+		tray = &tray_target;
+		return;
+	}
+	if(!bsrc){
+		//* 불량트레이 관리
+		// 모달 확인창이 열린 동안 타이머가 다시 스캔을 호출해도 중첩 진입하지 않는다.
+		if(targetTrayInfoPromptActive){
+			tray = &tray_target;
+			return;
+		}
+		targetTrayInfoPromptActive = true;
+		int prepareResult = 0;
+		try{
+			// 바코드를 읽은 직후 기존 정보를 확인하고, 취소 시 FMS 요청도 보내지 않는다.
+			prepareResult = RestoreTargetTrayInfo(strTray, true);
+		}
+		catch(...){
+			targetTrayInfoPromptActive = false;
+			throw;
+		}
+		targetTrayInfoPromptActive = false;
+		if(prepareResult < 0){
+			opcTrayLoaded[1] = false;
+			pwork2->Color = clSilver;
+			memoMainLineAdd("[LOCAL TARGET] Operator cancelled before target tray load request.");
+			tray = &tray_target;
+			return;
+		}
+	}
 	opcTrayLoaded[index] = false;
 	if (bsrc)
 	{

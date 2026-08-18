@@ -200,6 +200,13 @@ void __fastcall Tgripper::Initialize()
                                         MainForm->tray_target.PICK[tch] = "R";
                                         MainForm->DisplayTargetCell(step.chCnt, tch);	// 화면 show
                                         MainForm->DisplayTargetCellInfo(step.chCnt, tch);
+                                        //* 불량트레이 관리
+                                        MainForm->setTrayInfo(1); // Persist PICK=R until insert completion.
+                                        MainForm->memoGripperLineAdd(
+                                            "[TARGET CELL] RESERVATION CREATE Gripper=" + IntToStr(step.chCnt + 1) +
+                                            " SourceCh=" + MainForm->psort_ch[i]->Caption +
+                                            " TargetCh=" + IntToStr(tch + 1) +
+                                            " LossCode=" + MainForm->tray_source.LOSS_CD[i] + " PICK=R");
                                         step.ejectCnt += 1;	// 취출 예정 수량
                                         step.chCnt += 1;
                                         MainForm->memoGripperLineAdd("[Init step 1] " + BaseForm->GetLangStr("CAP_SOURCE_CHANNEL")+ " : "
@@ -274,6 +281,11 @@ void __fastcall Tgripper::Sorting()
 			if(eject.pos > 0){	// 취출 시작
 				if(MainForm->tray_source.SLOT_COUNT == 96){
 					 MainForm->memoGripperLineAdd("[Eject step 0] 96 Tray / Gripper #" + IntToStr(eject.gripper) + " / Channel #" + IntToStr(eject.pos) + " / Continuous eject #" + IntToStr(eject.conCnt));
+					 //* 불량트레이 관리
+					 MainForm->memoGripperLineAdd(
+						 "[TARGET CELL] MOVE TO SOURCE START Gripper=" + IntToStr(eject.gripper) +
+						 " SourceCh=" + IntToStr(eject.pos) +
+						 " TargetCh=" + tool[eject.gripper - 1].target_ch);
 					 robostar->req_AutoEject(1, eject.gripper , MainForm->mapSort[0][eject.pos-1], eject.conCnt, 962);
 					 MainForm->memoGripperLineAdd("[Eject step 0] 96 Channel " + BaseForm->GetLangStr("MSG_EJECT_START"));
 					 step.step += 1;
@@ -296,6 +308,12 @@ void __fastcall Tgripper::Sorting()
 				for(int i=eject.gripper; i<eject.gripper + eject.conCnt; ++i){
 					tool[i-1].eject_end = true;
 					MainForm->DisplaySourceCell(-1, tool[i-1].source_ch.ToInt()-1);	// 화면 show
+					//* 불량트레이 관리
+					MainForm->memoGripperLineAdd(
+						"[TARGET CELL] PICKUP COMPLETE Gripper=" + IntToStr(i) +
+						" SourceCh=" + tool[i-1].source_ch +
+						" TargetCh=" + tool[i-1].target_ch +
+						" CellId=" + MainForm->tray_source.SLOT_ID[tool[i-1].source_ch.ToInt()-1]);
 				}
 				step.step += 1;
 			}else{
@@ -343,6 +361,11 @@ void __fastcall Tgripper::Inserting()
 			}
 			if(insert.pos > 0){	// 삽입 시작
 				MainForm->memoGripperLineAdd("[Insert step 0] Gripper #" + IntToStr(insert.gripper) + " / Channel #" + IntToStr(insert.pos) + " / Continuous insert #" + IntToStr(insert.conCnt));
+				//* 불량트레이 관리
+				MainForm->memoGripperLineAdd(
+					"[TARGET CELL] MOVE TO TARGET START Gripper=" + IntToStr(insert.gripper) +
+					" SourceCh=" + tool[insert.gripper - 1].source_ch +
+					" TargetCh=" + IntToStr(insert.pos));
 				robostar->req_AutoInsert(2, insert.gripper , insert.pos, insert.conCnt, 96);
 				step.step += 1;
 			}else{
@@ -361,14 +384,36 @@ void __fastcall Tgripper::Inserting()
 			if(robostar->seq == seqAutoInsertComplete){
 				MainForm->memoGripperLineAdd("[Insert step 2] " + BaseForm->GetLangStr("MSG_INSERT_END"));
 				for(int i=insert.gripper; i<insert.gripper + insert.conCnt; ++i){
-					tool[i-1].insert_end = true;
-					MainForm->tray_target.SLOT_ID[tool[i-1].target_ch.ToInt()-1] = MainForm->tray_source.SLOT_ID[tool[i-1].source_ch.ToInt()-1];
-					MainForm->tray_target.LOSS_CD[tool[i-1].target_ch.ToInt()-1] = MainForm->tray_source.LOSS_CD[tool[i-1].source_ch.ToInt()-1];
-					MainForm->tray_target.PICK[tool[i-1].target_ch.ToInt()-1] = MainForm->tray_source.PICK[tool[i-1].source_ch.ToInt()-1];
-					MainForm->tray_target.RANK[tool[i-1].target_ch.ToInt()-1] = MainForm->tray_source.RANK[tool[i-1].source_ch.ToInt()-1];
-					MainForm->DisplayTargetCell(-1, tool[i-1].target_ch.ToInt()-1);	// 화면 show
-					MainForm->DisplayTargetCellInfo(-1, tool[i-1].target_ch.ToInt()-1);
+					int toolIndex = i - 1;
+					int sourceIndex = tool[toolIndex].source_ch.ToInt() - 1;
+					int targetIndex = tool[toolIndex].target_ch.ToInt() - 1;
+					AnsiString previousPick = MainForm->tray_target.PICK[targetIndex];
+					tool[toolIndex].insert_end = true;
+					MainForm->tray_target.SLOT_ID[targetIndex] = MainForm->tray_source.SLOT_ID[sourceIndex];
+					MainForm->tray_target.LOSS_CD[targetIndex] = MainForm->tray_source.LOSS_CD[sourceIndex];
+					MainForm->tray_target.PICK[targetIndex] = MainForm->tray_source.PICK[sourceIndex];
+					MainForm->tray_target.RANK[targetIndex] = MainForm->tray_source.RANK[sourceIndex];
+					//* 불량트레이 관리
+					MainForm->memoGripperLineAdd(
+						"[TARGET CELL] INSERT COMPLETE Gripper=" + IntToStr(i) +
+						" SourceCh=" + tool[toolIndex].source_ch +
+						" TargetCh=" + tool[toolIndex].target_ch +
+						" CellId=" + MainForm->tray_target.SLOT_ID[targetIndex] +
+						" LossCode=" + MainForm->tray_target.LOSS_CD[targetIndex]);
+					MainForm->memoGripperLineAdd(
+						"[TARGET CELL] RESERVATION CLEAR TargetCh=" + tool[toolIndex].target_ch +
+						" PICK=" + previousPick + "->" + MainForm->tray_target.PICK[targetIndex]);
+					MainForm->DisplayTargetCell(-1, targetIndex);	// 화면 show
+					MainForm->DisplayTargetCellInfo(-1, targetIndex);
+					MainForm->memoGripperLineAdd(
+						"[TARGET CELL] DISPLAY INSERTED NG TargetCh=" + tool[toolIndex].target_ch +
+						" PICK=" + MainForm->tray_target.PICK[targetIndex] +
+						" LossCode=" + MainForm->tray_target.LOSS_CD[targetIndex] +
+						" Rank=" + MainForm->tray_target.RANK[targetIndex]);
 				}
+				//* 불량트레이 관리
+				MainForm->setTrayInfo(1); // Persist inserted target cell data.
+				MainForm->memoGripperLineAdd("[TARGET CELL] LOCAL FILE SAVED after insert completion.");
 				step.step += 1;
 			}else{
 				MainForm->memoGripperLineAdd("[Insert step 2] " + BaseForm->GetLangStr("MSG_INSERTING"));

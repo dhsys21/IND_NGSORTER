@@ -49,6 +49,7 @@ typedef enum
 }LampMode;
 
 
+//* 불량트레이 관리
 typedef struct
 {
 	AnsiString LOT_ID;
@@ -56,6 +57,8 @@ typedef struct
 	AnsiString SLOT_POSITION[96];
 	AnsiString SLOT_ID[96];
 	AnsiString PICK[96];
+	AnsiString LOSS_CD[96];
+	AnsiString RANK[96];
 }SAVE_TRAY_INFO;
 
 
@@ -351,6 +354,13 @@ private:	// User declarations
 	void __fastcall opcMesTimerTimer(TObject *Sender);
 	void __fastcall CompleteOpcTrayLoad(bool sourceTray);
 	void __fastcall TryStartOpcProcess();
+	//* 불량트레이 관리
+	AnsiString __fastcall GetTargetTrayInfoFile(AnsiString trayId) const;
+	void __fastcall ResetTargetTraySaveInfo(AnsiString trayId);
+	bool __fastcall TargetTrayInfoHasData(int &occupiedCount, int &reservedCount) const;
+	int __fastcall RestoreTargetTrayInfo(AnsiString trayId, bool confirmExisting = true);
+	void __fastcall ClearTargetTrayInfo();
+	int __fastcall GetTargetReservationTool(int ch) const;
 
 	TTimer *opcMesTimer;
 	bool opcTrayLoadPending[2];
@@ -359,6 +369,12 @@ private:	// User declarations
 	bool opcProcessStartPending;
 	bool opcProcessStarted;
 	DWORD opcProcessStartTick;
+
+	//* 불량트레이 관리
+	bool targetTrayInfoDeletePending;
+	bool targetTrayInfoWasCentered;
+	bool targetTrayInfoPromptActive;
+	AnsiString targetTrayInfoActiveId;
 
 	int __fastcall FindList(AnsiString strType);
 	void __fastcall AddList(AnsiString strType);
@@ -448,6 +464,7 @@ public:		// User declarations
 	void __fastcall memoGripperLineAdd(AnsiString msg);
 	void __fastcall memoRobostarLineAdd(AnsiString msg);
 
+	//* 불량트레이 관리
 	void __fastcall setTrayInfo(int index);
 	void __fastcall saveTrayInfo(int index);
 	void __fastcall loadTrayInfo(int index);

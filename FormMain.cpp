@@ -69,6 +69,11 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	opcProcessStartPending = false;
 	opcProcessStarted = false;
 	opcProcessStartTick = 0;
+	//* 불량트레이 관리
+	targetTrayInfoDeletePending = false;
+	targetTrayInfoWasCentered = false;
+	targetTrayInfoPromptActive = false;
+	targetTrayInfoActiveId = "";
 	opcMesTimer = new TTimer(this);
 	opcMesTimer->Enabled = false;
 	opcMesTimer->Interval = 200;
@@ -186,6 +191,12 @@ void __fastcall TMainForm::CmdTrayOut(int pos)
 		if(PlcBin != NULL) PlcBin->CmdSourceTrayOut(true);
 		if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(false);
 	}else{
+		//* 불량트레이 관리
+		// 배출 명령만으로 파일을 지우지 않고 D10106 OFF(실물 배출)를 확인한 뒤 삭제한다.
+		targetTrayInfoDeletePending = true;
+		targetTrayInfoWasCentered = IsTargetCenteringSignal();
+		if(targetTrayInfoActiveId.IsEmpty())
+			targetTrayInfoActiveId = pTrayid_target->Caption.Trim();
 		if(PlcBin != NULL) PlcBin->CmdTargetTrayOut(true);
 	}
 }
@@ -458,14 +469,8 @@ void __fastcall TMainForm::manualBtnClick(TObject *Sender)
 
 void __fastcall TMainForm::playBtnClick(TObject *Sender)
 {
-	// Do not allow a direct PLAY action to bypass the AUTO servo interlock.
-	if(!CheckServoAutoReady(true)){
-		equipMode = modeAutoStop;
-		playBtn->Down = false;
-		stopBtn->Down = true;
-		return;
-	}
-
+	// Servo OPEN/ON/HOME is checked only when entering AUTO mode.
+	// START resumes the paused sequence without re-running the AUTO interlock.
 	equipMode = modeAuto;
 	nowLampMode = LampAuto;
 	playBtn->Down = true;
@@ -911,6 +916,20 @@ void __fastcall TMainForm::btnCloseIoPanelClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 {
+	//* 불량트레이 관리
+	// 배출 도중 D10106이 한 번이라도 ON이었고 OFF로 바뀌면 실물 배출 완료로 판단한다.
+	bool targetCenteringNow = IsTargetCenteringSignal();
+	if(targetTrayInfoDeletePending){
+		if(targetCenteringNow)
+			targetTrayInfoWasCentered = true;
+		else if(targetTrayInfoWasCentered){
+			ClearTargetTrayInfo();
+			targetTrayInfoDeletePending = false;
+			targetTrayInfoWasCentered = false;
+			opcTrayLoaded[1] = false;
+		}
+	}
+
 	for(int i=0; i<=3; ++i)GetZoneCount(i);
 
 	// X0022 is active-low. This status panel shows logical cell presence,
@@ -1207,6 +1226,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	}
 	if(IsTargetCenteringSignal())ptargetReady->Color = clLime;
 	else{
+		if(!opcTrayLoadPending[1]) opcTrayLoaded[1] = false;
 		ptargetReady->Color = clSilver;
 		pwork2->Color = clSilver;
 	}

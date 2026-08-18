@@ -82,8 +82,24 @@ void __fastcall TMainForm::DisplaySourceCell(int toolNum, int ch)
 	}
 }
 //---------------------------------------------------------------------------
+//* 불량트레이 관리
+int __fastcall TMainForm::GetTargetReservationTool(int ch) const
+{
+	for(int i = 0; i < gripCnt; ++i){
+		if(StrToIntDef(gripper->tool[i].target_ch, 0) == ch + 1)
+			return i;
+	}
+	return -1;
+}
+//---------------------------------------------------------------------------
 void __fastcall TMainForm::DisplayTargetCell(int toolNum, int ch)
 {
+	//* 불량트레이 관리
+	// Local target state uses PICK=R until the physical insert completes.
+	if(tray_target.PICK[ch] == "R" && toolNum < 0){
+		toolNum = GetTargetReservationTool(ch);
+		if(toolNum < 0) toolNum = 0; // This machine has one gripper.
+	}
 	if(toolNum >= 0){
 		color_target[ch / 24][23 - (ch % 24)] = clYellow;
 		targetGrid->Cells[ch / 24][23 - (ch % 24)] = "Gripper #" + IntToStr(toolNum+1) + " 예약";
@@ -95,6 +111,12 @@ void __fastcall TMainForm::DisplayTargetCell(int toolNum, int ch)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::DisplayTargetCellInfo(int toolNum, int ch)
 {
+	//* 불량트레이 관리
+	// Do not replace a locally persisted reservation before insert completion.
+	if(tray_target.PICK[ch] == "R" && toolNum < 0){
+		toolNum = GetTargetReservationTool(ch);
+		if(toolNum < 0) toolNum = 0;
+	}
 	if(toolNum >= 0){
 		pTarget_bad[ch]->Caption = "Gripper #" + IntToStr(toolNum+1) + " 예약";
 		pTarget_bad[ch]->Color = clYellow;
@@ -369,6 +391,7 @@ void __fastcall TMainForm::AddList(AnsiString strType)
 	pbad_sum->Caption = pbad_sum->Caption.ToInt() + 1; 
 }
 //---------------------------------------------------------------------------
+//* 불량트레이 관리
 void __fastcall TMainForm::setTrayInfo(int index)
 {
 	if(index == 0)
@@ -384,13 +407,17 @@ void __fastcall TMainForm::setTrayInfo(int index)
 	}
 	else if(index == 1)
 	{
-		m_saveTrayInfo[index].LOT_ID = pTrayid_target->Caption;
+		//* 불량트레이 관리
+		m_saveTrayInfo[index].LOT_ID = pTrayid_target->Caption.Trim();
+		targetTrayInfoActiveId = m_saveTrayInfo[index].LOT_ID;
 		m_saveTrayInfo[index].SLOT_COUNT = tray_target.SLOT_COUNT;
-		for(int i = 0; i < tray_target.SLOT_COUNT; i++)
+		for(int i = 0; i < tray_target.SLOT_COUNT && i < 96; i++)
 		{
 			m_saveTrayInfo[index].SLOT_POSITION[i] = tray_target.SLOT_POSITION[i];
 			m_saveTrayInfo[index].SLOT_ID[i] = tray_target.SLOT_ID[i];
 			m_saveTrayInfo[index].PICK[i] = tray_target.PICK[i];
+			m_saveTrayInfo[index].LOSS_CD[i] = tray_target.LOSS_CD[i];
+			m_saveTrayInfo[index].RANK[i] = tray_target.RANK[i];
 		}
 	}
 
@@ -400,18 +427,41 @@ void __fastcall TMainForm::setTrayInfo(int index)
 void __fastcall TMainForm::saveTrayInfo(int index)
 {
 	AnsiString file;
-	file = (AnsiString)BIN + "TrayInfo.ini";
+	if(index == 1){
+		//* 불량트레이 관리
+		if(m_saveTrayInfo[index].LOT_ID.IsEmpty()) return;
+		file = GetTargetTrayInfoFile(m_saveTrayInfo[index].LOT_ID);
+	}else{
+		file = (AnsiString)BIN + "TrayInfo.ini";
+	}
 
 	ini = new TIniFile(file);
-
-	ini->WriteString(index, "LOT_ID", m_saveTrayInfo[index].LOT_ID);
-	ini->WriteInteger(index, "SLOT_COUNT", m_saveTrayInfo[index].SLOT_COUNT);
-
-	for(int i = 0; i < m_saveTrayInfo[index].SLOT_COUNT; i++)
-	{
-		ini->WriteString(index, "SLOT_POSITION" + IntToStr(i), m_saveTrayInfo[index].SLOT_POSITION[i]);
-		ini->WriteString(index, "SLOT_ID" + IntToStr(i), m_saveTrayInfo[index].SLOT_ID[i]);
-		ini->WriteString(index, "PICK" + IntToStr(i), m_saveTrayInfo[index].PICK[i]);
+	if(index == 1){
+		//* 불량트레이 관리
+		ini->WriteString("TRAY", "TRAY_ID", m_saveTrayInfo[index].LOT_ID);
+		ini->WriteInteger("TRAY", "SLOT_COUNT", m_saveTrayInfo[index].SLOT_COUNT);
+		ini->WriteString("TRAY", "LAST_UPDATED", FormatDateTime("yyyy-mm-dd hh:nn:ss", Now()));
+		ini->WriteString("TRAY", "STATE", "ACTIVE");
+		for(int i = 0; i < m_saveTrayInfo[index].SLOT_COUNT && i < 96; i++)
+		{
+			AnsiString section = "CELL_" + IntToStr(i + 1);
+			ini->WriteString(section, "SLOT_POSITION", m_saveTrayInfo[index].SLOT_POSITION[i]);
+			ini->WriteString(section, "SLOT_ID", m_saveTrayInfo[index].SLOT_ID[i]);
+			ini->WriteString(section, "PICK", m_saveTrayInfo[index].PICK[i]);
+			ini->WriteString(section, "LOSS_CD", m_saveTrayInfo[index].LOSS_CD[i]);
+			ini->WriteString(section, "RANK", m_saveTrayInfo[index].RANK[i]);
+		}
+	}else{
+		ini->WriteString(index, "LOT_ID", m_saveTrayInfo[index].LOT_ID);
+		ini->WriteInteger(index, "SLOT_COUNT", m_saveTrayInfo[index].SLOT_COUNT);
+		for(int i = 0; i < m_saveTrayInfo[index].SLOT_COUNT; i++)
+		{
+			ini->WriteString(index, "SLOT_POSITION" + IntToStr(i), m_saveTrayInfo[index].SLOT_POSITION[i]);
+			ini->WriteString(index, "SLOT_ID" + IntToStr(i), m_saveTrayInfo[index].SLOT_ID[i]);
+			ini->WriteString(index, "PICK" + IntToStr(i), m_saveTrayInfo[index].PICK[i]);
+			ini->WriteString(index, "LOSS_CD" + IntToStr(i), m_saveTrayInfo[index].LOSS_CD[i]);
+			ini->WriteString(index, "RANK" + IntToStr(i), m_saveTrayInfo[index].RANK[i]);
+		}
 	}
 
 	delete ini;
@@ -420,28 +470,180 @@ void __fastcall TMainForm::saveTrayInfo(int index)
 void __fastcall TMainForm::loadTrayInfo(int index)
 {
 	AnsiString file;
-	file = (AnsiString)BIN + "TrayInfo.ini";
+	if(index == 1){
+		//* 불량트레이 관리
+		AnsiString trayId = targetTrayInfoActiveId;
+		if(trayId.IsEmpty()) trayId = pTrayid_target->Caption.Trim();
+		file = GetTargetTrayInfoFile(trayId);
+	}else{
+		file = (AnsiString)BIN + "TrayInfo.ini";
+	}
 
 	ini = new TIniFile(file);
-
-	m_saveTrayInfo[index].LOT_ID = ini->ReadString(index, "LOT_ID", "");
-	m_saveTrayInfo[index].SLOT_COUNT = ini->ReadInteger(index, "SLOT_COUNT", 96);
+	if(index == 1){
+		//* 불량트레이 관리
+		m_saveTrayInfo[index].LOT_ID = ini->ReadString("TRAY", "TRAY_ID", "");
+		m_saveTrayInfo[index].SLOT_COUNT = ini->ReadInteger("TRAY", "SLOT_COUNT", 96);
+	}else{
+		m_saveTrayInfo[index].LOT_ID = ini->ReadString(index, "LOT_ID", "");
+		m_saveTrayInfo[index].SLOT_COUNT = ini->ReadInteger(index, "SLOT_COUNT", 96);
+	}
+	if(m_saveTrayInfo[index].SLOT_COUNT < 1 || m_saveTrayInfo[index].SLOT_COUNT > 96)
+		m_saveTrayInfo[index].SLOT_COUNT = 96;
 
 	for(int i = 0; i < m_saveTrayInfo[index].SLOT_COUNT; i++)
 	{
-		m_saveTrayInfo[index].SLOT_POSITION[i] = ini->ReadString(index, "SLOT_POSITION" + IntToStr(i), "");
-		m_saveTrayInfo[index].SLOT_ID[i] = ini->ReadString(index, "SLOT_ID" + IntToStr(i), "");
-		m_saveTrayInfo[index].PICK[i] = ini->ReadString(index, "PICK" + IntToStr(i), "");
+		if(index == 1){
+			AnsiString section = "CELL_" + IntToStr(i + 1);
+			m_saveTrayInfo[index].SLOT_POSITION[i] = ini->ReadString(section, "SLOT_POSITION", IntToStr(i + 1));
+			m_saveTrayInfo[index].SLOT_ID[i] = ini->ReadString(section, "SLOT_ID", "");
+			m_saveTrayInfo[index].PICK[i] = ini->ReadString(section, "PICK", "N");
+			m_saveTrayInfo[index].LOSS_CD[i] = ini->ReadString(section, "LOSS_CD", "");
+			m_saveTrayInfo[index].RANK[i] = ini->ReadString(section, "RANK", "");
+		}else{
+			m_saveTrayInfo[index].SLOT_POSITION[i] = ini->ReadString(index, "SLOT_POSITION" + IntToStr(i), "");
+			m_saveTrayInfo[index].SLOT_ID[i] = ini->ReadString(index, "SLOT_ID" + IntToStr(i), "");
+			m_saveTrayInfo[index].PICK[i] = ini->ReadString(index, "PICK" + IntToStr(i), "");
+			m_saveTrayInfo[index].LOSS_CD[i] = ini->ReadString(index, "LOSS_CD" + IntToStr(i), "");
+			m_saveTrayInfo[index].RANK[i] = ini->ReadString(index, "RANK" + IntToStr(i), "");
+		}
 	}
 
 	delete ini;
+}
+//---------------------------------------------------------------------------
+AnsiString __fastcall TMainForm::GetTargetTrayInfoFile(AnsiString trayId) const
+{
+	//* 불량트레이 관리
+	AnsiString safeId = "";
+	trayId = trayId.Trim();
+	for(int i = 1; i <= trayId.Length(); ++i){
+		unsigned char ch = (unsigned char)trayId[i];
+		if((ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'Z') ||
+			(ch >= 'a' && ch <= 'z') || ch == '-' || ch == '_')
+			safeId += (char)ch;
+		else
+			safeId += '_';
+	}
+	if(safeId.IsEmpty()) safeId = "UNKNOWN";
+	return (AnsiString)BIN + "NG_TrayInfo_" + safeId + ".ini";
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::ResetTargetTraySaveInfo(AnsiString trayId)
+{
+	//* 불량트레이 관리
+	m_saveTrayInfo[1].LOT_ID = trayId.Trim();
+	m_saveTrayInfo[1].SLOT_COUNT = 96;
+	for(int i = 0; i < 96; ++i){
+		m_saveTrayInfo[1].SLOT_POSITION[i] = IntToStr(i + 1);
+		m_saveTrayInfo[1].SLOT_ID[i] = "";
+		m_saveTrayInfo[1].PICK[i] = "N";
+		m_saveTrayInfo[1].LOSS_CD[i] = "";
+		m_saveTrayInfo[1].RANK[i] = "";
+	}
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMainForm::TargetTrayInfoHasData(int &occupiedCount, int &reservedCount) const
+{
+	//* 불량트레이 관리
+	occupiedCount = 0;
+	reservedCount = 0;
+	for(int i = 0; i < m_saveTrayInfo[1].SLOT_COUNT && i < 96; ++i){
+		if(m_saveTrayInfo[1].PICK[i] == "R")
+			++reservedCount;
+		else if(m_saveTrayInfo[1].PICK[i] == "Y" || !m_saveTrayInfo[1].SLOT_ID[i].IsEmpty())
+			++occupiedCount;
+	}
+	return occupiedCount > 0 || reservedCount > 0;
+}
+//---------------------------------------------------------------------------
+int __fastcall TMainForm::RestoreTargetTrayInfo(AnsiString trayId, bool confirmExisting)
+{
+	//* 불량트레이 관리
+	trayId = trayId.Trim();
+	if(trayId.IsEmpty()) return 0;
+	targetTrayInfoActiveId = trayId;
+	AnsiString file = GetTargetTrayInfoFile(trayId);
+	if(!FileExists(file)){
+		ResetTargetTraySaveInfo(trayId);
+		// 바코드를 읽은 즉시 빈 불량트레이 파일을 생성한다.
+		saveTrayInfo(1);
+		memoMainLineAdd("[LOCAL TARGET] Created: " + trayId);
+		return 0;
+	}
+
+	loadTrayInfo(1);
+	if(m_saveTrayInfo[1].LOT_ID != trayId ||
+		m_saveTrayInfo[1].SLOT_COUNT < 1 || m_saveTrayInfo[1].SLOT_COUNT > 96){
+		ResetTargetTraySaveInfo(trayId);
+		saveTrayInfo(1);
+		memoMainLineAdd("[LOCAL TARGET] Recreated invalid file: " + trayId);
+		return 0;
+	}
+
+	int occupiedCount = 0;
+	int reservedCount = 0;
+	if(confirmExisting && TargetTrayInfoHasData(occupiedCount, reservedCount)){
+		TIniFile *targetIni = new TIniFile(file);
+		AnsiString lastUpdated = targetIni->ReadString("TRAY", "LAST_UPDATED", "-");
+		delete targetIni;
+		UnicodeString message = L"기존 불량트레이 정보가 있습니다.\r\n\r\n";
+		message += L"바코드: ";
+		message += UnicodeString(trayId);
+		message += L"\r\n삽입 완료: ";
+		message += IntToStr(occupiedCount);
+		message += L"\r\n그리퍼 예약: ";
+		message += IntToStr(reservedCount);
+		message += L"\r\n마지막 저장: ";
+		message += UnicodeString(lastUpdated);
+		message += L"\r\n\r\n예: 기존 정보 사용\r\n아니요: 빈 트레이로 초기화\r\n취소: 작업 중단";
+		int reply = MessageBox(Handle, message.c_str(), L"불량트레이 정보 확인",
+			MB_YESNOCANCEL | MB_ICONQUESTION | MB_DEFBUTTON1);
+		if(reply == IDCANCEL) return -1;
+		if(reply == IDNO){
+			DeleteFile(file);
+			ResetTargetTraySaveInfo(trayId);
+			saveTrayInfo(1);
+			memoMainLineAdd("[LOCAL TARGET] Initialized by operator: " + trayId);
+			return 0;
+		}
+	}
+
+	tray_target.SLOT_COUNT = m_saveTrayInfo[1].SLOT_COUNT;
+	tray_target.TRAY_GUBUN = IntToStr(tray_target.SLOT_COUNT);
+	for(int i = 0; i < tray_target.SLOT_COUNT; ++i){
+		tray_target.SLOT_POSITION[i] = m_saveTrayInfo[1].SLOT_POSITION[i];
+		tray_target.SLOT_ID[i] = m_saveTrayInfo[1].SLOT_ID[i];
+		tray_target.PICK[i] = m_saveTrayInfo[1].PICK[i];
+		tray_target.LOSS_CD[i] = m_saveTrayInfo[1].LOSS_CD[i];
+		tray_target.RANK[i] = m_saveTrayInfo[1].RANK[i];
+		if(tray_target.SLOT_POSITION[i].IsEmpty())
+			tray_target.SLOT_POSITION[i] = IntToStr(i + 1);
+		if(tray_target.PICK[i].IsEmpty())
+			tray_target.PICK[i] = "N";
+	}
+	return 1;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::ClearTargetTrayInfo()
+{
+	//* 불량트레이 관리
+	AnsiString trayId = targetTrayInfoActiveId;
+	if(trayId.IsEmpty()) trayId = pTrayid_target->Caption.Trim();
+	if(!trayId.IsEmpty()){
+		AnsiString file = GetTargetTrayInfoFile(trayId);
+		if(FileExists(file)) DeleteFile(file);
+		memoMainLineAdd("[LOCAL TARGET] Deleted after confirmed Target Tray Out: " + trayId);
+	}
+	ResetTargetTraySaveInfo("");
+	targetTrayInfoActiveId = "";
 }
 //---------------------------------------------------------------------------
 bool __fastcall TMainForm::checkTrayInfo(int index)
 {
 	if(index == 0)
 	{
-		if(m_saveTrayInfo[0].LOT_ID == pTrayid_source->Caption)
+		if(m_saveTrayInfo[0].LOT_ID == AnsiString(pTrayid_source->Caption))
 		{
 			for(int i = 0; i < tray_source.SLOT_COUNT; i++)
 			{
@@ -456,7 +658,7 @@ bool __fastcall TMainForm::checkTrayInfo(int index)
 	}
 	else if(index == 1)
 	{
-		if(m_saveTrayInfo[1].LOT_ID == pTrayid_target->Caption)
+		if(m_saveTrayInfo[1].LOT_ID == AnsiString(pTrayid_target->Caption))
 		{
 			for(int i = 0; i < tray_target.SLOT_COUNT; i++)
 			{
