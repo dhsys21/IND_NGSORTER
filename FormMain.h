@@ -90,6 +90,7 @@ __published:	// IDE-managed Components
 	TAdvSmoothPanel *pnlLog;
 	TAdvSmoothPanel *pnlTargetTray;
 	TAdvSmoothPanel *pnlSourceTray;
+	TImage *imgTrayFlowArrow;
 	TPanel *pBase;
 	TAdvSmoothPanel *pnlGripper;
 	TPanel *Panel27;
