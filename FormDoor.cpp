@@ -33,6 +33,10 @@ __fastcall TdoorForm::TdoorForm(TComponent* Owner)
 
 	isGripperOpen1 = false;
 	isGripperOpen2 = false;
+	flag = false;
+	m_errCode = 0;
+	for(int i = 0; i < 6; ++i)
+		m_errorActive[i] = false;
 
 	// Keep the compact safety I/O indicators visible inside AdvSmoothPanel4.
 	pSafetyEmgReady->Parent = AdvSmoothPanel4;
@@ -73,7 +77,9 @@ void __fastcall TdoorForm::ShowError(AnsiString MainStr, AnsiString SubStr, int 
 	if(errCode == 0 && !robostar->IsSafetyDoorOpen(1)) return;
 	if(errCode == 1 && !robostar->IsSafetyDoorOpen(2)) return;
 
-	MainForm->pause_stopBtnClick(this);
+	// The monitor calls this every 500 ms. Log and notify only when this error becomes active.
+	bool newError = !m_errorActive[errCode];
+	m_errorActive[errCode] = true;
 
 	FormStyle = fsStayOnTop;
 	if(errCode >= 0 && errCode <= 2)
@@ -87,27 +93,28 @@ void __fastcall TdoorForm::ShowError(AnsiString MainStr, AnsiString SubStr, int 
 		isGripperOpen2 = false;
 	}
 
-	if(this->Visible == false){
+	if(newError){
+		MainForm->pause_stopBtnClick(this);
 		m_errCode = errCode + 25;
 		if(errCode == 4 || errCode == 5) m_errCode -= 3;
 
 		MainForm->NotifyAlarm(true, m_errCode, false);
-
 		MainForm->WriteErrorLog(MainStr, SubStr);
 		MainForm->BuzzerOn(true);
 		MainForm->LampModeChange(LampEmergency);
-		this->BringToFront();
-		if(MainForm->cbMES->Checked == true)
-			this->Visible = false;
-        else
-			this->Visible = true;
 		errTimer->Enabled = true;
 		okBtn->Visible = false;
-        MainForm->manualBtnClick(this);
+		MainForm->manualBtnClick(this);
+		MainForm->NotifyEquipStatus("DOWN");
 	}
 
-
-	MainForm->NotifyEquipStatus("DOWN");
+	// MES test mode may intentionally keep the form hidden; the error latch still prevents re-logging.
+	if(this->Visible == false && MainForm->cbMES->Checked == false){
+		this->BringToFront();
+		this->Visible = true;
+	}else if(this->Visible && newError){
+		this->BringToFront();
+	}
 }
 //---------------------------------------------------------------------------
 void __fastcall TdoorForm::AdvSmoothButton4Click(TObject *Sender)
@@ -133,6 +140,15 @@ void __fastcall TdoorForm::FormHide(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TdoorForm::errTimerTimer(TObject *Sender)
 {
+	// Clear only when the corresponding physical/software condition is restored.
+	// A later recurrence is then logged once as a new error occurrence.
+	if(!robostar->IsSafetyDoorOpen(1)) m_errorActive[0] = false;
+	if(!robostar->IsSafetyDoorOpen(2)) m_errorActive[1] = false;
+	if(!robostar->IsEmergencyStopActive()) m_errorActive[2] = false;
+	m_errorActive[3] = false; // Reserved error code.
+	if(robostar->IsKeyLockActive()) m_errorActive[4] = false;
+	if(!robostar->IsSscOpened() || MainForm->popen->Color == clLime) m_errorActive[5] = false;
+
 	if(MainForm->m_ServoHome || MainForm->m_ServoHomeEmg)
 		pnlOpenGripper->Visible = true;
 	else
@@ -207,6 +223,8 @@ void __fastcall TdoorForm::okBtnClick(TObject *Sender)
 		return;
 	}
 	errTimer->Enabled = false;
+	for(int i = 0; i < 6; ++i)
+		m_errorActive[i] = false;
 	this->Close();
 	flag = false;
 }

@@ -86,6 +86,8 @@ private:	// User declarations
 
 
 	int m_errCode;
+	// Latch each safety error independently so the 500 ms monitor logs only on a rising edge.
+	bool m_errorActive[6];
 public:		// User declarations
 	void __fastcall ShowError(AnsiString MainStr, AnsiString SubStr, int errCode);
 	int nCode;

@@ -412,22 +412,27 @@ bool __fastcall TMainForm::CheckServoAutoReady(bool showError)
 	bool servoOnReady = m_ServoON;
 	bool servoHomeReady = m_ServoHome;
 	bool gripperOpenReady = robostar->getGripperOpenStatus();
+	// X0022 is active-low: AUTO is allowed only when no cell remains in the gripper.
+	bool gripperCellClear = !robostar->getCellDetectStatus();
 
-	if(servoOpenReady && servoOnReady && servoHomeReady && gripperOpenReady)
+	if(servoOpenReady && servoOnReady && servoHomeReady && gripperOpenReady && gripperCellClear)
 		return true;
 
-	UnicodeString detail = L"Servo OPEN : " + UnicodeString(servoOpenReady ? L"OK" : L"NOT COMPLETE") + L"\r\n";
-	detail += L"Servo ON     : " + UnicodeString(servoOnReady ? L"OK" : L"NOT COMPLETE") + L"\r\n";
-	detail += L"Servo HOME   : " + UnicodeString(servoHomeReady ? L"OK" : L"NOT COMPLETE") + L"\r\n";
-	detail += L"Gripper OPEN : " + UnicodeString(gripperOpenReady ? L"OK" : L"NOT COMPLETE") + L"\r\n";
-	detail += L"Confirm X0021 OPEN is ON and X0020 CHUCK is OFF before AUTO.";
+	UnicodeString detail = L"Servo OPEN  : " + UnicodeString(servoOpenReady ? L"OK" : L"NOT COMPLETE") + L"\r\n";
+	detail += L"Servo ON      : " + UnicodeString(servoOnReady ? L"OK" : L"NOT COMPLETE") + L"\r\n";
+	detail += L"Servo HOME    : " + UnicodeString(servoHomeReady ? L"OK" : L"NOT COMPLETE") + L"\r\n";
+	detail += L"Gripper OPEN  : " + UnicodeString(gripperOpenReady ? L"OK" : L"NOT COMPLETE") + L"\r\n";
+	detail += L"Gripper CELL  : " + UnicodeString(gripperCellClear ? L"CLEAR" : L"DETECTED - REMOVE CELL") + L"\r\n";
+	detail += L"Confirm X0021 OPEN=ON, X0020 CHUCK=OFF, and X0022 CELL DETECT=ON before AUTO.";
 
 	memoRobostarLineAdd("[AUTO INTERLOCK] OPEN=" + IntToStr(servoOpenReady ? 1 : 0) +
 		", ON=" + IntToStr(servoOnReady ? 1 : 0) +
 		", HOME=" + IntToStr(servoHomeReady ? 1 : 0) +
 		", GRIPPER_OPEN=" + IntToStr(gripperOpenReady ? 1 : 0) +
+		", CELL_CLEAR=" + IntToStr(gripperCellClear ? 1 : 0) +
 		" (X0021=" + IntToStr(robostar->input.GRIPPER1_UNCHUCK ? 1 : 0) +
-		", X0020=" + IntToStr(robostar->input.GRIPPER1_CHUCK ? 1 : 0) + ")");
+		", X0020=" + IntToStr(robostar->input.GRIPPER1_CHUCK ? 1 : 0) +
+		", X0022=" + IntToStr(robostar->input.GRIPPER1_CELL_DETECT ? 1 : 0) + ")");
 	if(showError)
 		AlarmForm->ShowError(BaseForm->GetLangStr("MSG_AUTO_ALARM1"), detail);
 	return false;
