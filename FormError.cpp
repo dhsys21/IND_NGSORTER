@@ -18,7 +18,6 @@ __fastcall TErrorForm::TErrorForm(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall TErrorForm::ShowError(AnsiString MainStr, AnsiString SubStr, AnsiString SubStr2)
 {
-	ErrStr = MainStr;
 	MainErr->Caption = MainStr;
 	pTrayId->Caption = SubStr2;
 	SubErr->Caption = SubStr;
@@ -28,6 +27,22 @@ void __fastcall TErrorForm::ShowError(AnsiString MainStr, AnsiString SubStr, Ans
 		this->BringToFront();
 		this->Visible = true;
 	}
+}
+//---------------------------------------------------------------------------
+void __fastcall ShowCommonError(AnsiString MainStr, AnsiString SubStr1, AnsiString SubStr2)
+{
+	// Most calls come from UI timers. Keep a defensive lazy-create path so a
+	// startup ordering change cannot turn ErrorForm->ShowError() into a NULL call.
+	if(ErrorForm == NULL && Application != NULL && BaseForm != NULL)
+		Application->CreateForm(__classid(TErrorForm), &ErrorForm);
+
+	if(ErrorForm != NULL){
+		ErrorForm->ShowError(MainStr, SubStr1, SubStr2);
+		return;
+	}
+
+	// Last-resort message when form creation is unavailable.
+	ShowMessage(MainStr + "\n" + SubStr1 + "\n" + SubStr2);
 }
 //---------------------------------------------------------------------------
 

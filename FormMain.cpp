@@ -316,7 +316,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		{
 			opcTrayLoadPending[i] = false;
 			AnsiString trayName = sourceTray ? "Source" : "Target";
-			ErrorForm->ShowError(trayName + " tray load failed",
+			ShowCommonError(trayName + " tray load failed",
 				"Check FMS TrayLoadResponse and tray information.");
 		}
 		else if ((DWORD)(nowTick - opcTrayLoadStartTick[i]) >= RESPONSE_TIMEOUT_MS)
@@ -324,7 +324,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 			opcTrayLoadPending[i] = false;
 			if (MesOpc != NULL) MesOpc->TRAY_LOAD_CANCEL(sourceTray);
 			AnsiString trayName = sourceTray ? "Source" : "Target";
-			ErrorForm->ShowError(trayName + " tray response timeout",
+			ShowCommonError(trayName + " tray response timeout",
 				"No TrayLoadResponse from FMS Gateway.");
 		}
 	}
@@ -345,14 +345,14 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		else if (response == 2 || response < 0)
 		{
 			opcProcessStartPending = false;
-			ErrorForm->ShowError("Process start failed",
+			ShowCommonError("Process start failed",
 				"Check FMS ProcessStartResponse.");
 		}
 		else if ((DWORD)(nowTick - opcProcessStartTick) >= RESPONSE_TIMEOUT_MS)
 		{
 			opcProcessStartPending = false;
 			if (MesOpc != NULL) MesOpc->PROCESS_START_CANCEL();
-			ErrorForm->ShowError("Process start response timeout",
+			ShowCommonError("Process start response timeout",
 				"No ProcessStartResponse from FMS Gateway.");
 		}
 	}

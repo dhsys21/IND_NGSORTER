@@ -270,7 +270,7 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 
 	if (MesOpc == NULL || Mod_Fms == NULL || !Mod_Fms->IsGatewayConnected())
 	{
-		ErrorForm->ShowError("FMS Gateway is not connected",
+		ShowCommonError("FMS Gateway is not connected",
 			"Tray load request was not sent. Check the gateway connection.");
 		return;
 	}

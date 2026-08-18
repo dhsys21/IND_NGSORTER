@@ -21,12 +21,14 @@ __published:	// IDE-managed Components
 private:	// User declarations
 
 public:		// User declarations
-    AnsiString ErrStr;
-void __fastcall ShowError(AnsiString MainStr, AnsiString SubStr1="", AnsiString SubStr2 ="");
+	void __fastcall ShowError(AnsiString MainStr, AnsiString SubStr1="", AnsiString SubStr2 ="");
 
 	__fastcall TErrorForm(TComponent* Owner);
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TErrorForm *ErrorForm;
+
+// Safe common entry point: creates ErrorForm if a startup/call-order path has not.
+void __fastcall ShowCommonError(AnsiString MainStr, AnsiString SubStr1="", AnsiString SubStr2="");
 //---------------------------------------------------------------------------
 #endif

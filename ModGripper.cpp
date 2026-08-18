@@ -279,7 +279,7 @@ void __fastcall Tgripper::Sorting()
 					 step.step += 1;
 				}else{
 					MainForm->memoGripperLineAdd(BaseForm->GetLangStr("MSG_SLOTCOUNT_ERROR"));
-					ErrorForm->ShowError("Can not work", BaseForm->GetLangStr("MSG_SLOTCOUNT_ERROR"));
+					ShowCommonError("Can not work", BaseForm->GetLangStr("MSG_SLOTCOUNT_ERROR"));
 				}
 			}else{
 				step.step = 5;

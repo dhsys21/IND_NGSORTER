@@ -148,23 +148,8 @@ void __fastcall TdoorForm::errTimerTimer(TObject *Sender)
 
 	isDoorOpen = robostar->IsSafetyDoorOpen(1) || robostar->IsSafetyDoorOpen(2);
 
-//	if(isDoorOpen == false)
-//	{
-//		isDoorOpen = false;
-//		BaseForm->btnKeyLock->Caption = "키락 해제";
-//		robostar->KeyLock(true);
-//	}
-
 	if(robostar->IsEmergencyStopActive())
 		robostar->KeyLock(false);
-
-//	if(isDoorOpen == true && robostar->input.SAFETY_DOOR_1 == 0 && robostar->input.SAFETY_DOOR_2 == 0 && robostar->input.SAFETY_DOOR_3 == 0)
-//	{
-//		isDoorOpen = false;
-//		BaseForm->btnKeyLock->Caption = "키락 해제";
-//		robostar->KeyLock(false);
-//	}
-
 
 	text[0]->Visible = robostar->IsSafetyDoorOpen(1);
 	text[1]->Visible = robostar->IsSafetyDoorOpen(2);
@@ -188,8 +173,7 @@ void __fastcall TdoorForm::errTimerTimer(TObject *Sender)
 	pSafetyEmgReady->Color = safetyEmgReady ? clLime : clSilver;
 	pSafetyDoorReady->Color = safetyDoorReady ? clLime : clSilver;
 	lblSafetyResetGuide->Visible = !(safetyEmgReady && safetyDoorReady);
-	//btnSetKEYLOCK->Visible = robostar->output.SAFETY_DOOR;
-	//btnSetKEYLOCK->Visible = robostar->gripper.DOOR_OPEN_SELECT;
+
 	if(MainForm->popen->Color != clLime) btnServoOpen->Visible = true;
     else btnServoOpen->Visible = false;
 
@@ -367,7 +351,8 @@ void __fastcall TdoorForm::PasswordBtnClick(TObject *Sender)
     if(PassEdit->Text == "9090"){
         MainForm->cbMES->Visible = true;
 	    MainForm->cbMES->Checked = true;
-    	this->Visible = false;
+		MainForm->cbCycle->Visible = true;
+		this->Visible = false;
     }
 }
 //---------------------------------------------------------------------------

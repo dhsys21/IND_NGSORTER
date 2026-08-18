@@ -51,6 +51,8 @@ int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 		Application->Initialize();
 		Application->MainFormOnTaskBar = true;
 		Application->CreateForm(__classid(TBaseForm), &BaseForm);
+		// Create the common error form before MainForm, timers, and communication modules.
+		Application->CreateForm(__classid(TErrorForm), &ErrorForm);
 		Application->CreateForm(__classid(TMod_Fms), &Mod_Fms);
 		Application->CreateForm(__classid(TMesOpc), &MesOpc);
 		Application->CreateForm(__classid(TMainForm), &MainForm);
@@ -61,6 +63,7 @@ int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 		Application->CreateForm(__classid(TteachForm), &teachForm);
 		Application->CreateForm(__classid(TErrorForm_limit), &ErrorForm_limit);
 		Application->CreateForm(__classid(TErrorForm_mes), &ErrorForm_mes);
+
 		Application->CreateForm(__classid(TAlarmForm), &AlarmForm);
 		Application->CreateForm(__classid(TErrorForm_insert), &ErrorForm_insert);
 		Application->CreateForm(__classid(TConfigForm), &ConfigForm);
