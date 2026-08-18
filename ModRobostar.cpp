@@ -10,6 +10,8 @@
 #pragma package(smart_init)
 #pragma resource "*.dfm"
 Trobostar *robostar;
+// KEYLOCK outputs are sequenced without Sleep so the UI and I/O scan keep running.
+static const DWORD KEYLOCK_OUTPUT_DELAY_MS = 500;
 //---------------------------------------------------------------------------
 const int errCnt = 100;//300;
 static const wchar_t *MR_MC2XX_PARAMETER_FILE = L"D:\\IND_NGSORTER_SERVO\\SampleData.prm2";
@@ -53,6 +55,7 @@ __fastcall Trobostar::Trobostar(TComponent* Owner)
 	sscOpened = false;
 	keyLockSetPending = false;
 	keyLockReleasePending = false;
+	previousBypassSwitchOn = false;
 	keyLockSetSafetyBypassOffTick = 0;
 	keyLockReleaseOutputOffTick = 0;
 	jogSpeed = 100;
@@ -1639,26 +1642,49 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 
 	this->io_Read();
 
-	// Opening either door always turns Y003C OFF.
-	if(input.SAFETY_DOOR_1 || input.SAFETY_DOOR_2)
+	// Y003C is normally OFF and mechanically locks the BYPASS key in ON position.
+	// A KEYLOCK release/door opening always forces it OFF. A new hardware BYPASS-ON
+	// transition also resets it OFF; only the UI command after confirmed KEYLOCK set
+	// may turn it ON long enough to rotate the hardware key to OFF.
+	bool bypassSwitchOn = IsBypassActive();
+	if(input.SAFETY_DOOR_1 || input.SAFETY_DOOR_2
+		|| keyLockReleasePending || !IsKeyLockActive()
+		|| !bypassSwitchOn || (bypassSwitchOn && !previousBypassSwitchOn))
 		Bypass(false);
+	previousBypassSwitchOn = bypassSwitchOn;
 
-	// KEYLOCK set: Y0033/Y0034 ON first, then Y003D OFF after at least 200 ms.
 	DWORD nowTick = GetTickCount();
+
+	// A door may open during the non-blocking set delay. Cancel the set sequence
+	// before Y003D can turn OFF: force Y003D ON first, then release Y0033/Y0034
+	// after the same safety delay used by a normal KEYLOCK release.
+	if(keyLockSetPending && !CanSetKeyLock()){
+		Bypass(false);
+		gripper.SAFETY_BYPASS_ON = true;
+		keyLockSetPending = false;
+		keyLockSetSafetyBypassOffTick = 0;
+		keyLockReleasePending = true;
+		io_WriteGripper();
+		keyLockReleaseOutputOffTick = nowTick + KEYLOCK_OUTPUT_DELAY_MS;
+		MainForm->memoRobostarLineAdd("[KEYLOCK] Set cancelled: X0026/X0027 door input ON; Y003D ON first.");
+		ShowMessage(L"KEYLOCK setting was cancelled because Door #1 or Door #2 is open.\n\nX0026/X0027 must both be OFF.");
+	}
+
+	// KEYLOCK set: Y0033/Y0034 ON first, then Y003D OFF after the configured delay.
 	if(keyLockSetPending && keyLockSetSafetyBypassOffTick != 0
 		&& (LONG)(nowTick - keyLockSetSafetyBypassOffTick) >= 0){
 		gripper.SAFETY_BYPASS_ON = false;
 		keyLockSetSafetyBypassOffTick = 0;
-		MainForm->memoRobostarLineAdd("[KEYLOCK] Y003D OFF (200ms after Y0033/Y0034 ON).");
+		MainForm->memoRobostarLineAdd("[KEYLOCK] Y003D OFF (500ms after Y0033/Y0034 ON).");
 	}
 
-	// KEYLOCK release: Y003D ON first, then Y0033/Y0034 OFF after at least 200 ms.
+	// KEYLOCK release: Y003D ON first, then Y0033/Y0034 OFF after 500 ms.
 	if(keyLockReleasePending && keyLockReleaseOutputOffTick != 0
 		&& (LONG)(nowTick - keyLockReleaseOutputOffTick) >= 0){
 		gripper.DOOR_LEFT_CLOSE = false;
 		gripper.DOOR_RIGHT_CLOSE = false;
 		keyLockReleaseOutputOffTick = 0;
-		MainForm->memoRobostarLineAdd("[KEYLOCK] Y0033/Y0034 OFF (200ms after Y003D ON).");
+		MainForm->memoRobostarLineAdd("[KEYLOCK] Y0033/Y0034 OFF (500ms after Y003D ON).");
 	}
 
 	// Complete each request only after its delayed output step and contact confirmation.
@@ -1821,10 +1847,10 @@ void __fastcall Trobostar::DataModuleDestroy(TObject *Sender)
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::KeyLock(bool on)
 {
-	const DWORD KEYLOCK_OUTPUT_DELAY_MS = 500;
-
 	if(!on){
-		// Automatic operation must never release the key lock.
+		// KEYLOCK release interlocks:
+		// 1) automatic operation must never release the key lock;
+		// 2) X002A must confirm that the hardware BYPASS key is in ON position.
 		if(MainForm == NULL || MainForm->equipMode != modeManual)
 			return false;
 		// X002A ON confirms that the hardware BY-PASS switch is in ON position.
@@ -1833,23 +1859,32 @@ bool __fastcall Trobostar::KeyLock(bool on)
 //		if(keyLockReleasePending)
 //			return true;
 
-		// Release sequence: send Y003D ON now, then release Y0033/Y0034 after 200 ms.
+		// Release sequence: lock the BYPASS key with Y003C OFF, then send Y003D ON.
+		// Y0033/Y0034 are released only after the configured delay.
+		Bypass(false);
 		gripper.SAFETY_BYPASS_ON = true;
 		keyLockSetPending = false;
 		keyLockSetSafetyBypassOffTick = 0;
 		keyLockReleasePending = true;
 		io_WriteGripper();
 		keyLockReleaseOutputOffTick = GetTickCount() + KEYLOCK_OUTPUT_DELAY_MS;
-		MainForm->memoRobostarLineAdd("[KEYLOCK] Release requested: Y003D ON; wait 200ms.");
+		MainForm->memoRobostarLineAdd("[KEYLOCK] Release requested: Y003D ON; wait 500ms.");
 		return true;
+	}
+
+	// KEYLOCK set interlock: X0026/X0027 ON means Door #1/#2 is open.
+	// Never energize Y0033/Y0034 unless both door inputs are OFF (doors closed).
+	if(!CanSetKeyLock()){
+		if(MainForm != NULL)
+			MainForm->memoRobostarLineAdd("[KEYLOCK] Set rejected: X0026/X0027 door input is ON.");
+		return false;
 	}
 
 	if(keyLockSetPending)
 		return true;
 
-    Sleep(500);
-
-	// Set sequence: send Y0033/Y0034 ON now, then turn Y003D OFF after 200 ms.
+	// KEYLOCK set output order: Y0033/Y0034 ON first, then Y003D OFF after 500 ms.
+	// The timer re-checks X0026/X0027 throughout the delay and safely cancels if opened.
 	gripper.DOOR_LEFT_CLOSE = true;
 	gripper.DOOR_RIGHT_CLOSE = true;
 	keyLockReleasePending = false;
@@ -1858,20 +1893,34 @@ bool __fastcall Trobostar::KeyLock(bool on)
 	io_WriteGripper();
 	keyLockSetSafetyBypassOffTick = GetTickCount() + KEYLOCK_OUTPUT_DELAY_MS;
 	if(MainForm != NULL)
-		MainForm->memoRobostarLineAdd("[KEYLOCK] Set requested: Y0033/Y0034 ON; wait 200ms.");
+		MainForm->memoRobostarLineAdd("[KEYLOCK] Set requested: Y0033/Y0034 ON; wait 500ms.");
 	return true;
+}
+//---------------------------------------------------------------------------
+bool __fastcall Trobostar::CanSetKeyLock() const
+{
+	// X0026/X0027 are active-high door-open contacts. Both must be OFF.
+	return !input.SAFETY_DOOR_1 && !input.SAFETY_DOOR_2;
 }
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::Bypass(bool on)
 {
-	// Y003C may turn ON only after both key-lock outputs are ON and both
-	// door contacts confirm the locked/closed state. Turning it OFF is unconditional.
-	if(on && (!(gripper.DOOR_LEFT_CLOSE && gripper.DOOR_RIGHT_CLOSE)
-		|| !IsKeyLockActive()))
+	// Y003C ON releases the mechanical lock so the hardware BYPASS key can turn OFF.
+	// It is allowed only after the complete KEYLOCK set sequence and while the
+	// hardware BYPASS key is still confirmed in its ON position.
+	if(on && !CanEnableBypassSol())
 		return false;
 
 	gripper.DOOR_OPEN_SELECT = on;
 	return gripper.DOOR_OPEN_SELECT == on;
+}
+//---------------------------------------------------------------------------
+bool __fastcall Trobostar::CanEnableBypassSol() const
+{
+	return gripper.DOOR_LEFT_CLOSE && gripper.DOOR_RIGHT_CLOSE
+		&& IsKeyLockActive()
+		&& !keyLockSetPending && !keyLockReleasePending
+		&& IsBypassActive();
 }
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::RequestSafetyResetPulse()

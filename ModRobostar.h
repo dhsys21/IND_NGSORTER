@@ -210,7 +210,7 @@ typedef struct{
 	uint8_t TOWER_LAMP_YELLOW:1; //Y0039 TOWER LAMP YELLOW
 	uint8_t TOWER_LAMP_GREEN:1; //Y003A TOWER LAMP GREEN
 	uint8_t TOWER_LAMP_BUZZER:1; //Y003B TOWER LAMP BUZZER
-	uint8_t DOOR_OPEN_SELECT:1; //Y003C active-low: OFF=BYPASS ON, ON=BYPASS OFF
+	uint8_t DOOR_OPEN_SELECT:1; //Y003C BYPASS SOL: OFF=lock key ON, ON=allow key OFF after KEYLOCK set
 	uint8_t SAFETY_BYPASS_ON:1; //Y003D servo on when door open and keylock off
 	uint8_t Y003E:1; //Y003E
 	uint8_t Y003F:1; //Y003F
@@ -332,10 +332,11 @@ private:	// User declarations
 	int channel_id;
 	int timeout;
 	bool sscOpened;
-	bool keyLockSetPending;
-	bool keyLockReleasePending;
-	DWORD keyLockSetSafetyBypassOffTick;
-	DWORD keyLockReleaseOutputOffTick;
+	bool keyLockSetPending;                // Y0033/Y0034 ON; waiting to turn Y003D OFF.
+	bool keyLockReleasePending;            // Y003D ON; waiting to turn Y0033/Y0034 OFF.
+	bool previousBypassSwitchOn;           // Detect the hardware BYPASS-key ON edge.
+	DWORD keyLockSetSafetyBypassOffTick;   // Non-blocking KEYLOCK-set delay deadline.
+	DWORD keyLockReleaseOutputOffTick;     // Non-blocking KEYLOCK-release delay deadline.
 	DWORD safetyResetPulseUntilTick;
 	PNT_DATA_EX point[AxisCnt];
     bool bSetPoint;
@@ -400,7 +401,9 @@ public:		// User declarations
 	void __fastcall setTx();
 	bool __fastcall CheckEjectCell_before(int pos);
 	bool __fastcall KeyLock(bool on);
+	bool __fastcall CanSetKeyLock() const;
 	bool __fastcall Bypass(bool on);
+	bool __fastcall CanEnableBypassSol() const;
 	bool __fastcall RequestSafetyResetPulse();
 	bool __fastcall IsSoftwareSafetyResetActive() const;
 	bool __fastcall IsEmergencyStopActive() const;

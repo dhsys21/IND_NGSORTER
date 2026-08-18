@@ -907,8 +907,10 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	setLamp();
 
 	UpdateIoMonitoringPanel();
-	if(robostar->input.BYPASS_SW_ON) robostar->Y003D(true);
-	else if(!robostar->input.BYPASS_SW_ON) robostar->Y003D(false);
+	// Y003D follows a valid pair of BYPASS contacts; do not write CC-Link repeatedly.
+	bool safetyBypassOn = robostar->IsBypassActive();
+	if(robostar->gripper.SAFETY_BYPASS_ON != safetyBypassOn)
+		robostar->Y003D(safetyBypassOn);
 
 	//* 2026 08 07 천안 불량선별기와 동일하게 OPEN은 SSC 시스템 RUNNING 상태로 표시
 	if(robostar->IsSscOpened() && robostar->mr2.system_status == SSC_STS_CODE_RUNNING)

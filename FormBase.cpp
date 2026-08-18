@@ -211,7 +211,13 @@ void __fastcall TBaseForm::btnKeyLockClick(TObject *Sender)
         ShowMessage(GetLangStr("MSG_UNLOCK_KEY"));
 	}
 	else{
-		robostar->KeyLock(true);
+		// X0026/X0027 ON means Door #1/#2 is open. Do not start KEYLOCK setting.
+		if(!robostar->CanSetKeyLock()){
+			ShowMessage(L"Close Door #1 and Door #2 before setting KEYLOCK.\n\nX0026/X0027 must both be OFF.");
+			return;
+		}
+		if(!robostar->KeyLock(true))
+			ShowMessage(L"KEYLOCK set command was rejected by the safety interlock.");
 	}
 }
 //---------------------------------------------------------------------------
@@ -244,9 +250,19 @@ void __fastcall TBaseForm::btnKeyUnLockClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::btnBypassOnClick(TObject *Sender)
 {
-	// Manual operation only requests Y003C ON; door opening turns it OFF automatically.
+	// Y003C ON is permitted only after KEYLOCK set is fully confirmed.
+	if(!robostar->CanEnableBypassSol())
+	{
+		bool keyLockSet = robostar->gripper.DOOR_LEFT_CLOSE
+			&& robostar->gripper.DOOR_RIGHT_CLOSE && robostar->IsKeyLockActive();
+		if(!keyLockSet || robostar->IsBypassActive())
+			ShowMessage(L"Set KEYLOCK completely before enabling BY-PASS SOL.");
+		else
+			ShowMessage(L"Turn the hardware BY-PASS key to ON before enabling BY-PASS SOL.");
+		return;
+	}
 	if(!robostar->Bypass(true))
-		ShowMessage(L"Close both doors and set KEYLOCK before turning BY-PASS ON.");
+		ShowMessage(L"BY-PASS SOL command was rejected by the safety interlock.");
 }
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::btnSafetyResetClick(TObject *Sender)
