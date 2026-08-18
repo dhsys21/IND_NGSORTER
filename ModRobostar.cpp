@@ -1801,6 +1801,13 @@ bool __fastcall Trobostar::getGripperChuckStatus()
 	return input.GRIPPER1_CHUCK || gripper.GRIPPER1_CHUCK;
 }
 //---------------------------------------------------------------------------
+bool __fastcall Trobostar::getGripperOpenStatus()
+{
+	// AUTO entry requires physical OPEN confirmation: X0021 ON and X0020 OFF.
+	// The output command alone is not accepted as a completed interlock condition.
+	return input.GRIPPER1_UNCHUCK && !input.GRIPPER1_CHUCK;
+}
+//---------------------------------------------------------------------------
 void __fastcall Trobostar::mr2Sensing()
 {
 	if(!sscOpened) return;

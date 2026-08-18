@@ -411,18 +411,23 @@ bool __fastcall TMainForm::CheckServoAutoReady(bool showError)
 	bool servoOpenReady = m_ServoOpen;
 	bool servoOnReady = m_ServoON;
 	bool servoHomeReady = m_ServoHome;
+	bool gripperOpenReady = robostar->getGripperOpenStatus();
 
-	if(servoOpenReady && servoOnReady && servoHomeReady)
+	if(servoOpenReady && servoOnReady && servoHomeReady && gripperOpenReady)
 		return true;
 
 	UnicodeString detail = L"Servo OPEN : " + UnicodeString(servoOpenReady ? L"OK" : L"NOT COMPLETE") + L"\r\n";
 	detail += L"Servo ON     : " + UnicodeString(servoOnReady ? L"OK" : L"NOT COMPLETE") + L"\r\n";
 	detail += L"Servo HOME   : " + UnicodeString(servoHomeReady ? L"OK" : L"NOT COMPLETE") + L"\r\n";
-	detail += L"Complete Servo OPEN -> ON -> HOME (XYZ=0) before AUTO.";
+	detail += L"Gripper OPEN : " + UnicodeString(gripperOpenReady ? L"OK" : L"NOT COMPLETE") + L"\r\n";
+	detail += L"Confirm X0021 OPEN is ON and X0020 CHUCK is OFF before AUTO.";
 
 	memoRobostarLineAdd("[AUTO INTERLOCK] OPEN=" + IntToStr(servoOpenReady ? 1 : 0) +
 		", ON=" + IntToStr(servoOnReady ? 1 : 0) +
-		", HOME=" + IntToStr(servoHomeReady ? 1 : 0));
+		", HOME=" + IntToStr(servoHomeReady ? 1 : 0) +
+		", GRIPPER_OPEN=" + IntToStr(gripperOpenReady ? 1 : 0) +
+		" (X0021=" + IntToStr(robostar->input.GRIPPER1_UNCHUCK ? 1 : 0) +
+		", X0020=" + IntToStr(robostar->input.GRIPPER1_CHUCK ? 1 : 0) + ")");
 	if(showError)
 		AlarmForm->ShowError(BaseForm->GetLangStr("MSG_AUTO_ALARM1"), detail);
 	return false;

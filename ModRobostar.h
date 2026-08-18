@@ -397,6 +397,7 @@ public:		// User declarations
 	void __fastcall GripperChuck(int num, bool open, bool close);
 
 	bool __fastcall getGripperChuckStatus();
+	bool __fastcall getGripperOpenStatus();
 	bool __fastcall getCellDetectStatus();
 	bool __fastcall getCellDetectStatus(int pos);
 

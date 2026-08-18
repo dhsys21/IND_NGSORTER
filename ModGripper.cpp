@@ -132,17 +132,43 @@ void __fastcall Tgripper::Initialize()
 				int servo_dccl_speed = teachForm->dcclSpeedEdit->Text.ToInt();
 				robostar->req_Speed(servo_speed, servo_accl_speed, servo_dccl_speed);
 
+				// Check the physical cell sensor before clearing the previous tool assignment.
+				// A cell left after an interrupted insert must use the insert recovery form.
 				for(int i=0; i<gripCnt; ++i){
-					memset(&tool[i], 0, sizeof(tool[i]));
-					tool[i].disable = disable_gripper[i];	// true : 사용안함, false : 사용함
-					tool[i].source_ch = "0";
-					tool[i].target_ch = "0";
+					if(disable_gripper[i] == false && robostar->CheckEjectCell_before(i+1) == false){
+						int sourceChannel = tool[i].source_ch.ToIntDef(0);
+						int targetChannel = tool[i].target_ch.ToIntDef(0);
+						AnsiString cellError = BaseForm->GetLangStr("MSG_GRIPPER_CELLDETECT") + IntToStr(i+1);
 
-					if(tool[i].disable == false && robostar->CheckEjectCell_before(i+1) == false){ 	// 그리퍼 사용하는데 셀이 있으면 알람발생
-						MainForm->memoGripperLineAdd("[Init step 0] " + BaseForm->GetLangStr("MSG_GRIPPER_CELLDETECT") + IntToStr(i+1));
-						AlarmForm->ShowError(BaseForm->GetLangStr("MSG_GRIPPER_CELLDETECT") + IntToStr(i+1), BaseForm->GetLangStr("MSG_AUTO_ALARM2"));
+						if(sourceChannel >= 1 && sourceChannel <= MainForm->tray_source.SLOT_COUNT &&
+							targetChannel >= 1 && targetChannel <= MainForm->tray_target.SLOT_COUNT){
+							//* 삽입 오류 복구: 초기화 전에 남아 있는 취출/삽입 정보를 보존한다.
+							insert.pos = targetChannel;
+							insert.conCnt = 1;
+							insert.gripper = i + 1;
+							seq = seqInserting;
+							step.step = 1; // Retry waits for a newly requested AutoInsert sequence.
+							MainForm->memoGripperLineAdd(
+								"[INSERT RECOVERY] Cell detected before initialization. "
+								"Gripper=" + IntToStr(i+1) +
+								" SourceCh=" + IntToStr(sourceChannel) +
+								" TargetCh=" + IntToStr(targetChannel));
+							ErrorForm_insert->ShowError(cellError,
+								BaseForm->GetLangStr("MSG_AUTO_ALARM2"), i+1, 23);
+						}else{
+							MainForm->memoGripperLineAdd("[Init step 0] " + cellError);
+							AlarmForm->ShowError(cellError, BaseForm->GetLangStr("MSG_AUTO_ALARM2"));
+						}
 						return;
 					}
+				}
+
+				// No cell is present: start a new assignment only now.
+				for(int i=0; i<gripCnt; ++i){
+					memset(&tool[i], 0, sizeof(tool[i]));
+					tool[i].disable = disable_gripper[i];	// true : 미사용, false : 사용
+					tool[i].source_ch = "0";
+					tool[i].target_ch = "0";
 				}
 				step.step += 1;
 			}else{
