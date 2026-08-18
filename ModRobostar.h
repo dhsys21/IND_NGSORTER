@@ -411,6 +411,7 @@ public:		// User declarations
 	bool __fastcall IsSafetyDoorOpen(int doorNo) const;
 	bool __fastcall IsKeyLockActive() const;
 	bool __fastcall IsBypassActive() const;
+	bool __fastcall RestoreServoState(); // Attach to the board and reuse an already RUNNING servo system.
 	bool __fastcall IsSscOpened() const;
 	bool m_bInsertSave;
     void __fastcall Y003D(bool bOn);

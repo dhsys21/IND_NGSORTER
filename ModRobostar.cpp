@@ -161,6 +161,15 @@ bool __fastcall Trobostar::WriteLog(int status, UnicodeString msg)
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::StartServoSystemFromParameterFile()
 {
+	// Reuse the controller state left RUNNING by manual operation or a previous
+	// program instance. Parameter reset/reboot is needed only when it is stopped.
+	if(RestoreServoState()){
+		if(MainForm != NULL)
+			MainForm->memoRobostarLineAdd("[SERVO OPEN] Existing RUNNING system reused; reboot skipped.");
+		return true;
+	}
+	if(!sscOpened) return false;
+
 	std::vector<MR_MC2XX_PARAMETER_ENTRY> parameters;
 	parameters.reserve(4000);
 	bool foundExternalForcedStop = false;
@@ -405,6 +414,84 @@ bool __fastcall Trobostar::StartServoSystemFromParameterFile()
 			IntToStr(emergencyStatus));
 
 	MainForm->memoRobostarLineAdd("SERVO SYSTEM OPEN complete: status=0x000A");
+	return true;
+}
+//---------------------------------------------------------------------------
+bool __fastcall Trobostar::RestoreServoState()
+{
+	// sscOpen() creates this process's board handle. It does not mean that the
+	// controller must be rebooted; an already RUNNING system can be reused.
+	if(!sscOpened){
+		int openStatus = sscOpen(board_id);
+		if(openStatus != SSC_OK){
+			if(MainForm != NULL)
+				MainForm->memoRobostarLineAdd("[SERVO RESTORE] Position board attach failed: return=0x" +
+					IntToHex(openStatus, 8) + ", lastError=0x" + IntToHex(sscGetLastError(), 8));
+			return false;
+		}
+		sscOpened = true;
+		if(MainForm != NULL)
+			MainForm->memoRobostarLineAdd("[SERVO RESTORE] Position board attached.");
+	}
+
+	short systemStatus = 0;
+	int statusResult = sscGetSystemStatusCode(board_id, channel_id, &systemStatus);
+	if(statusResult != SSC_OK){
+		if(MainForm != NULL)
+			MainForm->memoRobostarLineAdd("[SERVO RESTORE] System status read failed: return=0x" +
+				IntToHex(statusResult, 8) + ", lastError=0x" + IntToHex(sscGetLastError(), 8));
+		return false;
+	}
+
+	mr2.system_status = systemStatus;
+	if(systemStatus != SSC_STS_CODE_RUNNING){
+		if(MainForm != NULL){
+			MainForm->m_ServoOpen = false;
+			MainForm->m_ServoON = false;
+			MainForm->m_ServoHome = false;
+			MainForm->m_ServoHomeEmg = false;
+			MainForm->memoRobostarLineAdd("[SERVO RESTORE] Existing system is not RUNNING: status=0x" +
+				IntToHex((int)(unsigned short)systemStatus, 4));
+		}
+		return false;
+	}
+
+	bool allServoOn = true;
+	bool allOriginComplete = true;
+	bool allAtWaitPosition = true;
+	short monitorNum[4] = {0x024E, 0, 0, 0};
+	for(int axis = 1; axis <= servoCnt; ++axis){
+		sscSetMonitor(board_id, channel_id, axis, &monitorNum[0]);
+
+		int ready = SSC_BIT_OFF;
+		int zeroRequest = SSC_BIT_ON;
+		long position = 0;
+		if(sscGetStatusBitSignalEx(board_id, channel_id, axis,
+			SSC_STSBIT_AX_RDY, &ready) != SSC_OK)
+			ready = SSC_BIT_OFF;
+		if(sscGetStatusBitSignalEx(board_id, channel_id, axis,
+			SSC_STSBIT_AX_ZREQ, &zeroRequest) != SSC_OK)
+			zeroRequest = SSC_BIT_ON;
+		if(sscGetCurrentCmdPositionFast(board_id, channel_id, axis, &position) != SSC_OK)
+			allAtWaitPosition = false;
+
+		mr2.servo[axis] = ready;
+		mr2.zero[axis] = zeroRequest;
+		mr2.pos[axis] = position;
+		if(ready != SSC_BIT_ON) allServoOn = false;
+		if(zeroRequest != SSC_BIT_OFF) allOriginComplete = false;
+		if(position != 0) allAtWaitPosition = false;
+	}
+
+	if(MainForm != NULL){
+		MainForm->m_ServoOpen = true;
+		MainForm->m_ServoON = allServoOn;
+		MainForm->m_ServoHomeEmg = allServoOn && allOriginComplete;
+		MainForm->m_ServoHome = allServoOn && allOriginComplete && allAtWaitPosition;
+		MainForm->memoRobostarLineAdd("[SERVO RESTORE] Existing RUNNING state restored: ServoON=" +
+			IntToStr(allServoOn ? 1 : 0) + ", Origin=" + IntToStr(allOriginComplete ? 1 : 0) +
+			", XYZ0=" + IntToStr(allAtWaitPosition ? 1 : 0));
+	}
 	return true;
 }
 //---------------------------------------------------------------------------

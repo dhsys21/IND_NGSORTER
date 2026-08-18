@@ -94,6 +94,8 @@ void __fastcall TMainForm::FormShow(TObject *Sender)
 	mdOpen(81,-1,&path);	/*	open 1st CC-Link board		*/
 	robostar->config.path = path;
 	robostar->io_Init();
+	// Recover the real controller state after a program restart without rebooting it.
+	robostar->RestoreServoState();
 
 	for(int i=0; i<4; ++i){
 		color_target[0][i] = clWhite;
@@ -369,6 +371,8 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 
 void __fastcall TMainForm::autoBtnClick(TObject *Sender)
 {
+	// Refresh the actual board/RUNNING/axis state before evaluating AUTO interlocks.
+	robostar->RestoreServoState();
 	if(m_ServoHome || !robostar->IsSscOpened())
 	{
 		if(!robostar->IsSscOpened())
