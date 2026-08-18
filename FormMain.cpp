@@ -369,38 +369,55 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TMainForm::autoBtnClick(TObject *Sender)
+bool __fastcall TMainForm::CheckServoAutoReady(bool showError)
 {
-	// Refresh the actual board/RUNNING/axis state before evaluating AUTO interlocks.
+	// Read controller status at the AUTO transition; UI colors are display only.
+	// m_ServoHome includes origin completion and the physical XYZ=0 wait position.
 	robostar->RestoreServoState();
-	if(m_ServoHome || !robostar->IsSscOpened())
-	{
-		if(!robostar->IsSscOpened())
-			memoRobostarLineAdd("[Servo] SSC is not open. Auto mode continues without servo control.");
+	bool servoOpenReady = m_ServoOpen;
+	bool servoOnReady = m_ServoON;
+	bool servoHomeReady = m_ServoHome;
 
-        int servo_speed = teachForm->speedEdit->Text.ToInt();
-		int servo_accl_speed = teachForm->acclSpeedEdit->Text.ToInt();
-		int servo_dccl_speed = teachForm->dcclSpeedEdit->Text.ToInt();
-		robostar->req_Speed(servo_speed, servo_accl_speed, servo_dccl_speed);
-		if(manualBtn->Down == true){
-			equipMode = modeAutoStop;
-			autoBtn->Down = true;
-			manualBtn->Down = false;
-			playBtn->Down = false;
-			stopBtn->Down = true;
-			EnableButton_auto(true);
-		}else{
-			autoBtn->Down = true;
-		}
-	}
-	else
-	{
-        autoBtn->Down = false;
-		AlarmForm->ShowError(BaseForm->GetLangStr("MSG_AUTO_ALARM1"), BaseForm->GetLangStr("MSG_AUTO_ALARM2"));
-	}
+	if(servoOpenReady && servoOnReady && servoHomeReady)
+		return true;
+
+	UnicodeString detail = L"Servo OPEN : " + UnicodeString(servoOpenReady ? L"OK" : L"NOT COMPLETE") + L"\r\n";
+	detail += L"Servo ON     : " + UnicodeString(servoOnReady ? L"OK" : L"NOT COMPLETE") + L"\r\n";
+	detail += L"Servo HOME   : " + UnicodeString(servoHomeReady ? L"OK" : L"NOT COMPLETE") + L"\r\n";
+	detail += L"Complete Servo OPEN -> ON -> HOME (XYZ=0) before AUTO.";
+
+	memoRobostarLineAdd("[AUTO INTERLOCK] OPEN=" + IntToStr(servoOpenReady ? 1 : 0) +
+		", ON=" + IntToStr(servoOnReady ? 1 : 0) +
+		", HOME=" + IntToStr(servoHomeReady ? 1 : 0));
+	if(showError)
+		AlarmForm->ShowError(BaseForm->GetLangStr("MSG_AUTO_ALARM1"), detail);
+	return false;
 }
 //---------------------------------------------------------------------------
 
+void __fastcall TMainForm::autoBtnClick(TObject *Sender)
+{
+	if(!CheckServoAutoReady(true)){
+		autoBtn->Down = false;
+		return;
+	}
+
+	int servo_speed = teachForm->speedEdit->Text.ToInt();
+	int servo_accl_speed = teachForm->acclSpeedEdit->Text.ToInt();
+	int servo_dccl_speed = teachForm->dcclSpeedEdit->Text.ToInt();
+	robostar->req_Speed(servo_speed, servo_accl_speed, servo_dccl_speed);
+	if(manualBtn->Down == true){
+		equipMode = modeAutoStop;
+		autoBtn->Down = true;
+		manualBtn->Down = false;
+		playBtn->Down = false;
+		stopBtn->Down = true;
+		EnableButton_auto(true);
+	}else{
+		autoBtn->Down = true;
+	}
+}
+//---------------------------------------------------------------------------
 void __fastcall TMainForm::manualBtnClick(TObject *Sender)
 {
 	if(autoBtn->Down == true){
@@ -441,6 +458,14 @@ void __fastcall TMainForm::manualBtnClick(TObject *Sender)
 
 void __fastcall TMainForm::playBtnClick(TObject *Sender)
 {
+	// Do not allow a direct PLAY action to bypass the AUTO servo interlock.
+	if(!CheckServoAutoReady(true)){
+		equipMode = modeAutoStop;
+		playBtn->Down = false;
+		stopBtn->Down = true;
+		return;
+	}
+
 	equipMode = modeAuto;
 	nowLampMode = LampAuto;
 	playBtn->Down = true;

@@ -419,6 +419,14 @@ bool __fastcall Trobostar::StartServoSystemFromParameterFile()
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::RestoreServoState()
 {
+	// Fail closed: a board/status read failure must never reuse stale ready flags.
+	if(MainForm != NULL){
+		MainForm->m_ServoOpen = false;
+		MainForm->m_ServoON = false;
+		MainForm->m_ServoHome = false;
+		MainForm->m_ServoHomeEmg = false;
+	}
+
 	// sscOpen() creates this process's board handle. It does not mean that the
 	// controller must be rebooted; an already RUNNING system can be reused.
 	if(!sscOpened){

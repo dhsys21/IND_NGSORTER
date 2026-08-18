@@ -36,8 +36,8 @@ __published:	// IDE-managed Components
 	TPanel *popen1;
 	TAdvSmoothButton *AdvSmoothButton12;
 	TAdvSmoothButton *AdvSmoothButton11;
-	TAdvSmoothButton *AdvSmoothButton13;
-	TAdvSmoothButton *AdvSmoothButton14;
+	TAdvSmoothButton *btnUp;
+	TAdvSmoothButton *btnDown;
 	TPanel *Panel40;
 	TImage *Image2;
 	TLabel *Label14;
@@ -136,6 +136,8 @@ __published:	// IDE-managed Components
 	void __fastcall btnMoveTargetClick(TObject *Sender);
 	void __fastcall btnMoveSourceClick(TObject *Sender);
 	void __fastcall AdvSmoothButton5Click(TObject *Sender);
+	void __fastcall btnUpClick(TObject *Sender);
+	void __fastcall btnDownClick(TObject *Sender);
 	void __fastcall FormHide(TObject *Sender);
 private:	// User declarations
 public:		// User declarations

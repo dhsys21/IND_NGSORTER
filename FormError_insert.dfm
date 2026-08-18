@@ -5450,7 +5450,6 @@ object ErrorForm_insert: TErrorForm_insert
         Transparent = True
       end
       object lblUpDown: TLabel
-        Visible = False
         Tag = 1
         Left = 26
         Top = 239
@@ -5867,7 +5866,6 @@ object ErrorForm_insert: TErrorForm_insert
         TMSStyle = 8
       end
       object btnUp: TAdvSmoothButton
-        Visible = False
         Tag = 1
         Left = 5
         Top = 253
@@ -5993,10 +5991,10 @@ object ErrorForm_insert: TErrorForm_insert
           44AE426082}
         TabOrder = 8
         Version = '2.1.1.5'
+        OnClick = btnUpClick
         TMSStyle = 8
       end
       object btnDown: TAdvSmoothButton
-        Visible = False
         Tag = 1
         Left = 40
         Top = 253
@@ -6122,6 +6120,7 @@ object ErrorForm_insert: TErrorForm_insert
           426082}
         TabOrder = 9
         Version = '2.1.1.5'
+        OnClick = btnDownClick
         TMSStyle = 8
       end
     end

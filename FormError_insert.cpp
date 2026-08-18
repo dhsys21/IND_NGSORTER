@@ -119,6 +119,30 @@ void __fastcall TErrorForm_insert::btnCloseClick(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
+void __fastcall TErrorForm_insert::btnUpClick(TObject *Sender)
+{
+	if(robostar->seq == seqIdle || robostar->seq == seqPause)
+		robostar->req_zUp();
+	else
+		MessageBox(Handle, L"Another servo sequence is running.",
+			L"Z Axis Up", MB_OK|MB_ICONWARNING);
+}
+//---------------------------------------------------------------------------
+void __fastcall TErrorForm_insert::btnDownClick(TObject *Sender)
+{
+	if(robostar->move.pallet == 1 && robostar->getGripperChuckStatus()){
+		MessageBox(Handle,
+			L"The gripper is CHUCK. Z DOWN is blocked at the Source Tray.",
+			L"Source Tray Z Down Interlock", MB_OK|MB_ICONWARNING);
+		return;
+	}
+	if(!robostar->req_zDown()){
+		MessageBox(Handle,
+			L"Check the selected Source/Target channel, servo status, and Z teaching value.",
+			L"Z Axis Down", MB_OK|MB_ICONWARNING);
+	}
+}
+//---------------------------------------------------------------------------
 void __fastcall TErrorForm_insert::FormHide(TObject *Sender)
 {
 	MainForm->NotifyAlarm(false, this->Tag);

@@ -314,6 +314,7 @@ __published:	// IDE-managed Components
 private:	// User declarations
 //------------ Æû °ü·Ã -------------------//
 
+	bool __fastcall CheckServoAutoReady(bool showError);
 	void __fastcall InitMode();
 	void __fastcall AutoMode();
 	void __fastcall ManualMode();
