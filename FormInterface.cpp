@@ -373,7 +373,6 @@ void __fastcall TInterfaceForm::SetupMesTestControls()
 	ListView_PC_TAG->OnClick = ListViewPCTagClick;
 	btnSourceTrayLoad->OnClick = btnSourceTrayLoadClick;
 	btnTargetTrayLoad->OnClick = btnTargetTrayLoadClick;
-	btnWriteTargetData->OnClick = btnWriteTargetDataClick;
 
 	Timer_MES_Update->OnTimer = Timer_MES_UpdateTimer;
 	Timer_MES_Update->Interval = 1000;
@@ -480,7 +479,27 @@ bool __fastcall TInterfaceForm::CanRunMesTest()
 	return true;
 }
 //---------------------------------------------------------------------------
-bool __fastcall TInterfaceForm::IsNgChannel(int Channel)
+UnicodeString __fastcall TInterfaceForm::FindTrackInCellId(int SourceCellNo)
+{
+	if (Mod_Fms == NULL || SourceCellNo < 1 || SourceCellNo > 96)
+		return L"";
+
+	const UnicodeString Root = L"F1NGS01.Location1.TrackInCellInformation";
+	int Count = Mod_Fms->GetFmsTagInt(Root + L".CellCount", 0);
+	if (Count <= 0 || Count > 96)
+		Count = 96;
+
+	for (int i = 0; i < Count; ++i)
+	{
+		UnicodeString CellRoot = Root + L".Cell." + IntToStr(i);
+		if (Mod_Fms->GetFmsTagInt(CellRoot + L".CellNo", 0) == SourceCellNo)
+			return Mod_Fms->GetFmsTagString(CellRoot + L".CellId", L"").Trim();
+	}
+
+	return L"";
+}
+//---------------------------------------------------------------------------
+bool __fastcall TInterfaceForm::IsTrackOutTestChannel(int Channel)
 {
 	TStringList *Parts = new TStringList();
 	try
@@ -501,76 +520,125 @@ bool __fastcall TInterfaceForm::IsNgChannel(int Channel)
 	return false;
 }
 //---------------------------------------------------------------------------
-void __fastcall TInterfaceForm::SendTrayLoadTest(bool TargetTray)
+void __fastcall TInterfaceForm::WriteTrackOutCellInformationTest()
 {
 	if (!CanRunMesTest())
 		return;
 
-	UnicodeString TrayId = TargetTray ? editOCV->Text.Trim() : editIR->Text.Trim();
-	if (TrayId.IsEmpty())
+	int SelectedCount = 0;
+	for (int Channel = 1; Channel <= 96; ++Channel)
 	{
-		Application->MessageBox(L"Enter a tray ID.", L"NGSORTER MES TEST",
-			MB_OK | MB_ICONWARNING);
+		if (IsTrackOutTestChannel(Channel))
+			++SelectedCount;
+	}
+	if (SelectedCount == 0)
+	{
+		Application->MessageBox(L"Enter at least one TrackIn channel.",
+			L"NGSORTER MES TEST", MB_OK | MB_ICONWARNING);
 		return;
 	}
 
-	TRAY_INFO *PreviousTray = MainForm->tray;
-	MainForm->tray = TargetTray ? &MainForm->tray_target : &MainForm->tray_source;
-
-	TPanel *TrayIdPanel =
-		TargetTray ? MainForm->pTrayid_target : MainForm->pTrayid_source;
-	if (TrayIdPanel != NULL)
-		TrayIdPanel->Caption = TrayId;
-
-	MesOpc->TRAY_LOAD_REQUEST();
-	Mod_Fms->FlushPendingPcTags();
-	MainForm->tray = PreviousTray;
-	RefreshMesTagLists();
-}
-//---------------------------------------------------------------------------
-void __fastcall TInterfaceForm::WriteTargetTrackOutTestData()
-{
-	if (!CanRunMesTest())
-		return;
-
-	UnicodeString TargetTrayId = editOCV->Text.Trim();
-	if (TargetTrayId.IsEmpty())
+	const UnicodeString TrackInRoot = L"F1NGS01.Location1.TrackInCellInformation";
+	const UnicodeString TrackOutRoot = L"F1NGS01.Location2.TrackOutCellInformation";
+	int TrackInCount = Mod_Fms->GetFmsTagInt(TrackInRoot + L".CellCount", 0);
+	if (TrackInCount <= 0 || TrackInCount > 96)
 	{
-		Application->MessageBox(L"Enter a target tray ID.", L"NGSORTER MES TEST",
-			MB_OK | MB_ICONWARNING);
+		Application->MessageBox(L"TrackInCellInformation.CellCount is invalid.",
+			L"NGSORTER MES TEST", MB_OK | MB_ICONWARNING);
 		return;
 	}
 
-	TRAY_INFO *Tray = &MainForm->tray_target;
-	Tray->SLOT_COUNT = 96;
-	for (int i = 0; i < Tray->SLOT_COUNT; ++i)
+	int OutputIndex = 0;
+	for (int Channel = 1; Channel <= 96; ++Channel)
 	{
-		bool IsNg = IsNgChannel(i + 1);
-		Tray->SLOT_POSITION[i] = IntToStr(i + 1);
-		Tray->TARGET_SLOT_POSITION[i] = IntToStr(i + 1);
-		if (IsNg)
+		if (!IsTrackOutTestChannel(Channel))
+			continue;
+
+		int TrackInIndex = -1;
+		for (int i = 0; i < TrackInCount; ++i)
 		{
-			UnicodeString CellId = L"TEST_CELL_" + FormatFloat(L"000", i + 1);
-			Tray->SLOT_ID[i] = AnsiString(CellId);
+			UnicodeString InputCell = TrackInRoot + L".Cell." + IntToStr(i);
+			if (Mod_Fms->GetFmsTagInt(InputCell + L".CellNo", 0) == Channel)
+			{
+				TrackInIndex = i;
+				break;
+			}
 		}
-		else
-			Tray->SLOT_ID[i] = "";
-		Tray->CELL_LOT_ID[i] = IsNg ? "TEST_LOT" : "";
-		Tray->LOSS_CD[i] = IsNg ? "TEST_NG" : "";
-		Tray->LOSS_DESC[i] = "";
-		Tray->PICK[i] = IsNg ? "Y" : "N";
-		Tray->RANK[i] = IsNg ? "NG" : "";
-		Tray->SAMPLE_CODE[i] = "";
+
+		if (TrackInIndex < 0)
+		{
+			Application->MessageBox(
+				(L"Channel " + IntToStr(Channel) +
+				 L" was not found in TrackInCellInformation.").c_str(),
+				L"NGSORTER MES TEST", MB_OK | MB_ICONWARNING);
+			return;
+		}
+
+		UnicodeString InputCell = TrackInRoot + L".Cell." + IntToStr(TrackInIndex);
+		UnicodeString OutputCell = TrackOutRoot + L".Cell." + IntToStr(OutputIndex++);
+		Mod_Fms->SetPcTag(OutputCell + L".CellId",
+			Mod_Fms->GetFmsTagString(InputCell + L".CellId", L""));
+		Mod_Fms->SetPcTag(OutputCell + L".CellNo",
+			Mod_Fms->GetFmsTagInt(InputCell + L".CellNo", 0));
+		Mod_Fms->SetPcTag(OutputCell + L".LotId",
+			Mod_Fms->GetFmsTagString(InputCell + L".LotId", L""));
+		Mod_Fms->SetPcTag(OutputCell + L".CellExist",
+			Mod_Fms->GetFmsTagBool(InputCell + L".CellExist", false));
+		Mod_Fms->SetPcTag(OutputCell + L".NGCode",
+			Mod_Fms->GetFmsTagString(InputCell + L".NGCode", L""));
+		Mod_Fms->SetPcTag(OutputCell + L".Grade",
+			Mod_Fms->GetFmsTagString(InputCell + L".Grade", L""));
+		Mod_Fms->SetPcTag(OutputCell + L".WorkFlag",
+			Mod_Fms->GetFmsTagBool(InputCell + L".WorkFlag", false));
 	}
 
-	MainForm->pTrayid_target2->Caption = TargetTrayId;
-	MesOpc->PROCESS_DATA_WRITE();
+	for (int i = OutputIndex; i < 96; ++i)
+	{
+		UnicodeString OutputCell = TrackOutRoot + L".Cell." + IntToStr(i);
+		Mod_Fms->SetPcTag(OutputCell + L".CellId", L"");
+		Mod_Fms->SetPcTag(OutputCell + L".CellNo", 0);
+		Mod_Fms->SetPcTag(OutputCell + L".LotId", L"");
+		Mod_Fms->SetPcTag(OutputCell + L".CellExist", false);
+		Mod_Fms->SetPcTag(OutputCell + L".NGCode", L"");
+		Mod_Fms->SetPcTag(OutputCell + L".Grade", L"");
+		Mod_Fms->SetPcTag(OutputCell + L".WorkFlag", false);
+	}
+
+	Mod_Fms->SetPcTag(TrackOutRoot + L".CellCount", OutputIndex);
 	Mod_Fms->FlushPendingPcTags();
 	RefreshMesTagLists();
 
 	MainForm->WriteOpcUaLog("TEST",
-		AnsiString("TARGET TRACK OUT WRITE TrayId=" + TargetTrayId +
-			" NG=" + editNgList->Text));
+		AnsiString("TRACK OUT CELL INFORMATION TEST Count=" + IntToStr(OutputIndex) +
+			" TrackInChannels=" + editNgList->Text));
+}
+//---------------------------------------------------------------------------
+void __fastcall TInterfaceForm::WriteCellTrackOutTest()
+{
+	if (!CanRunMesTest())
+		return;
+
+	int SourceCellNo = editIR->Text.Trim().ToIntDef(0);
+	int TargetCellNo = editOCV->Text.Trim().ToIntDef(0);
+	if (SourceCellNo < 1 || SourceCellNo > 96 ||
+		TargetCellNo < 1 || TargetCellNo > 96)
+	{
+		Application->MessageBox(L"Cell No From/To must be between 1 and 96.",
+			L"NGSORTER MES TEST", MB_OK | MB_ICONWARNING);
+		return;
+	}
+
+	UnicodeString CellId = FindTrackInCellId(SourceCellNo);
+	if (CellId.IsEmpty())
+	{
+		Application->MessageBox(
+			L"CellId was not found in TrackInCellInformation for Cell No From.",
+			L"NGSORTER MES TEST", MB_OK | MB_ICONWARNING);
+		return;
+	}
+
+	MesOpc->CELL_TRACK_OUT_REQUEST(SourceCellNo, TargetCellNo, AnsiString(CellId));
+	RefreshMesTagLists();
 }
 //---------------------------------------------------------------------------
 void __fastcall TInterfaceForm::Timer_MES_UpdateTimer(TObject *Sender)
@@ -614,16 +682,11 @@ void __fastcall TInterfaceForm::ListViewPCTagClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TInterfaceForm::btnSourceTrayLoadClick(TObject *Sender)
 {
-	SendTrayLoadTest(false);
+	WriteTrackOutCellInformationTest();
 }
 //---------------------------------------------------------------------------
 void __fastcall TInterfaceForm::btnTargetTrayLoadClick(TObject *Sender)
 {
-	SendTrayLoadTest(true);
-}
-//---------------------------------------------------------------------------
-void __fastcall TInterfaceForm::btnWriteTargetDataClick(TObject *Sender)
-{
-	WriteTargetTrackOutTestData();
+	WriteCellTrackOutTest();
 }
 //---------------------------------------------------------------------------

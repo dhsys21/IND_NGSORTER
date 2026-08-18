@@ -504,40 +504,49 @@ void __fastcall TMesOpc::PROCESS_DATA_WRITE()
 		return;
 
 	TRAY_INFO *Tray = &MainForm->tray_target;
-	int Count = Tray->SLOT_COUNT;
-	if (Count <= 0 || Count > 96)
-		Count = 96;
-
 	UnicodeString Root = TAG_TARGET + L".TrackOutCellInformation";
 	UnicodeString TargetTrayId = MainForm->pTrayid_target2->Caption.Trim();
 	if(TargetTrayId.IsEmpty()) TargetTrayId = MainForm->pTrayid_target->Caption.Trim();
-	SetPcInt(TrackOutTag(L"CellCount"), Count);
-	for (int i = 0; i < Count; ++i)
+
+	int CellCount = 0;
+	for (int TargetIndex = 0; TargetIndex < 96; ++TargetIndex)
 	{
-		bool CellExist = !Tray->SLOT_ID[i].IsEmpty();
-		SetPcString(CellTag(Root, i, L"CellId"), Tray->SLOT_ID[i]);
-		SetPcInt(CellTag(Root, i, L"CellNo"), i + 1);
-		// LotId/Grade/NGCode must be the original TrackInCellInformation values.
-		SetPcString(CellTag(Root, i, L"LotId"), Tray->CELL_LOT_ID[i]);
-		SetPcBool(CellTag(Root, i, L"CellExist"), CellExist);
-		SetPcString(CellTag(Root, i, L"NGCode"), Tray->LOSS_CD[i]);
-		SetPcString(CellTag(Root, i, L"Grade"), Tray->RANK[i]);
-		SetPcBool(CellTag(Root, i, L"WorkFlag"), CellExist);
-		// Full TrackOut array payload is intentionally file-only.
-		if(MainForm != NULL)
-			MainForm->WriteOpcUaLog("TRACK_OUT_DETAIL",
-				"Cell[" + IntToStr(i) + "] CellNo=" + IntToStr(i + 1) +
-				" CellExist=" + IntToStr(CellExist ? 1 : 0) +
-				" CellId=" + Tray->SLOT_ID[i] +
-				" LotId=" + Tray->CELL_LOT_ID[i] +
-				" Grade=" + Tray->RANK[i] +
-				" NGCode=" + Tray->LOSS_CD[i] +
-				" WorkFlag=" + IntToStr(CellExist ? 1 : 0), false);
+		if (Tray->SLOT_ID[TargetIndex].IsEmpty())
+			continue;
+
+		int OutputIndex = CellCount++;
+		SetPcString(CellTag(Root, OutputIndex, L"CellId"), Tray->SLOT_ID[TargetIndex]);
+		SetPcInt(CellTag(Root, OutputIndex, L"CellNo"), TargetIndex + 1);
+		SetPcString(CellTag(Root, OutputIndex, L"LotId"), Tray->CELL_LOT_ID[TargetIndex]);
+		SetPcBool(CellTag(Root, OutputIndex, L"CellExist"), true);
+		SetPcString(CellTag(Root, OutputIndex, L"NGCode"), Tray->LOSS_CD[TargetIndex]);
+		SetPcString(CellTag(Root, OutputIndex, L"Grade"), Tray->RANK[TargetIndex]);
+		SetPcBool(CellTag(Root, OutputIndex, L"WorkFlag"), true);
+
+		MainForm->WriteOpcUaLog("TRACK_OUT_DETAIL",
+			"Cell[" + IntToStr(OutputIndex) + "] CellNo=" + IntToStr(TargetIndex + 1) +
+			" CellId=" + Tray->SLOT_ID[TargetIndex] +
+			" LotId=" + Tray->CELL_LOT_ID[TargetIndex] +
+			" Grade=" + Tray->RANK[TargetIndex] +
+			" NGCode=" + Tray->LOSS_CD[TargetIndex] +
+			" WorkFlag=1", false);
 	}
 
+	for (int OutputIndex = CellCount; OutputIndex < 96; ++OutputIndex)
+	{
+		SetPcString(CellTag(Root, OutputIndex, L"CellId"), L"");
+		SetPcInt(CellTag(Root, OutputIndex, L"CellNo"), 0);
+		SetPcString(CellTag(Root, OutputIndex, L"LotId"), L"");
+		SetPcBool(CellTag(Root, OutputIndex, L"CellExist"), false);
+		SetPcString(CellTag(Root, OutputIndex, L"NGCode"), L"");
+		SetPcString(CellTag(Root, OutputIndex, L"Grade"), L"");
+		SetPcBool(CellTag(Root, OutputIndex, L"WorkFlag"), false);
+	}
+
+	SetPcInt(TrackOutTag(L"CellCount"), CellCount);
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 	LogOpcEvent("TRACK_OUT_CELL_INFORMATION WRITE TrayId=" + AnsiString(TargetTrayId) +
-		" Count=" + IntToStr(Count), true);
+		" Count=" + IntToStr(CellCount), true);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::CELL_TRACK_OUT_REQUEST(int SourceChannel, int TargetChannel,
@@ -546,10 +555,17 @@ void __fastcall TMesOpc::CELL_TRACK_OUT_REQUEST(int SourceChannel, int TargetCha
 	if(MainForm == NULL || Mod_Fms == NULL)
 		return;
 
-	UnicodeString SourceTrayId = MainForm->pTrayid_source->Caption.Trim();
-	if(SourceTrayId.IsEmpty()) SourceTrayId = MainForm->pTrayid_source2->Caption.Trim();
-	UnicodeString TargetTrayId = MainForm->pTrayid_target->Caption.Trim();
-	if(TargetTrayId.IsEmpty()) TargetTrayId = MainForm->pTrayid_target2->Caption.Trim();
+	UnicodeString SourceTrayId = Mod_Fms->GetPcTagString(
+		TrayInfoTag(TAG_SOURCE, L"TrayId"), L"").Trim();
+	UnicodeString TargetTrayId = Mod_Fms->GetPcTagString(
+		TrayInfoTag(TAG_TARGET, L"TrayId"), L"").Trim();
+	if(SourceTrayId.IsEmpty() || TargetTrayId.IsEmpty())
+	{
+		LogOpcEvent("CELL_TRACK_OUT REQUEST FAIL TrayInformation.TrayId is empty" +
+			AnsiString(" Source=") + AnsiString(SourceTrayId) +
+			AnsiString(" Target=") + AnsiString(TargetTrayId), true);
+		return;
+	}
 
 	bool MesTestMode = MainForm->cbMES != NULL && MainForm->cbMES->Checked;
 	if(!MesTestMode)

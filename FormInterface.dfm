@@ -350,17 +350,17 @@ object InterfaceForm: TInterfaceForm
     end
     object gbFmsIrOcvValue: TGroupBox
       Left = 25
-      Top = 221
+      Top = 215
       Width = 330
-      Height = 145
-      Caption = 'TRAY LOAD TEST'
+      Height = 125
+      Caption = 'CELL TRACK OUT TEST'
       TabOrder = 1
       object lblIrValue: TLabel
         Left = 16
         Top = 24
-        Width = 97
+        Width = 86
         Height = 16
-        Caption = 'SOURCE TRAY ID'
+        Caption = 'CELL NO FROM'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -13
@@ -371,9 +371,9 @@ object InterfaceForm: TInterfaceForm
       object lblOcvValue: TLabel
         Left = 16
         Top = 82
-        Width = 96
+        Width = 69
         Height = 16
-        Caption = 'TARGET TRAY ID'
+        Caption = 'CELL NO TO'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -13
@@ -387,7 +387,7 @@ object InterfaceForm: TInterfaceForm
         Width = 190
         Height = 21
         TabOrder = 0
-        Text = 'SOURCE_TEST'
+        Text = '1'
       end
       object editOCV: TEdit
         Left = 16
@@ -395,53 +395,56 @@ object InterfaceForm: TInterfaceForm
         Width = 190
         Height = 21
         TabOrder = 1
-        Text = 'TARGET_TEST'
-      end
-      object btnSourceTrayLoad: TButton
-        Left = 214
-        Top = 36
-        Width = 100
-        Height = 32
-        Caption = 'Source Load'
-        TabOrder = 2
+        Text = '1'
       end
       object btnTargetTrayLoad: TButton
-        Left = 214
-        Top = 94
-        Width = 100
-        Height = 32
-        Caption = 'Target Load'
-        TabOrder = 3
+        Left = 210
+        Top = 56
+        Width = 110
+        Height = 42
+        Caption = 'CellTrackOut Test'
+        TabOrder = 2
       end
     end
     object gbIrocvNgValue: TGroupBox
       Left = 25
-      Top = 376
+      Top = 348
       Width = 330
       Height = 82
-      Caption = 'TARGET NG CELL LIST'
+      Caption = 'TRACK OUT CELL INFORMATION TEST'
       TabOrder = 2
+      object lblTrackOutChannels: TLabel
+        Left = 16
+        Top = 22
+        Width = 121
+        Height = 16
+        Caption = 'TRACK-IN CHANNELS'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
+      end
       object editNgList: TEdit
         Left = 16
-        Top = 32
-        Width = 190
+        Top = 40
+        Width = 180
         Height = 21
         TabOrder = 0
         Text = '1,13,25,37,49,61,73,85'
       end
-      object btnWriteTargetData: TButton
-        Left = 214
-        Top = 24
-        Width = 100
+      object btnSourceTrayLoad: TButton
+        Left = 204
+        Top = 28
+        Width = 116
         Height = 36
-        Caption = 'Write Track Out'
+        Caption = 'TrackOut Test'
         TabOrder = 1
       end
     end
   end
   object Timer_PLC_Update: TTimer
-    Enabled = True
-    Interval = 1000
     OnTimer = Timer_PLC_UpdateTimer
     Left = 250
     Top = 112

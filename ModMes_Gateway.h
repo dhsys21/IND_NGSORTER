@@ -115,6 +115,8 @@ public:		// User declarations
 	void __fastcall SetPcTag(const System::UnicodeString &Key, const System::UnicodeString &Value);
 	void __fastcall SetPcTagJson(const System::UnicodeString &Key, const System::UnicodeString &JsonValue);
 	void __fastcall FlushPendingPcTags(bool LogTx = true);
+	bool __fastcall GetPcTagJson(const System::UnicodeString &Key, System::UnicodeString &JsonValue);
+	System::UnicodeString __fastcall GetPcTagString(const System::UnicodeString &Key, const System::UnicodeString &DefaultValue = L"");
 	bool __fastcall GetFmsTagJson(const System::UnicodeString &Key, System::UnicodeString &JsonValue);
 	bool __fastcall GetFmsTagBool(const System::UnicodeString &Key, bool DefaultValue = false);
 	int __fastcall GetFmsTagInt(const System::UnicodeString &Key, int DefaultValue = 0);

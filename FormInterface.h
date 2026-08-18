@@ -42,10 +42,10 @@ __published:	// IDE-managed Components
 	TEdit *editIR;
 	TEdit *editOCV;
 	TGroupBox *gbIrocvNgValue;
+	TLabel *lblTrackOutChannels;
 	TEdit *editNgList;
 	TButton *btnSourceTrayLoad;
 	TButton *btnTargetTrayLoad;
-	TButton *btnWriteTargetData;
 	TTimer *Timer_PLC_Update;
 	TTimer *Timer_MES_Update;
 	void __fastcall GroupBox_PLC_PCDblClick(TObject *Sender);
@@ -57,7 +57,6 @@ __published:	// IDE-managed Components
 	void __fastcall ListViewPCTagClick(TObject *Sender);
 	void __fastcall btnSourceTrayLoadClick(TObject *Sender);
 	void __fastcall btnTargetTrayLoadClick(TObject *Sender);
-	void __fastcall btnWriteTargetDataClick(TObject *Sender);
 private:	// User declarations
     void __fastcall AddListView(TListView *list, AnsiString address, AnsiString name);
     void __fastcall SetListViewPLC();
@@ -75,11 +74,12 @@ private:	// User declarations
 	void __fastcall UpdateListViewValues(TListView *list, TStrings *Rows);
 	void __fastcall UpdateMesValueEditor();
 	void __fastcall WriteMesValue();
-	void __fastcall SendTrayLoadTest(bool TargetTray);
-	void __fastcall WriteTargetTrackOutTestData();
+	void __fastcall WriteTrackOutCellInformationTest();
+	void __fastcall WriteCellTrackOutTest();
+	UnicodeString __fastcall FindTrackInCellId(int SourceCellNo);
+	bool __fastcall IsTrackOutTestChannel(int Channel);
 	UnicodeString __fastcall GetRowPart(const UnicodeString &Row, int Index);
 	UnicodeString __fastcall BuildJsonValue(const UnicodeString &DataType, const UnicodeString &Text);
-	bool __fastcall IsNgChannel(int Channel);
 	bool __fastcall CanRunMesTest();
 
     // PLC TEST

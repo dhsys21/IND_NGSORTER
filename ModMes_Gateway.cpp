@@ -1022,6 +1022,32 @@ void __fastcall TMod_Fms::FlushPendingPcTags(bool LogTx)
 		LogOpcUa(L"TX", Response);
 }
 //---------------------------------------------------------------------------
+bool __fastcall TMod_Fms::GetPcTagJson(const UnicodeString &Key, UnicodeString &JsonValue)
+{
+	UnicodeString SearchKey = NormalizeTagKeyForDirection(Key, ftdEqpOnly);
+	TLockGuard Guard(FLock);
+
+	TTagMap::iterator it = FPcTags.find(SearchKey);
+	if (it == FPcTags.end())
+		return false;
+
+	JsonValue = it->second;
+	return true;
+}
+//---------------------------------------------------------------------------
+UnicodeString __fastcall TMod_Fms::GetPcTagString(const UnicodeString &Key, const UnicodeString &DefaultValue)
+{
+	UnicodeString JsonValue;
+	if (!GetPcTagJson(Key, JsonValue))
+		return DefaultValue;
+
+	TJSONValue *Value = TJSONObject::ParseJSONValue(JsonValue, true);
+	TJSONString *TextValue = dynamic_cast<TJSONString*>(Value);
+	UnicodeString Result = TextValue != NULL ? TextValue->Value() : JsonValue;
+	delete Value;
+	return Result;
+}
+//---------------------------------------------------------------------------
 bool __fastcall TMod_Fms::GetFmsTagJson(const UnicodeString &Key, UnicodeString &JsonValue)
 {
 	UnicodeString SearchKey = NormalizeTagKeyForDirection(Key, ftdFmsOnly);
