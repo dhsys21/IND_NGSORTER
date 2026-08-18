@@ -384,7 +384,7 @@ public:		// User declarations
 	void __fastcall req_AutoEject(int pallet, int tool, int channel, int cnt, int type);
 	void __fastcall req_AutoInsert(int pallet, int tool, int channel, int cnt, int type);
 
-	void __fastcall req_EjectComplete();
+	bool __fastcall req_EjectComplete();
 	void __fastcall req_InsertComplete();
 
 	void __fastcall req_Reset();

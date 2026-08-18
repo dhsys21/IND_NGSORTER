@@ -76,10 +76,27 @@ void __fastcall TErrorForm_eject::retryBtnClick(TObject *Sender)
 
 void __fastcall TErrorForm_eject::ignoreBtnClick(TObject *Sender)
 {
-	MainForm->memoMainLineAdd("Eject complete");
+	if(!robostar->getCellDetectStatus()){
+		MainForm->memoRobostarLineAdd(
+			"[EJECT COMPLETE INTERLOCK] Blocked: no cell detected in the gripper.");
+		MessageBox(Handle,
+			L"Cell is not detected in the gripper.\r\n\r\n"
+			L"Eject Complete is blocked. Retry pickup or switch to Manual mode.",
+			L"EJECT COMPLETE INTERLOCK", MB_OK|MB_ICONWARNING);
+		return;
+	}
+
 	gripper->req_Pause(false);
 	robostar->req_Pause(false);
-	robostar->req_EjectComplete();
+	if(!robostar->req_EjectComplete()){
+		gripper->req_Pause(true);
+		robostar->req_Pause(true);
+		MainForm->memoRobostarLineAdd(
+			"[EJECT COMPLETE INTERLOCK] Cancelled: cell signal changed before completion.");
+		return;
+	}
+
+	MainForm->memoMainLineAdd("Eject complete");
 	MainForm->playBtnClick(Sender);
 	this->Visible = false;
 }

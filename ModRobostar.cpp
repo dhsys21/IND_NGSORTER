@@ -1963,9 +1963,16 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 //	else MainForm->memoRobostarLineAdd("[로보트] 대기상태");
 }
 //---------------------------------------------------------------------------
-void __fastcall Trobostar::req_EjectComplete()
+bool __fastcall Trobostar::req_EjectComplete()
 {
+	if(!getCellDetectStatus()){
+		MainForm->memoRobostarLineAdd(
+			"[EJECT COMPLETE INTERLOCK] Request rejected: gripper cell sensor is OFF.");
+		return false;
+	}
+
 	InitSequence(seqAutoEjectComplete);
+	return seq == seqAutoEjectComplete;
 }
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::req_InsertComplete()
