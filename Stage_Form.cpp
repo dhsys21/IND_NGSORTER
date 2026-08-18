@@ -144,7 +144,7 @@ void __fastcall TMainForm::MakePanel()
 {
 	int nx, ny, nw, nh;
 
-	nw = 146; // 196 -> 146
+	nw = 130; // Compact four-column map for side-by-side Source/Target trays.
 	nh = 16;
     nx = 2 + (3 * (30 + nw + 3));
 	ny = pBase->Height - nh - 3;//490;
@@ -160,7 +160,7 @@ void __fastcall TMainForm::MakePanel()
 		SetOption(psort_ing[index], nx + 30 + 1, ny, 50, nh, clWhite, index);
 
 		psort_bad[index] = new TPanel(this);
-		SetOption(psort_bad[index], nx + 80 + 2, ny, 95, nh, clWhite, index);
+		SetOption(psort_bad[index], nx + 80 + 2, ny, 79, nh, clWhite, index);
 
 		ny = ny - nh - 1;
 		index += 1;
@@ -236,7 +236,7 @@ void __fastcall TMainForm::ChangeTrayMap(int channel)
 			if(index < 48){
 				SetOption(psort_ch[index], nx, ny, 30, nh, pnlSourceTrayId->Color, index);
 				SetOption(psort_ing[index], nx + 30 + 1, ny, 50, nh, clWhite, index);
-				SetOption(psort_bad[index], nx + 80 + 2, ny, 95, nh, clWhite, index);
+				SetOption(psort_bad[index], nx + 80 + 2, ny, 79, nh, clWhite, index);
 				ny = ny - nh - 1;
 				index += 1;
 
@@ -259,7 +259,7 @@ void __fastcall TMainForm::MakePanel_TargetTray()
 {
     int nx, ny, nw, nh;
 
-    nw = 145;
+    nw = 128; // Compact four-column map for side-by-side Source/Target trays.
 	nh = 16;
 	nx = 2 + (3 * (30 + nw + 4));
 	ny = pTargetBase->Height - nh - 3;

@@ -29,8 +29,15 @@ public:		// User declarations
     int __fastcall CELL_TRACK_OUT_RESPONSE_RESULT();
     void __fastcall LogCellTrackOutTimeout();
     void __fastcall CELL_TRACK_OUT_CANCEL();
+    void __fastcall TRAY_UNLOAD_REQUEST();
+    int __fastcall TRAY_UNLOAD_RESPONSE_RESULT();
+    void __fastcall LogTrayUnloadTimeout();
+    void __fastcall TRAY_UNLOAD_CANCEL();
     void __fastcall PROCESS_END_REQUEST();
     bool __fastcall PROCESS_END_RESPONSE();
+    int __fastcall PROCESS_END_RESPONSE_RESULT();
+    void __fastcall LogProcessEndTimeout();
+    void __fastcall PROCESS_END_CANCEL();
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TMesOpc *MesOpc;

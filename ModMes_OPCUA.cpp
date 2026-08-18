@@ -163,14 +163,14 @@ static bool ValidateSourceTrackInCells(bool LogFailure)
 {
 	if (!HasFmsTag(TrackInTag(L"CellCount")))
 	{
-		if(LogFailure) LogOpcEvent("VALIDATION FAIL missing TrackInCellInformation.CellCount", true);
+		if(LogFailure) LogOpcEvent("VALIDATION FAIL missing TrackInCellInformation.CellCount", false);
 		return false;
 	}
 
 	int Count = GetFmsInt(TrackInTag(L"CellCount"));
 	if (Count <= 0 || Count > 96)
 	{
-		if(LogFailure) LogOpcEvent("VALIDATION FAIL TrackInCellInformation.CellCount=" + IntToStr(Count), true);
+		if(LogFailure) LogOpcEvent("VALIDATION FAIL TrackInCellInformation.CellCount=" + IntToStr(Count), false);
 		return false;
 	}
 
@@ -184,14 +184,14 @@ static bool ValidateSourceTrackInCells(bool LogFailure)
 			!HasFmsTag(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"Grade")) ||
 			!HasFmsTag(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"NGCode")))
 		{
-			if(LogFailure) LogOpcEvent("VALIDATION FAIL missing " + AnsiString(Prefix), true);
+			if(LogFailure) LogOpcEvent("VALIDATION FAIL missing " + AnsiString(Prefix), false);
 			return false;
 		}
 
 		int CellNo = GetFmsInt(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"CellNo"));
 		if (CellNo < 1 || CellNo > 96)
 		{
-			if(LogFailure) LogOpcEvent("VALIDATION FAIL " + AnsiString(Prefix) + ".CellNo=" + IntToStr(CellNo), true);
+			if(LogFailure) LogOpcEvent("VALIDATION FAIL " + AnsiString(Prefix) + ".CellNo=" + IntToStr(CellNo), false);
 			return false;
 		}
 
@@ -199,7 +199,7 @@ static bool ValidateSourceTrackInCells(bool LogFailure)
 		UnicodeString CellId = GetFmsString(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"CellId")).Trim();
 		if (CellExist && CellId.IsEmpty())
 		{
-			if(LogFailure) LogOpcEvent("VALIDATION FAIL empty " + AnsiString(Prefix) + ".CellId", true);
+			if(LogFailure) LogOpcEvent("VALIDATION FAIL empty " + AnsiString(Prefix) + ".CellId", false);
 			return false;
 		}
 	}
@@ -523,9 +523,19 @@ void __fastcall TMesOpc::PROCESS_DATA_WRITE()
 		SetPcString(CellTag(Root, i, L"NGCode"), Tray->LOSS_CD[i]);
 		SetPcString(CellTag(Root, i, L"Grade"), Tray->RANK[i]);
 		SetPcBool(CellTag(Root, i, L"WorkFlag"), CellExist);
+		// Full TrackOut array payload is intentionally file-only.
+		if(MainForm != NULL)
+			MainForm->WriteOpcUaLog("TRACK_OUT_DETAIL",
+				"Cell[" + IntToStr(i) + "] CellNo=" + IntToStr(i + 1) +
+				" CellExist=" + IntToStr(CellExist ? 1 : 0) +
+				" CellId=" + Tray->SLOT_ID[i] +
+				" LotId=" + Tray->CELL_LOT_ID[i] +
+				" Grade=" + Tray->RANK[i] +
+				" NGCode=" + Tray->LOSS_CD[i] +
+				" WorkFlag=" + IntToStr(CellExist ? 1 : 0), false);
 	}
 
-	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags();
+	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 	LogOpcEvent("TRACK_OUT_CELL_INFORMATION WRITE TrayId=" + AnsiString(TargetTrayId) +
 		" Count=" + IntToStr(Count), true);
 }
@@ -551,7 +561,7 @@ void __fastcall TMesOpc::CELL_TRACK_OUT_REQUEST(int SourceChannel, int TargetCha
 	SetPcString(CellTrackOutTag(L"TrayIdTo"), TargetTrayId);
 	SetPcString(CellTrackOutTag(L"CellId"), UnicodeString(CellId));
 	SetPcBool(CellTrackOutTag(L"CellUnloadComplete"), true);
-	Mod_Fms->FlushPendingPcTags();
+	Mod_Fms->FlushPendingPcTags(false);
 
 	LogOpcEvent("CELL_TRACK_OUT REQUEST CellId=" + CellId +
 		" From=" + AnsiString(SourceTrayId) + "/" + IntToStr(SourceChannel) +
@@ -572,7 +582,7 @@ int __fastcall TMesOpc::CELL_TRACK_OUT_RESPONSE_RESULT()
 	if(Mod_Fms != NULL){
 		if(!MesTestMode)
 			Mod_Fms->ClearFmsTag(CellTrackOutTag(L"CellUnloadCompleteResponse"));
-		Mod_Fms->FlushPendingPcTags();
+		Mod_Fms->FlushPendingPcTags(false);
 	}
 	if(Response == 1){
 		LogOpcEvent("CELL_TRACK_OUT RESPONSE SUCCESS", true);
@@ -638,23 +648,145 @@ void __fastcall TMesOpc::LogCellTrackOutTimeout()
 void __fastcall TMesOpc::CELL_TRACK_OUT_CANCEL()
 {
 	SetPcBool(CellTrackOutTag(L"CellUnloadComplete"), false);
-	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags();
+	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 	LogOpcEvent("CELL_TRACK_OUT CANCEL", true);
+}
+//---------------------------------------------------------------------------
+void __fastcall TMesOpc::TRAY_UNLOAD_REQUEST()
+{
+	const UnicodeString RequestKey = TrayProcessTag(TAG_TARGET, L"TrayUnloadRequest");
+	const UnicodeString ResponseKey = TrayProcessTag(TAG_TARGET, L"TrayUnloadResponse");
+	bool MesTestMode = MainForm != NULL && MainForm->cbMES != NULL && MainForm->cbMES->Checked;
+	if(Mod_Fms != NULL && !MesTestMode) Mod_Fms->ClearFmsTag(ResponseKey);
+	SetPcBool(RequestKey, true);
+	LogOpcEvent("TRAY_UNLOAD_REQUEST Location2 Request=true Waiting=TrayUnloadResponse", false);
+}
+//---------------------------------------------------------------------------
+int __fastcall TMesOpc::TRAY_UNLOAD_RESPONSE_RESULT()
+{
+	const UnicodeString RequestKey = TrayProcessTag(TAG_TARGET, L"TrayUnloadRequest");
+	const UnicodeString ResponseKey = TrayProcessTag(TAG_TARGET, L"TrayUnloadResponse");
+	int Response = GetFmsInt(ResponseKey);
+	if(Response == 0) return 0;
+	SetPcBool(RequestKey, false);
+	bool MesTestMode = MainForm != NULL && MainForm->cbMES != NULL && MainForm->cbMES->Checked;
+	if(Mod_Fms != NULL && !MesTestMode) Mod_Fms->ClearFmsTag(ResponseKey);
+	if(Response == 1){
+		LogOpcEvent("TRAY_UNLOAD_RESPONSE SUCCESS Value=1", false);
+		return 1;
+	}
+	if(Response == 2){
+		LogOpcEvent("TRAY_UNLOAD_RESPONSE FAIL Value=2", false);
+		return 2;
+	}
+	LogOpcEvent("VALIDATION FAIL TrayUnloadResponse=" + IntToStr(Response), false);
+	return -1;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMesOpc::LogTrayUnloadTimeout()
+{
+	const UnicodeString ResponseKey = TrayProcessTag(TAG_TARGET, L"TrayUnloadResponse");
+	UnicodeString ResponseJson;
+	bool HasResponse = Mod_Fms != NULL && Mod_Fms->GetFmsTagJson(ResponseKey, ResponseJson);
+	if(MainForm != NULL)
+		MainForm->WriteOpcUaLog("ERROR", "TRAY_UNLOAD_TIMEOUT Response=" +
+			(HasResponse ? AnsiString(ResponseJson) : AnsiString("<missing>")), false);
+}
+//---------------------------------------------------------------------------
+void __fastcall TMesOpc::TRAY_UNLOAD_CANCEL()
+{
+	SetPcBool(TrayProcessTag(TAG_TARGET, L"TrayUnloadRequest"), false);
+	LogOpcEvent("TRAY_UNLOAD_CANCEL", false);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::PROCESS_END_REQUEST()
 {
+	UnicodeString ResponseKey = TrayProcessTag(TAG_SOURCE, L"ProcessEndResponse");
+	bool MesTestMode = MainForm != NULL && MainForm->cbMES != NULL && MainForm->cbMES->Checked;
+	if(Mod_Fms != NULL && !MesTestMode)
+		Mod_Fms->ClearFmsTag(ResponseKey);
+	else if(MesTestMode)
+		LogOpcEvent("MES TEST: preserve preloaded ProcessEndResponse");
+
 	SetPcBool(TrayProcessTag(TAG_SOURCE, L"ProcessEnd"), true);
-	LogOpcEvent("PROCESS_END_REQUEST");
+	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
+	LogOpcEvent("PROCESS_END_REQUEST RequestTag=F1NGS01.Location1.TrayProcess.ProcessEnd=true "
+		"WaitingTag=F1NGS01.Location1.TrayProcess.ProcessEndResponse Expected=1(Success),2(Fail)", true);
 }
 //---------------------------------------------------------------------------
 bool __fastcall TMesOpc::PROCESS_END_RESPONSE()
 {
-	if (!GetFmsBool(TrayProcessTag(TAG_SOURCE, L"ProcessEndResponse")))
-		return false;
+	return PROCESS_END_RESPONSE_RESULT() == 1;
+}
+//---------------------------------------------------------------------------
+int __fastcall TMesOpc::PROCESS_END_RESPONSE_RESULT()
+{
+	UnicodeString ResponseKey = TrayProcessTag(TAG_SOURCE, L"ProcessEndResponse");
+	int Response = GetFmsInt(ResponseKey);
+	if(Response == 0)
+		return 0;
 
 	SetPcBool(TrayProcessTag(TAG_SOURCE, L"ProcessEnd"), false);
-	LogOpcEvent("PROCESS_END_RESPONSE");
-	return true;
+	bool MesTestMode = MainForm != NULL && MainForm->cbMES != NULL && MainForm->cbMES->Checked;
+	if(Mod_Fms != NULL){
+		if(!MesTestMode)
+			Mod_Fms->ClearFmsTag(ResponseKey);
+		Mod_Fms->FlushPendingPcTags(false);
+	}
+
+	if(Response == 1){
+		LogOpcEvent("PROCESS_END_RESPONSE SUCCESS Value=1", true);
+		return 1;
+	}
+	if(Response == 2){
+		LogOpcEvent("PROCESS_END_RESPONSE FAIL Value=2", true);
+		return 2;
+	}
+
+	LogOpcEvent("VALIDATION FAIL ProcessEndResponse=" + IntToStr(Response), true);
+	return -1;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMesOpc::LogProcessEndTimeout()
+{
+	const UnicodeString ResponseKey = TrayProcessTag(TAG_SOURCE, L"ProcessEndResponse");
+	UnicodeString RawValue;
+	bool GatewayConnected = Mod_Fms != NULL && Mod_Fms->IsGatewayConnected();
+	bool SnapshotReceived = Mod_Fms != NULL && Mod_Fms->SnapshotReceived;
+	bool TagPresent = Mod_Fms != NULL && Mod_Fms->GetFmsTagJson(ResponseKey, RawValue);
+	int ParsedValue = TagPresent ? StrToIntDef(RawValue.Trim(), -9999) : -9999;
+
+	TFmsTagDefinition Definition;
+	bool DefinitionFound = Mod_Fms != NULL &&
+		Mod_Fms->GetTagDefinitionInfo(ResponseKey, Definition);
+	UnicodeString NodeId = L"<definition missing>";
+	UnicodeString DataType = L"<unknown>";
+	if(DefinitionFound){
+		NodeId = Definition.NodeId;
+		DataType = Definition.DataType;
+	}
+
+	AnsiString RawText = TagPresent ? AnsiString(RawValue) : AnsiString("<missing>");
+	AnsiString Message =
+		"PROCESS_END_TIMEOUT WaitingTag=" + AnsiString(ResponseKey) +
+		" NodeId=" + AnsiString(NodeId) +
+		" DataType=" + AnsiString(DataType) +
+		" Expected=1(Success),2(Fail)" +
+		" ActualRaw=" + RawText +
+		" Parsed=" + IntToStr(ParsedValue) +
+		" TagPresent=" + AnsiString(TagPresent ? "true" : "false") +
+		" GatewayConnected=" + AnsiString(GatewayConnected ? "true" : "false") +
+		" SnapshotReceived=" + AnsiString(SnapshotReceived ? "true" : "false") +
+		" RequestTag=F1NGS01.Location1.TrayProcess.ProcessEnd(true)";
+
+	if(MainForm != NULL)
+		MainForm->WriteOpcUaLog("ERROR", Message, true);
+}
+//---------------------------------------------------------------------------
+void __fastcall TMesOpc::PROCESS_END_CANCEL()
+{
+	SetPcBool(TrayProcessTag(TAG_SOURCE, L"ProcessEnd"), false);
+	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
+	LogOpcEvent("PROCESS_END_CANCEL", true);
 }
 //---------------------------------------------------------------------------

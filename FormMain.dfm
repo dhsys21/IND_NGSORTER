@@ -30,9 +30,9 @@ object MainForm: TMainForm
     ParentFont = False
   end
   object pnlGripper: TAdvSmoothPanel
-    Left = 1019
-    Top = 0
-    Width = 140
+    Left = 742
+    Top = 1
+    Width = 171
     Height = 392
     Cursor = crDefault
     Caption.HTMLFont.Charset = DEFAULT_CHARSET
@@ -77,9 +77,9 @@ object MainForm: TMainForm
       TabOrder = 0
     end
     object Panel16: TPanel
-      Left = 5
+      Left = 8
       Top = 7
-      Width = 130
+      Width = 156
       Height = 379
       BevelKind = bkFlat
       BevelOuter = bvNone
@@ -672,8 +672,8 @@ object MainForm: TMainForm
         Transparent = True
       end
       object puse1: TLabel
-        Left = 78
-        Top = 265
+        Left = 96
+        Top = 263
         Width = 44
         Height = 13
         Alignment = taRightJustify
@@ -804,9 +804,9 @@ object MainForm: TMainForm
         TabOrder = 5
       end
       object pcode1: TPanel
-        Left = 50
+        Left = 53
         Top = 281
-        Width = 70
+        Width = 90
         Height = 30
         BevelKind = bkFlat
         BevelOuter = bvNone
@@ -822,7 +822,7 @@ object MainForm: TMainForm
         TabOrder = 6
       end
       object pnlCode: TPanel
-        Left = 4
+        Left = 7
         Top = 281
         Width = 45
         Height = 30
@@ -842,7 +842,7 @@ object MainForm: TMainForm
         TabOrder = 7
       end
       object pnlSource: TPanel
-        Left = 4
+        Left = 7
         Top = 343
         Width = 45
         Height = 30
@@ -862,9 +862,9 @@ object MainForm: TMainForm
         TabOrder = 8
       end
       object ptarget_ch1: TPanel
-        Left = 50
+        Left = 53
         Top = 312
-        Width = 70
+        Width = 90
         Height = 30
         BevelKind = bkFlat
         BevelOuter = bvNone
@@ -880,7 +880,7 @@ object MainForm: TMainForm
         TabOrder = 9
       end
       object pnlTarget: TPanel
-        Left = 4
+        Left = 7
         Top = 312
         Width = 45
         Height = 30
@@ -900,9 +900,9 @@ object MainForm: TMainForm
         TabOrder = 10
       end
       object psource_ch1: TPanel
-        Left = 50
+        Left = 53
         Top = 343
-        Width = 70
+        Width = 90
         Height = 30
         BevelKind = bkFlat
         BevelOuter = bvNone
@@ -3978,11 +3978,308 @@ object MainForm: TMainForm
       TabOrder = 34
     end
   end
-  object pnlLog: TAdvSmoothPanel
-    Left = 138
+  object pnlProcessFlow: TPanel
+    Left = 136
     Top = 400
-    Width = 1023
-    Height = 543
+    Width = 1762
+    Height = 78
+    BevelOuter = bvNone
+    Color = clWhite
+    ParentBackground = False
+    TabOrder = 12
+    object lblCurrentProcess: TLabel
+      Left = 6
+      Top = 56
+      Width = 1748
+      Height = 18
+      AutoSize = False
+      Caption = 'CURRENT PROCESS : WAITING FOR SOURCE TRAY'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -12
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentFont = False
+      Transparent = True
+    end
+    object pnlProcessStep01: TPanel
+      Left = 4
+      Top = 3
+      Width = 216
+      Height = 23
+      BevelOuter = bvNone
+      Caption = '[01] SOURCE TRAY IN'
+      Color = clSilver
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 0
+    end
+    object pnlProcessStep02: TPanel
+      Left = 223
+      Top = 3
+      Width = 216
+      Height = 23
+      BevelOuter = bvNone
+      Caption = '[02] SOURCE TRAY LOAD'
+      Color = clSilver
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 1
+    end
+    object pnlProcessStep03: TPanel
+      Left = 442
+      Top = 3
+      Width = 216
+      Height = 23
+      BevelOuter = bvNone
+      Caption = '[03] SOURCE CENTERING'
+      Color = clSilver
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 2
+    end
+    object pnlProcessStep04: TPanel
+      Left = 661
+      Top = 3
+      Width = 216
+      Height = 23
+      BevelOuter = bvNone
+      Caption = '[04] TARGET TRAY READY'
+      Color = clSilver
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 3
+    end
+    object pnlProcessStep05: TPanel
+      Left = 880
+      Top = 3
+      Width = 216
+      Height = 23
+      BevelOuter = bvNone
+      Caption = '[05] TARGET TRAY LOAD'
+      Color = clSilver
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 4
+    end
+    object pnlProcessStep06: TPanel
+      Left = 1099
+      Top = 3
+      Width = 216
+      Height = 23
+      BevelOuter = bvNone
+      Caption = '[06] PROCESS START'
+      Color = clSilver
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 5
+    end
+    object pnlProcessStep07: TPanel
+      Left = 1318
+      Top = 3
+      Width = 216
+      Height = 23
+      BevelOuter = bvNone
+      Caption = '[07] NG CHANNEL SELECT'
+      Color = clSilver
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 6
+    end
+    object pnlProcessStep08: TPanel
+      Left = 1537
+      Top = 3
+      Width = 216
+      Height = 23
+      BevelOuter = bvNone
+      Caption = '[08] MOVE EJECT CHANNEL'
+      Color = clSilver
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 7
+    end
+    object pnlProcessStep09: TPanel
+      Left = 4
+      Top = 29
+      Width = 216
+      Height = 23
+      BevelOuter = bvNone
+      Caption = '[09] CELL EJECT'
+      Color = clSilver
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 8
+    end
+    object pnlProcessStep10: TPanel
+      Left = 223
+      Top = 29
+      Width = 216
+      Height = 23
+      BevelOuter = bvNone
+      Caption = '[10] MOVE INSERT CHANNEL'
+      Color = clSilver
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 9
+    end
+    object pnlProcessStep11: TPanel
+      Left = 442
+      Top = 29
+      Width = 216
+      Height = 23
+      BevelOuter = bvNone
+      Caption = '[11] CELL INSERT'
+      Color = clSilver
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 10
+    end
+    object pnlProcessStep12: TPanel
+      Left = 661
+      Top = 29
+      Width = 216
+      Height = 23
+      BevelOuter = bvNone
+      Caption = '[12] CELL TRACK OUT'
+      Color = clSilver
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 11
+    end
+    object pnlProcessStep13: TPanel
+      Left = 880
+      Top = 29
+      Width = 216
+      Height = 23
+      BevelOuter = bvNone
+      Caption = '[13] WAIT / NEXT CHECK'
+      Color = clSilver
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 12
+    end
+    object pnlProcessStep14: TPanel
+      Left = 1099
+      Top = 29
+      Width = 216
+      Height = 23
+      BevelOuter = bvNone
+      Caption = '[14] PROCESS END'
+      Color = clSilver
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 13
+    end
+    object pnlProcessStep15: TPanel
+      Left = 1318
+      Top = 29
+      Width = 216
+      Height = 23
+      BevelOuter = bvNone
+      Caption = '[15] SOURCE TRAY OUT'
+      Color = clSilver
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 14
+    end
+    object pnlProcessStep16: TPanel
+      Left = 1537
+      Top = 29
+      Width = 216
+      Height = 23
+      BevelOuter = bvNone
+      Caption = '[16] TARGET TRAY UNLOAD'
+      Color = clSilver
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 15
+    end
+  end
+  object pnlLog: TAdvSmoothPanel
+    Left = 921
+    Top = 0
+    Width = 977
+    Height = 392
     Cursor = crDefault
     Margins.Left = 5
     Margins.Top = 5
@@ -4136,8 +4433,8 @@ object MainForm: TMainForm
     object memoLog: TMemo
       Left = 5
       Top = 37
-      Width = 1013
-      Height = 501
+      Width = 967
+      Height = 350
       Margins.Left = 5
       Margins.Top = 5
       Margins.Right = 5
@@ -4145,11 +4442,12 @@ object MainForm: TMainForm
       Align = alClient
       ScrollBars = ssBoth
       TabOrder = 6
+      ExplicitWidth = 1146
     end
     object pnlLogTitle: TAdvSmoothPanel
       Left = 5
       Top = 5
-      Width = 1013
+      Width = 967
       Height = 32
       Cursor = crDefault
       CanMove = True
@@ -4181,6 +4479,7 @@ object MainForm: TMainForm
       Padding.Top = 3
       Padding.Right = 3
       Padding.Bottom = 3
+      ExplicitWidth = 1146
       TMSStyle = 0
       object lblLogTitle: TLabel
         Left = 1
@@ -4205,9 +4504,9 @@ object MainForm: TMainForm
     end
   end
   object pnlTargetTray: TAdvSmoothPanel
-    Left = 1164
-    Top = 0
-    Width = 734
+    Left = 440
+    Top = 485
+    Width = 668
     Height = 456
     Cursor = crDefault
     Caption.HTMLFont.Charset = DEFAULT_CHARSET
@@ -4241,7 +4540,7 @@ object MainForm: TMainForm
     object pnlTargetTrayHeader: TAdvSmoothPanel
       Left = 8
       Top = 5
-      Width = 718
+      Width = 652
       Height = 32
       Cursor = crDefault
       CanMove = True
@@ -4276,9 +4575,9 @@ object MainForm: TMainForm
       TMSStyle = 0
       object btnScanSourceTray: TAdvSmoothToggleButton
         Tag = 2
-        Left = 241
+        Left = 217
         Top = 2
-        Width = 48
+        Width = 45
         Height = 25
         Color = clWhite
         ColorDown = 16744448
@@ -4319,9 +4618,9 @@ object MainForm: TMainForm
         TMSStyle = 0
       end
       object pnlTargetRemaining: TPanel
-        Left = 480
+        Left = 383
         Top = 2
-        Width = 116
+        Width = 110
         Height = 25
         BevelKind = bkFlat
         BevelOuter = bvNone
@@ -4341,7 +4640,7 @@ object MainForm: TMainForm
       object pnlTargetTrayTitle: TPanel
         Left = 0
         Top = 2
-        Width = 90
+        Width = 85
         Height = 25
         BevelKind = bkFlat
         BevelOuter = bvNone
@@ -4359,9 +4658,9 @@ object MainForm: TMainForm
         TabOrder = 2
       end
       object pinsertremainCnt: TPanel
-        Left = 597
+        Left = 494
         Top = 2
-        Width = 120
+        Width = 156
         Height = 25
         BevelKind = bkFlat
         BevelOuter = bvNone
@@ -4378,9 +4677,9 @@ object MainForm: TMainForm
         TabOrder = 3
       end
       object pTrayid_target: TPanel
-        Left = 91
+        Left = 86
         Top = 2
-        Width = 150
+        Width = 130
         Height = 25
         BevelKind = bkFlat
         BevelOuter = bvNone
@@ -4398,7 +4697,7 @@ object MainForm: TMainForm
         object target_idEdit: TEdit
           Left = 0
           Top = 0
-          Width = 146
+          Width = 126
           Height = 21
           Align = alClient
           CharCase = ecUpperCase
@@ -4552,7 +4851,7 @@ object MainForm: TMainForm
     object targetGrid: TStringGrid
       Left = 8
       Top = 37
-      Width = 718
+      Width = 652
       Height = 414
       Align = alClient
       BevelInner = bvNone
@@ -5463,7 +5762,7 @@ object MainForm: TMainForm
     object pTargetBase: TAdvSmoothPanel
       Left = 8
       Top = 37
-      Width = 718
+      Width = 652
       Height = 414
       Cursor = crDefault
       Caption.HTMLFont.Charset = DEFAULT_CHARSET
@@ -5508,8 +5807,8 @@ object MainForm: TMainForm
       end
     end
     object badCode: TMemo
-      Left = 537
-      Top = 53
+      Left = 492
+      Top = 43
       Width = 165
       Height = 334
       ImeName = 'Microsoft IME 2010'
@@ -5697,9 +5996,9 @@ object MainForm: TMainForm
     end
   end
   object pnlSourceTray: TAdvSmoothPanel
-    Left = 1164
+    Left = 1229
     Top = 485
-    Width = 734
+    Width = 668
     Height = 456
     Cursor = crDefault
     Caption.HTMLFont.Charset = DEFAULT_CHARSET
@@ -5733,7 +6032,7 @@ object MainForm: TMainForm
     object pBase: TPanel
       Left = 8
       Top = 37
-      Width = 718
+      Width = 652
       Height = 414
       Align = alClient
       BevelOuter = bvNone
@@ -5750,7 +6049,7 @@ object MainForm: TMainForm
     object pnlSourceTrayHeader: TAdvSmoothPanel
       Left = 8
       Top = 5
-      Width = 718
+      Width = 652
       Height = 32
       Cursor = crDefault
       CanMove = True
@@ -5786,7 +6085,7 @@ object MainForm: TMainForm
       object pnlSourceTrayTitle: TPanel
         Left = 0
         Top = 2
-        Width = 90
+        Width = 85
         Height = 25
         BevelKind = bkFlat
         BevelOuter = bvNone
@@ -5804,7 +6103,7 @@ object MainForm: TMainForm
         TabOrder = 0
       end
       object pnlCh: TPanel
-        Left = 539
+        Left = 447
         Top = 2
         Width = 30
         Height = 23
@@ -5821,9 +6120,9 @@ object MainForm: TMainForm
         TabOrder = 1
       end
       object pnlSourceRemaining: TPanel
-        Left = 309
+        Left = 270
         Top = 2
-        Width = 116
+        Width = 100
         Height = 25
         BevelKind = bkFlat
         BevelOuter = bvNone
@@ -5841,9 +6140,9 @@ object MainForm: TMainForm
         TabOrder = 2
       end
       object pTrayid_source: TPanel
-        Left = 91
+        Left = 86
         Top = 2
-        Width = 150
+        Width = 130
         Height = 25
         BevelKind = bkFlat
         BevelOuter = bvNone
@@ -5861,7 +6160,7 @@ object MainForm: TMainForm
         object src_idEdit: TEdit
           Left = 0
           Top = 0
-          Width = 146
+          Width = 126
           Height = 21
           Align = alClient
           CharCase = ecUpperCase
@@ -5880,9 +6179,9 @@ object MainForm: TMainForm
         end
       end
       object pnlNgCode: TPanel
-        Left = 621
+        Left = 529
         Top = 2
-        Width = 95
+        Width = 121
         Height = 23
         BevelOuter = bvNone
         Caption = 'NG Code'
@@ -5897,7 +6196,7 @@ object MainForm: TMainForm
         TabOrder = 4
       end
       object pnlSource2: TPanel
-        Left = 570
+        Left = 478
         Top = 2
         Width = 50
         Height = 23
@@ -5915,9 +6214,9 @@ object MainForm: TMainForm
         OnClick = pnlSource2Click
       end
       object pejectremainCnt: TPanel
-        Left = 426
+        Left = 371
         Top = 2
-        Width = 100
+        Width = 70
         Height = 25
         BevelKind = bkFlat
         BevelOuter = bvNone
@@ -5935,9 +6234,9 @@ object MainForm: TMainForm
       end
       object btnScanTargetTray: TAdvSmoothToggleButton
         Tag = 2
-        Left = 242
+        Left = 217
         Top = 2
-        Width = 48
+        Width = 45
         Height = 25
         Color = clWhite
         ColorDown = 16744448
@@ -5980,10 +6279,10 @@ object MainForm: TMainForm
     end
   end
   object AdvSmoothPanel1: TAdvSmoothPanel
-    Left = 742
-    Top = 0
-    Width = 273
-    Height = 392
+    Left = 136
+    Top = 485
+    Width = 281
+    Height = 456
     Cursor = crDefault
     Caption.HTMLFont.Charset = DEFAULT_CHARSET
     Caption.HTMLFont.Color = clWindowText
@@ -6046,7 +6345,7 @@ object MainForm: TMainForm
       Left = 15
       Top = 102
       Width = 242
-      Height = 280
+      Height = 340
       Columns = <
         item
           Caption = 'No.'
@@ -6194,8 +6493,8 @@ object MainForm: TMainForm
     end
   end
   object Memo_Ko: TMemo
-    Left = 1190
-    Top = 533
+    Left = 1254
+    Top = 263
     Width = 200
     Height = 89
     Lines.Strings = (
@@ -6258,8 +6557,8 @@ object MainForm: TMainForm
     Visible = False
   end
   object Memo_En: TMemo
-    Left = 1396
-    Top = 533
+    Left = 1460
+    Top = 263
     Width = 200
     Height = 89
     Lines.Strings = (
@@ -6322,8 +6621,8 @@ object MainForm: TMainForm
     Visible = False
   end
   object Memo_Hu: TMemo
-    Left = 1602
-    Top = 533
+    Left = 1666
+    Top = 263
     Width = 200
     Height = 89
     Lines.Strings = (
@@ -6386,8 +6685,8 @@ object MainForm: TMainForm
     Visible = False
   end
   object Memo1: TMemo
-    Left = 794
-    Top = 263
+    Left = 1003
+    Top = 248
     Width = 185
     Height = 89
     ScrollBars = ssBoth

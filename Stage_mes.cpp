@@ -163,6 +163,7 @@ void __fastcall TMainForm::CompleteOpcTrayLoad(bool sourceTray)
 
 	if (sourceTray)
 	{
+		CompleteProcessStep(2, "TrayLoadResponse=1 / Tray ID=" + pTrayid_source->Caption);
 		memoMainLineAdd("[FMS OPC UA] Source tray load response complete.");
 		pBYPASS->Caption = loadedTray->PASS;
 		pbad_sum->Caption = "0";
@@ -191,6 +192,7 @@ void __fastcall TMainForm::CompleteOpcTrayLoad(bool sourceTray)
 		setTrayInfo(0);
 		if (pbad_sum->Caption.ToIntDef(0) <= stage.limitCnt)
 		{
+			BeginProcessStep(3, "D10154 Centering Request=ON / wait D10104");
 			memoMainLineAdd("[FMS OPC UA] Source tray centering request.");
 			if (PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(true);
 		}
@@ -202,6 +204,7 @@ void __fastcall TMainForm::CompleteOpcTrayLoad(bool sourceTray)
 	}
 	else
 	{
+		CompleteProcessStep(5, "TrayLoadResponse=1 / Tray ID=" + pTrayid_target->Caption);
 		memoMainLineAdd("[FMS OPC UA] Target tray load response complete.");
 		//* 불량트레이 관리
 		// Location2 셀 정보가 제공되기 전까지 바코드별 로컬 파일을 사용한다.
@@ -271,6 +274,7 @@ void __fastcall TMainForm::TryStartOpcProcess()
 	if (MesOpc == NULL || Mod_Fms == NULL || !Mod_Fms->IsGatewayConnected())
 		return;
 
+	BeginProcessStep(6, "ProcessStart request / wait response");
 	MesOpc->PROCESS_START_REQUEST();
 	opcProcessStartPending = true;
 	opcProcessStartTick = GetTickCount();
@@ -337,6 +341,8 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 		return;
 	}
 
+	BeginProcessStep(bsrc ? 2 : 5, (bsrc ? AnsiString("Source") : AnsiString("Target")) +
+		" TrayLoad request / Tray ID=" + strTray);
 	MesOpc->TRAY_LOAD_REQUEST(bsrc);
 	opcTrayLoadPending[index] = true;
 	opcTrayLoadStartTick[index] = GetTickCount();
@@ -356,7 +362,7 @@ void __fastcall TMainForm::NotifyIdMatching_target(AnsiString matchingStep)
 	mesTimer->Enabled = false;
 	if(MesOpc != NULL && Mod_Fms != NULL && Mod_Fms->IsGatewayConnected()){
 		MesOpc->PROCESS_DATA_WRITE();
-		memoMainLineAdd("[FMS OPC UA] TrackOutCellInformation updated. Step=" + matchingStep);
+		WriteOpcUaLog("DETAIL", "TrackOutCellInformation updated. Step=" + matchingStep, false);
 	}else{
 		WriteOpcUaLog("ERROR", "TrackOutCellInformation write skipped: Gateway disconnected", true);
 	}
@@ -383,18 +389,18 @@ void __fastcall TMainForm::ReportCellTrackOut(int sourceChannel, int targetChann
 		return;
 	}
 
+	BeginProcessStep(12, "CellTrackOut request / wait CellUnloadCompleteResponse");
 	MesOpc->PROCESS_DATA_WRITE();
-	memoMainLineAdd("[FMS OPC UA] TrackOut source values: SourceCh=" + IntToStr(sourceChannel) +
+	WriteOpcUaLog("DETAIL", "CellTrackOut payload SourceCh=" + IntToStr(sourceChannel) +
 		" TargetCh=" + IntToStr(targetChannel) + " CellId=" + cellId +
 		" LotId=" + tray_target.CELL_LOT_ID[targetChannel - 1] +
 		" Grade=" + tray_target.RANK[targetChannel - 1] +
-		" NGCode=" + tray_target.LOSS_CD[targetChannel - 1]);
+		" NGCode=" + tray_target.LOSS_CD[targetChannel - 1], false);
 	MesOpc->CELL_TRACK_OUT_REQUEST(sourceChannel, targetChannel, cellId);
 	opcCellTrackOutPending = true;
 	opcCellTrackOutStartTick = GetTickCount();
 	opcMesTimer->Enabled = true;
-	memoMainLineAdd("[FMS OPC UA] CellTrackOut sent: SourceCh=" + IntToStr(sourceChannel) +
-		" TargetCh=" + IntToStr(targetChannel) + " CellId=" + cellId);
+	SetProcessWaitStatus(12, "CellUnloadComplete=ON", "CellUnloadCompleteResponse", 0);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::NotifyTransferOut(AnsiString strTray)
@@ -408,11 +414,25 @@ void __fastcall TMainForm::NotifyTransferOut(AnsiString strTray)
 
 	MesOpc->PROCESS_DATA_WRITE();
 	if(strTray == pTrayid_source->Caption || strTray == pTrayid_source2->Caption){
-		MesOpc->PROCESS_END_REQUEST();
-		Mod_Fms->FlushPendingPcTags();
-		memoMainLineAdd("[FMS OPC UA] Source ProcessEnd requested.");
+		if(!opcProcessEndPending){
+			BeginProcessStep(14, "ProcessEnd request / wait response");
+			MesOpc->PROCESS_END_REQUEST();
+			opcProcessEndPending = true;
+			opcProcessEndTick = GetTickCount();
+			opcMesTimer->Enabled = true;
+			memoMainLineAdd("[FMS OPC UA] Source ProcessEnd requested; waiting ProcessEndResponse.");
+		}else{
+			memoMainLineAdd("[FMS OPC UA] Duplicate Source ProcessEnd request ignored; response is pending.");
+		}
 	}else{
-		memoMainLineAdd("[FMS OPC UA] Target TrackOutCellInformation written before tray out.");
+		if(!opcTargetUnloadPending){
+			BeginProcessStep(16, "TrayUnload request / wait response");
+			MesOpc->TRAY_UNLOAD_REQUEST();
+			opcTargetUnloadPending = true;
+			opcTargetUnloadTick = GetTickCount();
+			opcMesTimer->Enabled = true;
+			SetProcessWaitStatus(16, "TrayUnloadRequest=ON", "TrayUnloadResponse", 0);
+		}
 	}
 }
 //---------------------------------------------------------------------------

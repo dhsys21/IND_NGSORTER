@@ -24,6 +24,23 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 
 	MakePanel();
 	MakePanel_TargetTray();
+	pnlProcessStep[0] = pnlProcessStep01;
+	pnlProcessStep[1] = pnlProcessStep02;
+	pnlProcessStep[2] = pnlProcessStep03;
+	pnlProcessStep[3] = pnlProcessStep04;
+	pnlProcessStep[4] = pnlProcessStep05;
+	pnlProcessStep[5] = pnlProcessStep06;
+	pnlProcessStep[6] = pnlProcessStep07;
+	pnlProcessStep[7] = pnlProcessStep08;
+	pnlProcessStep[8] = pnlProcessStep09;
+	pnlProcessStep[9] = pnlProcessStep10;
+	pnlProcessStep[10] = pnlProcessStep11;
+	pnlProcessStep[11] = pnlProcessStep12;
+	pnlProcessStep[12] = pnlProcessStep13;
+	pnlProcessStep[13] = pnlProcessStep14;
+	pnlProcessStep[14] = pnlProcessStep15;
+	pnlProcessStep[15] = pnlProcessStep16;
+	ResetProcessFlow();
 	setMapping();
 	tray = &tray_target;
 	equipMode = modeManual;
@@ -69,8 +86,12 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	opcProcessStartPending = false;
 	opcProcessStarted = false;
 	opcProcessStartTick = 0;
+	opcProcessEndPending = false;
+	opcProcessEndTick = 0;
 	opcCellTrackOutPending = false;
 	opcCellTrackOutStartTick = 0;
+	opcTargetUnloadPending = false;
+	opcTargetUnloadTick = 0;
 	//* 불량트레이 관리
 	targetTrayInfoDeletePending = false;
 	targetTrayInfoWasCentered = false;
@@ -84,6 +105,102 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	CreateIoMonitoringPanel();
 }
 //---------------------------------------------------------------------------
+AnsiString __fastcall TMainForm::GetProcessStepName(int stepNo) const
+{
+	static const char *names[16] = {
+		"SOURCE TRAY IN", "SOURCE TRAY LOAD", "SOURCE CENTERING", "TARGET TRAY READY",
+		"TARGET TRAY LOAD", "PROCESS START", "NG CHANNEL SELECT", "MOVE EJECT CHANNEL",
+		"CELL EJECT", "MOVE INSERT CHANNEL", "CELL INSERT", "CELL TRACK OUT",
+		"WAIT / NEXT CHECK", "PROCESS END", "SOURCE TRAY OUT", "TARGET TRAY UNLOAD"
+	};
+	if(stepNo < 1 || stepNo > 16) return "UNKNOWN";
+	return names[stepNo - 1];
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::ResetProcessFlow()
+{
+	for(int i = 0; i < 16; ++i) processStepComplete[i] = false;
+	currentProcessStep = 0;
+	currentProcessDetail = "WAITING FOR SOURCE TRAY";
+	lastProcessWaitStatus = "";
+	UpdateProcessFlowPanel();
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::UpdateProcessFlowPanel()
+{
+	for(int i = 0; i < 16; ++i){
+		if(pnlProcessStep[i] != NULL)
+			pnlProcessStep[i]->Color = (processStepComplete[i] || currentProcessStep == i + 1) ? clLime : clSilver;
+	}
+	if(lblCurrentProcess != NULL){
+		if(currentProcessStep > 0)
+			lblCurrentProcess->Caption = "CURRENT PROCESS : " +
+				Format("[STEP %2.2d %s] ", ARRAYOFCONST((currentProcessStep, GetProcessStepName(currentProcessStep)))) +
+				currentProcessDetail;
+		else
+			lblCurrentProcess->Caption = "CURRENT PROCESS : " + currentProcessDetail;
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::ProcessStepLog(int stepNo, AnsiString msg)
+{
+	if(stepNo < 1 || stepNo > 16) return;
+	AddStatusLog("PROCESS", Format("[STEP %2.2d %s] ",
+		ARRAYOFCONST((stepNo, GetProcessStepName(stepNo)))) + msg);
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::BeginProcessStep(int stepNo, AnsiString detail)
+{
+	if(stepNo < 1 || stepNo > 16) return;
+	if(stepNo == 1 && currentProcessStep != 1){
+		for(int i = 0; i < 16; ++i) processStepComplete[i] = false;
+	}
+	// Keep every preceding process panel lime once the sequence advances.
+	// Repeated sorting (STEP 13 -> STEP 07) does not clear prior completions.
+	for(int i = 0; i < stepNo - 1; ++i)
+		processStepComplete[i] = true;
+	bool changed = currentProcessStep != stepNo;
+	currentProcessStep = stepNo;
+	if(detail.IsEmpty()) currentProcessDetail = "RUNNING";
+	else currentProcessDetail = detail;
+	lastProcessWaitStatus = "";
+	UpdateProcessFlowPanel();
+	if(changed){
+		AnsiString logText = "START";
+		if(!detail.IsEmpty()) logText += " - " + detail;
+		ProcessStepLog(stepNo, logText);
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::CompleteProcessStep(int stepNo, AnsiString detail)
+{
+	if(stepNo < 1 || stepNo > 16) return;
+	processStepComplete[stepNo - 1] = true;
+	currentProcessStep = stepNo;
+	if(detail.IsEmpty()) currentProcessDetail = "COMPLETE";
+	else currentProcessDetail = detail;
+	lastProcessWaitStatus = "";
+	UpdateProcessFlowPanel();
+	AnsiString logText = "COMPLETE";
+	if(!detail.IsEmpty()) logText += " - " + detail;
+	ProcessStepLog(stepNo, logText);
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::SetProcessWaitStatus(int stepNo, AnsiString requestName,
+	AnsiString responseName, int responseValue)
+{
+	if(stepNo < 1 || stepNo > 16) return;
+	for(int i = 0; i < stepNo - 1; ++i)
+		processStepComplete[i] = true;
+	AnsiString status = requestName + " / WAIT " + responseName + " = " + IntToStr(responseValue);
+	currentProcessStep = stepNo;
+	currentProcessDetail = status;
+	UpdateProcessFlowPanel();
+	if(lastProcessWaitStatus != status){
+		lastProcessWaitStatus = status;
+		ProcessStepLog(stepNo, status);
+	}
+}//---------------------------------------------------------------------------
 void __fastcall TMainForm::FormShow(TObject *Sender)
 {
 	ReadSystemInfo();
@@ -278,12 +395,16 @@ void __fastcall TMainForm::setBarcode(int pos, AnsiString strBcr)
 		switch(pos){
 			case 0:
 				this->pTrayid_source->Caption = strBcr;
+				ProcessStepLog(1, "Tray Exist=ON / Tray ID=" + strBcr);
+				CompleteProcessStep(1, "Tray ID=" + strBcr);
 				if(IsSourceTrayInSignal()){
 					NotifyTrayInfo(strBcr, true);
 				}
 				break;
 			case 1:
 				this->pTrayid_target->Caption = strBcr;
+				ProcessStepLog(4, "Tray Exist=ON / Tray ID=" + strBcr);
+				CompleteProcessStep(4, "Tray ID=" + strBcr);
 				if(IsTargetCenteringSignal())NotifyTrayInfo(strBcr, false);
 				break;
 		}
@@ -322,6 +443,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 
 		bool sourceTray = (i == 0);
 		int response = MesOpc != NULL ? MesOpc->TRAY_LOAD_RESPONSE(sourceTray) : -1;
+		SetProcessWaitStatus(sourceTray ? 2 : 5, "TrayLoad Request=ON", "TrayLoadResponse", response);
 		if (response == 1)
 		{
 			opcTrayLoadPending[i] = false;
@@ -331,6 +453,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		{
 			opcTrayLoadPending[i] = false;
 			AnsiString trayName = sourceTray ? "Source" : "Target";
+			ProcessStepLog(sourceTray ? 2 : 5, "ERROR - TrayLoadResponse=" + IntToStr(response));
 			ShowCommonError(trayName + " tray load failed",
 				"Check FMS TrayLoadResponse and tray information.");
 		}
@@ -342,6 +465,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 				MesOpc->TRAY_LOAD_CANCEL(sourceTray);
 			}
 			AnsiString trayName = sourceTray ? "Source" : "Target";
+			ProcessStepLog(sourceTray ? 2 : 5, "ERROR - TrayLoadResponse timeout");
 			ShowCommonError(trayName + " tray response timeout",
 				"TrayLoadResponse or tray data was not completed within 10 seconds.");
 		}
@@ -350,12 +474,14 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 	if (opcProcessStartPending)
 	{
 		int response = MesOpc != NULL ? MesOpc->PROCESS_START_RESPONSE_RESULT() : -1;
+		SetProcessWaitStatus(6, "ProcessStart Request=ON", "ProcessStartResponse", response);
 		if (response == 1)
 		{
 			opcProcessStartPending = false;
 			opcProcessStarted = true;
 			pwork1->Color = clLime;
 			pwork2->Color = clLime;
+			CompleteProcessStep(6, "ProcessStartResponse=1");
 			memoMainLineAdd("[FMS OPC UA] Process start response complete.");
 			if (gripper->seq == seqIdle && robostar->seq == seqIdle)
 				gripper->req_Init();
@@ -363,29 +489,67 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		else if (response == 2 || response < 0)
 		{
 			opcProcessStartPending = false;
+			ProcessStepLog(6, "ERROR - ProcessStartResponse=" + IntToStr(response));
 			ShowCommonError("Process start failed",
 				"Check FMS ProcessStartResponse.");
 		}
 		else if ((DWORD)(nowTick - opcProcessStartTick) >= RESPONSE_TIMEOUT_MS)
 		{
 			opcProcessStartPending = false;
+			ProcessStepLog(6, "ERROR - ProcessStartResponse timeout");
 			if (MesOpc != NULL) MesOpc->PROCESS_START_CANCEL();
 			ShowCommonError("Process start response timeout",
 				"No ProcessStartResponse from FMS Gateway.");
 		}
 	}
 
+	if(opcProcessEndPending)
+	{
+		int response = MesOpc != NULL ? MesOpc->PROCESS_END_RESPONSE_RESULT() : -1;
+		SetProcessWaitStatus(14, "ProcessEnd Request=ON", "ProcessEndResponse", response);
+		if(response == 1){
+			opcProcessEndPending = false;
+			opcProcessStarted = false;
+			CompleteProcessStep(14, "ProcessEndResponse=1");
+			BeginProcessStep(15, "D10155 Source Tray Out request");
+			CmdTrayOut(0);
+			CompleteProcessStep(15, "D10155=ON");
+			memoMainLineAdd("[FMS OPC UA] Source ProcessEnd response complete.");
+		}else if(response == 2 || response < 0){
+			opcProcessEndPending = false;
+			opcProcessStarted = false;
+			ProcessStepLog(14, "ERROR - ProcessEndResponse=" + IntToStr(response));
+			ShowCommonError("Source ProcessEnd failed",
+				"Check F1NGS01.Location1.TrayProcess.ProcessEndResponse.");
+		}else if((DWORD)(nowTick - opcProcessEndTick) >= RESPONSE_TIMEOUT_MS){
+			opcProcessEndPending = false;
+			opcProcessStarted = false;
+			ProcessStepLog(14, "ERROR - ProcessEndResponse timeout");
+			if(MesOpc != NULL){
+				MesOpc->LogProcessEndTimeout();
+				MesOpc->PROCESS_END_CANCEL();
+			}else{
+				WriteOpcUaLog("ERROR", "PROCESS_END_TIMEOUT MesOpc=<null>", true);
+			}
+			ShowCommonError("Source ProcessEnd response timeout",
+				"No ProcessEndResponse from FMS Gateway within 10 seconds.");
+		}
+	}
 	if(opcCellTrackOutPending)
 	{
 		int response = MesOpc != NULL ? MesOpc->CELL_TRACK_OUT_RESPONSE_RESULT() : -1;
+		SetProcessWaitStatus(12, "CellUnloadComplete=ON", "CellUnloadCompleteResponse", response);
 		if(response == 1){
 			opcCellTrackOutPending = false;
+			CompleteProcessStep(12, "CellUnloadCompleteResponse=1");
 			memoMainLineAdd("[FMS OPC UA] CellTrackOut response complete.");
 		}else if(response == 2 || response < 0){
 			opcCellTrackOutPending = false;
-			WriteOpcUaLog("ERROR", "CELL_TRACK_OUT response failed", true);
+			ProcessStepLog(12, "ERROR - CellUnloadCompleteResponse=" + IntToStr(response));
+			WriteOpcUaLog("ERROR", "CELL_TRACK_OUT response failed", false);
 		}else if((DWORD)(nowTick - opcCellTrackOutStartTick) >= RESPONSE_TIMEOUT_MS){
 			opcCellTrackOutPending = false;
+			ProcessStepLog(12, "ERROR - CellUnloadCompleteResponse timeout");
 			// Log the exact OPC UA response node/raw value before clearing the request.
 			if(MesOpc != NULL){
 				MesOpc->LogCellTrackOutTimeout();
@@ -396,7 +560,32 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		}
 	}
 
-	bool pending = opcProcessStartPending || opcCellTrackOutPending;
+	if(opcTargetUnloadPending)
+	{
+		int response = MesOpc != NULL ? MesOpc->TRAY_UNLOAD_RESPONSE_RESULT() : -1;
+		SetProcessWaitStatus(16, "TrayUnloadRequest=ON", "TrayUnloadResponse", response);
+		if(response == 1){
+			opcTargetUnloadPending = false;
+			CompleteProcessStep(16, "TrayUnloadResponse=1");
+			CmdTrayOut(1);
+		}else if(response == 2 || response < 0){
+			opcTargetUnloadPending = false;
+			ProcessStepLog(16, "ERROR - TrayUnloadResponse=" + IntToStr(response));
+			ShowCommonError("Target tray unload failed", "Check FMS TrayUnloadResponse.");
+		}else if((DWORD)(nowTick - opcTargetUnloadTick) >= RESPONSE_TIMEOUT_MS){
+			opcTargetUnloadPending = false;
+			ProcessStepLog(16, "ERROR - TrayUnloadResponse timeout");
+			if(MesOpc != NULL){
+				MesOpc->LogTrayUnloadTimeout();
+				MesOpc->TRAY_UNLOAD_CANCEL();
+			}
+			ShowCommonError("Target tray unload response timeout",
+				"No TrayUnloadResponse from FMS Gateway within 10 seconds.");
+		}
+	}
+
+	bool pending = opcProcessStartPending || opcProcessEndPending ||
+		opcCellTrackOutPending || opcTargetUnloadPending;
 	for (int i = 0; i < 2; ++i)
 		pending = pending || opcTrayLoadPending[i];
 	opcMesTimer->Enabled = pending;
@@ -592,7 +781,6 @@ void __fastcall TMainForm::trayout_targetBtnClick(TObject *Sender)
 			reply = MessageBox(Handle, BaseForm->GetLangStr("MSG_MES_REQUEST").c_str(), L"MES", MB_YESNOCANCEL|MB_ICONQUESTION);
 			if(reply == ID_YES){
 				NotifyTransferOut(pTrayid_target->Caption);
-				CmdTrayOut(1);
 			}else if(reply == ID_NO){
 				CmdTrayOut(1);
 			}
@@ -643,7 +831,10 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 		return;
 	}
 
-	if(IsSourceTrayInSignal() == 0)InitStep(&step[0]);
+	if(IsSourceTrayInSignal() == 0){
+		InitStep(&step[0]);
+		if(currentProcessStep != 0) ResetProcessFlow();
+	}
 	if(IsTargetCenteringSignal() == 0)InitStep(&step[1]);
 
     if(!gripper->pauseStatus && !robostar->pauseStatus)
@@ -651,6 +842,7 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 		switch(step[0].step){
 			case 0:
 				if(IsSourceTrayInSignal()){
+					BeginProcessStep(1, "Tray Exist=ON / waiting barcode");
 					NotifyEquipStatus("PROCESS");
 					if(chkBypass->Checked == false){
 						pTrayid_source->Caption = "";
@@ -678,6 +870,7 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 				break;
 			case 1:
 				if(IsSourceCenteringSignal()){
+					CompleteProcessStep(3, "D10104 Source Centering=ON");
 					memoMainLineAdd(BaseForm->GetLangStr("MSG_SOURCETRAY_CENTERING_COMPL"));
 					NotifyTransferIn(pTrayid_source->Caption);	// 작업3. 센터링을 치면 작업시작 보고를 한다.
 					step[0].step += 1;
@@ -687,6 +880,7 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 				break;
 			case 2:
 				if(IsTargetCenteringSignal()){
+					BeginProcessStep(4, "D10106 Target Centering=ON / waiting barcode");
 					memoMainLineAdd(BaseForm->GetLangStr("MSG_TARGETTRAY_CENTERING_COMPL"));
 					pTrayid_target->Caption = "";       // test
 					pTrayid_target2->Caption = "";      // test

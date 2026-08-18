@@ -401,7 +401,13 @@ void __fastcall TMod_Fms::TcpServerExecute(TIdContext *AContext)
 			LogOpcUa(L"RX", Summary);
 			LogOpcUa(L"TX", Response, false);
 		}
-		else if (!ChangedUpdate)
+		else if (ChangedUpdate)
+		{
+			// TrackIn/TrackOut/CellTrackOut payloads can be very large: file only.
+			LogOpcUa(L"RX_DETAIL", Line, false);
+			LogOpcUa(L"TX_DETAIL", Response, false);
+		}
+		else
 		{
 			LogOpcUa(L"RX", Line);
 			LogOpcUa(L"TX", Response);

@@ -933,6 +933,14 @@ void __fastcall Trobostar::AutoMove()
 				req_Stop();
 				return;
 			}
+			// Show the physical cell action as soon as Z DOWN starts at the accepted channel.
+			if(step.reserve == seqAutoEject){
+				MainForm->CompleteProcessStep(8, "Source channel position complete");
+				MainForm->BeginProcessStep(9, "Cell eject / Z DOWN / Gripper CHUCK");
+			}else if(step.reserve == seqAutoInsert){
+				MainForm->CompleteProcessStep(10, "Target channel position complete");
+				MainForm->BeginProcessStep(11, "Cell insert / Z DOWN / Gripper UNCHUCK");
+			}
 			setPoint(Axis_z, activeTarget[Axis_z]);
 			MainForm->memoRobostarLineAdd("[Z DOWN APPROVED] pallet=" + IntToStr(activeMove.pallet) +
 				", channel=" + IntToStr(activeMove.channel) + ", X/Y/Z=" +
@@ -955,6 +963,7 @@ void __fastcall Trobostar::AutoMove()
 			directXYPositionReady = (completedReserve == seqIdle);
 			MainForm->memoRobostarLineAdd("[FINISH] MOVE COMPLETE pallet=" +
 				IntToStr(activeMove.pallet) + ", channel=" + IntToStr(activeMove.channel));
+
 			teachForm->pnlMovingAlarm->Visible = false;
 			teachForm->pnlMovingAlarm2->Visible = false;
 			InitSequence(completedReserve);
@@ -1704,6 +1713,7 @@ void __fastcall Trobostar::AutoEject()
 				}
 				break;
 			default:
+				MainForm->CompleteProcessStep(9, "Cell detected and Z UP complete");
 				InitSequence(seqAutoEjectComplete);
 				break;
 		}
@@ -1770,6 +1780,7 @@ void __fastcall Trobostar::AutoInsert()
 				MainForm->memoRobostarLineAdd("[C_Maint] »ðÀÔ3. ¾ðÃ´ ¾ÈÁ¤È­ ´ë±â");
 				break;
 			default:
+				MainForm->CompleteProcessStep(11, "Cell released and Z UP complete");
 				InitSequence(seqAutoInsertComplete);
 				break;
 		}

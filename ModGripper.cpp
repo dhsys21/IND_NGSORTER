@@ -117,9 +117,9 @@ void __fastcall Tgripper::Initialize()
 			if(MainForm->tray_target.remainCnt == 0){
 				if(!waitTimer->Enabled)
 				{
+					MainForm->BeginProcessStep(16, "Target tray full / unload request");
 					MainForm->NotifyIdMatching_target("2");		// 대상 트레이 선별완료 보고하고
 					MainForm->NotifyTransferOut(MainForm->pTrayid_target->Caption);
-					MainForm->CmdTrayOut(1);
 				}
 				MainForm->memoGripperLineAdd("[Init step 0] " + BaseForm->GetLangStr("MSG_TARGETTRAY_FULL"));
 
@@ -177,6 +177,7 @@ void __fastcall Tgripper::Initialize()
 			waitTimer->Enabled = false;
 			break;
 		case 1:
+			MainForm->BeginProcessStep(7, "Select Source NG and reserve Target channel");
         	// 1. 선별 트레이 채널 할당
             // 2. 대상 트레이 채널 할당
             // 3. step.chCnt는 InitSequence에서 0으로 초기화 => 0부터 그리퍼 갯수만큼 증가
@@ -252,6 +253,7 @@ void __fastcall Tgripper::Initialize()
 		default:
 			if(step.badCnt > 0){
 				if(step.ejectCnt > 0){
+					MainForm->CompleteProcessStep(7, "NG channel and Target reservation selected");
 					InitSequence(step.reserve);	// 선별시작
 					MainForm->memoGripperLineAdd("[Init step 2] " + BaseForm->GetLangStr("MSG_EJECT_START"));
 				}else{
@@ -267,7 +269,6 @@ void __fastcall Tgripper::Initialize()
 				MainForm->NotifyIdMatching_source();		// 소스 트레이 작업완료 보고하고
 				MainForm->NotifyIdMatching_target("1");		// 대상 트레이 작업완료 보고하고
 				MainForm->NotifyTransferOut(MainForm->pTrayid_source->Caption);				// 검사 완료 보고
-				MainForm->CmdTrayOut(0);                  // D10155 SOURCE TRAY OUT ON
 			}
 			break;
 	}
@@ -307,6 +308,7 @@ void __fastcall Tgripper::Sorting()
 
 			if(eject.pos > 0){	// 취출 시작
 				if(MainForm->tray_source.SLOT_COUNT == 96){
+					 MainForm->BeginProcessStep(8, "Source Ch=" + IntToStr(eject.pos) + " / Z UP then X/Y move");
 					 MainForm->memoGripperLineAdd("[Eject step 0] 96 Tray / Gripper #" + IntToStr(eject.gripper) + " / Channel #" + IntToStr(eject.pos) + " / Continuous eject #" + IntToStr(eject.conCnt));
 					 //* 불량트레이 관리
 					 MainForm->memoGripperLineAdd(
@@ -387,6 +389,7 @@ void __fastcall Tgripper::Inserting()
 				}
 			}
 			if(insert.pos > 0){	// 삽입 시작
+				MainForm->BeginProcessStep(10, "Target Ch=" + IntToStr(insert.pos) + " / Z UP then X/Y move");
 				MainForm->memoGripperLineAdd("[Insert step 0] Gripper #" + IntToStr(insert.gripper) + " / Channel #" + IntToStr(insert.pos) + " / Continuous insert #" + IntToStr(insert.conCnt));
 				//* 불량트레이 관리
 				MainForm->memoGripperLineAdd(
@@ -459,6 +462,7 @@ void __fastcall Tgripper::Inserting()
 			if(step.step == 5){
 				// Always finish the current insert cycle at the wait position.
 				// The next NG search starts only after WaitPosition reports seqIdle.
+				MainForm->BeginProcessStep(13, "WAIT POSITION move / next NG check");
 				MainForm->memoGripperLineAdd("[Insert complete] WAIT POSITION MOVE START");
 				MainForm->NotifyIdMatching_target("1");	// 삽입 완료시마다 보고
 				robostar->req_WaitPosition();
@@ -466,6 +470,7 @@ void __fastcall Tgripper::Inserting()
 			}
 			else if(step.step == 6 && robostar->seq == seqIdle){
 				MainForm->memoGripperLineAdd("[Insert complete] WAIT POSITION MOVE COMPLETE");
+				MainForm->CompleteProcessStep(13, "WAIT POSITION complete / Next Step=07");
 				MainForm->memoGripperLineAdd("[CYCLE] CHECK NEXT NG CHANNEL");
 				InitSequence(seqInit, seqSorting);
 			}

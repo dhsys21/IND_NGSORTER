@@ -282,6 +282,24 @@ __published:	// IDE-managed Components
 	TMemo *memoLog;
 	TAdvSmoothPanel *pnlLogTitle;
 	TLabel *lblLogTitle;
+	TPanel *pnlProcessFlow;
+	TPanel *pnlProcessStep01;
+	TPanel *pnlProcessStep02;
+	TPanel *pnlProcessStep03;
+	TPanel *pnlProcessStep04;
+	TPanel *pnlProcessStep05;
+	TPanel *pnlProcessStep06;
+	TPanel *pnlProcessStep07;
+	TPanel *pnlProcessStep08;
+	TPanel *pnlProcessStep09;
+	TPanel *pnlProcessStep10;
+	TPanel *pnlProcessStep11;
+	TPanel *pnlProcessStep12;
+	TPanel *pnlProcessStep13;
+	TPanel *pnlProcessStep14;
+	TPanel *pnlProcessStep15;
+	TPanel *pnlProcessStep16;
+	TLabel *lblCurrentProcess;
 	void __fastcall FormShow(TObject *Sender);
 	void __fastcall targetGridDrawCell(TObject *Sender, int ACol, int ARow,
 		  TRect &Rect, TGridDrawState State);
@@ -370,9 +388,19 @@ private:	// User declarations
 	bool opcProcessStartPending;
 	bool opcProcessStarted;
 	DWORD opcProcessStartTick;
+	bool opcProcessEndPending;
+	DWORD opcProcessEndTick;
 	bool opcCellTrackOutPending;
 	DWORD opcCellTrackOutStartTick;
+	bool opcTargetUnloadPending;
+	DWORD opcTargetUnloadTick;
 
+	TPanel *pnlProcessStep[16];
+	bool processStepComplete[16];
+	int currentProcessStep;
+	AnsiString currentProcessDetail;
+	AnsiString lastProcessWaitStatus;
+	void __fastcall UpdateProcessFlowPanel();
 	//* 불량트레이 관리
 	bool targetTrayInfoDeletePending;
 	bool targetTrayInfoWasCentered;
@@ -467,6 +495,14 @@ public:		// User declarations
 	void __fastcall memoMainLineAdd(AnsiString msg);
 	void __fastcall memoGripperLineAdd(AnsiString msg);
 	void __fastcall memoRobostarLineAdd(AnsiString msg);
+
+	AnsiString __fastcall GetProcessStepName(int stepNo) const;
+	void __fastcall ResetProcessFlow();
+	void __fastcall BeginProcessStep(int stepNo, AnsiString detail = "");
+	void __fastcall CompleteProcessStep(int stepNo, AnsiString detail = "");
+	void __fastcall SetProcessWaitStatus(int stepNo, AnsiString requestName,
+		AnsiString responseName, int responseValue);
+	void __fastcall ProcessStepLog(int stepNo, AnsiString msg);
 
 	//* 불량트레이 관리
 	void __fastcall setTrayInfo(int index);
