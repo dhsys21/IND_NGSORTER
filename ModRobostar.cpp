@@ -62,6 +62,10 @@ __fastcall Trobostar::Trobostar(TComponent* Owner)
 	safetyResetPulseUntilTick = 0;
 	move.pallet = 0;
 	move.channel = 0;
+	activeMoveValid = false;
+	directXYPositionReady = false;
+	for(int i = 0; i < AxisCnt; ++i)
+		activeTarget[i] = 0;
 
 	point[0].position = 0;
 }
@@ -847,6 +851,13 @@ void __fastcall Trobostar::AutoMove()
 		return;
 	}
 
+	if(!activeMoveValid){
+		MainForm->memoRobostarLineAdd("[Z DOWN INTERLOCK] No valid tray move snapshot. Motion stopped.");
+		AlarmForm->ShowError("Servo move interlock", "No valid tray/channel move request. Select the channel again.");
+		req_Stop();
+		return;
+	}
+
 	switch(step.step){
 		case 0: // Always raise Z before any X/Y positioning move.
 			zUpCount = 0;
@@ -883,10 +894,13 @@ void __fastcall Trobostar::AutoMove()
 
 		case 10:
 			bSetPoint = false;
-			setPoint(Axis_x, point[Axis_x].position);   // x 위치 이동
-			setPoint(Axis_y, point[Axis_y].position);   // y 위치 이동
+			setPoint(Axis_x, activeTarget[Axis_x]);
+			setPoint(Axis_y, activeTarget[Axis_y]);
 			step.step += 1;
-			MainForm->memoRobostarLineAdd("[MOVE] X and Y");
+			MainForm->memoRobostarLineAdd("[MOVE] X/Y pallet=" + IntToStr(activeMove.pallet) +
+				", channel=" + IntToStr(activeMove.channel) + ", target=" +
+				IntToStr((__int64)activeTarget[Axis_x]) + "/" +
+				IntToStr((__int64)activeTarget[Axis_y]));
 			break;
 		case 11:
 			rangeCheck(Axis_x);
@@ -898,26 +912,54 @@ void __fastcall Trobostar::AutoMove()
 			MainForm->memoRobostarLineAdd("[CHECK] Y");
 			break;
 		case 13:
-			if(move.pallet == 1 && getGripperChuckStatus()){
+		{
+			// Recalculate the accepted pallet/tool/channel immediately before Z DOWN.
+			// A changed teaching value, overwritten request, or X/Y mismatch blocks descent.
+			if(!ValidateActiveMoveTarget()){
+				MainForm->memoRobostarLineAdd(
+					"[Z DOWN INTERLOCK] Target validation failed. request pallet/tool/channel=" +
+					IntToStr(activeMove.pallet) + "/" + IntToStr(activeMove.tool) + "/" +
+					IntToStr(activeMove.channel) + ", actual X/Y=" +
+					IntToStr((__int64)mr2.pos[Axis_x]) + "/" + IntToStr((__int64)mr2.pos[Axis_y]) +
+					", accepted X/Y=" + IntToStr((__int64)activeTarget[Axis_x]) + "/" +
+					IntToStr((__int64)activeTarget[Axis_y]));
+				AlarmForm->ShowError("Z DOWN blocked", "Tray/channel position changed or X/Y is not at the accepted target. Retry from Z UP.");
+				req_Stop();
+				return;
+			}
+			if(activeMove.pallet == 1 && getGripperChuckStatus()){
 				MainForm->memoRobostarLineAdd("[Source Tray Z Down] blocked in automatic move: gripper is CHUCK");
 				AlarmForm->ShowError("Source Tray Z Down Interlock", "Open the gripper before lowering Z at the Source Tray.");
 				req_Stop();
 				return;
 			}
-			setPoint(Axis_z, point[Axis_z].position);   // z 위치 이동
-			MainForm->memoRobostarLineAdd("[MOVE] Z");
+			setPoint(Axis_z, activeTarget[Axis_z]);
+			MainForm->memoRobostarLineAdd("[Z DOWN APPROVED] pallet=" + IntToStr(activeMove.pallet) +
+				", channel=" + IntToStr(activeMove.channel) + ", X/Y/Z=" +
+				IntToStr((__int64)activeTarget[Axis_x]) + "/" +
+				IntToStr((__int64)activeTarget[Axis_y]) + "/" +
+				IntToStr((__int64)activeTarget[Axis_z]));
 			step.step += 1;
 			break;
+		}
 		case 14:
 			rangeCheck(Axis_z);
 			MainForm->memoRobostarLineAdd("[CHECK] Z");
 			break;
 		default:
-			MainForm->memoRobostarLineAdd("[FINISH] MOVE COMPLETE");
+		{
+			robotSequence completedReserve = step.reserve;
+			move = activeMove;
+			for(int i = 0; i < AxisCnt; ++i)
+				point[i].position = activeTarget[i];
+			directXYPositionReady = (completedReserve == seqIdle);
+			MainForm->memoRobostarLineAdd("[FINISH] MOVE COMPLETE pallet=" +
+				IntToStr(activeMove.pallet) + ", channel=" + IntToStr(activeMove.channel));
 			teachForm->pnlMovingAlarm->Visible = false;
 			teachForm->pnlMovingAlarm2->Visible = false;
-			InitSequence(step.reserve);
+			InitSequence(completedReserve);
 			break;
+		}
 	}
 }
 //---------------------------------------------------------------------------
@@ -1032,13 +1074,18 @@ void __fastcall Trobostar::zDown()
 {
 	switch(step.step){
 		case 0:
-			if(move.pallet == 1 && getGripperChuckStatus()){
+			if(!directXYPositionReady || !ValidateActiveMoveTarget()){
+				MainForm->memoRobostarLineAdd("[Z Axis Teaching Down] blocked at execution: accepted X/Y target is no longer valid");
+				InitSequence(seqIdle);
+				return;
+			}
+			if(activeMove.pallet == 1 && getGripperChuckStatus()){
 				MainForm->memoRobostarLineAdd("[Source Tray Z Down] blocked at execution: gripper is CHUCK");
 				InitSequence(seqIdle);
 				return;
 			}
 			zUpCount = 0;
-			bSetPoint = setPoint(Axis_z, point[Axis_z].position);
+			bSetPoint = setPoint(Axis_z, activeTarget[Axis_z]);
 			teachForm->pnlMovingAlarm->Visible = true;
 			teachForm->pnlMovingAlarm->BringToFront();
 			teachForm->pnlMovingAlarm2->Visible = true;
@@ -1054,12 +1101,13 @@ void __fastcall Trobostar::zDown()
 			zUpCount++;
 			if(rangeCheck(Axis_z)) break;
 			if(zUpCount > 200){
-				AlarmForm->ShowError("Z 축 이동실패", "Z축 티칭 위치 도착 여부를 확인하세요.");
+				AlarmForm->ShowError("Z Axis move timeout", "Check the Z teaching value and servo state.");
 				req_Stop();
 				return;
 			}
 			break;
 		case 2:
+			directXYPositionReady = false;
 			InitSequence(seqIdle);
 			break;
 	}
@@ -1084,6 +1132,7 @@ void __fastcall Trobostar::req_Init()
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::req_Home()
 {
+	directXYPositionReady = false;
 	InitSequence(seqHome);
 }
 //---------------------------------------------------------------------------
@@ -1099,6 +1148,8 @@ void __fastcall Trobostar::req_ServoOff()
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::req_JogMove(int ntype)
 {
+	if(ntype >= 0 && ntype <= 3)
+		directXYPositionReady = false;
 	// Tag 4 is Z DOWN(+). Source Tray must never descend while the gripper is CHUCK.
 	if(ntype == 4 && move.pallet == 1 && getGripperChuckStatus()){
 		MainForm->memoRobostarLineAdd("[Source Tray Z Down] blocked: gripper is CHUCK");
@@ -1127,45 +1178,83 @@ void __fastcall Trobostar::req_Reset()
 * 대상 트레이 채널 간 거리 : 45,000
 */
 //---------------------------------------------------------------------------
+bool __fastcall Trobostar::CalculatePositionValue(int pallet, int tool, int channel,
+	long &x, long &y, long &z)
+{
+	if(channel < 1 || channel > TraySlotCount)
+		return false;
+	if(tool < 1 || tool > gripCnt)
+		return false;
+	if(pallet != 1 && pallet != 2)
+		return false;
+
+	TrayAxisEdit xEditType = pallet == 1 ? asSourceX : asTargetX;
+	TrayAxisEdit yEditType = pallet == 1 ? asSourceY : asTargetY;
+	TEdit* xEdit = teachForm->GetTrayEdit(channel, xEditType);
+	TEdit* yEdit = teachForm->GetTrayEdit(channel, yEditType);
+	TEdit* zEdit = pallet == 1 ? teachForm->edit_SZ : teachForm->edit_TZ;
+	int baseX = 0;
+	int baseY = 0;
+	int zPosition = 0;
+
+	if(xEdit == NULL || yEdit == NULL || zEdit == NULL)
+		return false;
+	if(!TryStrToInt(xEdit->Text.Trim(), baseX)
+		|| !TryStrToInt(yEdit->Text.Trim(), baseY)
+		|| !TryStrToInt(zEdit->Text.Trim(), zPosition))
+		return false;
+
+	long channelOffset = ((channel - 1) % TrayTeachingGroupSize) * (long)TrayCellPitch;
+	long toolOffset = (tool - 1) * 90000L;
+	x = (long)baseX - toolOffset;
+	y = (long)baseY + channelOffset;
+	z = zPosition;
+	return true;
+}
+//---------------------------------------------------------------------------
 bool __fastcall Trobostar::SetPositionValue()
 {
-    if(move.channel < 1 || move.channel > TraySlotCount)
-        return false;
-    if(move.tool < 1 || move.tool > gripCnt)
-        return false;
-    if(move.pallet != 1 && move.pallet != 2)
-        return false;
+	long x = 0;
+	long y = 0;
+	long z = 0;
+	if(!CalculatePositionValue(move.pallet, move.tool, move.channel, x, y, z))
+		return false;
 
-    TrayAxisEdit xEditType = move.pallet == 1 ? asSourceX : asTargetX;
-    TrayAxisEdit yEditType = move.pallet == 1 ? asSourceY : asTargetY;
-    TEdit* xEdit = teachForm->GetTrayEdit(move.channel, xEditType);
-    TEdit* yEdit = teachForm->GetTrayEdit(move.channel, yEditType);
-    TEdit* zEdit = move.pallet == 1 ? teachForm->edit_SZ : teachForm->edit_TZ;
-    int baseX = 0;
-    int baseY = 0;
-    int zPosition = 0;
+	point[Axis_x].position = x;
+	point[Axis_y].position = y;
+	point[Axis_z].position = z;
+	return true;
+}
+//---------------------------------------------------------------------------
+void __fastcall Trobostar::CaptureMoveRequest()
+{
+	activeMove = move;
+	for(int i = 0; i < AxisCnt; ++i)
+		activeTarget[i] = point[i].position;
+	activeMoveValid = true;
+	directXYPositionReady = false;
+}
+//---------------------------------------------------------------------------
+bool __fastcall Trobostar::ValidateActiveMoveTarget()
+{
+	long expectedX = 0;
+	long expectedY = 0;
+	long expectedZ = 0;
+	if(!activeMoveValid ||
+		!CalculatePositionValue(activeMove.pallet, activeMove.tool, activeMove.channel,
+			expectedX, expectedY, expectedZ))
+		return false;
 
-    if(xEdit == NULL || yEdit == NULL || zEdit == NULL)
-        return false;
-    if(!TryStrToInt(xEdit->Text.Trim(), baseX)
-        || !TryStrToInt(yEdit->Text.Trim(), baseY)
-        || !TryStrToInt(zEdit->Text.Trim(), zPosition))
-        return false;
+	if(move.pallet != activeMove.pallet || move.tool != activeMove.tool ||
+		move.channel != activeMove.channel || move.type != activeMove.type)
+		return false;
 
-    long position[AxisCnt] = {0};
-    long channelOffset = ((move.channel - 1) % TrayTeachingGroupSize) * (long)TrayCellPitch;
-    long toolOffset = (move.tool - 1) * 90000L;
+	if(activeTarget[Axis_x] != expectedX || activeTarget[Axis_y] != expectedY ||
+		activeTarget[Axis_z] != expectedZ)
+		return false;
 
-    // Each 12-channel group stores one X/Y base point (CH01, CH13, ... CH85).
-    // Channels inside the group advance along Y by 45,000 per channel.
-    position[Axis_x] = (long)baseX - toolOffset;
-    position[Axis_y] = (long)baseY + channelOffset;
-    position[Axis_z] = zPosition;
-
-    for(int i = 1; i <= servoCnt; ++i)
-        point[i].position = position[i];
-
-    return true;
+	return mr2.pos[Axis_x] == activeTarget[Axis_x]
+		&& mr2.pos[Axis_y] == activeTarget[Axis_y];
 }
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::req_AutoRun()
@@ -1179,7 +1268,7 @@ void __fastcall Trobostar::req_EmgAutoRun()
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::req_AutoMove(int pallet, int tool, int channel, int type)
 {
-    bSetPoint = false;
+	bSetPoint = false;
 	if(!MainForm->m_ServoOpen || !MainForm->m_ServoON || !MainForm->m_ServoHomeEmg){
 		UnicodeString message = L"Channel move is not ready.";
 		if(!MainForm->m_ServoOpen) message += L"\r\nServo Open: OFF";
@@ -1190,64 +1279,91 @@ void __fastcall Trobostar::req_AutoMove(int pallet, int tool, int channel, int t
 		return;
 	}
 
-	if(!(seq == seqIdle || seq == seqPause || MainForm->equipMode == modeManual)){
+	if(seq != seqIdle && seq != seqPause &&
+		seq != seqAutoEjectComplete && seq != seqAutoInsertComplete){
 		ShowMessage(L"Another servo sequence is running.");
 		return;
 	}
+	if(seq == seqPause)
+		req_Stop(); // Discard the paused automatic step before manual positioning.
 
 	move.pallet = pallet;
 	move.type = type;
 	move.tool = tool;
 	move.channel = channel;
 	move.cnt = 0;
-
 	if(!SetPositionValue()){
 		MainForm->memoMainLineAdd("[Robot] Invalid tray move request.");
 		ShowMessage(L"Invalid teaching value or channel.");
 		return;
 	}
+	CaptureMoveRequest();
 
 	MainForm->memoRobostarLineAdd("[CHANNEL MOVE] tray=" + IntToStr(pallet) +
-		", channel=" + IntToStr(channel) +
-		", target X/Y/Z=" + IntToStr((__int64)point[Axis_x].position) + "/" +
-		IntToStr((__int64)point[Axis_y].position) + "/" +
-		IntToStr((__int64)point[Axis_z].position));
-	// Direct channel selection is an X/Y-only positioning request.
-	InitSequence(seqAutoMove, seqIdle);
+		", tool=" + IntToStr(tool) + ", channel=" + IntToStr(channel) +
+		", target X/Y/Z=" + IntToStr((__int64)activeTarget[Axis_x]) + "/" +
+		IntToStr((__int64)activeTarget[Axis_y]) + "/" +
+		IntToStr((__int64)activeTarget[Axis_z]));
+	InitSequence(seqAutoMove, seqIdle); // Direct channel selection moves X/Y only.
 }
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::req_AutoEject(int pallet, int tool, int channel, int cnt, int type)
 {
+	if(seq != seqIdle && seq != seqPause &&
+		seq != seqAutoEjectComplete && seq != seqAutoInsertComplete){
+		MainForm->memoRobostarLineAdd("[AUTO EJECT] blocked: another servo sequence is running");
+		return;
+	}
+	if(seq == seqPause)
+		req_Stop();
+
 	move.pallet = pallet;
 	move.type = type;
 	move.tool = tool;
 	move.channel = channel;
 	move.cnt = cnt;
-
 	if(!SetPositionValue()){
 		MainForm->memoMainLineAdd("[Robot] Invalid eject position request.");
 		return;
 	}
+	CaptureMoveRequest();
+	MainForm->memoRobostarLineAdd("[AUTO EJECT REQUEST] pallet/tool/channel=" +
+		IntToStr(pallet) + "/" + IntToStr(tool) + "/" + IntToStr(channel) +
+		", X/Y/Z=" + IntToStr((__int64)activeTarget[Axis_x]) + "/" +
+		IntToStr((__int64)activeTarget[Axis_y]) + "/" + IntToStr((__int64)activeTarget[Axis_z]));
 	InitSequence(seqAutoMove, seqAutoEject);
 }
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::req_AutoInsert(int pallet, int tool, int channel, int cnt, int type)
 {
+	if(seq != seqIdle && seq != seqPause &&
+		seq != seqAutoEjectComplete && seq != seqAutoInsertComplete){
+		MainForm->memoRobostarLineAdd("[AUTO INSERT] blocked: another servo sequence is running");
+		return;
+	}
+	if(seq == seqPause)
+		req_Stop();
+
 	move.pallet = pallet;
 	move.type = type;
 	move.tool = tool;
 	move.channel = channel;
 	move.cnt = cnt;
-
 	if(!SetPositionValue()){
 		MainForm->memoMainLineAdd("[Robot] Invalid insert position request.");
 		return;
 	}
+	CaptureMoveRequest();
+	MainForm->memoRobostarLineAdd("[AUTO INSERT REQUEST] pallet/tool/channel=" +
+		IntToStr(pallet) + "/" + IntToStr(tool) + "/" + IntToStr(channel) +
+		", X/Y/Z=" + IntToStr((__int64)activeTarget[Axis_x]) + "/" +
+		IntToStr((__int64)activeTarget[Axis_y]) + "/" + IntToStr((__int64)activeTarget[Axis_z]));
 	InitSequence(seqAutoMove, seqAutoInsert);
 }
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::req_WaitPosition()
 {
+	directXYPositionReady = false;
 	InitSequence(seqWait);
 }
 //---------------------------------------------------------------------------
@@ -1266,36 +1382,27 @@ bool __fastcall Trobostar::req_zDown()
 		MainForm->memoRobostarLineAdd("[Z Axis Teaching Down] blocked: Servo Open/ON is not ready");
 		return false;
 	}
-	if(move.channel < 1 || move.channel > TraySlotCount ||
-		(move.pallet != 1 && move.pallet != 2)){
-		MainForm->memoRobostarLineAdd("[Z Axis Teaching Down] blocked: Source/Target channel is not selected");
+	if(!directXYPositionReady || !activeMoveValid){
+		MainForm->memoRobostarLineAdd("[Z Axis Teaching Down] blocked: move to the selected channel first");
 		return false;
 	}
-	if(move.pallet == 1 && getGripperChuckStatus()){
+	if(activeMove.pallet == 1 && getGripperChuckStatus()){
 		MainForm->memoRobostarLineAdd("[Source Tray Z Down] blocked: gripper is CHUCK");
 		return false;
 	}
-	if(mr2.pos[Axis_x] != point[Axis_x].position ||
-		mr2.pos[Axis_y] != point[Axis_y].position)
-	{
-		MainForm->memoRobostarLineAdd("[Z Axis Teaching Down] blocked: X/Y actual=" +
+	if(!ValidateActiveMoveTarget()){
+		MainForm->memoRobostarLineAdd("[Z Axis Teaching Down] blocked: request/teaching/X/Y changed. actual=" +
 			IntToStr((__int64)mr2.pos[Axis_x]) + "/" + IntToStr((__int64)mr2.pos[Axis_y]) +
-			", target=" + IntToStr((__int64)point[Axis_x].position) + "/" +
-			IntToStr((__int64)point[Axis_y].position));
+			", accepted=" + IntToStr((__int64)activeTarget[Axis_x]) + "/" +
+			IntToStr((__int64)activeTarget[Axis_y]));
 		return false;
 	}
 
-	TEdit *zEdit = move.pallet == 1 ? teachForm->edit_SZ : teachForm->edit_TZ;
-	int teachingZ = 0;
-	if(zEdit == NULL || !TryStrToInt(zEdit->Text.Trim(), teachingZ)){
-		MainForm->memoRobostarLineAdd("[Z Axis Teaching Down] blocked: invalid Z teaching value");
-		return false;
-	}
-
-	point[Axis_z].position = teachingZ;
+	point[Axis_z].position = activeTarget[Axis_z];
 	InitSequence(seqZdown);
-	MainForm->memoRobostarLineAdd("[Z Axis Teaching Down] X/Y position confirmed, target Z=" +
-		IntToStr(teachingZ));
+	MainForm->memoRobostarLineAdd("[Z Axis Teaching Down] approved pallet/channel=" +
+		IntToStr(activeMove.pallet) + "/" + IntToStr(activeMove.channel) + ", target Z=" +
+		IntToStr((__int64)activeTarget[Axis_z]));
 	return true;
 }
 //---------------------------------------------------------------------------
@@ -1314,6 +1421,10 @@ void __fastcall Trobostar::req_Speed(int speed, int accl, int dccl)
 void __fastcall Trobostar::req_Stop()
 {
 	int sts = 0;
+	pauseStatus = false;
+	seq_save = seqIdle;
+	activeMoveValid = false;
+	directXYPositionReady = false;
 	InitSequence(seqIdle);
 	if(!sscOpened) return;
 

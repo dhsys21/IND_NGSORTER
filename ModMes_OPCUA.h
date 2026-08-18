@@ -24,6 +24,11 @@ public:		// User declarations
     bool __fastcall PROCESS_START_RESPONSE();
     int __fastcall PROCESS_START_RESPONSE_RESULT();
     void __fastcall PROCESS_DATA_WRITE();
+    void __fastcall CELL_TRACK_OUT_REQUEST(int SourceChannel, int TargetChannel,
+        const AnsiString &CellId);
+    int __fastcall CELL_TRACK_OUT_RESPONSE_RESULT();
+    void __fastcall LogCellTrackOutTimeout();
+    void __fastcall CELL_TRACK_OUT_CANCEL();
     void __fastcall PROCESS_END_REQUEST();
     bool __fastcall PROCESS_END_RESPONSE();
 };

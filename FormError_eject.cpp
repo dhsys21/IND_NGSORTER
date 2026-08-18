@@ -47,19 +47,30 @@ void __fastcall TErrorForm_eject::ShowError(AnsiString str1, AnsiString str2, in
 }
 void __fastcall TErrorForm_eject::retryBtnClick(TObject *Sender)
 {
-	int map = 0;
-
-	MainForm->memoMainLineAdd("Retry");
-    map = psource_ch1->Caption.ToInt();
-
-	if(robostar->move.pallet == 1 && robostar->move.channel == map){
-		gripper->req_Pause(false);
-		robostar->req_Pause(false);
-		MainForm->playBtnClick(Sender);
-		this->Visible = false;
-	}else{
-		MessageBox(Handle, BaseForm->GetLangStr("MSG_EJECTING").c_str(), L"EJECT", MB_OK|MB_ICONQUESTION);
+	int sourceChannel = psource_ch1->Caption.ToIntDef(0);
+	if(sourceChannel < 1 || sourceChannel > MainForm->tray_source.SLOT_COUNT){
+		MessageBox(Handle, L"Invalid Source Tray channel.", L"EJECT RETRY", MB_OK|MB_ICONWARNING);
+		return;
 	}
+
+	// 취출 재시도는 Z 상승부터 다시 시작하므로 Source Tray에서는 그리퍼가 열려 있어야 한다.
+	if(robostar->getGripperChuckStatus()){
+		MainForm->memoRobostarLineAdd("[SAFE RETRY] Eject retry blocked: gripper is CHUCK.");
+		MessageBox(Handle,
+			L"Open the gripper before retry. Retry will run Z UP -> Source X/Y -> Z DOWN.",
+			L"EJECT SAFE RETRY", MB_OK|MB_ICONWARNING);
+		return;
+	}
+
+	int mappedChannel = MainForm->mapSort[0][sourceChannel - 1];
+	MainForm->memoRobostarLineAdd(
+		"[SAFE RETRY] EJECT restart from Z UP: Gripper=" + IntToStr(toolNum + 1) +
+		" SourceCh=" + IntToStr(sourceChannel) + " Map=" + IntToStr(mappedChannel));
+	gripper->req_Pause(false);
+	robostar->req_Stop(); // Cancel the saved failed step; retry creates a fresh position request.
+	MainForm->playBtnClick(Sender);
+	robostar->req_AutoEject(1, toolNum + 1, mappedChannel, 1, 962);
+	this->Visible = false;
 }
 //---------------------------------------------------------------------------
 

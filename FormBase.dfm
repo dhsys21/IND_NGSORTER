@@ -474,9 +474,9 @@ object BaseForm: TBaseForm
   object Label2: TLabel
     Left = 216
     Top = 52
-    Width = 173
+    Width = 179
     Height = 13
-    Caption = 'Ver. 2026-08-11 / SN: 20260811-12'
+    Caption = 'Ver. 2026-08-18 / SN: 20260818-008'
   end
   object pims: TAdvSmoothPanel
     Left = 1522

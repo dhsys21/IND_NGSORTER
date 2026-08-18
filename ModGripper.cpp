@@ -410,6 +410,8 @@ void __fastcall Tgripper::Inserting()
 						" PICK=" + MainForm->tray_target.PICK[targetIndex] +
 						" LossCode=" + MainForm->tray_target.LOSS_CD[targetIndex] +
 						" Rank=" + MainForm->tray_target.RANK[targetIndex]);
+					MainForm->ReportCellTrackOut(sourceIndex + 1, targetIndex + 1,
+						MainForm->tray_target.SLOT_ID[targetIndex]);
 				}
 				//* 불량트레이 관리
 				MainForm->setTrayInfo(1); // Persist inserted target cell data.

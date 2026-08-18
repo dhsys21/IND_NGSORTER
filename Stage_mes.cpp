@@ -345,45 +345,21 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::NotifyIdMatching_source()
 {
-	// 트레이 정보
-	AnsiString strData;
-	tx->MSG_ID = "ID_MATCHING_EVENT";
-	tx->LOT_ID = pTrayid_source->Caption;
-	strData = "<DATA><MATCHING_LOCAL>" + pTrayid_source2->Caption + "</MATCHING_LOCAL>";
-	strData = strData + "<MATCHING_TARGET></MATCHING_TARGET>";
-	strData = strData + "<ID_MATCHING>Y</ID_MATCHING><MATCHING_STEP>1</MATCHING_STEP>";   	//
-	strData = strData + "<SLOT_COUNT>" + IntToStr(tray_source.SLOT_COUNT) + "</SLOT_COUNT>";
-
-	for(int i=0; i< tray_source.SLOT_COUNT; ++i){
-		strData = strData + "<SLOT_DATA><SLOT_POSITION>" + tray_source.SLOT_POSITION[i] + "</SLOT_POSITION><SLOT_ID>" + tray_source.SLOT_ID[i] + "</SLOT_ID>";
-		strData = strData  + "<RESULT>" + tray_source.PICK[i] + "</RESULT><UDF></UDF></SLOT_DATA>";
-	}
-	tx->DATA = strData + "</DATA>";
-	mes->SendMsg(tx);
-
-//	setTrayInfo(0);
+	// 구형 ASCII ID_MATCHING_EVENT는 사용하지 않는다.
+	mesTimer->Enabled = false;
+	memoMainLineAdd("[FMS OPC UA] Source cell information is managed by TrackIn/TrackOut.");
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::NotifyIdMatching_target(AnsiString matchingStep)
 {
-	// 트레이 정보
-	AnsiString strData;
-	tx->MSG_ID = "ID_MATCHING_EVENT";
-	tx->LOT_ID = pTrayid_target->Caption;
-	strData = "<DATA><MATCHING_LOCAL></MATCHING_LOCAL>";
-	strData = strData + "<MATCHING_TARGET>" + pTrayid_target2->Caption +"</MATCHING_TARGET>";
-	strData = strData + "<ID_MATCHING>Y</ID_MATCHING><MATCHING_STEP>" + matchingStep +"</MATCHING_STEP>";
-	strData = strData + "<SLOT_COUNT>" + IntToStr(tray_target.SLOT_COUNT) + "</SLOT_COUNT>";
-
-	for(int i=0; i< tray_target.SLOT_COUNT ; ++i){	// 대상 트레이 셀 수량은 SLOT_COUNT개로 수정
-		strData = strData + "<SLOT_DATA><SLOT_POSITION>" + tray_target.SLOT_POSITION[i] + "</SLOT_POSITION><SLOT_ID>" + tray_target.SLOT_ID[i] + "</SLOT_ID>";
-		strData = strData + "<RESULT>" + tray_target.PICK[i] + "</RESULT><UDF></UDF></SLOT_DATA>";
+	// 구형 ASCII ID_MATCHING_EVENT 대신 현재 불량트레이 전체 TrackOut 정보를 갱신한다.
+	mesTimer->Enabled = false;
+	if(MesOpc != NULL && Mod_Fms != NULL && Mod_Fms->IsGatewayConnected()){
+		MesOpc->PROCESS_DATA_WRITE();
+		memoMainLineAdd("[FMS OPC UA] TrackOutCellInformation updated. Step=" + matchingStep);
+	}else{
+		WriteOpcUaLog("ERROR", "TrackOutCellInformation write skipped: Gateway disconnected", true);
 	}
-	tx->DATA = strData + "</DATA>";
-	mes->SendMsg(tx);
-	tx->errMsg = "[" + tx->LOT_ID + "] Target tray ID_MATCHING_EVENT response time out from MES";
-	mesTimer->Enabled = true;
-
 	setTrayInfo(1);
 }
 //---------------------------------------------------------------------------
@@ -393,14 +369,41 @@ void __fastcall TMainForm::NotifyTransferIn(AnsiString strTray)
 	TryStartOpcProcess();
 }//---------------------------------------------------------------------------
 
+void __fastcall TMainForm::ReportCellTrackOut(int sourceChannel, int targetChannel, AnsiString cellId)
+{
+	// 셀 삽입 완료 직후 전체 TrackOut 맵과 단일 CellTrackOut 이벤트를 함께 보고한다.
+	mesTimer->Enabled = false;
+	if(MesOpc == NULL || Mod_Fms == NULL || !Mod_Fms->IsGatewayConnected()){
+		WriteOpcUaLog("ERROR", "CellTrackOut write skipped: Gateway disconnected", true);
+		return;
+	}
+
+	MesOpc->PROCESS_DATA_WRITE();
+	MesOpc->CELL_TRACK_OUT_REQUEST(sourceChannel, targetChannel, cellId);
+	opcCellTrackOutPending = true;
+	opcCellTrackOutStartTick = GetTickCount();
+	opcMesTimer->Enabled = true;
+	memoMainLineAdd("[FMS OPC UA] CellTrackOut sent: SourceCh=" + IntToStr(sourceChannel) +
+		" TargetCh=" + IntToStr(targetChannel) + " CellId=" + cellId);
+}
+//---------------------------------------------------------------------------
 void __fastcall TMainForm::NotifyTransferOut(AnsiString strTray)
 {
-	// 작업시작 보고
-	tx->MSG_ID = "TRANSFER_OUT_EVENT";
-	tx->LOT_ID = strTray;
-	tx->DATA = "<DATA><WORK_NO></WORK_NO></DATA>";
-	tx->errMsg = "[" + tx->LOT_ID + "] Source tray TRANSFER_OUT_EVENT response timeout from MES";
-	mes->SendMsg(tx);
+	// 구형 ASCII TRANSFER_OUT_EVENT는 사용하지 않는다.
+	mesTimer->Enabled = false;
+	if(MesOpc == NULL || Mod_Fms == NULL || !Mod_Fms->IsGatewayConnected()){
+		WriteOpcUaLog("ERROR", "OPC transfer-out report skipped: Gateway disconnected", true);
+		return;
+	}
+
+	MesOpc->PROCESS_DATA_WRITE();
+	if(strTray == pTrayid_source->Caption || strTray == pTrayid_source2->Caption){
+		MesOpc->PROCESS_END_REQUEST();
+		Mod_Fms->FlushPendingPcTags();
+		memoMainLineAdd("[FMS OPC UA] Source ProcessEnd requested.");
+	}else{
+		memoMainLineAdd("[FMS OPC UA] Target TrackOutCellInformation written before tray out.");
+	}
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::NotifyEquipStatus(AnsiString process)

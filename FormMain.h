@@ -369,6 +369,8 @@ private:	// User declarations
 	bool opcProcessStartPending;
 	bool opcProcessStarted;
 	DWORD opcProcessStartTick;
+	bool opcCellTrackOutPending;
+	DWORD opcCellTrackOutStartTick;
 
 	//* 불량트레이 관리
 	bool targetTrayInfoDeletePending;
@@ -444,6 +446,7 @@ public:		// User declarations
 	void __fastcall NotifyTrayInfo(AnsiString strTray, bool bsrc);
 	void __fastcall NotifyTransferIn(AnsiString strTray);
 	void __fastcall NotifyTransferOut(AnsiString strTray);
+	void __fastcall ReportCellTrackOut(int sourceChannel, int targetChannel, AnsiString cellId);
 	void __fastcall NotifyIdMatching_source();
 	void __fastcall NotifyIdMatching_target(AnsiString matchingStep);
 	void __fastcall NotifyEquipStatus(AnsiString process);

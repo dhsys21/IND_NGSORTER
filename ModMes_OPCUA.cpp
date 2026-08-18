@@ -36,6 +36,11 @@ static UnicodeString TrackOutTag(const UnicodeString &Name)
 	return TAG_TARGET + L".TrackOutCellInformation." + Name;
 }
 //---------------------------------------------------------------------------
+static UnicodeString CellTrackOutTag(const UnicodeString &Name)
+{
+	return TAG_TARGET + L".CellTrackOut." + Name;
+}
+//---------------------------------------------------------------------------
 static UnicodeString CellTag(const UnicodeString &Root, int Index, const UnicodeString &Name)
 {
 	return Root + L".Cell." + IntToStr(Index) + L"." + Name;
@@ -498,20 +503,136 @@ void __fastcall TMesOpc::PROCESS_DATA_WRITE()
 		Count = 96;
 
 	UnicodeString Root = TAG_TARGET + L".TrackOutCellInformation";
+	UnicodeString TargetTrayId = MainForm->pTrayid_target2->Caption.Trim();
+	if(TargetTrayId.IsEmpty()) TargetTrayId = MainForm->pTrayid_target->Caption.Trim();
 	SetPcInt(TrackOutTag(L"CellCount"), Count);
 	for (int i = 0; i < Count; ++i)
 	{
 		bool CellExist = !Tray->SLOT_ID[i].IsEmpty();
 		SetPcString(CellTag(Root, i, L"CellId"), Tray->SLOT_ID[i]);
 		SetPcInt(CellTag(Root, i, L"CellNo"), i + 1);
-		SetPcString(CellTag(Root, i, L"LotId"), MainForm->pTrayid_target2->Caption);
+		SetPcString(CellTag(Root, i, L"LotId"), TargetTrayId);
 		SetPcBool(CellTag(Root, i, L"CellExist"), CellExist);
 		SetPcString(CellTag(Root, i, L"NGCode"), Tray->LOSS_CD[i]);
 		SetPcString(CellTag(Root, i, L"Grade"), Tray->RANK[i]);
 		SetPcBool(CellTag(Root, i, L"WorkFlag"), CellExist);
 	}
 
-	LogOpcEvent("PROCESS_DATA_WRITE Count=" + IntToStr(Count), true);
+	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags();
+	LogOpcEvent("TRACK_OUT_CELL_INFORMATION WRITE TrayId=" + AnsiString(TargetTrayId) +
+		" Count=" + IntToStr(Count), true);
+}
+//---------------------------------------------------------------------------
+void __fastcall TMesOpc::CELL_TRACK_OUT_REQUEST(int SourceChannel, int TargetChannel,
+	const AnsiString &CellId)
+{
+	if(MainForm == NULL || Mod_Fms == NULL)
+		return;
+
+	UnicodeString SourceTrayId = MainForm->pTrayid_source->Caption.Trim();
+	if(SourceTrayId.IsEmpty()) SourceTrayId = MainForm->pTrayid_source2->Caption.Trim();
+	UnicodeString TargetTrayId = MainForm->pTrayid_target->Caption.Trim();
+	if(TargetTrayId.IsEmpty()) TargetTrayId = MainForm->pTrayid_target2->Caption.Trim();
+
+	bool MesTestMode = MainForm->cbMES != NULL && MainForm->cbMES->Checked;
+	if(!MesTestMode)
+		Mod_Fms->ClearFmsTag(CellTrackOutTag(L"CellUnloadCompleteResponse"));
+
+	SetPcInt(CellTrackOutTag(L"CellNoFrom"), SourceChannel);
+	SetPcString(CellTrackOutTag(L"TrayIdFrom"), SourceTrayId);
+	SetPcInt(CellTrackOutTag(L"CellNoTo"), TargetChannel);
+	SetPcString(CellTrackOutTag(L"TrayIdTo"), TargetTrayId);
+	SetPcString(CellTrackOutTag(L"CellId"), UnicodeString(CellId));
+	SetPcBool(CellTrackOutTag(L"CellUnloadComplete"), true);
+	Mod_Fms->FlushPendingPcTags();
+
+	LogOpcEvent("CELL_TRACK_OUT REQUEST CellId=" + CellId +
+		" From=" + AnsiString(SourceTrayId) + "/" + IntToStr(SourceChannel) +
+		" To=" + AnsiString(TargetTrayId) + "/" + IntToStr(TargetChannel) +
+		" RequestTag=F1NGS01.Location2.CellTrackOut.CellUnloadComplete=true" +
+		" WaitingTag=F1NGS01.Location2.CellTrackOut.CellUnloadCompleteResponse" +
+		" Expected=1(Success),2(Fail)", true);
+}
+//---------------------------------------------------------------------------
+int __fastcall TMesOpc::CELL_TRACK_OUT_RESPONSE_RESULT()
+{
+	int Response = GetFmsInt(CellTrackOutTag(L"CellUnloadCompleteResponse"));
+	if(Response == 0)
+		return 0;
+
+	SetPcBool(CellTrackOutTag(L"CellUnloadComplete"), false);
+	bool MesTestMode = MainForm != NULL && MainForm->cbMES != NULL && MainForm->cbMES->Checked;
+	if(Mod_Fms != NULL){
+		if(!MesTestMode)
+			Mod_Fms->ClearFmsTag(CellTrackOutTag(L"CellUnloadCompleteResponse"));
+		Mod_Fms->FlushPendingPcTags();
+	}
+	if(Response == 1){
+		LogOpcEvent("CELL_TRACK_OUT RESPONSE SUCCESS", true);
+		return 1;
+	}
+	if(Response == 2){
+		LogOpcEvent("CELL_TRACK_OUT RESPONSE FAIL", true);
+		return 2;
+	}
+	LogOpcEvent("VALIDATION FAIL CellUnloadCompleteResponse=" + IntToStr(Response), true);
+	return -1;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMesOpc::LogCellTrackOutTimeout()
+{
+	const UnicodeString ResponseKey = CellTrackOutTag(L"CellUnloadCompleteResponse");
+	UnicodeString RawValue;
+	bool GatewayConnected = Mod_Fms != NULL && Mod_Fms->IsGatewayConnected();
+	bool SnapshotReceived = Mod_Fms != NULL && Mod_Fms->SnapshotReceived;
+	bool TagPresent = Mod_Fms != NULL && Mod_Fms->GetFmsTagJson(ResponseKey, RawValue);
+	int ParsedValue = TagPresent ? StrToIntDef(RawValue.Trim(), -9999) : -9999;
+
+	TFmsTagDefinition Definition;
+	bool DefinitionFound = Mod_Fms != NULL &&
+		Mod_Fms->GetTagDefinitionInfo(ResponseKey, Definition);
+	UnicodeString NodeId = L"<definition missing>";
+	UnicodeString DataType = L"<unknown>";
+	UnicodeString LastEquipment = L"<none>";
+	UnicodeString LastTimestamp = L"<none>";
+	if(DefinitionFound){
+		NodeId = Definition.NodeId;
+		DataType = Definition.DataType;
+	}
+	if(Mod_Fms != NULL){
+		LastEquipment = Mod_Fms->LastEquipment;
+		LastTimestamp = Mod_Fms->LastTimestamp;
+	}
+	AnsiString RawText = "<missing>";
+	AnsiString ParsedText = "<not read>";
+	if(TagPresent){
+		RawText = AnsiString(RawValue);
+		ParsedText = AnsiString(IntToStr(ParsedValue));
+	}
+
+	AnsiString Message =
+		"CELL_TRACK_OUT_TIMEOUT WaitingTag=" + AnsiString(ResponseKey) +
+		" NodeId=" + AnsiString(NodeId) +
+		" DataType=" + AnsiString(DataType) +
+		" Expected=1(Success),2(Fail)" +
+		" ActualRaw=" + RawText +
+		" Parsed=" + ParsedText +
+		" TagPresent=" + AnsiString(TagPresent ? "true" : "false") +
+		" GatewayConnected=" + AnsiString(GatewayConnected ? "true" : "false") +
+		" SnapshotReceived=" + AnsiString(SnapshotReceived ? "true" : "false") +
+		" LastEquipment=" + AnsiString(LastEquipment) +
+		" LastTimestamp=" + AnsiString(LastTimestamp) +
+		" RequestTag=F1NGS01.Location2.CellTrackOut.CellUnloadComplete(true)";
+
+	if(MainForm != NULL)
+		MainForm->WriteOpcUaLog("ERROR", Message, true);
+}
+//---------------------------------------------------------------------------
+void __fastcall TMesOpc::CELL_TRACK_OUT_CANCEL()
+{
+	SetPcBool(CellTrackOutTag(L"CellUnloadComplete"), false);
+	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags();
+	LogOpcEvent("CELL_TRACK_OUT CANCEL", true);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::PROCESS_END_REQUEST()

@@ -339,13 +339,22 @@ private:	// User declarations
 	DWORD keyLockReleaseOutputOffTick;     // Non-blocking KEYLOCK-release delay deadline.
 	DWORD safetyResetPulseUntilTick;
 	PNT_DATA_EX point[AxisCnt];
+	// Immutable snapshot of the accepted tray move. Z DOWN must match this snapshot.
+	MOVE activeMove;
+	long activeTarget[AxisCnt];
+	bool activeMoveValid;
+	bool directXYPositionReady;
     bool bSetPoint;
 	long jogSpeed;
 	bool __fastcall setPoint(int axnum_id, unsigned long int pos);
 	bool __fastcall rangeCheck(int axnum_id);
 	void __fastcall mr2Sensing();
 
+	bool __fastcall CalculatePositionValue(int pallet, int tool, int channel,
+		long &x, long &y, long &z);
 	bool __fastcall SetPositionValue();
+	void __fastcall CaptureMoveRequest();
+	bool __fastcall ValidateActiveMoveTarget();
 
 
 public:		// User declarations

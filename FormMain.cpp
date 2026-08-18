@@ -69,6 +69,8 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	opcProcessStartPending = false;
 	opcProcessStarted = false;
 	opcProcessStartTick = 0;
+	opcCellTrackOutPending = false;
+	opcCellTrackOutStartTick = 0;
 	//* 불량트레이 관리
 	targetTrayInfoDeletePending = false;
 	targetTrayInfoWasCentered = false;
@@ -373,7 +375,28 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		}
 	}
 
-	bool pending = opcProcessStartPending;
+	if(opcCellTrackOutPending)
+	{
+		int response = MesOpc != NULL ? MesOpc->CELL_TRACK_OUT_RESPONSE_RESULT() : -1;
+		if(response == 1){
+			opcCellTrackOutPending = false;
+			memoMainLineAdd("[FMS OPC UA] CellTrackOut response complete.");
+		}else if(response == 2 || response < 0){
+			opcCellTrackOutPending = false;
+			WriteOpcUaLog("ERROR", "CELL_TRACK_OUT response failed", true);
+		}else if((DWORD)(nowTick - opcCellTrackOutStartTick) >= RESPONSE_TIMEOUT_MS){
+			opcCellTrackOutPending = false;
+			// Log the exact OPC UA response node/raw value before clearing the request.
+			if(MesOpc != NULL){
+				MesOpc->LogCellTrackOutTimeout();
+				MesOpc->CELL_TRACK_OUT_CANCEL();
+			}else{
+				WriteOpcUaLog("ERROR", "CELL_TRACK_OUT_TIMEOUT MesOpc=<null>", true);
+			}
+		}
+	}
+
+	bool pending = opcProcessStartPending || opcCellTrackOutPending;
 	for (int i = 0; i < 2; ++i)
 		pending = pending || opcTrayLoadPending[i];
 	opcMesTimer->Enabled = pending;

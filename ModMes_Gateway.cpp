@@ -885,6 +885,8 @@ void __fastcall TMod_Fms::QueuePcRequestClearsForResponses(void)
 		SetPcTagJson(L"F1NGS01.Location2.TrayProcess.TrayLoad", L"false");
 	if (IsActiveFmsResponse(L"F1NGS01.Location2.TrayProcess.TrayUnloadResponse"))
 		SetPcTagJson(L"F1NGS01.Location2.TrayProcess.TrayUnloadRequest", L"false");
+	if (IsActiveFmsResponse(L"F1NGS01.Location2.CellTrackOut.CellUnloadCompleteResponse"))
+		SetPcTagJson(L"F1NGS01.Location2.CellTrackOut.CellUnloadComplete", L"false");
 }
 //---------------------------------------------------------------------------
 UnicodeString __fastcall TMod_Fms::BuildSuccessResponse(void)

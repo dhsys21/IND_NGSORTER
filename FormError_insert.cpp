@@ -55,19 +55,20 @@ void __fastcall TErrorForm_insert::AdvSmoothButton1Click(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TErrorForm_insert::retryBtnClick(TObject *Sender)
 {
-	int map = 0;
-
-	MainForm->memoMainLineAdd("Retry");
-	map = psource_ch1->Caption.ToInt();
-
-	if(robostar->move.pallet == 2 && robostar->move.channel == map){
-		gripper->req_Pause(false);
-		robostar->req_Pause(false);
-		MainForm->playBtnClick(Sender);
-		this->Visible = false;
-	}else{
-		MessageBox(Handle, BaseForm->GetLangStr("MSG_INSERTING").c_str(), L"INSERT", MB_OK|MB_ICONQUESTION);
+	int targetChannel = ptarget_ch1->Caption.ToIntDef(0);
+	if(targetChannel < 1 || targetChannel > MainForm->tray_target.SLOT_COUNT){
+		MessageBox(Handle, L"Invalid Target Tray channel.", L"INSERT RETRY", MB_OK|MB_ICONWARNING);
+		return;
 	}
+
+	MainForm->memoRobostarLineAdd(
+		"[SAFE RETRY] INSERT restart from Z UP: Gripper=" + IntToStr(toolNum + 1) +
+		" TargetCh=" + IntToStr(targetChannel));
+	gripper->req_Pause(false);
+	robostar->req_Stop(); // Cancel the saved failed step; retry creates a fresh position request.
+	MainForm->playBtnClick(Sender);
+	robostar->req_AutoInsert(2, toolNum + 1, targetChannel, 1, 96);
+	this->Visible = false;
 }
 //---------------------------------------------------------------------------
 void __fastcall TErrorForm_insert::ignoreBtnClick(TObject *Sender)
