@@ -65,8 +65,9 @@ object AlarmForm: TAlarmForm
     object errMsg2: TLabel
       Left = 33
       Top = 70
-      Width = 67
-      Height = 24
+      Width = 655
+      Height = 48
+      AutoSize = False
       Caption = 'Label1'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -75,6 +76,7 @@ object AlarmForm: TAlarmForm
       Font.Style = [fsBold]
       ParentFont = False
       Transparent = True
+      WordWrap = True
     end
   end
   object AdvSmoothButton5: TAdvSmoothButton

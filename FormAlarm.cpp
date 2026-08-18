@@ -25,6 +25,32 @@ void __fastcall TAlarmForm::ShowError(AnsiString str1, UnicodeString str2)
 		MainForm->LampModeChange(LampAlarm);
 		errMsg1->Caption = "S_Maint_" + str1;
 		errMsg2->Caption = str2;
+
+		const int detailWidth = AdvSmoothPanel1->Width - (errMsg2->Left * 2);
+		errMsg2->Width = detailWidth;
+		RECT textRect = {0, 0, detailWidth, 0};
+		HDC dc = GetDC(Handle);
+		HFONT oldFont = (HFONT)SelectObject(dc, errMsg2->Font->Handle);
+		int detailHeight = DrawTextW(dc, str2.c_str(), str2.Length(), &textRect,
+			DT_CALCRECT | DT_WORDBREAK | DT_EDITCONTROL | DT_NOPREFIX);
+		SelectObject(dc, oldFont);
+		ReleaseDC(Handle, dc);
+
+		if(detailHeight < 24)
+			detailHeight = 24;
+		errMsg2->Height = detailHeight + 4;
+
+		const int minPanelHeight = 137;
+		int panelHeight = errMsg2->Top + errMsg2->Height + 20;
+		if(panelHeight < minPanelHeight)
+			panelHeight = minPanelHeight;
+		AdvSmoothPanel1->Height = panelHeight;
+
+		int buttonTop = AdvSmoothPanel1->Top + panelHeight + 3;
+		AdvSmoothButton5->Top = buttonTop;
+		ignoreBtn->Top = buttonTop;
+		ClientHeight = buttonTop + ignoreBtn->Height + 4;
+
 		FormStyle = fsStayOnTop;
 		this->BringToFront();
 		this->Show();
