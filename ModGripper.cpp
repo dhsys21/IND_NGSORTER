@@ -262,11 +262,12 @@ void __fastcall Tgripper::Initialize()
 			}
 			else{
 				MainForm->memoGripperLineAdd("[Init step 2] Sorting has ended.");
-				InitSequence(seqIdle);						// 선별종료
-				MainForm->NotifyIdMatching_source();		// 선별 트레이 선별완료 보고하고
-				MainForm->NotifyIdMatching_target("1");		// 대상 트레이 선별완료 보고하고
-				robostar->req_WaitPosition();				// 로보트는 대기위치로 이동시키고
-				MainForm->NotifyTransferOut(MainForm->pTrayid_source->Caption);				// 검사 종료 보고
+				MainForm->memoGripperLineAdd("[CYCLE] NO NEXT NG -> SOURCE TRAY OUT");
+				InitSequence(seqIdle);						// 시퀀스 종료
+				MainForm->NotifyIdMatching_source();		// 소스 트레이 작업완료 보고하고
+				MainForm->NotifyIdMatching_target("1");		// 대상 트레이 작업완료 보고하고
+				MainForm->NotifyTransferOut(MainForm->pTrayid_source->Caption);				// 검사 완료 보고
+				MainForm->CmdTrayOut(0);                  // D10155 SOURCE TRAY OUT ON
 			}
 			break;
 	}
@@ -455,9 +456,19 @@ void __fastcall Tgripper::Inserting()
 			InitSequence(seqInserting);
 			break;
 		default:
-			MainForm->memoGripperLineAdd("[Insert complete] " + BaseForm->GetLangStr("MSG_PERPARE_EJECT"));
-			MainForm->NotifyIdMatching_target("1");	// 이재 완료시마다 보고
-			InitSequence(seqInit, seqSorting);
+			if(step.step == 5){
+				// Always finish the current insert cycle at the wait position.
+				// The next NG search starts only after WaitPosition reports seqIdle.
+				MainForm->memoGripperLineAdd("[Insert complete] WAIT POSITION MOVE START");
+				MainForm->NotifyIdMatching_target("1");	// 삽입 완료시마다 보고
+				robostar->req_WaitPosition();
+				step.step = 6;
+			}
+			else if(step.step == 6 && robostar->seq == seqIdle){
+				MainForm->memoGripperLineAdd("[Insert complete] WAIT POSITION MOVE COMPLETE");
+				MainForm->memoGripperLineAdd("[CYCLE] CHECK NEXT NG CHANNEL");
+				InitSequence(seqInit, seqSorting);
+			}
 			break;
 	}
 }
