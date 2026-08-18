@@ -555,6 +555,7 @@ void __fastcall TInterfaceForm::WriteTargetTrackOutTestData()
 		}
 		else
 			Tray->SLOT_ID[i] = "";
+		Tray->CELL_LOT_ID[i] = IsNg ? "TEST_LOT" : "";
 		Tray->LOSS_CD[i] = IsNg ? "TEST_NG" : "";
 		Tray->LOSS_DESC[i] = "";
 		Tray->PICK[i] = IsNg ? "Y" : "N";

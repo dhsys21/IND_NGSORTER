@@ -377,8 +377,18 @@ void __fastcall TMainForm::ReportCellTrackOut(int sourceChannel, int targetChann
 		WriteOpcUaLog("ERROR", "CellTrackOut write skipped: Gateway disconnected", true);
 		return;
 	}
+	if(sourceChannel < 1 || sourceChannel > tray_source.SLOT_COUNT ||
+		targetChannel < 1 || targetChannel > tray_target.SLOT_COUNT){
+		WriteOpcUaLog("ERROR", "CellTrackOut write skipped: invalid source/target channel", true);
+		return;
+	}
 
 	MesOpc->PROCESS_DATA_WRITE();
+	memoMainLineAdd("[FMS OPC UA] TrackOut source values: SourceCh=" + IntToStr(sourceChannel) +
+		" TargetCh=" + IntToStr(targetChannel) + " CellId=" + cellId +
+		" LotId=" + tray_target.CELL_LOT_ID[targetChannel - 1] +
+		" Grade=" + tray_target.RANK[targetChannel - 1] +
+		" NGCode=" + tray_target.LOSS_CD[targetChannel - 1]);
 	MesOpc->CELL_TRACK_OUT_REQUEST(sourceChannel, targetChannel, cellId);
 	opcCellTrackOutPending = true;
 	opcCellTrackOutStartTick = GetTickCount();

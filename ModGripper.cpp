@@ -390,6 +390,7 @@ void __fastcall Tgripper::Inserting()
 					AnsiString previousPick = MainForm->tray_target.PICK[targetIndex];
 					tool[toolIndex].insert_end = true;
 					MainForm->tray_target.SLOT_ID[targetIndex] = MainForm->tray_source.SLOT_ID[sourceIndex];
+					MainForm->tray_target.CELL_LOT_ID[targetIndex] = MainForm->tray_source.CELL_LOT_ID[sourceIndex];
 					MainForm->tray_target.LOSS_CD[targetIndex] = MainForm->tray_source.LOSS_CD[sourceIndex];
 					MainForm->tray_target.PICK[targetIndex] = MainForm->tray_source.PICK[sourceIndex];
 					MainForm->tray_target.RANK[targetIndex] = MainForm->tray_source.RANK[sourceIndex];
@@ -399,6 +400,8 @@ void __fastcall Tgripper::Inserting()
 						" SourceCh=" + tool[toolIndex].source_ch +
 						" TargetCh=" + tool[toolIndex].target_ch +
 						" CellId=" + MainForm->tray_target.SLOT_ID[targetIndex] +
+						" LotId=" + MainForm->tray_target.CELL_LOT_ID[targetIndex] +
+						" Grade=" + MainForm->tray_target.RANK[targetIndex] +
 						" LossCode=" + MainForm->tray_target.LOSS_CD[targetIndex]);
 					MainForm->memoGripperLineAdd(
 						"[TARGET CELL] RESERVATION CLEAR TargetCh=" + tool[toolIndex].target_ch +

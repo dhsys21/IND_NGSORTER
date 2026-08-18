@@ -179,7 +179,10 @@ static bool ValidateSourceTrackInCells(bool LogFailure)
 		UnicodeString Prefix = L"TrackInCellInformation.Cell[" + IntToStr(i) + L"]";
 		if (!HasFmsTag(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"CellNo")) ||
 			!HasFmsTag(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"CellExist")) ||
-			!HasFmsTag(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"WorkFlag")))
+			!HasFmsTag(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"WorkFlag")) ||
+			!HasFmsTag(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"LotId")) ||
+			!HasFmsTag(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"Grade")) ||
+			!HasFmsTag(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"NGCode")))
 		{
 			if(LogFailure) LogOpcEvent("VALIDATION FAIL missing " + AnsiString(Prefix), true);
 			return false;
@@ -214,6 +217,7 @@ static void ClearTrayCells(TRAY_INFO *Tray)
 		Tray->SLOT_POSITION[i] = "";
 		Tray->TARGET_SLOT_POSITION[i] = "";
 		Tray->SLOT_ID[i] = "";
+		Tray->CELL_LOT_ID[i] = "";
 		Tray->LOSS_CD[i] = "";
 		Tray->LOSS_DESC[i] = "";
 		Tray->PICK[i] = "";
@@ -233,16 +237,18 @@ static void ApplySourceTrackInCells(TRAY_INFO *Tray)
 	{
 		bool CellExist = GetFmsBool(CellTag(Root, i, L"CellExist"));
 		int CellNo = GetFmsInt(CellTag(Root, i, L"CellNo"));
-		UnicodeString Grade = GetFmsString(CellTag(Root, i, L"Grade")).Trim();
+		UnicodeString Grade = GetFmsString(CellTag(Root, i, L"Grade"));
 
 		Tray->SLOT_POSITION[i] = AnsiString(IntToStr(CellNo));
 		if (CellExist)
 			Tray->SLOT_ID[i] = AnsiString(GetFmsString(CellTag(Root, i, L"CellId")).Trim());
 		else
 			Tray->SLOT_ID[i] = "";
-		Tray->LOSS_CD[i] = AnsiString(GetFmsString(CellTag(Root, i, L"NGCode")).Trim());
+		// Preserve these TrackIn values per cell without substituting target-tray data.
+		Tray->CELL_LOT_ID[i] = AnsiString(GetFmsString(CellTag(Root, i, L"LotId")));
+		Tray->LOSS_CD[i] = AnsiString(GetFmsString(CellTag(Root, i, L"NGCode")));
 		Tray->RANK[i] = AnsiString(Grade);
-		Tray->PICK[i] = (CellExist && Grade.UpperCase() == L"NG") ? "Y" : "N";
+		Tray->PICK[i] = (CellExist && Grade.Trim().UpperCase() == L"NG") ? "Y" : "N";
 	}
 }
 //---------------------------------------------------------------------------
@@ -511,7 +517,8 @@ void __fastcall TMesOpc::PROCESS_DATA_WRITE()
 		bool CellExist = !Tray->SLOT_ID[i].IsEmpty();
 		SetPcString(CellTag(Root, i, L"CellId"), Tray->SLOT_ID[i]);
 		SetPcInt(CellTag(Root, i, L"CellNo"), i + 1);
-		SetPcString(CellTag(Root, i, L"LotId"), TargetTrayId);
+		// LotId/Grade/NGCode must be the original TrackInCellInformation values.
+		SetPcString(CellTag(Root, i, L"LotId"), Tray->CELL_LOT_ID[i]);
 		SetPcBool(CellTag(Root, i, L"CellExist"), CellExist);
 		SetPcString(CellTag(Root, i, L"NGCode"), Tray->LOSS_CD[i]);
 		SetPcString(CellTag(Root, i, L"Grade"), Tray->RANK[i]);

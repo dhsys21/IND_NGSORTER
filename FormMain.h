@@ -56,6 +56,7 @@ typedef struct
 	int SLOT_COUNT;
 	AnsiString SLOT_POSITION[96];
 	AnsiString SLOT_ID[96];
+	AnsiString CELL_LOT_ID[96];
 	AnsiString PICK[96];
 	AnsiString LOSS_CD[96];
 	AnsiString RANK[96];

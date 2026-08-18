@@ -402,7 +402,10 @@ void __fastcall TMainForm::setTrayInfo(int index)
 		{
 			m_saveTrayInfo[index].SLOT_POSITION[i] = tray_source.SLOT_POSITION[i];
 			m_saveTrayInfo[index].SLOT_ID[i] = tray_source.SLOT_ID[i];
+			m_saveTrayInfo[index].CELL_LOT_ID[i] = tray_source.CELL_LOT_ID[i];
 			m_saveTrayInfo[index].PICK[i] = tray_source.PICK[i];
+			m_saveTrayInfo[index].LOSS_CD[i] = tray_source.LOSS_CD[i];
+			m_saveTrayInfo[index].RANK[i] = tray_source.RANK[i];
 		}
 	}
 	else if(index == 1)
@@ -415,6 +418,7 @@ void __fastcall TMainForm::setTrayInfo(int index)
 		{
 			m_saveTrayInfo[index].SLOT_POSITION[i] = tray_target.SLOT_POSITION[i];
 			m_saveTrayInfo[index].SLOT_ID[i] = tray_target.SLOT_ID[i];
+			m_saveTrayInfo[index].CELL_LOT_ID[i] = tray_target.CELL_LOT_ID[i];
 			m_saveTrayInfo[index].PICK[i] = tray_target.PICK[i];
 			m_saveTrayInfo[index].LOSS_CD[i] = tray_target.LOSS_CD[i];
 			m_saveTrayInfo[index].RANK[i] = tray_target.RANK[i];
@@ -447,6 +451,7 @@ void __fastcall TMainForm::saveTrayInfo(int index)
 			AnsiString section = "CELL_" + IntToStr(i + 1);
 			ini->WriteString(section, "SLOT_POSITION", m_saveTrayInfo[index].SLOT_POSITION[i]);
 			ini->WriteString(section, "SLOT_ID", m_saveTrayInfo[index].SLOT_ID[i]);
+			ini->WriteString(section, "LOT_ID", m_saveTrayInfo[index].CELL_LOT_ID[i]);
 			ini->WriteString(section, "PICK", m_saveTrayInfo[index].PICK[i]);
 			ini->WriteString(section, "LOSS_CD", m_saveTrayInfo[index].LOSS_CD[i]);
 			ini->WriteString(section, "RANK", m_saveTrayInfo[index].RANK[i]);
@@ -458,6 +463,7 @@ void __fastcall TMainForm::saveTrayInfo(int index)
 		{
 			ini->WriteString(index, "SLOT_POSITION" + IntToStr(i), m_saveTrayInfo[index].SLOT_POSITION[i]);
 			ini->WriteString(index, "SLOT_ID" + IntToStr(i), m_saveTrayInfo[index].SLOT_ID[i]);
+			ini->WriteString(index, "CELL_LOT_ID" + IntToStr(i), m_saveTrayInfo[index].CELL_LOT_ID[i]);
 			ini->WriteString(index, "PICK" + IntToStr(i), m_saveTrayInfo[index].PICK[i]);
 			ini->WriteString(index, "LOSS_CD" + IntToStr(i), m_saveTrayInfo[index].LOSS_CD[i]);
 			ini->WriteString(index, "RANK" + IntToStr(i), m_saveTrayInfo[index].RANK[i]);
@@ -497,12 +503,14 @@ void __fastcall TMainForm::loadTrayInfo(int index)
 			AnsiString section = "CELL_" + IntToStr(i + 1);
 			m_saveTrayInfo[index].SLOT_POSITION[i] = ini->ReadString(section, "SLOT_POSITION", IntToStr(i + 1));
 			m_saveTrayInfo[index].SLOT_ID[i] = ini->ReadString(section, "SLOT_ID", "");
+			m_saveTrayInfo[index].CELL_LOT_ID[i] = ini->ReadString(section, "LOT_ID", "");
 			m_saveTrayInfo[index].PICK[i] = ini->ReadString(section, "PICK", "N");
 			m_saveTrayInfo[index].LOSS_CD[i] = ini->ReadString(section, "LOSS_CD", "");
 			m_saveTrayInfo[index].RANK[i] = ini->ReadString(section, "RANK", "");
 		}else{
 			m_saveTrayInfo[index].SLOT_POSITION[i] = ini->ReadString(index, "SLOT_POSITION" + IntToStr(i), "");
 			m_saveTrayInfo[index].SLOT_ID[i] = ini->ReadString(index, "SLOT_ID" + IntToStr(i), "");
+			m_saveTrayInfo[index].CELL_LOT_ID[i] = ini->ReadString(index, "CELL_LOT_ID" + IntToStr(i), "");
 			m_saveTrayInfo[index].PICK[i] = ini->ReadString(index, "PICK" + IntToStr(i), "");
 			m_saveTrayInfo[index].LOSS_CD[i] = ini->ReadString(index, "LOSS_CD" + IntToStr(i), "");
 			m_saveTrayInfo[index].RANK[i] = ini->ReadString(index, "RANK" + IntToStr(i), "");
@@ -537,6 +545,7 @@ void __fastcall TMainForm::ResetTargetTraySaveInfo(AnsiString trayId)
 	for(int i = 0; i < 96; ++i){
 		m_saveTrayInfo[1].SLOT_POSITION[i] = IntToStr(i + 1);
 		m_saveTrayInfo[1].SLOT_ID[i] = "";
+		m_saveTrayInfo[1].CELL_LOT_ID[i] = "";
 		m_saveTrayInfo[1].PICK[i] = "N";
 		m_saveTrayInfo[1].LOSS_CD[i] = "";
 		m_saveTrayInfo[1].RANK[i] = "";
@@ -611,9 +620,11 @@ int __fastcall TMainForm::RestoreTargetTrayInfo(AnsiString trayId, bool confirmE
 
 	tray_target.SLOT_COUNT = m_saveTrayInfo[1].SLOT_COUNT;
 	tray_target.TRAY_GUBUN = IntToStr(tray_target.SLOT_COUNT);
+	bool recoveredTrackInValues = false;
 	for(int i = 0; i < tray_target.SLOT_COUNT; ++i){
 		tray_target.SLOT_POSITION[i] = m_saveTrayInfo[1].SLOT_POSITION[i];
 		tray_target.SLOT_ID[i] = m_saveTrayInfo[1].SLOT_ID[i];
+		tray_target.CELL_LOT_ID[i] = m_saveTrayInfo[1].CELL_LOT_ID[i];
 		tray_target.PICK[i] = m_saveTrayInfo[1].PICK[i];
 		tray_target.LOSS_CD[i] = m_saveTrayInfo[1].LOSS_CD[i];
 		tray_target.RANK[i] = m_saveTrayInfo[1].RANK[i];
@@ -621,6 +632,27 @@ int __fastcall TMainForm::RestoreTargetTrayInfo(AnsiString trayId, bool confirmE
 			tray_target.SLOT_POSITION[i] = IntToStr(i + 1);
 		if(tray_target.PICK[i].IsEmpty())
 			tray_target.PICK[i] = "N";
+
+		// Older local files have no per-cell LOT_ID. Recover all three original
+		// TrackIn values only when the same CellId is still present in Source Tray.
+		if(!tray_target.SLOT_ID[i].IsEmpty() && tray_target.CELL_LOT_ID[i].IsEmpty()){
+			for(int src = 0; src < tray_source.SLOT_COUNT && src < 96; ++src){
+				if(tray_source.SLOT_ID[src] == tray_target.SLOT_ID[i]){
+					tray_target.CELL_LOT_ID[i] = tray_source.CELL_LOT_ID[src];
+					tray_target.LOSS_CD[i] = tray_source.LOSS_CD[src];
+					tray_target.RANK[i] = tray_source.RANK[src];
+					m_saveTrayInfo[1].CELL_LOT_ID[i] = tray_target.CELL_LOT_ID[i];
+					m_saveTrayInfo[1].LOSS_CD[i] = tray_target.LOSS_CD[i];
+					m_saveTrayInfo[1].RANK[i] = tray_target.RANK[i];
+					recoveredTrackInValues = true;
+					break;
+				}
+			}
+		}
+	}
+	if(recoveredTrackInValues){
+		saveTrayInfo(1);
+		memoMainLineAdd("[LOCAL TARGET] Recovered LotId/Grade/NGCode from TrackIn by CellId.");
 	}
 	return 1;
 }

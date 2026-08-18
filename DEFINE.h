@@ -54,7 +54,8 @@ typedef struct{
 	 int SLOT_COUNT;                     	//SLOT COUNT ( 기본24 EA )
 	AnsiString SLOT_POSITION[96];          	//현재 TRAY 안의 CELL 위치 ( 1, 2, 3, 4 … ) , 공백 없는 것으로 판단.
 	AnsiString TARGET_SLOT_POSITION[96];      //대상 TRAY 안의 CELL 위치 ( 1. 3. 8, 9 … )
-	AnsiString SLOT_ID[96];                   //SLOT 의 CELL ID
+	AnsiString SLOT_ID[96];                   //SLOT cell ID
+	AnsiString CELL_LOT_ID[96];               //TrackIn cell LotId (preserved for TrackOut)
 	AnsiString LOSS_CD[96];                   //SLOT 불량코드
 	AnsiString LOSS_DESC[96];                 //SLOT 의 불량 명
 	AnsiString PICK[96];                      //배출요청 ; Y (불량 선별기, 랭크 선별 장비 이거보고 처리 )
