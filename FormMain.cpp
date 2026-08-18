@@ -322,10 +322,13 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		else if ((DWORD)(nowTick - opcTrayLoadStartTick[i]) >= RESPONSE_TIMEOUT_MS)
 		{
 			opcTrayLoadPending[i] = false;
-			if (MesOpc != NULL) MesOpc->TRAY_LOAD_CANCEL(sourceTray);
+			if (MesOpc != NULL){
+				MesOpc->LogTrayLoadTimeout(sourceTray);
+				MesOpc->TRAY_LOAD_CANCEL(sourceTray);
+			}
 			AnsiString trayName = sourceTray ? "Source" : "Target";
 			ShowCommonError(trayName + " tray response timeout",
-				"No TrayLoadResponse from FMS Gateway.");
+				"TrayLoadResponse or tray data was not completed within 10 seconds.");
 		}
 	}
 

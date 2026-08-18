@@ -23,10 +23,12 @@ void __fastcall TErrorForm::ShowError(AnsiString MainStr, AnsiString SubStr, Ans
 	SubErr->Caption = SubStr;
 	FormStyle = fsStayOnTop;
 
-	if(this->Visible == false){
-		this->BringToFront();
-		this->Visible = true;
-	}
+	// MainForm is another child of BaseForm. Show first, then always raise this
+	// form so a previous Visible=true state cannot leave the error behind MainForm.
+	this->Visible = true;
+	this->BringToFront();
+	if(this->CanFocus())
+		this->SetFocus();
 }
 //---------------------------------------------------------------------------
 void __fastcall ShowCommonError(AnsiString MainStr, AnsiString SubStr1, AnsiString SubStr2)
@@ -35,6 +37,20 @@ void __fastcall ShowCommonError(AnsiString MainStr, AnsiString SubStr1, AnsiStri
 	// startup ordering change cannot turn ErrorForm->ShowError() into a NULL call.
 	if(ErrorForm == NULL && Application != NULL && BaseForm != NULL)
 		Application->CreateForm(__classid(TErrorForm), &ErrorForm);
+
+	AnsiString Detail = SubStr1;
+	if(!SubStr2.IsEmpty()){
+		if(!Detail.IsEmpty())
+			Detail += " / ";
+		Detail += SubStr2;
+	}
+	if(MainForm != NULL){
+		MainForm->WriteErrorLog(MainStr, Detail);
+		AnsiString DisplayMessage = "[ERROR] " + MainStr;
+		if(!Detail.IsEmpty())
+			DisplayMessage += " : " + Detail;
+		MainForm->memoMainLineAdd(DisplayMessage);
+	}
 
 	if(ErrorForm != NULL){
 		ErrorForm->ShowError(MainStr, SubStr1, SubStr2);

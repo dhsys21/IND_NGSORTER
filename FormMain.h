@@ -394,7 +394,6 @@ public:		// User declarations
 	TPanel *psort_ch[96];
 	TPanel *psort_ing[96];
 	TPanel *psort_bad[96];
-	TPanel *psort_rank[96];
 
 	TPanel *pTarget_ch[96];
 	TPanel *pTarget_bad[96];

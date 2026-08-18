@@ -77,7 +77,6 @@ void __fastcall TMainForm::DisplaySourceCell(int toolNum, int ch)
 	}
 	psort_ing[ch]->Color = clr;
 	psort_bad[ch]->Color = clr;
-	psort_rank[ch]->Color = clr;
 	if(toolNum == -1){
 		psort_ing[ch]->Caption = "ÃëÃâ";
 	}
@@ -141,8 +140,6 @@ void __fastcall TMainForm::MakePanel()
 		psort_bad[index] = new TPanel(this);
 		SetOption(psort_bad[index], nx + 80 + 2, ny, 95, nh, clWhite, index);
 
-//		psort_rank[index] = new TPanel(this);
-//		SetOption(psort_rank[index], nx + 175 + 3, ny, 50, nh, clWhite, index);
 		ny = ny - nh - 1;
 		index += 1;
 
@@ -218,7 +215,6 @@ void __fastcall TMainForm::ChangeTrayMap(int channel)
 				SetOption(psort_ch[index], nx, ny, 30, nh, pnlSourceTrayId->Color, index);
 				SetOption(psort_ing[index], nx + 30 + 1, ny, 50, nh, clWhite, index);
 				SetOption(psort_bad[index], nx + 80 + 2, ny, 95, nh, clWhite, index);
-				SetOption(psort_rank[index], nx + 175 + 3, ny, 50, nh, clWhite, index);
 				ny = ny - nh - 1;
 				index += 1;
 
@@ -231,7 +227,6 @@ void __fastcall TMainForm::ChangeTrayMap(int channel)
 				psort_ch[index]->Visible = true;
 				psort_ing[index]->Visible = true;
 				psort_bad[index]->Visible = true;
-				psort_rank[index]->Visible = true;
 				index += 1;
 			}
 		}

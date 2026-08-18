@@ -16,6 +16,7 @@ public:		// User declarations
     void __fastcall TRAY_LOAD_CANCEL(bool SourceTray);
     bool __fastcall TRAY_LOAD_RESPONSE();
     int __fastcall TRAY_LOAD_RESPONSE(bool SourceTray);
+	void __fastcall LogTrayLoadTimeout(bool SourceTray);
     void __fastcall RECIPE_REQUEST();
     bool __fastcall RECIPE_RESPONSE();
     void __fastcall PROCESS_START_REQUEST();

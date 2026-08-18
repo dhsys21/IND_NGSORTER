@@ -136,36 +136,36 @@ static void LogOpcEvent(const AnsiString &Message, bool bDisplay = false)
 		MainForm->WriteOpcUaLog("EVENT", Message, bDisplay);
 }
 //---------------------------------------------------------------------------
-static bool ReadRequiredString(const UnicodeString &Key, UnicodeString &Value, const AnsiString &Name)
+static bool ReadRequiredString(const UnicodeString &Key, UnicodeString &Value, const AnsiString &Name, bool LogFailure)
 {
 	if (!HasFmsTag(Key))
 	{
-		LogOpcEvent("VALIDATION FAIL missing " + Name, true);
+		if(LogFailure) LogOpcEvent("VALIDATION FAIL missing " + Name, true);
 		return false;
 	}
 
 	Value = GetFmsString(Key).Trim();
 	if (Value.IsEmpty())
 	{
-		LogOpcEvent("VALIDATION FAIL empty " + Name, true);
+		if(LogFailure) LogOpcEvent("VALIDATION FAIL empty " + Name, true);
 		return false;
 	}
 
 	return true;
 }
 //---------------------------------------------------------------------------
-static bool ValidateSourceTrackInCells(void)
+static bool ValidateSourceTrackInCells(bool LogFailure)
 {
 	if (!HasFmsTag(TrackInTag(L"CellCount")))
 	{
-		LogOpcEvent("VALIDATION FAIL missing TrackInCellInformation.CellCount", true);
+		if(LogFailure) LogOpcEvent("VALIDATION FAIL missing TrackInCellInformation.CellCount", true);
 		return false;
 	}
 
 	int Count = GetFmsInt(TrackInTag(L"CellCount"));
 	if (Count <= 0 || Count > 96)
 	{
-		LogOpcEvent("VALIDATION FAIL TrackInCellInformation.CellCount=" + IntToStr(Count), true);
+		if(LogFailure) LogOpcEvent("VALIDATION FAIL TrackInCellInformation.CellCount=" + IntToStr(Count), true);
 		return false;
 	}
 
@@ -176,14 +176,14 @@ static bool ValidateSourceTrackInCells(void)
 			!HasFmsTag(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"CellExist")) ||
 			!HasFmsTag(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"WorkFlag")))
 		{
-			LogOpcEvent("VALIDATION FAIL missing " + AnsiString(Prefix), true);
+			if(LogFailure) LogOpcEvent("VALIDATION FAIL missing " + AnsiString(Prefix), true);
 			return false;
 		}
 
 		int CellNo = GetFmsInt(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"CellNo"));
 		if (CellNo < 1 || CellNo > 96)
 		{
-			LogOpcEvent("VALIDATION FAIL " + AnsiString(Prefix) + ".CellNo=" + IntToStr(CellNo), true);
+			if(LogFailure) LogOpcEvent("VALIDATION FAIL " + AnsiString(Prefix) + ".CellNo=" + IntToStr(CellNo), true);
 			return false;
 		}
 
@@ -191,7 +191,7 @@ static bool ValidateSourceTrackInCells(void)
 		UnicodeString CellId = GetFmsString(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"CellId")).Trim();
 		if (CellExist && CellId.IsEmpty())
 		{
-			LogOpcEvent("VALIDATION FAIL empty " + AnsiString(Prefix) + ".CellId", true);
+			if(LogFailure) LogOpcEvent("VALIDATION FAIL empty " + AnsiString(Prefix) + ".CellId", true);
 			return false;
 		}
 	}
@@ -343,30 +343,43 @@ int __fastcall TMesOpc::TRAY_LOAD_RESPONSE(bool SourceTray)
 	if (Tray != NULL)
 	{
 		UnicodeString ProductModel;
-		UnicodeString RouteId;
 		UnicodeString ProcessId;
 		UnicodeString LotId;
 
-		bool ValidTrayLoad = ReadRequiredString(TrayInfoTag(Location, L"ProductModel"), ProductModel, "TrayInformation.ProductModel") &&
-			ReadRequiredString(TrayInfoTag(Location, L"RouteId"), RouteId, "TrayInformation.RouteId") &&
-			ReadRequiredString(TrayInfoTag(Location, L"ProcessId"), ProcessId, "TrayInformation.ProcessId") &&
-			ReadRequiredString(TrayInfoTag(Location, L"LotId"), LotId, "TrayInformation.LotId");
-		if (!ValidTrayLoad)
+		if (SourceTray)
 		{
-			SetPcBool(TrayProcessTag(Location, L"TrayLoad"), false);
-			if (Mod_Fms != NULL) Mod_Fms->ClearFmsTag(ResponseKey);
-			return -1;
+			UnicodeString RouteId;
+			// TrayLoadResponse and the 96-cell payload can arrive in separate
+			// FMS_CHANGED messages. Keep waiting instead of deleting the response.
+			bool ValidTrayLoad =
+				ReadRequiredString(TrayInfoTag(Location, L"ProductModel"), ProductModel, "TrayInformation.ProductModel", false) &&
+				ReadRequiredString(TrayInfoTag(Location, L"RouteId"), RouteId, "TrayInformation.RouteId", false) &&
+				ReadRequiredString(TrayInfoTag(Location, L"ProcessId"), ProcessId, "TrayInformation.ProcessId", false) &&
+				ReadRequiredString(TrayInfoTag(Location, L"LotId"), LotId, "TrayInformation.LotId", false) &&
+				ValidateSourceTrackInCells(false);
+			if (!ValidTrayLoad)
+				return 0;
+		}
+		else
+		{
+			// Location2 has only TrayExist/TrayId in the deployed NodeSet.
+			// Requiring Location2 ProductModel/RouteId/ProcessId/LotId caused a
+			// permanent validation failure even when TrayLoadResponse was 1.
+			if (MainForm != NULL)
+			{
+				ProductModel = UnicodeString(MainForm->tray_source.KIND);
+				ProcessId = UnicodeString(MainForm->tray_source.WORK_CODE);
+			}
+			TPanel *TrayIdPanel = TrayIdPanelFor(false);
+			if (TrayIdPanel != NULL)
+				LotId = TrayIdPanel->Caption.Trim();
+			if (LotId.IsEmpty())
+				return 0;
 		}
 
 		ClearTrayCells(Tray);
 		if (SourceTray)
 		{
-			if (!ValidateSourceTrackInCells())
-			{
-				SetPcBool(TrayProcessTag(Location, L"TrayLoad"), false);
-				if (Mod_Fms != NULL) Mod_Fms->ClearFmsTag(ResponseKey);
-				return -1;
-			}
 			ApplySourceTrackInCells(Tray);
 			Tray->PASS = "N";
 		}
@@ -389,6 +402,32 @@ int __fastcall TMesOpc::TRAY_LOAD_RESPONSE(bool SourceTray)
 	if (Mod_Fms != NULL && !MesTestMode) Mod_Fms->ClearFmsTag(ResponseKey);
 	LogOpcEvent("TRAY_LOAD_RESPONSE SUCCESS " + AnsiString(Location));
 	return 1;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMesOpc::LogTrayLoadTimeout(bool SourceTray)
+{
+	UnicodeString Location = LocationFor(SourceTray);
+	UnicodeString ResponseJson;
+	bool HasResponse = Mod_Fms != NULL &&
+		Mod_Fms->GetFmsTagJson(TrayProcessTag(Location, L"TrayLoadResponse"), ResponseJson);
+	AnsiString Message = "TRAY_LOAD_TIMEOUT " + AnsiString(Location) +
+		" TrayLoadResponse=" + (HasResponse ? AnsiString(ResponseJson) : AnsiString("<missing>"));
+	if (SourceTray)
+		Message += " TrackInCellInformation.CellCount=" + IntToStr(GetFmsInt(TrackInTag(L"CellCount")));
+
+	if (MainForm != NULL)
+		MainForm->WriteOpcUaLog("ERROR", Message, true);
+
+	// Emit the exact missing/invalid source field only once, at timeout.
+	if (SourceTray && GetFmsInt(TrayProcessTag(Location, L"TrayLoadResponse")) == 1)
+	{
+		UnicodeString Value;
+		ReadRequiredString(TrayInfoTag(Location, L"ProductModel"), Value, "TrayInformation.ProductModel", true);
+		ReadRequiredString(TrayInfoTag(Location, L"RouteId"), Value, "TrayInformation.RouteId", true);
+		ReadRequiredString(TrayInfoTag(Location, L"ProcessId"), Value, "TrayInformation.ProcessId", true);
+		ReadRequiredString(TrayInfoTag(Location, L"LotId"), Value, "TrayInformation.LotId", true);
+		ValidateSourceTrackInCells(true);
+	}
 }
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::RECIPE_REQUEST()

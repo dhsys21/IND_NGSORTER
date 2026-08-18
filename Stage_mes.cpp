@@ -37,12 +37,10 @@ void __fastcall TMainForm::DisplayTrayInfo()
 
 		pbad_sum->Caption = "0";
 		badList->Clear();
-		for(int i=0; i<tray->SLOT_COUNT; ++i){
+		for(int i=0; i<tray->SLOT_COUNT && i<96; ++i){
 			psort_bad[i]->Color = clWhite;
-			psort_rank[i]->Color = clWhite;
 			psort_ing[i]->Color = clWhite;
 			psort_bad[i]->Caption = tray->LOSS_CD[i] + "[" + tray->PICK[i] + "]";
-			psort_rank[i]->Caption = tray->RANK[i];
 			if(tray->PICK[i] == "Y"){
                 tray->remainCnt += 1;
 				psort_ing[i]->Caption = "NG";
@@ -86,7 +84,7 @@ void __fastcall TMainForm::DisplayTrayInfo()
 		AnsiString str;
 		tray->remainCnt = 0;	// 대상 트레이 투입가능 수량 확인
 
-		for(int i = 0; i < tray->TRAY_GUBUN; ++i)
+		for(int i = 0; i < tray->TRAY_GUBUN && i < 96; ++i)
 		{
 			if(tray->PICK[i] == "Y"){
 				color_target[i/24][23 - (i%24)] = clSilver;
@@ -174,10 +172,8 @@ void __fastcall TMainForm::CompleteOpcTrayLoad(bool sourceTray)
 		for (int i = 0; i < loadedTray->SLOT_COUNT && i < 96; ++i)
 		{
 			psort_bad[i]->Color = clWhite;
-			psort_rank[i]->Color = clWhite;
 			psort_ing[i]->Color = clWhite;
 			psort_bad[i]->Caption = loadedTray->LOSS_CD[i] + "[" + loadedTray->PICK[i] + "]";
-			psort_rank[i]->Caption = loadedTray->RANK[i];
 			if (loadedTray->PICK[i] == "Y")
 			{
 				++loadedTray->remainCnt;
