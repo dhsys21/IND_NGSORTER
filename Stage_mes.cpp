@@ -487,6 +487,7 @@ void __fastcall TMainForm::ReportCellTrackOut(int sourceChannel, int targetChann
 	tray_target.LOSS_CD[targetIndex] = TrackInNGCode;
 	tray_target.RANK[targetIndex] = TrackInGrade;
 	tray_target.CELL_EXIST[targetIndex] = true;
+	tray_target.WORK_FLAG[targetIndex] = tray_source.WORK_FLAG[sourceChannel - 1];
 	tray_target.PICK[targetIndex] = "Y";
 	setTrayInfo(1);
 
@@ -496,7 +497,8 @@ void __fastcall TMainForm::ReportCellTrackOut(int sourceChannel, int targetChann
 		" TargetCh=" + IntToStr(targetChannel) + " CellId=" + TrackInCellId +
 		" LotId=" + TrackInLotId +
 		" Grade=" + TrackInGrade +
-		" NGCode=" + TrackInNGCode, false);
+		" NGCode=" + TrackInNGCode +
+		" WorkFlag=" + IntToStr(tray_target.WORK_FLAG[targetIndex] ? 1 : 0), false);
 	MesOpc->CELL_TRACK_OUT_REQUEST(sourceChannel, targetChannel, TrackInCellId);
 	opcCellTrackOutPending = true;
 	opcCellTrackOutWaitResponseOff = false;

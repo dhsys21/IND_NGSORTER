@@ -54,6 +54,7 @@ bool __fastcall Tgripper::CommitInsertTrayState(int toolNo)
 	MainForm->tray_target.PICK[targetIndex] = "Y";
 	MainForm->tray_target.RANK[targetIndex] = MainForm->tray_source.RANK[sourceIndex];
 	MainForm->tray_target.CELL_EXIST[targetIndex] = true;
+	MainForm->tray_target.WORK_FLAG[targetIndex] = MainForm->tray_source.WORK_FLAG[sourceIndex];
 	MainForm->DisplayTargetCell(-1, targetIndex);
 	MainForm->DisplayTargetCellInfo(-1, targetIndex);
 	MainForm->setTrayInfo(1);
