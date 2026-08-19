@@ -410,6 +410,7 @@ void __fastcall TMainForm::setTrayInfo(int index)
 			m_saveTrayInfo[index].SLOT_ID[i] = tray_source.SLOT_ID[i];
 			m_saveTrayInfo[index].CELL_LOT_ID[i] = tray_source.CELL_LOT_ID[i];
 			m_saveTrayInfo[index].CELL_EXIST[i] = tray_source.CELL_EXIST[i];
+			m_saveTrayInfo[index].WORK_FLAG[i] = tray_source.WORK_FLAG[i];
 			m_saveTrayInfo[index].PICK[i] = tray_source.PICK[i];
 			m_saveTrayInfo[index].LOSS_CD[i] = tray_source.LOSS_CD[i];
 			m_saveTrayInfo[index].RANK[i] = tray_source.RANK[i];
@@ -427,6 +428,7 @@ void __fastcall TMainForm::setTrayInfo(int index)
 			m_saveTrayInfo[index].SLOT_ID[i] = tray_target.SLOT_ID[i];
 			m_saveTrayInfo[index].CELL_LOT_ID[i] = tray_target.CELL_LOT_ID[i];
 			m_saveTrayInfo[index].CELL_EXIST[i] = tray_target.CELL_EXIST[i];
+			m_saveTrayInfo[index].WORK_FLAG[i] = tray_target.WORK_FLAG[i];
 			m_saveTrayInfo[index].PICK[i] = tray_target.PICK[i];
 			m_saveTrayInfo[index].LOSS_CD[i] = tray_target.LOSS_CD[i];
 			m_saveTrayInfo[index].RANK[i] = tray_target.RANK[i];
@@ -438,100 +440,92 @@ void __fastcall TMainForm::setTrayInfo(int index)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::saveTrayInfo(int index)
 {
-	AnsiString file;
-	if(m_saveTrayInfo[index].LOT_ID.IsEmpty()) return;
-	if(index == 1){
-		//* Target tray local management
-		file = GetTargetTrayInfoFile(m_saveTrayInfo[index].LOT_ID);
-	}else{
-		//* Source tray local management
-		file = GetSourceTrayInfoFile(m_saveTrayInfo[index].LOT_ID);
-	}
-	ini = new TIniFile(file);
-	if(index == 1){
-		//* 불량트레이 관리
-		ini->WriteString("TRAY", "TRAY_ID", m_saveTrayInfo[index].LOT_ID);
-		ini->WriteInteger("TRAY", "SLOT_COUNT", m_saveTrayInfo[index].SLOT_COUNT);
-		ini->WriteString("TRAY", "LAST_UPDATED", FormatDateTime("yyyy-mm-dd hh:nn:ss", Now()));
-		ini->WriteString("TRAY", "STATE", "ACTIVE");
-		for(int i = 0; i < m_saveTrayInfo[index].SLOT_COUNT && i < 96; i++)
-		{
-			AnsiString section = "CELL_" + IntToStr(i + 1);
-			ini->WriteString(section, "SLOT_POSITION", m_saveTrayInfo[index].SLOT_POSITION[i]);
-			ini->WriteString(section, "SLOT_ID", m_saveTrayInfo[index].SLOT_ID[i]);
-			ini->WriteString(section, "LOT_ID", m_saveTrayInfo[index].CELL_LOT_ID[i]);
-			ini->WriteBool(section, "CELL_EXIST", m_saveTrayInfo[index].CELL_EXIST[i]);
-			ini->WriteString(section, "PICK", m_saveTrayInfo[index].PICK[i]);
-			ini->WriteString(section, "LOSS_CD", m_saveTrayInfo[index].LOSS_CD[i]);
-			ini->WriteString(section, "RANK", m_saveTrayInfo[index].RANK[i]);
-		}
-	}else{
-		ini->WriteString(index, "LOT_ID", m_saveTrayInfo[index].LOT_ID);
-		ini->WriteInteger(index, "SLOT_COUNT", m_saveTrayInfo[index].SLOT_COUNT);
-		for(int i = 0; i < m_saveTrayInfo[index].SLOT_COUNT; i++)
-		{
-			ini->WriteString(index, "SLOT_POSITION" + IntToStr(i), m_saveTrayInfo[index].SLOT_POSITION[i]);
-			ini->WriteString(index, "SLOT_ID" + IntToStr(i), m_saveTrayInfo[index].SLOT_ID[i]);
-			ini->WriteString(index, "CELL_LOT_ID" + IntToStr(i), m_saveTrayInfo[index].CELL_LOT_ID[i]);
-			ini->WriteBool(index, "CELL_EXIST" + IntToStr(i), m_saveTrayInfo[index].CELL_EXIST[i]);
-			ini->WriteString(index, "PICK" + IntToStr(i), m_saveTrayInfo[index].PICK[i]);
-			ini->WriteString(index, "LOSS_CD" + IntToStr(i), m_saveTrayInfo[index].LOSS_CD[i]);
-			ini->WriteString(index, "RANK" + IntToStr(i), m_saveTrayInfo[index].RANK[i]);
-		}
-	}
+	if(index < 0 || index > 1 || m_saveTrayInfo[index].LOT_ID.IsEmpty()) return;
+	AnsiString file = index == 1 ?
+		GetTargetTrayInfoFile(m_saveTrayInfo[index].LOT_ID) :
+		GetSourceTrayInfoFile(m_saveTrayInfo[index].LOT_ID);
 
+	ini = new TIniFile(file);
+	// Local tray schema follows TrackInCellInformation. Pick is the only
+	// equipment-only field and is required to restore reservation/work state.
+	ini->EraseSection("0"); // Remove the legacy Source layout on the next save.
+	ini->EraseSection("1");
+	ini->EraseSection("TRAY");
+	ini->WriteString("TRAY", "TrayId", m_saveTrayInfo[index].LOT_ID);
+	ini->WriteInteger("TRAY", "CellCount", m_saveTrayInfo[index].SLOT_COUNT);
+	ini->WriteString("TRAY", "LastUpdated", FormatDateTime("yyyy-mm-dd hh:nn:ss", Now()));
+	ini->WriteString("TRAY", "State", "ACTIVE");
+
+	for(int i = 0; i < 96; ++i)
+	{
+		AnsiString section = "CELL_" + IntToStr(i + 1);
+		ini->EraseSection(section); // Remove legacy SLOT_*/LOSS_CD/RANK keys.
+		if(i >= m_saveTrayInfo[index].SLOT_COUNT) continue;
+		ini->WriteString(section, "CellId", m_saveTrayInfo[index].SLOT_ID[i]);
+		ini->WriteInteger(section, "CellNo",
+			m_saveTrayInfo[index].SLOT_POSITION[i].ToIntDef(i + 1));
+		ini->WriteString(section, "LotId", m_saveTrayInfo[index].CELL_LOT_ID[i]);
+		ini->WriteBool(section, "CellExist", m_saveTrayInfo[index].CELL_EXIST[i]);
+		ini->WriteString(section, "NGCode", m_saveTrayInfo[index].LOSS_CD[i]);
+		ini->WriteString(section, "Grade", m_saveTrayInfo[index].RANK[i]);
+		ini->WriteBool(section, "WorkFlag", m_saveTrayInfo[index].WORK_FLAG[i]);
+		ini->WriteString(section, "Pick", m_saveTrayInfo[index].PICK[i]);
+	}
 	delete ini;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::loadTrayInfo(int index)
 {
-	AnsiString file;
-	if(index == 1){
-		//* 불량트레이 관리
-		AnsiString trayId = targetTrayInfoActiveId;
-		if(trayId.IsEmpty()) trayId = pTrayid_target->Caption.Trim();
-		file = GetTargetTrayInfoFile(trayId);
-	}else{
-		AnsiString trayId = pTrayid_source->Caption.Trim();
-		file = GetSourceTrayInfoFile(trayId);
-	}
+	if(index < 0 || index > 1) return;
+	AnsiString trayId = index == 1 ? targetTrayInfoActiveId : pTrayid_source->Caption.Trim();
+	if(index == 1 && trayId.IsEmpty()) trayId = pTrayid_target->Caption.Trim();
+	AnsiString file = index == 1 ? GetTargetTrayInfoFile(trayId) : GetSourceTrayInfoFile(trayId);
 
 	ini = new TIniFile(file);
-	if(index == 1){
-		//* 불량트레이 관리
-		m_saveTrayInfo[index].LOT_ID = ini->ReadString("TRAY", "TRAY_ID", "");
-		m_saveTrayInfo[index].SLOT_COUNT = ini->ReadInteger("TRAY", "SLOT_COUNT", 96);
-	}else{
-		m_saveTrayInfo[index].LOT_ID = ini->ReadString(index, "LOT_ID", "");
-		m_saveTrayInfo[index].SLOT_COUNT = ini->ReadInteger(index, "SLOT_COUNT", 96);
-	}
+	// Read the unified TrackIn-style schema first, then fall back to legacy files.
+	AnsiString legacySection = IntToStr(index);
+	m_saveTrayInfo[index].LOT_ID = ini->ReadString("TRAY", "TrayId",
+		ini->ReadString("TRAY", "TRAY_ID", ini->ReadString(legacySection, "LOT_ID", "")));
+	m_saveTrayInfo[index].SLOT_COUNT = ini->ReadInteger("TRAY", "CellCount",
+		ini->ReadInteger("TRAY", "SLOT_COUNT", ini->ReadInteger(legacySection, "SLOT_COUNT", 96)));
 	if(m_saveTrayInfo[index].SLOT_COUNT < 1 || m_saveTrayInfo[index].SLOT_COUNT > 96)
 		m_saveTrayInfo[index].SLOT_COUNT = 96;
 
-	for(int i = 0; i < m_saveTrayInfo[index].SLOT_COUNT; i++)
+	for(int i = 0; i < m_saveTrayInfo[index].SLOT_COUNT; ++i)
 	{
-		if(index == 1){
-			AnsiString section = "CELL_" + IntToStr(i + 1);
-			m_saveTrayInfo[index].SLOT_POSITION[i] = ini->ReadString(section, "SLOT_POSITION", IntToStr(i + 1));
-			m_saveTrayInfo[index].SLOT_ID[i] = ini->ReadString(section, "SLOT_ID", "");
-			m_saveTrayInfo[index].CELL_LOT_ID[i] = ini->ReadString(section, "LOT_ID", "");
-			m_saveTrayInfo[index].PICK[i] = ini->ReadString(section, "PICK", "N");
-			m_saveTrayInfo[index].LOSS_CD[i] = ini->ReadString(section, "LOSS_CD", "");
-			m_saveTrayInfo[index].RANK[i] = ini->ReadString(section, "RANK", "");
-			m_saveTrayInfo[index].CELL_EXIST[i] = ini->ReadBool(section, "CELL_EXIST",
-				m_saveTrayInfo[index].PICK[i] == "Y" || !m_saveTrayInfo[index].SLOT_ID[i].IsEmpty());
-		}else{
-			m_saveTrayInfo[index].SLOT_POSITION[i] = ini->ReadString(index, "SLOT_POSITION" + IntToStr(i), "");
-			m_saveTrayInfo[index].SLOT_ID[i] = ini->ReadString(index, "SLOT_ID" + IntToStr(i), "");
-			m_saveTrayInfo[index].CELL_LOT_ID[i] = ini->ReadString(index, "CELL_LOT_ID" + IntToStr(i), "");
-			m_saveTrayInfo[index].PICK[i] = ini->ReadString(index, "PICK" + IntToStr(i), "");
-			m_saveTrayInfo[index].LOSS_CD[i] = ini->ReadString(index, "LOSS_CD" + IntToStr(i), "");
-			m_saveTrayInfo[index].RANK[i] = ini->ReadString(index, "RANK" + IntToStr(i), "");
-			m_saveTrayInfo[index].CELL_EXIST[i] = ini->ReadBool(index,
-				"CELL_EXIST" + IntToStr(i), !m_saveTrayInfo[index].SLOT_ID[i].IsEmpty());
-		}
-	}
+		AnsiString section = "CELL_" + IntToStr(i + 1);
+		AnsiString oldCellNo = index == 1 ?
+			ini->ReadString(section, "SLOT_POSITION", IntToStr(i + 1)) :
+			ini->ReadString(legacySection, "SLOT_POSITION" + IntToStr(i), IntToStr(i + 1));
+		AnsiString oldCellId = index == 1 ?
+			ini->ReadString(section, "SLOT_ID", "") :
+			ini->ReadString(legacySection, "SLOT_ID" + IntToStr(i), "");
+		AnsiString oldLotId = index == 1 ?
+			ini->ReadString(section, "LOT_ID", "") :
+			ini->ReadString(legacySection, "CELL_LOT_ID" + IntToStr(i), "");
+		AnsiString oldPick = index == 1 ?
+			ini->ReadString(section, "PICK", "N") :
+			ini->ReadString(legacySection, "PICK" + IntToStr(i), "N");
+		AnsiString oldNgCode = index == 1 ?
+			ini->ReadString(section, "LOSS_CD", "") :
+			ini->ReadString(legacySection, "LOSS_CD" + IntToStr(i), "");
+		AnsiString oldGrade = index == 1 ?
+			ini->ReadString(section, "RANK", "") :
+			ini->ReadString(legacySection, "RANK" + IntToStr(i), "");
+		bool oldCellExist = index == 1 ?
+			ini->ReadBool(section, "CELL_EXIST", oldPick == "Y" || !oldCellId.IsEmpty()) :
+			ini->ReadBool(legacySection, "CELL_EXIST" + IntToStr(i), !oldCellId.IsEmpty());
 
+		m_saveTrayInfo[index].SLOT_POSITION[i] = IntToStr(
+			ini->ReadInteger(section, "CellNo", oldCellNo.ToIntDef(i + 1)));
+		m_saveTrayInfo[index].SLOT_ID[i] = ini->ReadString(section, "CellId", oldCellId);
+		m_saveTrayInfo[index].CELL_LOT_ID[i] = ini->ReadString(section, "LotId", oldLotId);
+		m_saveTrayInfo[index].CELL_EXIST[i] = ini->ReadBool(section, "CellExist", oldCellExist);
+		m_saveTrayInfo[index].LOSS_CD[i] = ini->ReadString(section, "NGCode", oldNgCode);
+		m_saveTrayInfo[index].RANK[i] = ini->ReadString(section, "Grade", oldGrade);
+		m_saveTrayInfo[index].WORK_FLAG[i] = ini->ReadBool(section, "WorkFlag", oldCellExist);
+		m_saveTrayInfo[index].PICK[i] = ini->ReadString(section, "Pick", oldPick);
+	}
 	delete ini;
 }
 //---------------------------------------------------------------------------
@@ -642,6 +636,7 @@ void __fastcall TMainForm::ResetTargetTraySaveInfo(AnsiString trayId)
 		m_saveTrayInfo[1].SLOT_ID[i] = "";
 		m_saveTrayInfo[1].CELL_LOT_ID[i] = "";
 		m_saveTrayInfo[1].CELL_EXIST[i] = false;
+		m_saveTrayInfo[1].WORK_FLAG[i] = false;
 		m_saveTrayInfo[1].PICK[i] = "N";
 		m_saveTrayInfo[1].LOSS_CD[i] = "";
 		m_saveTrayInfo[1].RANK[i] = "";
@@ -722,6 +717,7 @@ int __fastcall TMainForm::RestoreTargetTrayInfo(AnsiString trayId, bool confirmE
 		tray_target.SLOT_ID[i] = m_saveTrayInfo[1].SLOT_ID[i];
 		tray_target.CELL_LOT_ID[i] = m_saveTrayInfo[1].CELL_LOT_ID[i];
 		tray_target.CELL_EXIST[i] = m_saveTrayInfo[1].CELL_EXIST[i];
+		tray_target.WORK_FLAG[i] = m_saveTrayInfo[1].WORK_FLAG[i];
 		tray_target.PICK[i] = m_saveTrayInfo[1].PICK[i];
 		tray_target.LOSS_CD[i] = m_saveTrayInfo[1].LOSS_CD[i];
 		tray_target.RANK[i] = m_saveTrayInfo[1].RANK[i];
@@ -738,7 +734,9 @@ int __fastcall TMainForm::RestoreTargetTrayInfo(AnsiString trayId, bool confirmE
 					tray_target.CELL_LOT_ID[i] = tray_source.CELL_LOT_ID[src];
 					tray_target.LOSS_CD[i] = tray_source.LOSS_CD[src];
 					tray_target.RANK[i] = tray_source.RANK[src];
+					tray_target.WORK_FLAG[i] = tray_source.WORK_FLAG[src];
 					m_saveTrayInfo[1].CELL_LOT_ID[i] = tray_target.CELL_LOT_ID[i];
+					m_saveTrayInfo[1].WORK_FLAG[i] = tray_target.WORK_FLAG[i];
 					m_saveTrayInfo[1].LOSS_CD[i] = tray_target.LOSS_CD[i];
 					m_saveTrayInfo[1].RANK[i] = tray_target.RANK[i];
 					recoveredTrackInValues = true;

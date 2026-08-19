@@ -58,6 +58,7 @@ typedef struct
 	AnsiString SLOT_ID[96];
 	AnsiString CELL_LOT_ID[96];
 	bool CELL_EXIST[96];
+	bool WORK_FLAG[96];
 	AnsiString PICK[96];
 	AnsiString LOSS_CD[96];
 	AnsiString RANK[96];

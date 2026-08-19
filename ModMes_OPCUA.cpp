@@ -241,6 +241,12 @@ static void ApplySourceTrackInCells(TRAY_INFO *Tray)
 	for (int Channel = 0; Channel < 96; ++Channel)
 	{
 		Tray->SLOT_POSITION[Channel] = IntToStr(Channel + 1);
+		Tray->SLOT_ID[Channel] = "";
+		Tray->CELL_LOT_ID[Channel] = "";
+		Tray->CELL_EXIST[Channel] = false;
+		Tray->WORK_FLAG[Channel] = false;
+		Tray->LOSS_CD[Channel] = "";
+		Tray->RANK[Channel] = "";
 		Tray->PICK[Channel] = "N";
 	}
 
@@ -254,11 +260,12 @@ static void ApplySourceTrackInCells(TRAY_INFO *Tray)
 		bool CellExist = GetFmsBool(CellTag(Root, Record, L"CellExist"));
 		UnicodeString Grade = GetFmsString(CellTag(Root, Record, L"Grade")).Trim();
 		Tray->CELL_EXIST[Channel] = CellExist;
+		Tray->WORK_FLAG[Channel] = GetFmsBool(CellTag(Root, Record, L"WorkFlag"));
 		if (CellExist)
 			Tray->empTray = false;
 
-		Tray->SLOT_ID[Channel] = CellExist ?
-			AnsiString(GetFmsString(CellTag(Root, Record, L"CellId")).Trim()) : AnsiString("");
+		Tray->SLOT_ID[Channel] = AnsiString(
+			GetFmsString(CellTag(Root, Record, L"CellId")).Trim());
 		Tray->CELL_LOT_ID[Channel] = AnsiString(GetFmsString(CellTag(Root, Record, L"LotId")));
 		Tray->LOSS_CD[Channel] = AnsiString(GetFmsString(CellTag(Root, Record, L"NGCode"))).Trim();
 		Tray->RANK[Channel] = AnsiString(Grade);
@@ -826,7 +833,7 @@ void __fastcall TMesOpc::PROCESS_DATA_WRITE()
 		SetPcBool(CellTag(Root, OutputIndex, L"CellExist"), true);
 		SetPcString(CellTag(Root, OutputIndex, L"NGCode"), Tray->LOSS_CD[TargetIndex]);
 		SetPcString(CellTag(Root, OutputIndex, L"Grade"), Tray->RANK[TargetIndex]);
-		SetPcBool(CellTag(Root, OutputIndex, L"WorkFlag"), true);
+		SetPcBool(CellTag(Root, OutputIndex, L"WorkFlag"), Tray->WORK_FLAG[TargetIndex]);
 
 		MainForm->WriteOpcUaLog("TRACK_OUT_DETAIL",
 			"Cell[" + IntToStr(OutputIndex) + "] CellNo=" + IntToStr(TargetIndex + 1) +
@@ -834,7 +841,7 @@ void __fastcall TMesOpc::PROCESS_DATA_WRITE()
 			" LotId=" + Tray->CELL_LOT_ID[TargetIndex] +
 			" Grade=" + Tray->RANK[TargetIndex] +
 			" NGCode=" + Tray->LOSS_CD[TargetIndex] +
-			" WorkFlag=1", false);
+			" WorkFlag=" + IntToStr(Tray->WORK_FLAG[TargetIndex] ? 1 : 0), false);
 	}
 
 	for (int OutputIndex = CellCount; OutputIndex < 96; ++OutputIndex)

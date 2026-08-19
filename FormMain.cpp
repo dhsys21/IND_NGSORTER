@@ -81,8 +81,12 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	for(int i = 0; i < 96; ++i){
 		tray_source.CELL_EXIST[i] = false;
 		tray_target.CELL_EXIST[i] = false;
+		tray_source.WORK_FLAG[i] = false;
+		tray_target.WORK_FLAG[i] = false;
 		m_saveTrayInfo[0].CELL_EXIST[i] = false;
 		m_saveTrayInfo[1].CELL_EXIST[i] = false;
+		m_saveTrayInfo[0].WORK_FLAG[i] = false;
+		m_saveTrayInfo[1].WORK_FLAG[i] = false;
 	}
 	for(int i = 0; i < 2; ++i) {
 		comBcr[i] = NULL;
