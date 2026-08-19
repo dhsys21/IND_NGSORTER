@@ -46,7 +46,7 @@ bool __fastcall Tgripper::CommitInsertTrayState(int toolNo)
 		targetIndex < 0 || targetIndex >= MainForm->tray_target.SLOT_COUNT) return false;
 
 	AnsiString previousPick = MainForm->tray_target.PICK[targetIndex];
-	// Physical release is complete. Persist the Target slot before starting Z UP.
+	// Persist the completed Target slot after the insert release sequence.
 	tool[toolIndex].insert_end = true;
 	MainForm->tray_target.SLOT_ID[targetIndex] = MainForm->tray_source.SLOT_ID[sourceIndex];
 	MainForm->tray_target.CELL_LOT_ID[targetIndex] = MainForm->tray_source.CELL_LOT_ID[sourceIndex];
@@ -61,7 +61,7 @@ bool __fastcall Tgripper::CommitInsertTrayState(int toolNo)
 		"[TARGET CELL] INSERT COMMIT SourceCh=" + IntToStr(sourceIndex + 1) +
 		" TargetCh=" + IntToStr(targetIndex + 1) +
 		" PICK=" + previousPick + "->Y CellId=" + MainForm->tray_target.SLOT_ID[targetIndex] +
-		" / local file saved before Z UP");
+		" / local target file saved");
 	return true;
 }
 //---------------------------------------------------------------------------

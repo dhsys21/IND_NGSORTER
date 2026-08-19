@@ -794,13 +794,24 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 					opcProcessEndWaitResponseOff = false;
 					opcProcessEndResponseOffError = false;
 					opcProcessEndResponseResult = 0;
-					opcProcessStarted = false;
 					if(result == 1){
+						// One source cycle ends here: all NG cells processed -> ProcessEnd complete
+						// -> Source Tray Out. Clear the old source readiness before Tray Out so
+						// TryStartOpcProcess() cannot mistake it for the next source tray.
+						opcProcessStarted = false;
+						opcTrayDisplayed[0] = false;
+						opcTrayLoaded[0] = false;
+						opcTrayLoadPending[0] = false;
+						opcTrayLoadWaitResponseOff[0] = false;
+						opcTrayLoadResponseOffError[0] = false;
+						opcTrayLoadRetryRequired[0] = false;
+						pwork1->Color = clSilver;
 						CompleteProcessStep(14, "ProcessEndResponse returned OFF");
 						BeginProcessStep(15, "D10155 Source Tray Out request");
 						CmdTrayOut(0);
 						CompleteProcessStep(15, "D10155=ON");
 						memoMainLineAdd("[FMS OPC UA] ProcessEnd four-phase handshake complete.");
+						memoMainLineAdd("[FMS OPC UA] Source cycle complete; waiting for the next Source TrayLoad.");
 					}else{
 						ProcessStepLog(14, "ERROR - ProcessEndResponse=2 / clear complete");
 						ShowCommonError("Source ProcessEnd failed", "FMS returned ProcessEndResponse=2.");
@@ -838,12 +849,13 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 					" / Request=OFF / wait Response=0");
 			}else if(response < 0){
 				opcProcessEndPending = false;
-				opcProcessStarted = false;
+				// Keep the current process active after a ProcessEnd error. Restart must
+				// resume error handling, not issue another ProcessStart for the same tray.
 				ProcessStepLog(14, "ERROR - invalid ProcessEndResponse=" + IntToStr(response));
 				ShowCommonError("Source ProcessEnd failed", "Invalid or missing ProcessEndResponse.");
 			}else if((DWORD)(GetTickCount() - opcProcessEndTick) >= RESPONSE_TIMEOUT_MS){
 				opcProcessEndPending = false;
-				opcProcessStarted = false;
+				// Do not reopen ProcessStart after a ProcessEnd timeout for this source tray.
 				ProcessStepLog(14, "ERROR - ProcessEndResponse ON timeout");
 				if(MesOpc != NULL){
 					MesOpc->LogProcessEndTimeout();

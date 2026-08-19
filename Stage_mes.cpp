@@ -322,7 +322,8 @@ void __fastcall TMainForm::AdvanceOpcTrayLoad(bool sourceTray)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::TryStartOpcProcess()
 {
-	if (opcProcessStarted || opcProcessStartPending)
+	// A new process must not start while the previous ProcessEnd handshake is active.
+	if (opcProcessStarted || opcProcessStartPending || opcProcessEndPending)
 		return;
 	if (!opcTrayDisplayed[0] || !opcTrayDisplayed[1] ||
 		!opcTrayLoaded[0] || !opcTrayLoaded[1])

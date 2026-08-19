@@ -1818,7 +1818,33 @@ void __fastcall Trobostar::AutoInsert()
 				MainForm->memoRobostarLineAdd("[INSERT] Gripper OPEN stabilization wait");
 				break;
 			case 5:
+				// The tray cell can keep X0022 active while Z is down even after OPEN.
+				// Raise the gripper first; cell-clear confirmation is performed at Z=0.
+				zUpCount = 0;
+				bSetPoint = setPoint(Axis_zUp, 0);
+				if(!bSetPoint){
+					ErrorForm_insert->ShowError(msg + " Z UP command failed.",
+						"Insert Z UP command error", move.tool, 21);
+				}else{
+					MainForm->memoRobostarLineAdd("[INSERT] Gripper OPEN complete / Z UP command / target=0");
+					step.step = 6;
+				}
+				break;
+			case 6:
+				zUpCount += 1;
+				if(rangeCheck(Axis_zUp)){
+					zUpCount = 0;
+					step.timeout = 0;
+					MainForm->memoRobostarLineAdd("[INSERT] Z UP position 0 confirmed / start cell-clear check");
+				}else if(zUpCount > 200){
+					zUpCount = 0;
+					ErrorForm_insert->ShowError(msg + " Z UP timeout.",
+						"Insert Z axis did not reach position 0", move.tool, 21);
+				}
+				break;
+			case 7:
 			{
+				// X0022 is checked only after the gripper has reached Z=0.
 				for(int i=0; i<move.cnt; ++i)
 					nresult += CheckInsertCellReleased(move.tool + i);
 				if(nresult == move.cnt){
@@ -1828,7 +1854,8 @@ void __fastcall Trobostar::AutoInsert()
 							commitOk = false;
 					}
 					if(commitOk){
-						step.step = 6;
+						MainForm->memoRobostarLineAdd("[INSERT] Z=0 / X0022 ON / gripper cell clear confirmed");
+						step.step = 8;
 						step.timeout = 0;
 					}else{
 						ErrorForm_insert->ShowError(msg + " Target tray state save failed.",
@@ -1837,37 +1864,15 @@ void __fastcall Trobostar::AutoInsert()
 				}else{
 					step.timeout += 1;
 					if(step.timeout == errCnt){
-						ErrorForm_insert->ShowError(msg + " still detects a cell after OPEN.",
-							"Insert cell release confirmation error", move.tool, 23);
+						ErrorForm_insert->ShowError(msg + " still detects a cell after Z UP.",
+							"Insert cell remains on gripper at Z=0", move.tool, 23);
 					}
-					MainForm->memoRobostarLineAdd("[INSERT] Waiting for X0022 ON / gripper cell clear");
+					MainForm->memoRobostarLineAdd("[INSERT] Z=0 / waiting X0022 ON / gripper cell clear");
 				}
 				break;
 			}
-			case 6:
-				zUpCount = 0;
-				bSetPoint = setPoint(Axis_zUp, 0);
-				if(!bSetPoint){
-					ErrorForm_insert->ShowError(msg + " Z UP command failed.",
-						"Insert Z UP command error", move.tool, 21);
-				}else{
-					MainForm->memoRobostarLineAdd("[INSERT] Z UP command / target=0");
-					step.step = 7;
-				}
-				break;
-			case 7:
-				zUpCount += 1;
-				if(rangeCheck(Axis_zUp)){
-					zUpCount = 0;
-					MainForm->memoRobostarLineAdd("[INSERT] Z UP position 0 confirmed");
-				}else if(zUpCount > 200){
-					zUpCount = 0;
-					ErrorForm_insert->ShowError(msg + " Z UP timeout.",
-						"Insert Z axis did not reach position 0", move.tool, 21);
-				}
-				break;
 			default:
-				MainForm->CompleteProcessStep(11, "Cell insert saved / Z position 0 confirmed");
+				MainForm->CompleteProcessStep(11, "Cell insert saved / Z position 0 / cell clear confirmed");
 				InitSequence(seqAutoInsertComplete);
 				break;
 		}
@@ -2077,9 +2082,9 @@ bool __fastcall Trobostar::req_InsertComplete()
 		return false;
 	}
 
-	// Forced recovery still raises Z and confirms position 0 before completion.
+	// Forced recovery still issues Z UP and confirms position 0 before completion.
 	InitSequence(seqAutoInsert);
-	step.step = 6;
+	step.step = 5;
 	return true;
 }
 //---------------------------------------------------------------------------
