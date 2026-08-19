@@ -283,8 +283,26 @@ static void ApplyTrayDisplay(TRAY_INFO *Tray, const UnicodeString &ProductModel,
 }
 //---------------------------------------------------------------------------
 __fastcall TMesOpc::TMesOpc(TComponent* Owner)
-	: TDataModule(Owner)
+	: TDataModule(Owner),
+	  FShutdown(false)
 {
+}
+//---------------------------------------------------------------------------
+void __fastcall TMesOpc::Shutdown()
+{
+	if(FShutdown)
+		return;
+	FShutdown = true;
+
+	// Gracefully clear every outstanding EQP request before the Gateway stops.
+	SetPcBool(TrayProcessTag(TAG_SOURCE, L"TrayLoad"), false);
+	SetPcBool(TrayProcessTag(TAG_TARGET, L"TrayLoad"), false);
+	SetPcBool(TrayProcessTag(TAG_SOURCE, L"ProcessStart"), false);
+	SetPcBool(TrayProcessTag(TAG_SOURCE, L"ProcessEnd"), false);
+	SetPcBool(CellTrackOutTag(L"CellUnloadComplete"), false);
+	SetPcBool(TrayProcessTag(TAG_TARGET, L"TrayUnloadRequest"), false);
+	if(Mod_Fms != NULL)
+		Mod_Fms->FlushPendingPcTags(false);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::TRAY_LOAD_REQUEST()
@@ -498,16 +516,51 @@ int __fastcall TMesOpc::PROCESS_START_RESPONSE_RESULT()
 	return -1;
 }
 //---------------------------------------------------------------------------
+bool __fastcall TMesOpc::READ_TRACK_IN_CELL(int SourceCellNo, AnsiString &CellId,
+	AnsiString &LotId, AnsiString &NGCode, AnsiString &Grade)
+{
+	CellId = "";
+	LotId = "";
+	NGCode = "";
+	Grade = "";
+	if(Mod_Fms == NULL || SourceCellNo < 1 || SourceCellNo > 96)
+		return false;
+
+	// Resolve the actual source cell by CellNo, not by array index.
+	UnicodeString Root = TAG_SOURCE + L".TrackInCellInformation";
+	int CellCount = Mod_Fms->GetFmsTagInt(Root + L".CellCount", 0);
+	if(CellCount <= 0 || CellCount > 96)
+		return false;
+
+	for(int Index = 0; Index < CellCount; ++Index)
+	{
+		UnicodeString CellRoot = Root + L".Cell." + IntToStr(Index);
+		if(Mod_Fms->GetFmsTagInt(CellRoot + L".CellNo", 0) != SourceCellNo)
+			continue;
+
+		bool CellExist = Mod_Fms->GetFmsTagBool(CellRoot + L".CellExist", false);
+		CellId = AnsiString(Mod_Fms->GetFmsTagString(CellRoot + L".CellId", L"").Trim());
+		LotId = AnsiString(Mod_Fms->GetFmsTagString(CellRoot + L".LotId", L""));
+		NGCode = AnsiString(Mod_Fms->GetFmsTagString(CellRoot + L".NGCode", L""));
+		Grade = AnsiString(Mod_Fms->GetFmsTagString(CellRoot + L".Grade", L""));
+		return CellExist && !CellId.IsEmpty();
+	}
+
+	return false;
+}
+//---------------------------------------------------------------------------
 void __fastcall TMesOpc::PROCESS_DATA_WRITE()
 {
-	if (MainForm == NULL)
+	if (MainForm == NULL || Mod_Fms == NULL)
 		return;
 
 	TRAY_INFO *Tray = &MainForm->tray_target;
 	UnicodeString Root = TAG_TARGET + L".TrackOutCellInformation";
-	UnicodeString TargetTrayId = MainForm->pTrayid_target2->Caption.Trim();
-	if(TargetTrayId.IsEmpty()) TargetTrayId = MainForm->pTrayid_target->Caption.Trim();
+	UnicodeString TargetTrayId = Mod_Fms->GetPcTagString(
+		TrayInfoTag(TAG_TARGET, L"TrayId"), L"").Trim();
 
+	// Full cumulative report: include every existing target cell restored from
+	// the local tray file plus the cell that has just been inserted.
 	int CellCount = 0;
 	for (int TargetIndex = 0; TargetIndex < 96; ++TargetIndex)
 	{
@@ -555,10 +608,24 @@ void __fastcall TMesOpc::CELL_TRACK_OUT_REQUEST(int SourceChannel, int TargetCha
 	if(MainForm == NULL || Mod_Fms == NULL)
 		return;
 
+	// Production path uses the current TrayInformation.TrayId values.
 	UnicodeString SourceTrayId = Mod_Fms->GetPcTagString(
 		TrayInfoTag(TAG_SOURCE, L"TrayId"), L"").Trim();
 	UnicodeString TargetTrayId = Mod_Fms->GetPcTagString(
 		TrayInfoTag(TAG_TARGET, L"TrayId"), L"").Trim();
+	CELL_TRACK_OUT_REQUEST(SourceChannel, TargetChannel, CellId,
+		SourceTrayId, TargetTrayId);
+}
+//---------------------------------------------------------------------------
+void __fastcall TMesOpc::CELL_TRACK_OUT_REQUEST(int SourceChannel, int TargetChannel,
+	const AnsiString &CellId, const UnicodeString &SourceTrayIdValue,
+	const UnicodeString &TargetTrayIdValue)
+{
+	if(MainForm == NULL || Mod_Fms == NULL)
+		return;
+
+	UnicodeString SourceTrayId = SourceTrayIdValue.Trim();
+	UnicodeString TargetTrayId = TargetTrayIdValue.Trim();
 	if(SourceTrayId.IsEmpty() || TargetTrayId.IsEmpty())
 	{
 		LogOpcEvent("CELL_TRACK_OUT REQUEST FAIL TrayInformation.TrayId is empty" +

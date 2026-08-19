@@ -54,7 +54,19 @@ void __fastcall TBaseForm::FormShow(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::FormClose(TObject *Sender, TCloseAction &Action)
 {
-	MainForm->Close();
+	// Stop the OPC UA/Indy worker threads while MainForm is still valid.
+	// This prevents late socket callbacks and shortens application shutdown.
+	ClockTimer->Enabled = false;
+	FileDeleteTimer->Enabled = false;
+	if (MesOpc != NULL)
+		MesOpc->Shutdown();
+	if (Mod_Fms != NULL)
+		Mod_Fms->Stop();
+	if (MainForm != NULL)
+	{
+		MainForm->EndThread();
+		MainForm->Close();
+	}
 }
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::FormCloseQuery(TObject *Sender, bool &CanClose)

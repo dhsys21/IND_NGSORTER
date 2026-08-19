@@ -389,14 +389,39 @@ void __fastcall TMainForm::ReportCellTrackOut(int sourceChannel, int targetChann
 		return;
 	}
 
+	AnsiString TrackInCellId;
+	AnsiString TrackInLotId;
+	AnsiString TrackInNGCode;
+	AnsiString TrackInGrade;
+	if(!MesOpc->READ_TRACK_IN_CELL(sourceChannel, TrackInCellId,
+		TrackInLotId, TrackInNGCode, TrackInGrade)){
+		WriteOpcUaLog("ERROR", "CellTrackOut write skipped: Location1 TrackIn cell not found" +
+			AnsiString(" CellNoFrom=") + IntToStr(sourceChannel), true);
+		return;
+	}
+
+	if(!cellId.IsEmpty() && cellId != TrackInCellId){
+		WriteOpcUaLog("WARN", "CellTrackOut CellId corrected from target memory=" + cellId +
+			" to TrackIn=" + TrackInCellId + " CellNoFrom=" + IntToStr(sourceChannel), true);
+	}
+
+	// Merge the just-inserted cell from Location1 TrackInCellInformation into
+	// the locally managed target tray before writing the cumulative TrackOut array.
+	int targetIndex = targetChannel - 1;
+	tray_target.SLOT_ID[targetIndex] = TrackInCellId;
+	tray_target.CELL_LOT_ID[targetIndex] = TrackInLotId;
+	tray_target.LOSS_CD[targetIndex] = TrackInNGCode;
+	tray_target.RANK[targetIndex] = TrackInGrade;
+	setTrayInfo(1);
+
 	BeginProcessStep(12, "CellTrackOut request / wait CellUnloadCompleteResponse");
 	MesOpc->PROCESS_DATA_WRITE();
 	WriteOpcUaLog("DETAIL", "CellTrackOut payload SourceCh=" + IntToStr(sourceChannel) +
-		" TargetCh=" + IntToStr(targetChannel) + " CellId=" + cellId +
-		" LotId=" + tray_target.CELL_LOT_ID[targetChannel - 1] +
-		" Grade=" + tray_target.RANK[targetChannel - 1] +
-		" NGCode=" + tray_target.LOSS_CD[targetChannel - 1], false);
-	MesOpc->CELL_TRACK_OUT_REQUEST(sourceChannel, targetChannel, cellId);
+		" TargetCh=" + IntToStr(targetChannel) + " CellId=" + TrackInCellId +
+		" LotId=" + TrackInLotId +
+		" Grade=" + TrackInGrade +
+		" NGCode=" + TrackInNGCode, false);
+	MesOpc->CELL_TRACK_OUT_REQUEST(sourceChannel, targetChannel, TrackInCellId);
 	opcCellTrackOutPending = true;
 	opcCellTrackOutStartTick = GetTickCount();
 	opcMesTimer->Enabled = true;

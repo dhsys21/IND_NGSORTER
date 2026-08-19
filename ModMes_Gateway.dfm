@@ -5,6 +5,7 @@ object Mod_Fms: TMod_Fms
   object TcpServer: TIdTCPServer
     Bindings = <>
     DefaultPort = 18080
+    TerminateWaitTime = 1000
     OnConnect = TcpServerConnect
     OnDisconnect = TcpServerDisconnect
     OnExecute = TcpServerExecute

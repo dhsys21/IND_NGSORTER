@@ -227,6 +227,7 @@ __fastcall TMod_Fms::TMod_Fms(TComponent* Owner)
 	  FSnapshotReceived(false),
 	  FTagConfigLoaded(false),
 	  FGatewayConnected(false),
+	  FStopping(false),
 	  FBindIp(FMS_BIND_IP),
 	  FBindPort(FMS_BIND_PORT),
 	  FAutoStartEnabled(false)
@@ -241,6 +242,8 @@ __fastcall TMod_Fms::TMod_Fms(TComponent* Owner)
 	Timer_Reconnect->Interval = FMS_RECONNECT_INTERVAL_MS;
 	TcpServer->Active = false;
 	TcpServer->DefaultPort = FBindPort;
+	// Keep application shutdown responsive even if a gateway worker is blocked.
+	TcpServer->TerminateWaitTime = 1000;
 	TcpServer->Bindings->Clear();
 
 	TIdSocketHandle *Binding = TcpServer->Bindings->Add();
@@ -284,6 +287,7 @@ bool __fastcall TMod_Fms::TryStartServer(void)
 //---------------------------------------------------------------------------
 void __fastcall TMod_Fms::Start(void)
 {
+	FStopping = false;
 	FAutoStartEnabled = true;
 	Timer_Reconnect->Enabled = true;
 	TryStartServer();
@@ -291,18 +295,53 @@ void __fastcall TMod_Fms::Start(void)
 //---------------------------------------------------------------------------
 void __fastcall TMod_Fms::Stop(void)
 {
+	// Shutdown order: stop producers first, mark the worker callbacks as stopping,
+	// disconnect live contexts, and only then deactivate the Indy server.
+	FStopping = true;
 	FAutoStartEnabled = false;
 	Timer_Reconnect->Enabled = false;
 	Timer_Alive->Enabled = false;
-
-	if (TcpServer != NULL && TcpServer->Active)
 	{
-		TcpServer->Active = false;
-		LogOpcUa(L"SERVER", L"STOP");
+		TLockGuard Guard(FLock);
+		FGatewayConnected = false;
 	}
 
-	TLockGuard Guard(FLock);
-	FGatewayConnected = false;
+	bool WasActive = TcpServer != NULL && TcpServer->Active;
+	if (WasActive)
+	{
+		TList *List = TcpServer->Contexts->LockList();
+		try
+		{
+			for (int i = 0; i < List->Count; ++i)
+			{
+				TIdContext *Context = static_cast<TIdContext*>(List->Items[i]);
+				try
+				{
+					if (Context != NULL && Context->Connection != NULL &&
+						Context->Connection->Connected())
+						Context->Connection->Disconnect(false);
+				}
+				catch (...)
+				{
+					// A peer can close between Connected() and Disconnect(); ignore on shutdown.
+				}
+			}
+		}
+		__finally
+		{
+			TcpServer->Contexts->UnlockList();
+		}
+
+		try
+		{
+			TcpServer->Active = false;
+		}
+		catch (...)
+		{
+			// Indy may report an already-closed context while deactivating the server.
+		}
+		LogOpcUa(L"SERVER", L"STOP");
+	}
 }
 //---------------------------------------------------------------------------
 void __fastcall TMod_Fms::Configure(const UnicodeString &BindIp, int BindPort)
@@ -367,7 +406,8 @@ void __fastcall TMod_Fms::TcpServerDisconnect(TIdContext *AContext)
 		TLockGuard Guard(FLock);
 		FGatewayConnected = false;
 	}
-	LogOpcUa(L"DISCONNECT", L"Gateway disconnected");
+	if (!FStopping)
+		LogOpcUa(L"DISCONNECT", L"Gateway disconnected");
 }
 //---------------------------------------------------------------------------
 void __fastcall TMod_Fms::TcpServerExecute(TIdContext *AContext)
@@ -417,14 +457,29 @@ void __fastcall TMod_Fms::TcpServerExecute(TIdContext *AContext)
 		}
 		{
 			TLockGuard SendGuard(FSendLock);
+			if (FStopping || !AContext->Connection->Connected())
+				return;
 			AContext->Connection->IOHandler->Write(
 				Response + L"\n", Idglobal::IndyTextEncoding_UTF8());
 		}
 	}
 	catch (Exception &E)
 	{
-		LogOpcUa(L"ERROR", L"TCP execute: " + E.Message);
-		AContext->Connection->Disconnect();
+		// A disconnect is expected while Stop() interrupts the blocking ReadLn.
+		// Never call Disconnect() again on an already disconnected Indy context.
+		if (!FStopping)
+		{
+			LogOpcUa(L"ERROR", L"TCP execute: " + E.Message);
+			try
+			{
+				if (AContext != NULL && AContext->Connection != NULL &&
+					AContext->Connection->Connected())
+					AContext->Connection->Disconnect(false);
+			}
+			catch (...)
+			{
+			}
+		}
 	}
 }
 //---------------------------------------------------------------------------
@@ -1001,8 +1056,9 @@ void __fastcall TMod_Fms::FlushPendingPcTags(bool LogTx)
 		for (int i = 0; i < List->Count; ++i)
 		{
 			TIdContext *Context = static_cast<TIdContext*>(List->Items[i]);
-			if (Context != NULL && Context->Connection != NULL &&
-				Context->Connection->IOHandler != NULL)
+			if (!FStopping && Context != NULL && Context->Connection != NULL &&
+				Context->Connection->IOHandler != NULL &&
+				Context->Connection->Connected())
 			{
 				try
 				{
@@ -1011,7 +1067,8 @@ void __fastcall TMod_Fms::FlushPendingPcTags(bool LogTx)
 				}
 				catch (Exception &E)
 				{
-					LogOpcUa(L"ERROR", L"TCP flush: " + E.Message);
+					if (!FStopping)
+						LogOpcUa(L"ERROR", L"TCP flush: " + E.Message);
 				}
 			}
 		}

@@ -435,6 +435,7 @@ public:		// User declarations
 	void __fastcall ReadTargetTrayBarcode();
 	bool __fastcall ReadSystemInfo();
 	void __fastcall InitBarcodeAndSmoke();
+	void __fastcall EndThread();
 	SorterMode equipMode;
 	LampMode nowLampMode, beforeLampMode;
 

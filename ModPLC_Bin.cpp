@@ -82,6 +82,9 @@ void __fastcall TPlcBin::Connect(AnsiString ip, int port1, int port2)
 void __fastcall TPlcBin::DisConnect()
 {
 	bClose = true;
+	// Prevent reconnect callbacks while the application is shutting down.
+	Timer_PLC_AutoConnect->Enabled = false;
+	Timer_PC_AutoConnect->Enabled = false;
 	Timer_PLC_WriteMsg->Enabled = false;
 	Timer_PC_WriteMsg->Enabled = false;
 	ClientSocket_PLC->Close();

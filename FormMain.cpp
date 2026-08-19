@@ -105,6 +105,40 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	CreateIoMonitoringPanel();
 }
 //---------------------------------------------------------------------------
+void __fastcall TMainForm::EndThread()
+{
+	// Stop all sequence/response timers before closing communication objects.
+	if(opcMesTimer != NULL) opcMesTimer->Enabled = false;
+	if(senTimer != NULL) senTimer->Enabled = false;
+	if(stepTimer != NULL) stepTimer->Enabled = false;
+	if(mesTimer != NULL) mesTimer->Enabled = false;
+	if(gripper != NULL){
+		gripper->stepTimer->Enabled = false;
+		gripper->waitTimer->Enabled = false;
+	}
+	if(robostar != NULL){
+		robostar->senTimer->Enabled = false;
+		robostar->Timer_zUpTest->Enabled = false;
+	}
+
+	for(int i = 0; i < 2; ++i){
+		opcTrayLoadPending[i] = false;
+		if(comBcr[i] != NULL)
+			comBcr[i]->Disconnect();
+	}
+	opcProcessStartPending = false;
+	opcProcessEndPending = false;
+	opcCellTrackOutPending = false;
+	opcTargetUnloadPending = false;
+
+	if(PlcBin != NULL)
+		PlcBin->DisConnect();
+	if(comSmoke[0] != NULL)
+		comSmoke[0]->CommClose();
+	if(mes != NULL)
+		mes->Stop();
+}
+//---------------------------------------------------------------------------
 AnsiString __fastcall TMainForm::GetProcessStepName(int stepNo) const
 {
 	static const char *names[16] = {

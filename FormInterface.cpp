@@ -481,22 +481,17 @@ bool __fastcall TInterfaceForm::CanRunMesTest()
 //---------------------------------------------------------------------------
 UnicodeString __fastcall TInterfaceForm::FindTrackInCellId(int SourceCellNo)
 {
-	if (Mod_Fms == NULL || SourceCellNo < 1 || SourceCellNo > 96)
+	if (MesOpc == NULL)
 		return L"";
 
-	const UnicodeString Root = L"F1NGS01.Location1.TrackInCellInformation";
-	int Count = Mod_Fms->GetFmsTagInt(Root + L".CellCount", 0);
-	if (Count <= 0 || Count > 96)
-		Count = 96;
+	AnsiString CellId;
+	AnsiString LotId;
+	AnsiString NGCode;
+	AnsiString Grade;
+	if(!MesOpc->READ_TRACK_IN_CELL(SourceCellNo, CellId, LotId, NGCode, Grade))
+		return L"";
 
-	for (int i = 0; i < Count; ++i)
-	{
-		UnicodeString CellRoot = Root + L".Cell." + IntToStr(i);
-		if (Mod_Fms->GetFmsTagInt(CellRoot + L".CellNo", 0) == SourceCellNo)
-			return Mod_Fms->GetFmsTagString(CellRoot + L".CellId", L"").Trim();
-	}
-
-	return L"";
+	return UnicodeString(CellId).Trim();
 }
 //---------------------------------------------------------------------------
 bool __fastcall TInterfaceForm::IsTrackOutTestChannel(int Channel)
@@ -628,16 +623,33 @@ void __fastcall TInterfaceForm::WriteCellTrackOutTest()
 		return;
 	}
 
-	UnicodeString CellId = FindTrackInCellId(SourceCellNo);
-	if (CellId.IsEmpty())
+	// CellTrackOut TEST mapping:
+	// TrayIdFrom = Location1.TrayInformation.TrayId
+	// TrayIdTo   = Location2.TrayInformation.TrayId
+	// CellId     = Location1.TrackInCellInformation cell matching CellNoFrom
+	UnicodeString SourceTrayId = Mod_Fms->GetPcTagString(
+		L"F1NGS01.Location1.TrayInformation.TrayId", L"").Trim();
+	UnicodeString TargetTrayId = Mod_Fms->GetPcTagString(
+		L"F1NGS01.Location2.TrayInformation.TrayId", L"").Trim();
+	if (SourceTrayId.IsEmpty() || TargetTrayId.IsEmpty())
 	{
 		Application->MessageBox(
-			L"CellId was not found in TrackInCellInformation for Cell No From.",
+			L"Location1/Location2 TrayInformation.TrayId is empty.",
 			L"NGSORTER MES TEST", MB_OK | MB_ICONWARNING);
 		return;
 	}
 
-	MesOpc->CELL_TRACK_OUT_REQUEST(SourceCellNo, TargetCellNo, AnsiString(CellId));
+	UnicodeString CellId = FindTrackInCellId(SourceCellNo);
+	if (CellId.IsEmpty())
+	{
+		Application->MessageBox(
+			L"CellId was not found in Location1 TrackInCellInformation for Cell No From.",
+			L"NGSORTER MES TEST", MB_OK | MB_ICONWARNING);
+		return;
+	}
+
+	MesOpc->CELL_TRACK_OUT_REQUEST(SourceCellNo, TargetCellNo, AnsiString(CellId),
+		SourceTrayId, TargetTrayId);
 	RefreshMesTagLists();
 }
 //---------------------------------------------------------------------------
