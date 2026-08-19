@@ -501,13 +501,26 @@ void __fastcall TMainForm::teachingBtnClick(TObject *Sender)
 void __fastcall TMainForm::btnScanTargetTrayClick(TObject *Sender)
 {
 	pTrayid_source->Caption = BaseForm->GetLangStr("MSG_SCANNING");
-	comBcr[0]->GetBarcode();
+	ReadSourceTrayBarcode();
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::btnScanSourceTrayClick(TObject *Sender)
 {
 	pTrayid_target->Caption = BaseForm->GetLangStr("MSG_SCANNING");
 	ReadTargetTrayBarcode();
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::ReadSourceTrayBarcode()
+{
+	// Cycle test uses a fixed Source tray ID without triggering the reader.
+	if(cbCycle != NULL && cbCycle->Checked){
+		memoMainLineAdd("[CYCLE TEST] Source tray barcode reader bypass: Source1");
+		setBarcode(0, "Source1");
+		return;
+	}
+
+	if(comBcr[0] != NULL)
+		comBcr[0]->GetBarcode();
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::ReadTargetTrayBarcode()
@@ -575,6 +588,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 {
 	const DWORD RESPONSE_TIMEOUT_MS = 10000;
 	DWORD nowTick = GetTickCount();
+	bool cycleResponseBypass = cbCycle != NULL && cbCycle->Checked;
 
 	for (int i = 0; i < 2; ++i)
 	{
@@ -595,7 +609,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 			SetProcessWaitStatus(stepNo, locationName + ".TrayLoad Request=OFF",
 				locationName + ".TrayLoadResponse OFF", response);
 
-			if (response == 0)
+			if (response == 0 || cycleResponseBypass)
 			{
 				// A Response OFF is valid only after Response ON data was displayed.
 				if(!opcTrayDisplayed[i])
@@ -713,7 +727,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		{
 			int response = MesOpc != NULL ? MesOpc->PROCESS_START_RESPONSE_VALUE() : -1;
 			SetProcessWaitStatus(6, "ProcessStart Request=OFF", "ProcessStartResponse OFF", response);
-			if(response == 0)
+			if(response == 0 || cycleResponseBypass)
 			{
 				bool paused = gripper != NULL && robostar != NULL &&
 					(gripper->pauseStatus || robostar->pauseStatus);
@@ -728,7 +742,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 						opcProcessStarted = true;
 						pwork1->Color = clLime;
 						pwork2->Color = clLime;
-						CompleteProcessStep(6, "ProcessStartResponse returned OFF");
+						CompleteProcessStep(6, cycleResponseBypass ? "Cycle test: ProcessStartResponse reset bypassed" : "ProcessStartResponse returned OFF");
 						memoMainLineAdd("[FMS OPC UA] ProcessStart four-phase handshake complete.");
 						if(gripper->seq == seqIdle && robostar->seq == seqIdle)
 							gripper->req_Init();
@@ -787,7 +801,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		{
 			int response = MesOpc != NULL ? MesOpc->PROCESS_END_RESPONSE_VALUE() : -1;
 			SetProcessWaitStatus(14, "ProcessEnd Request=OFF", "ProcessEndResponse OFF", response);
-			if(response == 0)
+			if(response == 0 || cycleResponseBypass)
 			{
 				bool paused = gripper != NULL && robostar != NULL &&
 					(gripper->pauseStatus || robostar->pauseStatus);
@@ -810,7 +824,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 						opcTrayLoadResponseOffError[0] = false;
 						opcTrayLoadRetryRequired[0] = false;
 						pwork1->Color = clSilver;
-						CompleteProcessStep(14, "ProcessEndResponse returned OFF");
+						CompleteProcessStep(14, cycleResponseBypass ? "Cycle test: ProcessEndResponse reset bypassed" : "ProcessEndResponse returned OFF");
 						BeginProcessStep(15, "D10155 Source Tray Out request");
 						CmdTrayOut(0);
 						CompleteProcessStep(15, "D10155=ON");
@@ -877,7 +891,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		{
 			int response = MesOpc != NULL ? MesOpc->CELL_TRACK_OUT_RESPONSE_VALUE() : -1;
 			SetProcessWaitStatus(12, "CellUnloadComplete=OFF", "CellUnloadCompleteResponse OFF", response);
-			if(response == 0)
+			if(response == 0 || cycleResponseBypass)
 			{
 				bool paused = gripper != NULL && robostar != NULL &&
 					(gripper->pauseStatus || robostar->pauseStatus);
@@ -889,7 +903,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 					opcCellTrackOutResponseOffError = false;
 					opcCellTrackOutResponseResult = 0;
 					if(result == 1){
-						CompleteProcessStep(12, "CellUnloadCompleteResponse returned OFF");
+						CompleteProcessStep(12, cycleResponseBypass ? "Cycle test: CellUnloadCompleteResponse reset bypassed" : "CellUnloadCompleteResponse returned OFF");
 						memoMainLineAdd("[FMS OPC UA] CellTrackOut four-phase handshake complete.");
 					}else{
 						ProcessStepLog(12, "ERROR - CellUnloadCompleteResponse=2 / clear complete");
@@ -949,7 +963,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		{
 			int response = MesOpc != NULL ? MesOpc->TRAY_UNLOAD_RESPONSE_VALUE() : -1;
 			SetProcessWaitStatus(16, "TrayUnloadRequest=OFF", "TrayUnloadResponse OFF", response);
-			if(response == 0)
+			if(response == 0 || cycleResponseBypass)
 			{
 				bool paused = gripper != NULL && robostar != NULL &&
 					(gripper->pauseStatus || robostar->pauseStatus);
@@ -961,7 +975,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 					opcTargetUnloadResponseOffError = false;
 					opcTargetUnloadResponseResult = 0;
 					if(result == 1){
-						CompleteProcessStep(16, "TrayUnloadResponse returned OFF");
+						CompleteProcessStep(16, cycleResponseBypass ? "Cycle test: TrayUnloadResponse reset bypassed" : "TrayUnloadResponse returned OFF");
 						CmdTrayOut(1);
 						memoMainLineAdd("[FMS OPC UA] TrayUnload four-phase handshake complete.");
 					}else{
@@ -1062,7 +1076,20 @@ bool __fastcall TMainForm::CheckServoAutoReady(bool showError)
 
 void __fastcall TMainForm::autoBtnClick(TObject *Sender)
 {
-	if(!CheckServoAutoReady(true)){
+	// TEMPORARY CYCLE TEST BYPASS:
+	// Set this to false (or remove this block) after the short automatic test.
+	// This bypasses only the PC AUTO-entry readiness check. Hardware EMS and
+	// safety-door circuits remain active and must never be bypassed in software.
+	const bool TEMP_BYPASS_AUTO_INTERLOCK_FOR_CYCLE_TEST = true;
+	bool bypassAutoInterlock = TEMP_BYPASS_AUTO_INTERLOCK_FOR_CYCLE_TEST &&
+		cbCycle != NULL && cbCycle->Checked;
+
+	if(bypassAutoInterlock)
+	{
+		memoRobostarLineAdd("[CYCLE TEST] TEMP AUTO readiness interlock bypass active");
+	}
+	else if(!CheckServoAutoReady(true))
+	{
 		autoBtn->Down = false;
 		return;
 	}
@@ -1282,7 +1309,7 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 						pTrayid_source->Caption = "";
 						pTrayid_source2->Caption = "";
 						memoMainLineAdd(BaseForm->GetLangStr("MSG_SOURCETRAY_SCAN"));
-						comBcr[0]->GetBarcode();	// 작업1. 선별 바코드 읽고  -> DisplayTrayInfo  	// test
+						ReadSourceTrayBarcode();	// 작업1. 선별 바코드 읽고  -> DisplayTrayInfo  	// test
 						step[0].step += 1;
 					}else{
 						// AUTO + D10103 Tray In + BYPASS: cancel centering and eject.

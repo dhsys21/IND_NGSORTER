@@ -46,6 +46,11 @@ static UnicodeString CellTag(const UnicodeString &Root, int Index, const Unicode
 	return Root + L".Cell." + IntToStr(Index) + L"." + Name;
 }
 //---------------------------------------------------------------------------
+static bool IsCycleResponseBypass(void)
+{
+	return MainForm != NULL && MainForm->cbCycle != NULL && MainForm->cbCycle->Checked;
+}
+//---------------------------------------------------------------------------
 static bool IsTargetTrayActive(void)
 {
 	return MainForm != NULL && MainForm->tray == &MainForm->tray_target;
@@ -689,7 +694,7 @@ void __fastcall TMesOpc::PROCESS_START_REQUEST()
 	const UnicodeString ResponseKey = TrayProcessTag(TAG_SOURCE, L"ProcessStartResponse");
 	int InitialResponse = GetFmsInt(ResponseKey);
 	FProcessStartResponseRevision = Mod_Fms != NULL ? Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
-	FProcessStartWaitResponseIdle = (InitialResponse != 0);
+	FProcessStartWaitResponseIdle = !IsCycleResponseBypass() && (InitialResponse != 0);
 	SetPcBool(RequestKey, !FProcessStartWaitResponseIdle);
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 	LogOpcEvent("PROCESS_START_REQUEST InitialResponse=" + IntToStr(InitialResponse) +
@@ -731,7 +736,7 @@ int __fastcall TMesOpc::PROCESS_START_RESPONSE_RESULT()
 	}
 	if(Response == 0)
 		return 0;
-	if(CurrentRevision <= FProcessStartResponseRevision)
+	if(!IsCycleResponseBypass() && CurrentRevision <= FProcessStartResponseRevision)
 		return 0;
 
 	// Clear the PC request after either ACK result. Completion is handled only
@@ -897,7 +902,7 @@ void __fastcall TMesOpc::CELL_TRACK_OUT_REQUEST(int SourceChannel, int TargetCha
 	const UnicodeString ResponseKey = CellTrackOutTag(L"CellUnloadCompleteResponse");
 	int InitialResponse = GetFmsInt(ResponseKey);
 	FCellTrackOutResponseRevision = Mod_Fms->GetFmsTagRevision(ResponseKey);
-	FCellTrackOutWaitResponseIdle = (InitialResponse != 0);
+	FCellTrackOutWaitResponseIdle = !IsCycleResponseBypass() && (InitialResponse != 0);
 
 	SetPcInt(CellTrackOutTag(L"CellNoFrom"), SourceChannel);
 	SetPcString(CellTrackOutTag(L"TrayIdFrom"), SourceTrayId);
@@ -939,7 +944,7 @@ int __fastcall TMesOpc::CELL_TRACK_OUT_RESPONSE_RESULT()
 	}
 	if(Response == 0)
 		return 0;
-	if(CurrentRevision <= FCellTrackOutResponseRevision)
+	if(!IsCycleResponseBypass() && CurrentRevision <= FCellTrackOutResponseRevision)
 		return 0;
 
 	SetPcBool(RequestKey, false);
@@ -1042,7 +1047,7 @@ void __fastcall TMesOpc::TRAY_UNLOAD_REQUEST()
 	const UnicodeString ResponseKey = TrayProcessTag(TAG_TARGET, L"TrayUnloadResponse");
 	int InitialResponse = GetFmsInt(ResponseKey);
 	FTrayUnloadResponseRevision = Mod_Fms != NULL ? Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
-	FTrayUnloadWaitResponseIdle = (InitialResponse != 0);
+	FTrayUnloadWaitResponseIdle = !IsCycleResponseBypass() && (InitialResponse != 0);
 	SetPcBool(RequestKey, !FTrayUnloadWaitResponseIdle);
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 	LogOpcEvent("TRAY_UNLOAD_REQUEST Location2 InitialResponse=" + IntToStr(InitialResponse) +
@@ -1070,7 +1075,7 @@ int __fastcall TMesOpc::TRAY_UNLOAD_RESPONSE_RESULT()
 		return 3;
 	}
 	if(Response == 0) return 0;
-	if(CurrentRevision <= FTrayUnloadResponseRevision) return 0;
+	if(!IsCycleResponseBypass() && CurrentRevision <= FTrayUnloadResponseRevision) return 0;
 
 	SetPcBool(RequestKey, false);
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
@@ -1134,7 +1139,7 @@ void __fastcall TMesOpc::PROCESS_END_REQUEST()
 	const UnicodeString ResponseKey = TrayProcessTag(TAG_SOURCE, L"ProcessEndResponse");
 	int InitialResponse = GetFmsInt(ResponseKey);
 	FProcessEndResponseRevision = Mod_Fms != NULL ? Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
-	FProcessEndWaitResponseIdle = (InitialResponse != 0);
+	FProcessEndWaitResponseIdle = !IsCycleResponseBypass() && (InitialResponse != 0);
 	SetPcBool(RequestKey, !FProcessEndWaitResponseIdle);
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 	LogOpcEvent("PROCESS_END_REQUEST InitialResponse=" + IntToStr(InitialResponse) +
@@ -1168,7 +1173,7 @@ int __fastcall TMesOpc::PROCESS_END_RESPONSE_RESULT()
 	}
 	if(Response == 0)
 		return 0;
-	if(CurrentRevision <= FProcessEndResponseRevision)
+	if(!IsCycleResponseBypass() && CurrentRevision <= FProcessEndResponseRevision)
 		return 0;
 
 	SetPcBool(RequestKey, false);

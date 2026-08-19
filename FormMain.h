@@ -453,6 +453,7 @@ public:		// User declarations
 	TMod_Bcr *comBcr[2];
 	TSmokeDetector *comSmoke[1];
 	void __fastcall setBarcode(int pos, AnsiString strBcr);
+	void __fastcall ReadSourceTrayBarcode();
 	void __fastcall ReadTargetTrayBarcode();
 	bool __fastcall ReadSystemInfo();
 	void __fastcall InitBarcodeAndSmoke();

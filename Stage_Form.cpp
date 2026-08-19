@@ -477,7 +477,7 @@ void __fastcall TMainForm::saveTrayInfo(int index)
 void __fastcall TMainForm::loadTrayInfo(int index)
 {
 	if(index < 0 || index > 1) return;
-	AnsiString trayId = index == 1 ? targetTrayInfoActiveId : pTrayid_source->Caption.Trim();
+	AnsiString trayId = index == 1 ? targetTrayInfoActiveId : AnsiString(pTrayid_source->Caption.Trim());
 	if(index == 1 && trayId.IsEmpty()) trayId = pTrayid_target->Caption.Trim();
 	AnsiString file = index == 1 ? GetTargetTrayInfoFile(trayId) : GetSourceTrayInfoFile(trayId);
 
@@ -770,7 +770,8 @@ bool __fastcall TMainForm::checkTrayInfo(int index)
 {
 	if(index == 0)
 	{
-		if(m_saveTrayInfo[0].LOT_ID == AnsiString(pTrayid_source->Caption))
+		AnsiString currentTrayId = pTrayid_source->Caption;
+		if(m_saveTrayInfo[0].LOT_ID == currentTrayId)
 		{
 			for(int i = 0; i < tray_source.SLOT_COUNT; i++)
 			{
@@ -786,7 +787,8 @@ bool __fastcall TMainForm::checkTrayInfo(int index)
 	}
 	else if(index == 1)
 	{
-		if(m_saveTrayInfo[1].LOT_ID == AnsiString(pTrayid_target->Caption))
+		AnsiString currentTrayId = pTrayid_target->Caption;
+		if(m_saveTrayInfo[1].LOT_ID == currentTrayId)
 		{
 			for(int i = 0; i < tray_target.SLOT_COUNT; i++)
 			{
