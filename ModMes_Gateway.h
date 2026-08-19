@@ -69,7 +69,6 @@ private:	// User declarations
 	bool FSnapshotReceived;
 	bool FTagConfigLoaded;
 	bool FGatewayConnected;
-	bool FAliveValue;
 	System::UnicodeString FLastEquipment;
 	System::UnicodeString FLastTimestamp;
 	System::UnicodeString FBindIp;

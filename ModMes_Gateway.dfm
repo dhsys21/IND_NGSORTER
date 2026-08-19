@@ -13,7 +13,7 @@ object Mod_Fms: TMod_Fms
   end
   object Timer_Alive: TTimer
     Enabled = False
-    Interval = 1000
+    Interval = 30000
     OnTimer = Timer_AliveTimer
     Left = 128
     Top = 32

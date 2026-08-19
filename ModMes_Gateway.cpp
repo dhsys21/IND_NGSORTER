@@ -28,6 +28,7 @@ static const UnicodeString FMS_BIND_IP = L"127.0.0.1";
 static const int FMS_BIND_PORT = 18080;
 static const int FMS_MAX_JSON_LINE_LENGTH = 4 * 1024 * 1024;
 static const int FMS_RECONNECT_INTERVAL_MS = 5000;
+static const int FMS_ALIVE_INTERVAL_MS = 30000;
 
 TMod_Fms *Mod_Fms;
 
@@ -226,7 +227,6 @@ __fastcall TMod_Fms::TMod_Fms(TComponent* Owner)
 	  FSnapshotReceived(false),
 	  FTagConfigLoaded(false),
 	  FGatewayConnected(false),
-	  FAliveValue(false),
 	  FBindIp(FMS_BIND_IP),
 	  FBindPort(FMS_BIND_PORT),
 	  FAutoStartEnabled(false)
@@ -235,7 +235,8 @@ __fastcall TMod_Fms::TMod_Fms(TComponent* Owner)
 	FSendLock = new TCriticalSection();
 
 	Timer_Alive->Enabled = false;
-	Timer_Alive->Interval = 1000;
+	// OPC UA Alive handshake interval: EQP sets ON every 30 seconds.
+	Timer_Alive->Interval = FMS_ALIVE_INTERVAL_MS;
 	Timer_Reconnect->Enabled = false;
 	Timer_Reconnect->Interval = FMS_RECONNECT_INTERVAL_MS;
 	TcpServer->Active = false;
@@ -338,8 +339,10 @@ void __fastcall TMod_Fms::Timer_ReconnectTimer(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMod_Fms::Timer_AliveTimer(TObject *Sender)
 {
-	FAliveValue = !FAliveValue;
-	SetPcTag(L"F1NGS01.Common.Alive", FAliveValue);
+	// OPC UA Alive handshake:
+	// EQP only sets Alive ON every 30 seconds. FMS owns the OFF reset,
+	// so EQP must never toggle/write Alive OFF.
+	SetPcTag(L"F1NGS01.Common.Alive", true);
 	FlushPendingPcTags(false);
 }
 //---------------------------------------------------------------------------
