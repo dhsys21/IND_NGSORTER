@@ -61,6 +61,18 @@ void __fastcall TErrorForm_insert::retryBtnClick(TObject *Sender)
 		return;
 	}
 
+	// If release was already committed, Retry must resume the saved Z UP step.
+	// Starting a fresh insert here would insert into the same Target slot twice.
+	if(gripper->tool[toolNum].insert_end &&
+		MainForm->tray_target.CELL_EXIST[targetChannel - 1]){
+		MainForm->memoRobostarLineAdd(
+			"[SAFE RETRY] INSERT release already committed - resume saved Z UP step.");
+		gripper->req_Pause(false);
+		robostar->req_Pause(false);
+		MainForm->playBtnClick(Sender);
+		this->Visible = false;
+		return;
+	}
 	MainForm->memoRobostarLineAdd(
 		"[SAFE RETRY] INSERT restart from Z UP: Gripper=" + IntToStr(toolNum + 1) +
 		" TargetCh=" + IntToStr(targetChannel));
@@ -76,7 +88,13 @@ void __fastcall TErrorForm_insert::ignoreBtnClick(TObject *Sender)
 	MainForm->memoMainLineAdd("Insert complete");
 	gripper->req_Pause(false);
 	robostar->req_Pause(false);
-	robostar->req_InsertComplete();
+	if(!robostar->req_InsertComplete()){
+		gripper->req_Pause(true);
+		robostar->req_Pause(true);
+		MainForm->memoRobostarLineAdd(
+			"[INSERT COMPLETE INTERLOCK] Forced completion was rejected.");
+		return;
+	}
 	MainForm->playBtnClick(Sender);
 	this->Visible = false;
 }

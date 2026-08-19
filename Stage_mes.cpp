@@ -89,7 +89,7 @@ void __fastcall TMainForm::DisplayTrayInfo()
 		{
 			if(tray->PICK[i] == "Y"){
 				color_target[i/24][23 - (i%24)] = clSilver;
-				str = tray->LOSS_CD[i] + "-" + getCodeName(tray->LOSS_CD[i].Trim());
+				str = tray->LOSS_CD[i]; // Target tray displays NGCode only.
 				targetGrid->Cells[i/24][23 - (i%24)] = str;
 				pTarget_bad[i]->Caption = str;
 				pTarget_bad[i]->Color = clSilver;
@@ -221,7 +221,7 @@ void __fastcall TMainForm::DisplayOpcTrayLoad(bool sourceTray)
 			}
 			else if (loadedTray->PICK[i] == "Y")
 			{
-				cellText = loadedTray->LOSS_CD[i] + "-" + getCodeName(loadedTray->LOSS_CD[i].Trim());
+				cellText = loadedTray->LOSS_CD[i]; // Target tray displays NGCode only.
 				color_target[i / 24][23 - (i % 24)] = clSilver;
 				targetGrid->Cells[i / 24][23 - (i % 24)] = cellText;
 				pTarget_bad[i]->Caption = cellText;

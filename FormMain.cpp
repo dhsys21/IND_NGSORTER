@@ -526,6 +526,8 @@ void __fastcall TMainForm::setBarcode(int pos, AnsiString strBcr)
 	{
 		switch(pos){
 			case 0:
+				// Keep only the currently scanned Source tray file.
+				PrepareActiveTrayInfoFile(true, strBcr);
 				this->pTrayid_source->Caption = strBcr;
 				ProcessStepLog(1, "Tray Exist=ON / Tray ID=" + strBcr);
 				CompleteProcessStep(1, "Tray ID=" + strBcr);
@@ -534,6 +536,8 @@ void __fastcall TMainForm::setBarcode(int pos, AnsiString strBcr)
 				}
 				break;
 			case 1:
+				// Keep only the currently scanned Target tray file.
+				PrepareActiveTrayInfoFile(false, strBcr);
 				this->pTrayid_target->Caption = strBcr;
 				ProcessStepLog(4, "Tray Exist=ON / Tray ID=" + strBcr);
 				CompleteProcessStep(4, "Tray ID=" + strBcr);

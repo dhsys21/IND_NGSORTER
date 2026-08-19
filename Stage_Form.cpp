@@ -108,7 +108,7 @@ void __fastcall TMainForm::DisplayTargetCell(int toolNum, int ch)
 		targetGrid->Cells[ch / 24][23 - (ch % 24)] = reservation;
 	}else{
 		color_target[ch / 24][23 - (ch % 24)] = clInactiveCaption;
-		targetGrid->Cells[ch / 24][23 - (ch % 24)] = tray_target.LOSS_CD[ch] + "-" + getCodeName(tray_target.LOSS_CD[ch].Trim());
+		targetGrid->Cells[ch / 24][23 - (ch % 24)] = tray_target.LOSS_CD[ch];
 	}
 }
 //---------------------------------------------------------------------------
@@ -127,7 +127,7 @@ void __fastcall TMainForm::DisplayTargetCellInfo(int toolNum, int ch)
 		pTarget_bad[ch]->Caption = reservation;
 		pTarget_bad[ch]->Color = clYellow;
 	}else{
-		pTarget_bad[ch]->Caption = tray_target.LOSS_CD[ch] + "-" + getCodeName(tray_target.LOSS_CD[ch].Trim());
+		pTarget_bad[ch]->Caption = tray_target.LOSS_CD[ch];
 		pTarget_bad[ch]->Color = clInactiveCaption;
 	}
 }
@@ -439,14 +439,14 @@ void __fastcall TMainForm::setTrayInfo(int index)
 void __fastcall TMainForm::saveTrayInfo(int index)
 {
 	AnsiString file;
+	if(m_saveTrayInfo[index].LOT_ID.IsEmpty()) return;
 	if(index == 1){
-		//* 불량트레이 관리
-		if(m_saveTrayInfo[index].LOT_ID.IsEmpty()) return;
+		//* Target tray local management
 		file = GetTargetTrayInfoFile(m_saveTrayInfo[index].LOT_ID);
 	}else{
-		file = (AnsiString)BIN + "TrayInfo.ini";
+		//* Source tray local management
+		file = GetSourceTrayInfoFile(m_saveTrayInfo[index].LOT_ID);
 	}
-
 	ini = new TIniFile(file);
 	if(index == 1){
 		//* 불량트레이 관리
@@ -492,7 +492,8 @@ void __fastcall TMainForm::loadTrayInfo(int index)
 		if(trayId.IsEmpty()) trayId = pTrayid_target->Caption.Trim();
 		file = GetTargetTrayInfoFile(trayId);
 	}else{
-		file = (AnsiString)BIN + "TrayInfo.ini";
+		AnsiString trayId = pTrayid_source->Caption.Trim();
+		file = GetSourceTrayInfoFile(trayId);
 	}
 
 	ini = new TIniFile(file);
@@ -534,9 +535,8 @@ void __fastcall TMainForm::loadTrayInfo(int index)
 	delete ini;
 }
 //---------------------------------------------------------------------------
-AnsiString __fastcall TMainForm::GetTargetTrayInfoFile(AnsiString trayId) const
+static AnsiString MakeSafeTrayFileId(AnsiString trayId)
 {
-	//* 불량트레이 관리
 	AnsiString safeId = "";
 	trayId = trayId.Trim();
 	for(int i = 1; i <= trayId.Length(); ++i){
@@ -548,7 +548,88 @@ AnsiString __fastcall TMainForm::GetTargetTrayInfoFile(AnsiString trayId) const
 			safeId += '_';
 	}
 	if(safeId.IsEmpty()) safeId = "UNKNOWN";
-	return (AnsiString)BIN + "NG_TrayInfo_" + safeId + ".ini";
+	return safeId;
+}
+//---------------------------------------------------------------------------
+AnsiString __fastcall TMainForm::GetSourceTrayInfoFile(AnsiString trayId) const
+{
+	return (AnsiString)TRAY_PATH + "SourceTray_" + MakeSafeTrayFileId(trayId) + ".ini";
+}
+//---------------------------------------------------------------------------
+AnsiString __fastcall TMainForm::GetTargetTrayInfoFile(AnsiString trayId) const
+{
+	return (AnsiString)TRAY_PATH + "TargetTray_" + MakeSafeTrayFileId(trayId) + ".ini";
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::PrepareActiveTrayInfoFile(bool sourceTray, AnsiString trayId)
+{
+	trayId = trayId.Trim();
+	if(trayId.IsEmpty()) return;
+	if(!DirectoryExists((AnsiString)TRAY_PATH) && !ForceDirectories((AnsiString)TRAY_PATH)){
+		memoMainLineAdd("[LOCAL TRAY] ERROR - cannot create folder: " + AnsiString(TRAY_PATH));
+		return;
+	}
+
+	AnsiString keepFile = sourceTray ? GetSourceTrayInfoFile(trayId) : GetTargetTrayInfoFile(trayId);
+	AnsiString legacyFile;
+	bool preserveLegacy = false;
+	if(sourceTray){
+		legacyFile = (AnsiString)BIN + "TrayInfo.ini";
+		if(FileExists(legacyFile)){
+			TIniFile *legacyIni = new TIniFile(legacyFile);
+			AnsiString legacyTrayId = legacyIni->ReadString("0", "LOT_ID", "").Trim();
+			delete legacyIni;
+			if(SameText(legacyTrayId, trayId) && !FileExists(keepFile)){
+				if(RenameFile(legacyFile, keepFile))
+					memoMainLineAdd("[LOCAL SOURCE] Migrated: " + keepFile);
+				else
+					preserveLegacy = true;
+			}
+			if(FileExists(legacyFile) && !preserveLegacy) DeleteFile(legacyFile);
+		}
+	}else{
+		legacyFile = (AnsiString)BIN + "NG_TrayInfo_" + MakeSafeTrayFileId(trayId) + ".ini";
+		if(FileExists(legacyFile) && !FileExists(keepFile)){
+			if(RenameFile(legacyFile, keepFile))
+				memoMainLineAdd("[LOCAL TARGET] Migrated: " + keepFile);
+			else
+				preserveLegacy = true;
+		}
+		if(FileExists(legacyFile) && !preserveLegacy) DeleteFile(legacyFile);
+	}
+
+	AnsiString prefix = sourceTray ? "SourceTray_" : "TargetTray_";
+	TSearchRec searchRec;
+	int findResult = FindFirst((AnsiString)TRAY_PATH + prefix + "*.ini", faAnyFile, searchRec);
+	if(findResult == 0){
+		while(findResult == 0){
+			if((searchRec.Attr & faDirectory) == 0){
+				AnsiString foundFile = (AnsiString)TRAY_PATH + searchRec.Name;
+				if(AnsiCompareText(foundFile, keepFile) != 0){
+					DeleteFile(foundFile);
+					memoMainLineAdd("[LOCAL TRAY] Removed previous " + prefix + " file: " + searchRec.Name);
+				}
+			}
+			findResult = FindNext(searchRec);
+		}
+		FindClose(searchRec);
+	}
+
+	// Remove remaining legacy Target files independently from Source files.
+	if(!sourceTray){
+		findResult = FindFirst((AnsiString)BIN + "NG_TrayInfo_*.ini", faAnyFile, searchRec);
+		if(findResult == 0){
+			while(findResult == 0){
+				if((searchRec.Attr & faDirectory) == 0){
+					AnsiString foundFile = (AnsiString)BIN + searchRec.Name;
+					if(!preserveLegacy || AnsiCompareText(foundFile, legacyFile) != 0)
+						DeleteFile(foundFile);
+				}
+				findResult = FindNext(searchRec);
+			}
+			FindClose(searchRec);
+		}
+	}
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::ResetTargetTraySaveInfo(AnsiString trayId)

@@ -42,6 +42,7 @@ void __fastcall TConfigForm::FormCreate(TObject *Sender)
 	if(!DirectoryExists((AnsiString)APP_PATH))MkDir((AnsiString)APP_PATH);
 
 	if(!DirectoryExists((AnsiString)BIN))MkDir((AnsiString)BIN);
+	if(!DirectoryExists((AnsiString)TRAY_PATH))MkDir((AnsiString)TRAY_PATH);
 
 	if(!DirectoryExists((AnsiString)LOG))MkDir((AnsiString)LOG);
 	if(!DirectoryExists((AnsiString)SOCK_LOG))MkDir((AnsiString)SOCK_LOG);

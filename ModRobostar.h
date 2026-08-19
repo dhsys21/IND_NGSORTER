@@ -323,6 +323,7 @@ private:	// User declarations
 	bool __fastcall CheckEjectCell_after(int pos);
 
 	bool __fastcall CheckInsertUnchuck(int pos);
+	bool __fastcall CheckInsertCellReleased(int pos);
 
 	bool btx;
 
@@ -385,7 +386,7 @@ public:		// User declarations
 	void __fastcall req_AutoInsert(int pallet, int tool, int channel, int cnt, int type);
 
 	bool __fastcall req_EjectComplete();
-	void __fastcall req_InsertComplete();
+	bool __fastcall req_InsertComplete();
 
 	void __fastcall req_Reset();
 	void __fastcall req_WaitPosition();

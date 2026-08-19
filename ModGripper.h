@@ -73,6 +73,8 @@ public:		// User declarations
 
 	void __fastcall req_Sorting();
 	void __fastcall req_Init();
+	bool __fastcall CommitEjectTrayState(int toolNo);
+	bool __fastcall CommitInsertTrayState(int toolNo);
 
 	gripperSequence seq_save;
 	bool pauseStatus;

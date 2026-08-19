@@ -1702,21 +1702,56 @@ void __fastcall Trobostar::AutoEject()
 				MainForm->memoRobostarLineAdd("[C_Maint] 취출4. 척 안정화 대기");
 				break;
 			case 6:
-				for(int i=0; i<move.cnt; ++i)nresult += CheckEjectCell_after(move.tool + i);
+			{
+				for(int i=0; i<move.cnt; ++i)
+					nresult += CheckEjectCell_after(move.tool + i);
 				if(nresult == move.cnt){
-					step.step += 1;
-					step.timeout = 0;
-				}
-				else{
+					bool commitOk = true;
+					for(int i=0; i<move.cnt; ++i){
+						if(::gripper == NULL || !::gripper->CommitEjectTrayState(move.tool + i))
+							commitOk = false;
+					}
+					if(commitOk){
+						step.step = 7;
+						step.timeout = 0;
+					}else{
+						ErrorForm_eject->ShowError(msg + " Source tray state save failed.",
+							"Eject local state commit error", move.tool, 20);
+					}
+				}else{
 					step.timeout += 1;
 					if(step.timeout == errCnt){
-						ErrorForm_eject->ShowError("[B_Ignition] " + msg + " 셀이 없습니다.", "취출 7단계. 셀 체크 에러", move.tool, 0);
+						ErrorForm_eject->ShowError(msg + " lost the cell after CHUCK.",
+							"Eject cell confirmation error", move.tool, 20);
 					}
-					MainForm->memoRobostarLineAdd("[C_Maint] 취출7. 셀체크");
+					MainForm->memoRobostarLineAdd("Eject step 6. Waiting for cell confirmation after CHUCK");
+				}
+				break;
+			}
+			case 7:
+				zUpCount = 0;
+				bSetPoint = setPoint(Axis_zUp, 0);
+				if(!bSetPoint){
+					ErrorForm_eject->ShowError(msg + " Z UP command failed.",
+						"Eject Z UP command error", move.tool, 17);
+				}else{
+					MainForm->memoRobostarLineAdd("[EJECT] Z UP command / target=0");
+					step.step = 8;
+				}
+				break;
+			case 8:
+				zUpCount += 1;
+				if(rangeCheck(Axis_zUp)){
+					zUpCount = 0;
+					MainForm->memoRobostarLineAdd("[EJECT] Z UP position 0 confirmed");
+				}else if(zUpCount > 200){
+					zUpCount = 0;
+					ErrorForm_eject->ShowError(msg + " Z UP timeout.",
+						"Eject Z axis did not reach position 0", move.tool, 17);
 				}
 				break;
 			default:
-				MainForm->CompleteProcessStep(9, "Cell detected and Z UP complete");
+				MainForm->CompleteProcessStep(9, "Cell pickup saved / Z position 0 confirmed");
 				InitSequence(seqAutoEjectComplete);
 				break;
 		}
@@ -1778,12 +1813,61 @@ void __fastcall Trobostar::AutoInsert()
 
 				break;
 			case 4:
-				if(step.delay >= 2)step.step += 1;
+				if(step.delay >= 2) step.step = 5;
 				else step.delay += 1;
-				MainForm->memoRobostarLineAdd("[C_Maint] 삽입3. 언척 안정화 대기");
+				MainForm->memoRobostarLineAdd("[INSERT] Gripper OPEN stabilization wait");
+				break;
+			case 5:
+			{
+				for(int i=0; i<move.cnt; ++i)
+					nresult += CheckInsertCellReleased(move.tool + i);
+				if(nresult == move.cnt){
+					bool commitOk = true;
+					for(int i=0; i<move.cnt; ++i){
+						if(::gripper == NULL || !::gripper->CommitInsertTrayState(move.tool + i))
+							commitOk = false;
+					}
+					if(commitOk){
+						step.step = 6;
+						step.timeout = 0;
+					}else{
+						ErrorForm_insert->ShowError(msg + " Target tray state save failed.",
+							"Insert local state commit error", move.tool, 23);
+					}
+				}else{
+					step.timeout += 1;
+					if(step.timeout == errCnt){
+						ErrorForm_insert->ShowError(msg + " still detects a cell after OPEN.",
+							"Insert cell release confirmation error", move.tool, 23);
+					}
+					MainForm->memoRobostarLineAdd("[INSERT] Waiting for X0022 ON / gripper cell clear");
+				}
+				break;
+			}
+			case 6:
+				zUpCount = 0;
+				bSetPoint = setPoint(Axis_zUp, 0);
+				if(!bSetPoint){
+					ErrorForm_insert->ShowError(msg + " Z UP command failed.",
+						"Insert Z UP command error", move.tool, 21);
+				}else{
+					MainForm->memoRobostarLineAdd("[INSERT] Z UP command / target=0");
+					step.step = 7;
+				}
+				break;
+			case 7:
+				zUpCount += 1;
+				if(rangeCheck(Axis_zUp)){
+					zUpCount = 0;
+					MainForm->memoRobostarLineAdd("[INSERT] Z UP position 0 confirmed");
+				}else if(zUpCount > 200){
+					zUpCount = 0;
+					ErrorForm_insert->ShowError(msg + " Z UP timeout.",
+						"Insert Z axis did not reach position 0", move.tool, 21);
+				}
 				break;
 			default:
-				MainForm->CompleteProcessStep(11, "Cell released and Z UP complete");
+				MainForm->CompleteProcessStep(11, "Cell insert saved / Z position 0 confirmed");
 				InitSequence(seqAutoInsertComplete);
 				break;
 		}
@@ -1973,14 +2057,30 @@ bool __fastcall Trobostar::req_EjectComplete()
 			"[EJECT COMPLETE INTERLOCK] Request rejected: gripper cell sensor is OFF.");
 		return false;
 	}
+	if(::gripper == NULL || !::gripper->CommitEjectTrayState(move.tool)){
+		MainForm->memoRobostarLineAdd(
+			"[EJECT COMPLETE INTERLOCK] Source tray state commit failed.");
+		return false;
+	}
 
-	InitSequence(seqAutoEjectComplete);
-	return seq == seqAutoEjectComplete;
+	// Forced recovery still raises Z and confirms position 0 before completion.
+	InitSequence(seqAutoEject);
+	step.step = 7;
+	return true;
 }
 //---------------------------------------------------------------------------
-void __fastcall Trobostar::req_InsertComplete()
+bool __fastcall Trobostar::req_InsertComplete()
 {
-	InitSequence(seqAutoInsertComplete);
+	if(::gripper == NULL || !::gripper->CommitInsertTrayState(move.tool)){
+		MainForm->memoRobostarLineAdd(
+			"[INSERT COMPLETE INTERLOCK] Target tray state commit failed.");
+		return false;
+	}
+
+	// Forced recovery still raises Z and confirms position 0 before completion.
+	InitSequence(seqAutoInsert);
+	step.step = 6;
+	return true;
 }
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::CheckEjectCell_after(int pos)
@@ -2061,6 +2161,14 @@ bool __fastcall Trobostar::CheckInsertUnchuck(int pos)
 			break;
 	}
 	return bresult;
+}
+//---------------------------------------------------------------------------
+bool __fastcall Trobostar::CheckInsertCellReleased(int pos)
+{
+	// X0022 is active-low: ON means the gripper is clear after releasing the cell.
+	if(pos == 1)
+		return !getCellDetectStatus();
+	return false;
 }
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::DataModuleCreate(TObject *Sender)

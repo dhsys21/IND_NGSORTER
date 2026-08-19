@@ -17,6 +17,54 @@ __fastcall Tgripper::Tgripper(TComponent* Owner)
 	pauseStatus = false;
 }
 //---------------------------------------------------------------------------
+bool __fastcall Tgripper::CommitEjectTrayState(int toolNo)
+{
+	int toolIndex = toolNo - 1;
+	if(MainForm == NULL || toolIndex < 0 || toolIndex >= gripCnt) return false;
+	int sourceIndex = tool[toolIndex].source_ch.ToIntDef(0) - 1;
+	if(sourceIndex < 0 || sourceIndex >= MainForm->tray_source.SLOT_COUNT) return false;
+
+	// Physical pickup is complete. Persist the Source slot before starting Z UP.
+	tool[toolIndex].eject_end = true;
+	MainForm->tray_source.CELL_EXIST[sourceIndex] = false;
+	MainForm->tray_source.PICK[sourceIndex] = "N";
+	MainForm->DisplaySourceCell(-1, sourceIndex);
+	MainForm->setTrayInfo(0);
+	MainForm->memoGripperLineAdd(
+		"[SOURCE CELL] EJECT COMMIT SourceCh=" + IntToStr(sourceIndex + 1) +
+		" CELL_EXIST=false PICK=N / local file saved before Z UP");
+	return true;
+}
+//---------------------------------------------------------------------------
+bool __fastcall Tgripper::CommitInsertTrayState(int toolNo)
+{
+	int toolIndex = toolNo - 1;
+	if(MainForm == NULL || toolIndex < 0 || toolIndex >= gripCnt) return false;
+	int sourceIndex = tool[toolIndex].source_ch.ToIntDef(0) - 1;
+	int targetIndex = tool[toolIndex].target_ch.ToIntDef(0) - 1;
+	if(sourceIndex < 0 || sourceIndex >= MainForm->tray_source.SLOT_COUNT ||
+		targetIndex < 0 || targetIndex >= MainForm->tray_target.SLOT_COUNT) return false;
+
+	AnsiString previousPick = MainForm->tray_target.PICK[targetIndex];
+	// Physical release is complete. Persist the Target slot before starting Z UP.
+	tool[toolIndex].insert_end = true;
+	MainForm->tray_target.SLOT_ID[targetIndex] = MainForm->tray_source.SLOT_ID[sourceIndex];
+	MainForm->tray_target.CELL_LOT_ID[targetIndex] = MainForm->tray_source.CELL_LOT_ID[sourceIndex];
+	MainForm->tray_target.LOSS_CD[targetIndex] = MainForm->tray_source.LOSS_CD[sourceIndex];
+	MainForm->tray_target.PICK[targetIndex] = "Y";
+	MainForm->tray_target.RANK[targetIndex] = MainForm->tray_source.RANK[sourceIndex];
+	MainForm->tray_target.CELL_EXIST[targetIndex] = true;
+	MainForm->DisplayTargetCell(-1, targetIndex);
+	MainForm->DisplayTargetCellInfo(-1, targetIndex);
+	MainForm->setTrayInfo(1);
+	MainForm->memoGripperLineAdd(
+		"[TARGET CELL] INSERT COMMIT SourceCh=" + IntToStr(sourceIndex + 1) +
+		" TargetCh=" + IntToStr(targetIndex + 1) +
+		" PICK=" + previousPick + "->Y CellId=" + MainForm->tray_target.SLOT_ID[targetIndex] +
+		" / local file saved before Z UP");
+	return true;
+}
+//---------------------------------------------------------------------------
 void __fastcall Tgripper::InitSequence(gripperSequence data, gripperSequence reserve)
 {
 	seq = data;
@@ -351,18 +399,17 @@ void __fastcall Tgripper::Sorting()
 			if(robostar->seq == seqAutoEject || robostar->seq == seqAutoEjectComplete)step.step += 1;
 
 			break;
-		case 2:	// 취출 완료 확인
+		case 2:	// Eject motion completes only after Z reaches zero.
 			if(robostar->seq == seqAutoEjectComplete){
-				MainForm->memoGripperLineAdd("[Eject step 2] " + BaseForm->GetLangStr("MSG_EJECT_END"));
+				MainForm->memoGripperLineAdd("[Eject step 2] Z UP complete / Eject complete");
 				for(int i=eject.gripper; i<eject.gripper + eject.conCnt; ++i){
-					tool[i-1].eject_end = true;
-					MainForm->DisplaySourceCell(-1, tool[i-1].source_ch.ToInt()-1);	// 화면 show
-					//* 불량트레이 관리
+					int toolIndex = i - 1;
+					tool[toolIndex].eject_end = true;
 					MainForm->memoGripperLineAdd(
-						"[TARGET CELL] PICKUP COMPLETE Gripper=" + IntToStr(i) +
-						" SourceCh=" + tool[i-1].source_ch +
-						" TargetCh=" + tool[i-1].target_ch +
-						" CellId=" + MainForm->tray_source.SLOT_ID[tool[i-1].source_ch.ToInt()-1]);
+						"[SOURCE CELL] EJECT COMPLETE Gripper=" + IntToStr(i) +
+						" SourceCh=" + tool[toolIndex].source_ch +
+						" TargetCh=" + tool[toolIndex].target_ch +
+						" CellId=" + MainForm->tray_source.SLOT_ID[tool[toolIndex].source_ch.ToInt()-1]);
 				}
 				step.step += 1;
 			}else{
@@ -430,56 +477,25 @@ void __fastcall Tgripper::Inserting()
 				step.step += 1;
 			}
 			break;
-		case 2:	// 이재 완료 확인
+		case 2:	// Insert motion completes only after Z reaches zero.
 			if(robostar->seq == seqAutoInsertComplete){
-				MainForm->memoGripperLineAdd("[Insert step 2] " + BaseForm->GetLangStr("MSG_INSERT_END"));
+				MainForm->memoGripperLineAdd("[Insert step 2] Z UP complete / Insert complete");
 				for(int i=insert.gripper; i<insert.gripper + insert.conCnt; ++i){
 					int toolIndex = i - 1;
 					int sourceIndex = tool[toolIndex].source_ch.ToInt() - 1;
 					int targetIndex = tool[toolIndex].target_ch.ToInt() - 1;
-					AnsiString previousPick = MainForm->tray_target.PICK[targetIndex];
 					tool[toolIndex].insert_end = true;
-					MainForm->tray_target.SLOT_ID[targetIndex] = MainForm->tray_source.SLOT_ID[sourceIndex];
-					MainForm->tray_target.CELL_LOT_ID[targetIndex] = MainForm->tray_source.CELL_LOT_ID[sourceIndex];
-					MainForm->tray_target.LOSS_CD[targetIndex] = MainForm->tray_source.LOSS_CD[sourceIndex];
-					MainForm->tray_target.PICK[targetIndex] = MainForm->tray_source.PICK[sourceIndex];
-					MainForm->tray_target.RANK[targetIndex] = MainForm->tray_source.RANK[sourceIndex];
-					MainForm->tray_target.CELL_EXIST[targetIndex] = true;
-					//* 불량트레이 관리
 					MainForm->memoGripperLineAdd(
 						"[TARGET CELL] INSERT COMPLETE Gripper=" + IntToStr(i) +
 						" SourceCh=" + tool[toolIndex].source_ch +
 						" TargetCh=" + tool[toolIndex].target_ch +
-						" CellId=" + MainForm->tray_target.SLOT_ID[targetIndex] +
-						" LotId=" + MainForm->tray_target.CELL_LOT_ID[targetIndex] +
-						" Grade=" + MainForm->tray_target.RANK[targetIndex] +
-						" LossCode=" + MainForm->tray_target.LOSS_CD[targetIndex]);
-					MainForm->memoGripperLineAdd(
-						"[TARGET CELL] RESERVATION CLEAR TargetCh=" + tool[toolIndex].target_ch +
-						" PICK=" + previousPick + "->" + MainForm->tray_target.PICK[targetIndex]);
-					MainForm->DisplayTargetCell(-1, targetIndex);	// 화면 show
-					MainForm->DisplayTargetCellInfo(-1, targetIndex);
-					MainForm->memoGripperLineAdd(
-						"[TARGET CELL] DISPLAY INSERTED NG TargetCh=" + tool[toolIndex].target_ch +
-						" PICK=" + MainForm->tray_target.PICK[targetIndex] +
-						" LossCode=" + MainForm->tray_target.LOSS_CD[targetIndex] +
-						" Rank=" + MainForm->tray_target.RANK[targetIndex]);
+						" CellId=" + MainForm->tray_target.SLOT_ID[targetIndex]);
+					// External FMS reporting starts only after Z UP completion.
 					MainForm->ReportCellTrackOut(sourceIndex + 1, targetIndex + 1,
 						MainForm->tray_target.SLOT_ID[targetIndex]);
-					// The physical cell has left the Source tray and was inserted successfully.
-					// Keep its ID/lot/NG metadata for history, but exclude this channel from
-					// the next NG search and keep the completed (yellow) display state.
-					MainForm->tray_source.CELL_EXIST[sourceIndex] = false;
-					MainForm->tray_source.PICK[sourceIndex] = "N";
-					MainForm->DisplaySourceCell(-1, sourceIndex);
-					MainForm->setTrayInfo(0);
-					MainForm->memoGripperLineAdd(
-						"[SOURCE CELL] CONSUMED SourceCh=" + IntToStr(sourceIndex + 1) +
-						" CELL_EXIST=false PICK=N / excluded from next NG search");
 				}
-				//* 불량트레이 관리
-				MainForm->setTrayInfo(1); // Persist inserted target cell data.
-				MainForm->memoGripperLineAdd("[TARGET CELL] LOCAL FILE SAVED after insert completion.");
+				MainForm->setTrayInfo(1);
+				MainForm->memoGripperLineAdd("[TARGET CELL] LOCAL FILE CONFIRMED after Z UP completion.");
 				step.step += 1;
 			}else{
 				MainForm->memoGripperLineAdd("[Insert step 2] " + BaseForm->GetLangStr("MSG_INSERTING"));

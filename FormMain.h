@@ -377,7 +377,9 @@ private:	// User declarations
 	void __fastcall AdvanceOpcTrayLoad(bool sourceTray);
 	void __fastcall TryStartOpcProcess();
 	//* 불량트레이 관리
+	AnsiString __fastcall GetSourceTrayInfoFile(AnsiString trayId) const;
 	AnsiString __fastcall GetTargetTrayInfoFile(AnsiString trayId) const;
+	void __fastcall PrepareActiveTrayInfoFile(bool sourceTray, AnsiString trayId);
 	void __fastcall ResetTargetTraySaveInfo(AnsiString trayId);
 	bool __fastcall TargetTrayInfoHasData(int &occupiedCount, int &reservedCount) const;
 	int __fastcall RestoreTargetTrayInfo(AnsiString trayId, bool confirmExisting = true);

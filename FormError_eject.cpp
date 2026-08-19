@@ -54,6 +54,18 @@ void __fastcall TErrorForm_eject::retryBtnClick(TObject *Sender)
 	}
 
 	// 취출 재시도는 Z 상승부터 다시 시작하므로 Source Tray에서는 그리퍼가 열려 있어야 한다.
+	// If pickup was already committed, Retry must resume the saved Z UP step.
+	// Starting a fresh eject here would attempt to pick the same Source slot twice.
+	if(gripper->tool[toolNum].eject_end &&
+		!MainForm->tray_source.CELL_EXIST[sourceChannel - 1]){
+		MainForm->memoRobostarLineAdd(
+			"[SAFE RETRY] EJECT pickup already committed - resume saved Z UP step.");
+		gripper->req_Pause(false);
+		robostar->req_Pause(false);
+		MainForm->playBtnClick(Sender);
+		this->Visible = false;
+		return;
+	}
 	if(robostar->getGripperChuckStatus()){
 		MainForm->memoRobostarLineAdd("[SAFE RETRY] Eject retry blocked: gripper is CHUCK.");
 		MessageBox(Handle,
