@@ -466,6 +466,16 @@ void __fastcall Tgripper::Inserting()
 						" Rank=" + MainForm->tray_target.RANK[targetIndex]);
 					MainForm->ReportCellTrackOut(sourceIndex + 1, targetIndex + 1,
 						MainForm->tray_target.SLOT_ID[targetIndex]);
+					// The physical cell has left the Source tray and was inserted successfully.
+					// Keep its ID/lot/NG metadata for history, but exclude this channel from
+					// the next NG search and keep the completed (yellow) display state.
+					MainForm->tray_source.CELL_EXIST[sourceIndex] = false;
+					MainForm->tray_source.PICK[sourceIndex] = "N";
+					MainForm->DisplaySourceCell(-1, sourceIndex);
+					MainForm->setTrayInfo(0);
+					MainForm->memoGripperLineAdd(
+						"[SOURCE CELL] CONSUMED SourceCh=" + IntToStr(sourceIndex + 1) +
+						" CELL_EXIST=false PICK=N / excluded from next NG search");
 				}
 				//* 불량트레이 관리
 				MainForm->setTrayInfo(1); // Persist inserted target cell data.

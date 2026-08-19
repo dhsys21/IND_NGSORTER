@@ -1646,18 +1646,21 @@ void __fastcall Trobostar::AutoEject()
 
 		switch(step.step){
 			case 0:
+				// Source Z DOWN is already complete. A detected cell is normal here:
+				// confirm the tray cell first, then close (CHUCK) the open gripper.
 				for(int i=0; i<move.cnt; ++i)
-					nresult += CheckEjectCell_before(move.tool + i); // cell 이 없으면 true
+					nresult += CheckEjectCell_after(move.tool + i);
 				if(nresult == move.cnt){
+					MainForm->memoRobostarLineAdd("Eject step 1. Source cell detected - ready to CHUCK");
 					step.step += 1;
 					step.timeout = 0;
 				}
 				else{
 					step.timeout += 1;
 					if(step.timeout == errCnt){
-						ErrorForm_eject->ShowError(msg + " has a cell.", "Eject step 1. Cell check error", move.tool, 20);
+						ErrorForm_eject->ShowError(msg + " cannot detect the Source tray cell.", "Eject step 1. Source cell detect error", move.tool, 20);
 					}
-					MainForm->memoRobostarLineAdd("Eject step 1. Cell check");
+					MainForm->memoRobostarLineAdd("Eject step 1. Waiting for Source cell detection");
 				}
 				break;
 			case 1:
@@ -1996,7 +1999,7 @@ bool __fastcall Trobostar::CheckEjectCell_after(int pos)
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::CheckEjectCell_before(int pos)
 {
-	// 1.셀이 없으면
+	// Pre-move/initialization check: X0022 ON means the gripper has no cell.
 	bool bresult = false;
 	switch(pos){
 		case 1:
