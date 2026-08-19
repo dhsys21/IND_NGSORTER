@@ -48,6 +48,12 @@ __published:	// IDE-managed Components
 	TButton *btnTargetTrayLoad;
 	TTimer *Timer_PLC_Update;
 	TTimer *Timer_MES_Update;
+	TGroupBox *GroupBox1;
+	TButton *btnFmsTest01STrayLoad;
+	TButton *btnFmsTest04TTrayLoad;
+	TButton *btnFmsTest02ProcessStart;
+	TButton *btnFmsTest03ProcessEnd;
+	TButton *btnFmsTest05TTrayUnload;
 	void __fastcall GroupBox_PLC_PCDblClick(TObject *Sender);
 	void __fastcall btnPlcWriteValueClick(TObject *Sender);
 	void __fastcall Timer_PLC_UpdateTimer(TObject *Sender);
@@ -57,6 +63,15 @@ __published:	// IDE-managed Components
 	void __fastcall ListViewPCTagClick(TObject *Sender);
 	void __fastcall btnSourceTrayLoadClick(TObject *Sender);
 	void __fastcall btnTargetTrayLoadClick(TObject *Sender);
+	// =====================================================================
+	// FMS TEST - REMOVE THIS BLOCK AFTER FMS COMMISSIONING
+	void __fastcall btnFmsTest01STrayLoadClick(TObject *Sender);
+	void __fastcall btnFmsTest02ProcessStartClick(TObject *Sender);
+	void __fastcall btnFmsTest03ProcessEndClick(TObject *Sender);
+	void __fastcall btnFmsTest04TTrayLoadClick(TObject *Sender);
+	void __fastcall btnFmsTest05TTrayUnloadClick(TObject *Sender);
+	// END FMS TEST - REMOVE THIS BLOCK AFTER FMS COMMISSIONING
+	// =====================================================================
 private:	// User declarations
     void __fastcall AddListView(TListView *list, AnsiString address, AnsiString name);
     void __fastcall SetListViewPLC();
@@ -81,6 +96,13 @@ private:	// User declarations
 	UnicodeString __fastcall GetRowPart(const UnicodeString &Row, int Index);
 	UnicodeString __fastcall BuildJsonValue(const UnicodeString &DataType, const UnicodeString &Text);
 	bool __fastcall CanRunMesTest();
+
+	// =====================================================================
+	// FMS TEST - REMOVE THIS BLOCK AFTER FMS COMMISSIONING
+	bool __fastcall GetFmsTestBool(const UnicodeString &Tag);
+	void __fastcall FlushFmsTest(const AnsiString &Action, bool Value);
+	// END FMS TEST - REMOVE THIS BLOCK AFTER FMS COMMISSIONING
+	// =====================================================================
 
     // PLC TEST
     void __fastcall WritePcValue();

@@ -374,6 +374,16 @@ void __fastcall TInterfaceForm::SetupMesTestControls()
 	btnSourceTrayLoad->OnClick = btnSourceTrayLoadClick;
 	btnTargetTrayLoad->OnClick = btnTargetTrayLoadClick;
 
+	// =====================================================================
+	// FMS TEST - REMOVE THIS BLOCK AFTER FMS COMMISSIONING
+	btnFmsTest01STrayLoad->OnClick = btnFmsTest01STrayLoadClick;
+	btnFmsTest02ProcessStart->OnClick = btnFmsTest02ProcessStartClick;
+	btnFmsTest03ProcessEnd->OnClick = btnFmsTest03ProcessEndClick;
+	btnFmsTest04TTrayLoad->OnClick = btnFmsTest04TTrayLoadClick;
+	btnFmsTest05TTrayUnload->OnClick = btnFmsTest05TTrayUnloadClick;
+	// END FMS TEST - REMOVE THIS BLOCK AFTER FMS COMMISSIONING
+	// =====================================================================
+
 	Timer_MES_Update->OnTimer = Timer_MES_UpdateTimer;
 	Timer_MES_Update->Interval = 1000;
 	Timer_MES_Update->Enabled = true;
@@ -652,6 +662,102 @@ void __fastcall TInterfaceForm::WriteCellTrackOutTest()
 		SourceTrayId, TargetTrayId);
 	RefreshMesTagLists();
 }
+//---------------------------------------------------------------------------
+// ===========================================================================
+// FMS TEST - REMOVE THIS ENTIRE BLOCK AFTER FMS COMMISSIONING
+// ===========================================================================
+bool __fastcall TInterfaceForm::GetFmsTestBool(const UnicodeString &Tag)
+{
+	if(Mod_Fms == NULL)
+		return false;
+
+	UnicodeString Value = Mod_Fms->GetPcTagString(Tag, L"false").Trim().LowerCase();
+	return Value == L"true" || Value == L"1";
+}
+//---------------------------------------------------------------------------
+void __fastcall TInterfaceForm::FlushFmsTest(const AnsiString &Action, bool Value)
+{
+	if(Mod_Fms != NULL)
+		Mod_Fms->FlushPendingPcTags(false);
+	RefreshMesTagLists();
+	if(MainForm != NULL)
+		MainForm->WriteOpcUaLog("FMS_TEST", Action + "=" +
+			AnsiString(Value ? "true" : "false"), true);
+}
+//---------------------------------------------------------------------------
+void __fastcall TInterfaceForm::btnFmsTest01STrayLoadClick(TObject *Sender)
+{
+	if(!CanRunMesTest())
+		return;
+
+	const UnicodeString Root = L"F1NGS01.Location1";
+	bool NextValue = !GetFmsTestBool(Root + L".TrayProcess.TrayLoad");
+	if(NextValue)
+	{
+		UnicodeString TrayId = MainForm->pTrayid_source->Caption.Trim();
+		if(TrayId.IsEmpty()) TrayId = L"Source1";
+		Mod_Fms->SetPcTag(Root + L".TrayInformation.TrayId", TrayId);
+		Mod_Fms->SetPcTag(Root + L".TrayInformation.TrayExist", true);
+	}
+	// OFF click clears only TrayLoad; TrayId and TrayExist remain unchanged.
+	Mod_Fms->SetPcTag(Root + L".TrayProcess.TrayLoad", NextValue);
+	FlushFmsTest("Location1 TrayLoad", NextValue);
+}
+//---------------------------------------------------------------------------
+void __fastcall TInterfaceForm::btnFmsTest02ProcessStartClick(TObject *Sender)
+{
+	if(!CanRunMesTest())
+		return;
+
+	const UnicodeString Tag = L"F1NGS01.Location1.TrayProcess.ProcessStart";
+	bool NextValue = !GetFmsTestBool(Tag);
+	Mod_Fms->SetPcTag(Tag, NextValue);
+	FlushFmsTest("Location1 ProcessStart", NextValue);
+}
+//---------------------------------------------------------------------------
+void __fastcall TInterfaceForm::btnFmsTest03ProcessEndClick(TObject *Sender)
+{
+	if(!CanRunMesTest())
+		return;
+
+	const UnicodeString Tag = L"F1NGS01.Location1.TrayProcess.ProcessEnd";
+	bool NextValue = !GetFmsTestBool(Tag);
+	Mod_Fms->SetPcTag(Tag, NextValue);
+	FlushFmsTest("Location1 ProcessEnd", NextValue);
+}
+//---------------------------------------------------------------------------
+void __fastcall TInterfaceForm::btnFmsTest04TTrayLoadClick(TObject *Sender)
+{
+	if(!CanRunMesTest())
+		return;
+
+	const UnicodeString Root = L"F1NGS01.Location2";
+	bool NextValue = !GetFmsTestBool(Root + L".TrayProcess.TrayLoad");
+	if(NextValue)
+	{
+		UnicodeString TrayId = MainForm->pTrayid_target->Caption.Trim();
+		if(TrayId.IsEmpty()) TrayId = L"NG00001";
+		Mod_Fms->SetPcTag(Root + L".TrayInformation.TrayId", TrayId);
+		Mod_Fms->SetPcTag(Root + L".TrayInformation.TrayExist", true);
+	}
+	// OFF click clears only TrayLoad; TrayId and TrayExist remain unchanged.
+	Mod_Fms->SetPcTag(Root + L".TrayProcess.TrayLoad", NextValue);
+	FlushFmsTest("Location2 TrayLoad", NextValue);
+}
+//---------------------------------------------------------------------------
+void __fastcall TInterfaceForm::btnFmsTest05TTrayUnloadClick(TObject *Sender)
+{
+	if(!CanRunMesTest())
+		return;
+
+	const UnicodeString Tag = L"F1NGS01.Location2.TrayProcess.TrayUnloadRequest";
+	bool NextValue = !GetFmsTestBool(Tag);
+	Mod_Fms->SetPcTag(Tag, NextValue);
+	FlushFmsTest("Location2 TrayUnloadRequest", NextValue);
+}
+// ===========================================================================
+// END FMS TEST - REMOVE THIS ENTIRE BLOCK AFTER FMS COMMISSIONING
+// ===========================================================================
 //---------------------------------------------------------------------------
 void __fastcall TInterfaceForm::Timer_MES_UpdateTimer(TObject *Sender)
 {

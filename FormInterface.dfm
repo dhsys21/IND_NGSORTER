@@ -277,14 +277,14 @@ object InterfaceForm: TInterfaceForm
     end
     object gbFmsWriteValues: TGroupBox
       Left = 25
-      Top = 59
+      Top = 41
       Width = 330
-      Height = 150
+      Height = 126
       Caption = 'Write Value'
       TabOrder = 0
       object lblFmsTag: TLabel
         Left = 16
-        Top = 28
+        Top = 20
         Width = 24
         Height = 16
         Caption = 'TAG'
@@ -297,7 +297,7 @@ object InterfaceForm: TInterfaceForm
       end
       object lblFmsValue: TLabel
         Left = 16
-        Top = 91
+        Top = 70
         Width = 37
         Height = 16
         Caption = 'VALUE'
@@ -310,7 +310,7 @@ object InterfaceForm: TInterfaceForm
       end
       object cbMesTag: TComboBox
         Left = 16
-        Top = 50
+        Top = 42
         Width = 225
         Height = 21
         TabOrder = 0
@@ -333,7 +333,7 @@ object InterfaceForm: TInterfaceForm
       end
       object editFmsValue: TEdit
         Left = 16
-        Top = 114
+        Top = 93
         Width = 185
         Height = 21
         TabOrder = 1
@@ -341,7 +341,7 @@ object InterfaceForm: TInterfaceForm
       end
       object btnWriteMesValue: TButton
         Left = 235
-        Top = 93
+        Top = 72
         Width = 83
         Height = 42
         Caption = 'Write Value'
@@ -350,9 +350,9 @@ object InterfaceForm: TInterfaceForm
     end
     object gbFmsIrOcvValue: TGroupBox
       Left = 25
-      Top = 215
+      Top = 172
       Width = 330
-      Height = 125
+      Height = 114
       Caption = 'CELL TRACK OUT TEST'
       TabOrder = 1
       object lblIrValue: TLabel
@@ -370,7 +370,7 @@ object InterfaceForm: TInterfaceForm
       end
       object lblOcvValue: TLabel
         Left = 16
-        Top = 82
+        Top = 69
         Width = 69
         Height = 16
         Caption = 'CELL NO TO'
@@ -391,7 +391,7 @@ object InterfaceForm: TInterfaceForm
       end
       object editOCV: TEdit
         Left = 16
-        Top = 100
+        Top = 87
         Width = 190
         Height = 21
         TabOrder = 1
@@ -408,9 +408,9 @@ object InterfaceForm: TInterfaceForm
     end
     object gbIrocvNgValue: TGroupBox
       Left = 25
-      Top = 348
+      Top = 296
       Width = 330
-      Height = 82
+      Height = 69
       Caption = 'TRACK OUT CELL INFORMATION TEST'
       TabOrder = 2
       object lblTrackOutChannels: TLabel
@@ -432,7 +432,7 @@ object InterfaceForm: TInterfaceForm
         Width = 180
         Height = 21
         TabOrder = 0
-        Text = '1,13,25,37,49,61,73,85'
+        Text = '1,2,3,4'
       end
       object btnSourceTrayLoad: TButton
         Left = 204
@@ -441,6 +441,55 @@ object InterfaceForm: TInterfaceForm
         Height = 36
         Caption = 'TrackOut Test'
         TabOrder = 1
+        OnClick = btnSourceTrayLoadClick
+      end
+    end
+    object GroupBox1: TGroupBox
+      Left = 25
+      Top = 371
+      Width = 330
+      Height = 102
+      Caption = 'FMS TEST'
+      TabOrder = 3
+      object btnFmsTest01STrayLoad: TButton
+        Left = 5
+        Top = 29
+        Width = 72
+        Height = 28
+        Caption = 'S Tray Load'
+        TabOrder = 0
+      end
+      object btnFmsTest04TTrayLoad: TButton
+        Left = 5
+        Top = 63
+        Width = 72
+        Height = 28
+        Caption = 'T Tray Load'
+        TabOrder = 1
+      end
+      object btnFmsTest02ProcessStart: TButton
+        Left = 83
+        Top = 29
+        Width = 72
+        Height = 28
+        Caption = 'P Start'
+        TabOrder = 2
+      end
+      object btnFmsTest03ProcessEnd: TButton
+        Left = 161
+        Top = 29
+        Width = 72
+        Height = 28
+        Caption = 'P End'
+        TabOrder = 3
+      end
+      object btnFmsTest05TTrayUnload: TButton
+        Left = 83
+        Top = 63
+        Width = 72
+        Height = 28
+        Caption = 'T Tray ULoad'
+        TabOrder = 4
       end
     end
   end
