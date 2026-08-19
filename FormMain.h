@@ -57,6 +57,7 @@ typedef struct
 	AnsiString SLOT_POSITION[96];
 	AnsiString SLOT_ID[96];
 	AnsiString CELL_LOT_ID[96];
+	bool CELL_EXIST[96];
 	AnsiString PICK[96];
 	AnsiString LOSS_CD[96];
 	AnsiString RANK[96];
@@ -372,7 +373,8 @@ private:	// User declarations
 	void __fastcall UpdateIoMonitoringPanel();
 	void __fastcall btnCloseIoPanelClick(TObject *Sender);
 	void __fastcall opcMesTimerTimer(TObject *Sender);
-	void __fastcall CompleteOpcTrayLoad(bool sourceTray);
+	void __fastcall DisplayOpcTrayLoad(bool sourceTray);
+	void __fastcall AdvanceOpcTrayLoad(bool sourceTray);
 	void __fastcall TryStartOpcProcess();
 	//* 불량트레이 관리
 	AnsiString __fastcall GetTargetTrayInfoFile(AnsiString trayId) const;
@@ -384,23 +386,39 @@ private:	// User declarations
 
 	TTimer *opcMesTimer;
 	bool opcTrayLoadPending[2];
+	bool opcTrayLoadWaitResponseOff[2];
+	bool opcTrayLoadResponseOffError[2];
+	bool opcTrayLoadRetryRequired[2]; // ON-timeout recovery is resumed by Restart.
 	DWORD opcTrayLoadStartTick[2];
-	bool opcTrayLoaded[2];
+	bool opcTrayDisplayed[2]; // Set only after Response=1 data is drawn on screen.
+	bool opcTrayLoaded[2];    // Set only after the displayed Response returns to 0.
 	bool opcProcessStartPending;
+	bool opcProcessStartWaitResponseOff;
+	bool opcProcessStartResponseOffError;
+	int opcProcessStartResponseResult;
 	bool opcProcessStarted;
 	DWORD opcProcessStartTick;
 	bool opcProcessEndPending;
+	bool opcProcessEndWaitResponseOff;
+	bool opcProcessEndResponseOffError;
+	int opcProcessEndResponseResult;
 	DWORD opcProcessEndTick;
 	bool opcCellTrackOutPending;
+	bool opcCellTrackOutWaitResponseOff;
+	bool opcCellTrackOutResponseOffError;
+	int opcCellTrackOutResponseResult;
 	DWORD opcCellTrackOutStartTick;
 	bool opcTargetUnloadPending;
+	bool opcTargetUnloadWaitResponseOff;
+	bool opcTargetUnloadResponseOffError;
+	int opcTargetUnloadResponseResult;
 	DWORD opcTargetUnloadTick;
 
 	TPanel *pnlProcessStep[16];
 	bool processStepComplete[16];
 	int currentProcessStep;
 	AnsiString currentProcessDetail;
-	AnsiString lastProcessWaitStatus;
+	AnsiString lastProcessWaitStatus[16]; // One wait-log cache per process step.
 	void __fastcall UpdateProcessFlowPanel();
 	//* 불량트레이 관리
 	bool targetTrayInfoDeletePending;

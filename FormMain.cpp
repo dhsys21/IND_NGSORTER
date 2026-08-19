@@ -77,20 +77,43 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	m_ServoON = false;
 	m_ServoHome = false;
 	m_ServoHomeEmg = false;
+	// CellExist is the single physical-cell criterion used by Source/Target displays.
+	for(int i = 0; i < 96; ++i){
+		tray_source.CELL_EXIST[i] = false;
+		tray_target.CELL_EXIST[i] = false;
+		m_saveTrayInfo[0].CELL_EXIST[i] = false;
+		m_saveTrayInfo[1].CELL_EXIST[i] = false;
+	}
 	for(int i = 0; i < 2; ++i) {
 		comBcr[i] = NULL;
 		opcTrayLoadPending[i] = false;
+		opcTrayLoadWaitResponseOff[i] = false;
+		opcTrayLoadResponseOffError[i] = false;
+		opcTrayLoadRetryRequired[i] = false;
 		opcTrayLoadStartTick[i] = 0;
+		opcTrayDisplayed[i] = false;
 		opcTrayLoaded[i] = false;
 	}
 	opcProcessStartPending = false;
+	opcProcessStartWaitResponseOff = false;
+	opcProcessStartResponseOffError = false;
+	opcProcessStartResponseResult = 0;
 	opcProcessStarted = false;
 	opcProcessStartTick = 0;
 	opcProcessEndPending = false;
+	opcProcessEndWaitResponseOff = false;
+	opcProcessEndResponseOffError = false;
+	opcProcessEndResponseResult = 0;
 	opcProcessEndTick = 0;
 	opcCellTrackOutPending = false;
+	opcCellTrackOutWaitResponseOff = false;
+	opcCellTrackOutResponseOffError = false;
+	opcCellTrackOutResponseResult = 0;
 	opcCellTrackOutStartTick = 0;
 	opcTargetUnloadPending = false;
+	opcTargetUnloadWaitResponseOff = false;
+	opcTargetUnloadResponseOffError = false;
+	opcTargetUnloadResponseResult = 0;
 	opcTargetUnloadTick = 0;
 	//* 불량트레이 관리
 	targetTrayInfoDeletePending = false;
@@ -123,13 +146,30 @@ void __fastcall TMainForm::EndThread()
 
 	for(int i = 0; i < 2; ++i){
 		opcTrayLoadPending[i] = false;
+		opcTrayLoadWaitResponseOff[i] = false;
+		opcTrayLoadResponseOffError[i] = false;
+		opcTrayLoadRetryRequired[i] = false;
+		opcTrayDisplayed[i] = false;
+		opcTrayLoaded[i] = false;
 		if(comBcr[i] != NULL)
 			comBcr[i]->Disconnect();
 	}
 	opcProcessStartPending = false;
+	opcProcessStartWaitResponseOff = false;
+	opcProcessStartResponseOffError = false;
+	opcProcessStartResponseResult = 0;
 	opcProcessEndPending = false;
+	opcProcessEndWaitResponseOff = false;
+	opcProcessEndResponseOffError = false;
+	opcProcessEndResponseResult = 0;
 	opcCellTrackOutPending = false;
+	opcCellTrackOutWaitResponseOff = false;
+	opcCellTrackOutResponseOffError = false;
+	opcCellTrackOutResponseResult = 0;
 	opcTargetUnloadPending = false;
+	opcTargetUnloadWaitResponseOff = false;
+	opcTargetUnloadResponseOffError = false;
+	opcTargetUnloadResponseResult = 0;
 
 	if(PlcBin != NULL)
 		PlcBin->DisConnect();
@@ -153,10 +193,12 @@ AnsiString __fastcall TMainForm::GetProcessStepName(int stepNo) const
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::ResetProcessFlow()
 {
-	for(int i = 0; i < 16; ++i) processStepComplete[i] = false;
+	for(int i = 0; i < 16; ++i){
+		processStepComplete[i] = false;
+		lastProcessWaitStatus[i] = "";
+	}
 	currentProcessStep = 0;
 	currentProcessDetail = "WAITING FOR SOURCE TRAY";
-	lastProcessWaitStatus = "";
 	UpdateProcessFlowPanel();
 }
 //---------------------------------------------------------------------------
@@ -197,7 +239,8 @@ void __fastcall TMainForm::BeginProcessStep(int stepNo, AnsiString detail)
 	currentProcessStep = stepNo;
 	if(detail.IsEmpty()) currentProcessDetail = "RUNNING";
 	else currentProcessDetail = detail;
-	lastProcessWaitStatus = "";
+	if(changed)
+		lastProcessWaitStatus[stepNo - 1] = "";
 	UpdateProcessFlowPanel();
 	if(changed){
 		AnsiString logText = "START";
@@ -213,7 +256,7 @@ void __fastcall TMainForm::CompleteProcessStep(int stepNo, AnsiString detail)
 	currentProcessStep = stepNo;
 	if(detail.IsEmpty()) currentProcessDetail = "COMPLETE";
 	else currentProcessDetail = detail;
-	lastProcessWaitStatus = "";
+	lastProcessWaitStatus[stepNo - 1] = "";
 	UpdateProcessFlowPanel();
 	AnsiString logText = "COMPLETE";
 	if(!detail.IsEmpty()) logText += " - " + detail;
@@ -226,12 +269,23 @@ void __fastcall TMainForm::SetProcessWaitStatus(int stepNo, AnsiString requestNa
 	if(stepNo < 1 || stepNo > 16) return;
 	for(int i = 0; i < stepNo - 1; ++i)
 		processStepComplete[i] = true;
-	AnsiString status = requestName + " / WAIT " + responseName + " = " + IntToStr(responseValue);
+	AnsiString upperResponseName = responseName.UpperCase();
+	AnsiString expected;
+	if(upperResponseName.Pos("OFF") > 0)
+		expected = "EXPECTED=0 (RESET)";
+	else if(upperResponseName.Pos("RESPONSE") > 0)
+		expected = "EXPECTED=1 or 2 (RESULT)";
+	else
+		expected = "EXPECTED=1 (ON)";
+	AnsiString status = requestName + " / WAIT " + responseName +
+		" / " + expected + " / CURRENT=" + IntToStr(responseValue);
 	currentProcessStep = stepNo;
 	currentProcessDetail = status;
 	UpdateProcessFlowPanel();
-	if(lastProcessWaitStatus != status){
-		lastProcessWaitStatus = status;
+	// A global cache causes concurrent Source/Target waits to alternate and log
+	// continuously. Cache each process step independently and log each state once.
+	if(lastProcessWaitStatus[stepNo - 1] != status){
+		lastProcessWaitStatus[stepNo - 1] = status;
 		ProcessStepLog(stepNo, status);
 	}
 }//---------------------------------------------------------------------------
@@ -375,11 +429,55 @@ void __fastcall TMainForm::pause_startBtnClick(TObject *Sender)
 {
 	if(equipMode == modeAuto)
 	{
-        if(gripper->pauseStatus && robostar->pauseStatus)
+		if(gripper->pauseStatus && robostar->pauseStatus)
 		{
+			// TrayLoad ON-timeout cancels the old request and stops its timer.
+			// Restart restores that exact Source/Target transaction.
+			for(int i = 0; i < 2; ++i)
+			{
+				if(!opcTrayLoadRetryRequired[i])
+					continue;
+
+				bool sourceTray = (i == 0);
+				int stepNo = sourceTray ? 2 : 5;
+				AnsiString locationName = sourceTray ? "Location1" : "Location2";
+				int currentResponse = MesOpc != NULL ?
+					MesOpc->TRAY_LOAD_RESPONSE_VALUE(sourceTray) : -1;
+
+				opcTrayLoadPending[i] = true;
+				opcTrayLoadWaitResponseOff[i] = false;
+				opcTrayLoadResponseOffError[i] = false;
+				opcTrayLoadRetryRequired[i] = false;
+				opcTrayDisplayed[i] = false;
+				opcTrayLoaded[i] = false;
+				opcTrayLoadStartTick[i] = GetTickCount();
+				lastProcessWaitStatus[stepNo - 1] = "";
+
+				if(currentResponse == 1 || currentResponse == 2)
+				{
+					// The operator/FMS corrected Response while the timer was stopped.
+					// Keep the original response revision baseline and consume it now.
+					ProcessStepLog(stepNo, "RESTART RESUME / " + locationName +
+						".TrayLoadResponse CURRENT=" + IntToStr(currentResponse) +
+						" / EXPECTED=1 or 2 (RESULT)");
+				}
+				else
+				{
+					// No result is available yet: issue a fresh request and wait again.
+					if(MesOpc != NULL)
+						MesOpc->TRAY_LOAD_REQUEST(sourceTray);
+					ProcessStepLog(stepNo, "RESTART RETRY / " + locationName +
+						".TrayLoad Request=ON / CURRENT Response=" +
+						IntToStr(currentResponse) + " / EXPECTED=1 or 2 (RESULT)");
+				}
+			}
+
+			opcMesTimer->Enabled = true;
+			if(ErrorForm != NULL)
+				ErrorForm->Visible = false;
 			gripper->req_Pause(false);
 			robostar->req_Pause(false);
-        }
+		}
 	}
 	else ShowMessage(BaseForm->GetLangStr("MSG_START_ALARM"));
 }
@@ -476,145 +574,425 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 			continue;
 
 		bool sourceTray = (i == 0);
-		int response = MesOpc != NULL ? MesOpc->TRAY_LOAD_RESPONSE(sourceTray) : -1;
-		SetProcessWaitStatus(sourceTray ? 2 : 5, "TrayLoad Request=ON", "TrayLoadResponse", response);
-		if (response == 1)
+		AnsiString trayName = sourceTray ? "Source" : "Target";
+		AnsiString locationName = sourceTray ? "Location1" : "Location2";
+		int stepNo = sourceTray ? 2 : 5;
+
+		// Four-phase TrayLoad handshake:
+		// Request ON -> Response ON -> Request OFF -> Response OFF -> complete.
+		if (opcTrayLoadWaitResponseOff[i])
 		{
-			opcTrayLoadPending[i] = false;
-			CompleteOpcTrayLoad(sourceTray);
+			int response = MesOpc != NULL ?
+				MesOpc->TRAY_LOAD_RESPONSE_VALUE(sourceTray) : -1;
+			SetProcessWaitStatus(stepNo, locationName + ".TrayLoad Request=OFF",
+				locationName + ".TrayLoadResponse OFF", response);
+
+			if (response == 0)
+			{
+				// A Response OFF is valid only after Response ON data was displayed.
+				if(!opcTrayDisplayed[i])
+				{
+					opcTrayLoadPending[i] = false;
+					opcTrayLoadWaitResponseOff[i] = false;
+					ProcessStepLog(stepNo, "ERROR - Response=0 without tray display completion");
+					ShowCommonError(trayName + " tray load sequence error",
+						"TrayLoadResponse=1 and tray display were not completed.");
+					continue;
+				}
+
+				// After an OFF-timeout, do not advance merely because FMS was
+				// corrected. The operator confirms recovery with FormMain Restart.
+				if (opcTrayLoadResponseOffError[i] &&
+					gripper != NULL && robostar != NULL &&
+					(gripper->pauseStatus || robostar->pauseStatus))
+					continue;
+
+				opcTrayLoadPending[i] = false;
+				opcTrayLoadWaitResponseOff[i] = false;
+				opcTrayLoadResponseOffError[i] = false;
+				opcTrayLoadRetryRequired[i] = false;
+				ProcessStepLog(stepNo, locationName +
+					".TrayLoadResponse=0 received / advance to next process");
+				AdvanceOpcTrayLoad(sourceTray);
+				continue;
+			}
+
+			if ((DWORD)(GetTickCount() - opcTrayLoadStartTick[i]) >= RESPONSE_TIMEOUT_MS)
+			{
+				if (!opcTrayLoadResponseOffError[i])
+				{
+					opcTrayLoadResponseOffError[i] = true;
+					if (MesOpc != NULL)
+						MesOpc->LogTrayLoadResponseOffTimeout(sourceTray);
+					ProcessStepLog(stepNo,
+						"ERROR - TrayLoadResponse reset timeout / EXPECTED=0 (RESET) / CURRENT=" +
+						IntToStr(response));
+					ShowCommonError(trayName +
+						" tray TrayLoadResponse OFF timeout",
+						"EXPECTED=0 (RESET), but CURRENT=" + IntToStr(response) +
+						" remained for 10 seconds.");
+				}
+				else if (gripper != NULL && robostar != NULL &&
+					!gripper->pauseStatus && !robostar->pauseStatus)
+				{
+					// Restart was pressed before FMS cleared the response.
+					ShowCommonError(trayName +
+						" tray TrayLoadResponse is still ON",
+						"Clear TrayLoadResponse, then press Restart again.");
+				}
+			}
+			continue;
+		}
+
+		int rawResponse = MesOpc != NULL ? MesOpc->TRAY_LOAD_RESPONSE_VALUE(sourceTray) : -1;
+		int response = MesOpc != NULL ? MesOpc->TRAY_LOAD_RESPONSE(sourceTray) : -1;
+		SetProcessWaitStatus(stepNo, locationName + ".TrayLoad Request=ON",
+			locationName + ".TrayLoadResponse ON", rawResponse);
+		if(response == 3)
+		{
+			opcTrayLoadStartTick[i] = nowTick;
+			ProcessStepLog(stepNo, "Stale TrayLoadResponse cleared / actual Request=ON");
+		}
+		else if (response == 1)
+		{
+			// Display the validated tray immediately when Response turns ON.
+			// The next process is still blocked until the same Response returns OFF.
+			DisplayOpcTrayLoad(sourceTray);
+			if(!opcTrayDisplayed[i])
+			{
+				opcTrayLoadPending[i] = false;
+				ProcessStepLog(stepNo, "ERROR - TrayLoadResponse=1 but tray display failed");
+				ShowCommonError(trayName + " tray display failed",
+					"Tray data was not displayed. Target process is blocked.");
+				continue;
+			}
+			opcTrayLoadWaitResponseOff[i] = true;
+			opcTrayLoadResponseOffError[i] = false;
+			opcTrayLoadStartTick[i] = nowTick;
+			ProcessStepLog(stepNo, locationName +
+				".TrayLoadResponse=1 received / tray displayed / " +
+				locationName + ".TrayLoad=OFF / WAIT TrayLoadResponse=0");
 		}
 		else if (response == 2 || response < 0)
 		{
 			opcTrayLoadPending[i] = false;
-			AnsiString trayName = sourceTray ? "Source" : "Target";
-			ProcessStepLog(sourceTray ? 2 : 5, "ERROR - TrayLoadResponse=" + IntToStr(response));
+			opcTrayLoadWaitResponseOff[i] = false;
+			opcTrayLoadResponseOffError[i] = false;
+			ProcessStepLog(stepNo, "ERROR - TrayLoadResponse=" + IntToStr(response));
 			ShowCommonError(trayName + " tray load failed",
 				"Check FMS TrayLoadResponse and tray information.");
 		}
-		else if ((DWORD)(nowTick - opcTrayLoadStartTick[i]) >= RESPONSE_TIMEOUT_MS)
+		else if ((DWORD)(GetTickCount() - opcTrayLoadStartTick[i]) >= RESPONSE_TIMEOUT_MS)
 		{
 			opcTrayLoadPending[i] = false;
+			opcTrayLoadWaitResponseOff[i] = false;
+			opcTrayLoadResponseOffError[i] = false;
+			opcTrayLoadRetryRequired[i] = true;
 			if (MesOpc != NULL){
 				MesOpc->LogTrayLoadTimeout(sourceTray);
 				MesOpc->TRAY_LOAD_CANCEL(sourceTray);
 			}
-			AnsiString trayName = sourceTray ? "Source" : "Target";
-			ProcessStepLog(sourceTray ? 2 : 5, "ERROR - TrayLoadResponse timeout");
-			ShowCommonError(trayName + " tray response timeout",
-				"TrayLoadResponse or tray data was not completed within 10 seconds.");
+			ProcessStepLog(stepNo, "ERROR - TrayLoadResponse result timeout / " +
+				AnsiString("EXPECTED=1 or 2 (RESULT) / CURRENT=") + IntToStr(rawResponse));
+			ShowCommonError(trayName + " tray response ON timeout",
+				"EXPECTED=1 or 2 (RESULT), but CURRENT=" + IntToStr(rawResponse) +
+				" or tray data was not completed within 10 seconds. Correct it, then press Restart.");
 		}
 	}
-
 	if (opcProcessStartPending)
 	{
-		int response = MesOpc != NULL ? MesOpc->PROCESS_START_RESPONSE_RESULT() : -1;
-		SetProcessWaitStatus(6, "ProcessStart Request=ON", "ProcessStartResponse", response);
-		if (response == 1)
+		if(opcProcessStartWaitResponseOff)
 		{
-			opcProcessStartPending = false;
-			opcProcessStarted = true;
-			pwork1->Color = clLime;
-			pwork2->Color = clLime;
-			CompleteProcessStep(6, "ProcessStartResponse=1");
-			memoMainLineAdd("[FMS OPC UA] Process start response complete.");
-			if (gripper->seq == seqIdle && robostar->seq == seqIdle)
-				gripper->req_Init();
+			int response = MesOpc != NULL ? MesOpc->PROCESS_START_RESPONSE_VALUE() : -1;
+			SetProcessWaitStatus(6, "ProcessStart Request=OFF", "ProcessStartResponse OFF", response);
+			if(response == 0)
+			{
+				bool paused = gripper != NULL && robostar != NULL &&
+					(gripper->pauseStatus || robostar->pauseStatus);
+				if(!(opcProcessStartResponseOffError && paused))
+				{
+					int result = opcProcessStartResponseResult;
+					opcProcessStartPending = false;
+					opcProcessStartWaitResponseOff = false;
+					opcProcessStartResponseOffError = false;
+					opcProcessStartResponseResult = 0;
+					if(result == 1){
+						opcProcessStarted = true;
+						pwork1->Color = clLime;
+						pwork2->Color = clLime;
+						CompleteProcessStep(6, "ProcessStartResponse returned OFF");
+						memoMainLineAdd("[FMS OPC UA] ProcessStart four-phase handshake complete.");
+						if(gripper->seq == seqIdle && robostar->seq == seqIdle)
+							gripper->req_Init();
+					}else{
+						ProcessStepLog(6, "ERROR - ProcessStartResponse=2 / clear complete");
+						ShowCommonError("Process start failed", "FMS returned ProcessStartResponse=2.");
+					}
+				}
+			}
+			else if((DWORD)(GetTickCount() - opcProcessStartTick) >= RESPONSE_TIMEOUT_MS)
+			{
+				if(!opcProcessStartResponseOffError){
+					opcProcessStartResponseOffError = true;
+					if(MesOpc != NULL) MesOpc->LogProcessStartResponseOffTimeout();
+					ProcessStepLog(6, "ERROR - ProcessStartResponse OFF timeout");
+					ShowCommonError("ProcessStartResponse OFF timeout",
+						"ProcessStart is OFF, but ProcessStartResponse stayed ON for 10 seconds.");
+				}else if(gripper != NULL && robostar != NULL &&
+					!gripper->pauseStatus && !robostar->pauseStatus){
+					ShowCommonError("ProcessStartResponse is still ON",
+						"Clear ProcessStartResponse, then press Restart again.");
+				}
+			}
 		}
-		else if (response == 2 || response < 0)
+		else
 		{
-			opcProcessStartPending = false;
-			ProcessStepLog(6, "ERROR - ProcessStartResponse=" + IntToStr(response));
-			ShowCommonError("Process start failed",
-				"Check FMS ProcessStartResponse.");
-		}
-		else if ((DWORD)(nowTick - opcProcessStartTick) >= RESPONSE_TIMEOUT_MS)
-		{
-			opcProcessStartPending = false;
-			ProcessStepLog(6, "ERROR - ProcessStartResponse timeout");
-			if (MesOpc != NULL) MesOpc->PROCESS_START_CANCEL();
-			ShowCommonError("Process start response timeout",
-				"No ProcessStartResponse from FMS Gateway.");
+			int response = MesOpc != NULL ? MesOpc->PROCESS_START_RESPONSE_RESULT() : -1;
+			SetProcessWaitStatus(6, "ProcessStart Request=ON", "ProcessStartResponse ON", response);
+			if(response == 3){
+				opcProcessStartTick = nowTick;
+				ProcessStepLog(6, "Stale ProcessStartResponse cleared / actual Request=ON");
+			}else if(response == 1 || response == 2){
+				opcProcessStartWaitResponseOff = true;
+				opcProcessStartResponseOffError = false;
+				opcProcessStartResponseResult = response;
+				opcProcessStartTick = nowTick;
+				ProcessStepLog(6, "ProcessStartResponse=" + IntToStr(response) +
+					" / Request=OFF / wait Response=0");
+			}else if(response < 0){
+				opcProcessStartPending = false;
+				ProcessStepLog(6, "ERROR - invalid ProcessStartResponse=" + IntToStr(response));
+				ShowCommonError("Process start failed", "Invalid or missing ProcessStartResponse.");
+			}else if((DWORD)(GetTickCount() - opcProcessStartTick) >= RESPONSE_TIMEOUT_MS){
+				opcProcessStartPending = false;
+				ProcessStepLog(6, "ERROR - ProcessStartResponse ON timeout");
+				if(MesOpc != NULL) MesOpc->PROCESS_START_CANCEL();
+				ShowCommonError("Process start response ON timeout",
+					"No ProcessStartResponse from FMS Gateway within 10 seconds.");
+			}
 		}
 	}
 
 	if(opcProcessEndPending)
 	{
-		int response = MesOpc != NULL ? MesOpc->PROCESS_END_RESPONSE_RESULT() : -1;
-		SetProcessWaitStatus(14, "ProcessEnd Request=ON", "ProcessEndResponse", response);
-		if(response == 1){
-			opcProcessEndPending = false;
-			opcProcessStarted = false;
-			CompleteProcessStep(14, "ProcessEndResponse=1");
-			BeginProcessStep(15, "D10155 Source Tray Out request");
-			CmdTrayOut(0);
-			CompleteProcessStep(15, "D10155=ON");
-			memoMainLineAdd("[FMS OPC UA] Source ProcessEnd response complete.");
-		}else if(response == 2 || response < 0){
-			opcProcessEndPending = false;
-			opcProcessStarted = false;
-			ProcessStepLog(14, "ERROR - ProcessEndResponse=" + IntToStr(response));
-			ShowCommonError("Source ProcessEnd failed",
-				"Check F1NGS01.Location1.TrayProcess.ProcessEndResponse.");
-		}else if((DWORD)(nowTick - opcProcessEndTick) >= RESPONSE_TIMEOUT_MS){
-			opcProcessEndPending = false;
-			opcProcessStarted = false;
-			ProcessStepLog(14, "ERROR - ProcessEndResponse timeout");
-			if(MesOpc != NULL){
-				MesOpc->LogProcessEndTimeout();
-				MesOpc->PROCESS_END_CANCEL();
-			}else{
-				WriteOpcUaLog("ERROR", "PROCESS_END_TIMEOUT MesOpc=<null>", true);
+		if(opcProcessEndWaitResponseOff)
+		{
+			int response = MesOpc != NULL ? MesOpc->PROCESS_END_RESPONSE_VALUE() : -1;
+			SetProcessWaitStatus(14, "ProcessEnd Request=OFF", "ProcessEndResponse OFF", response);
+			if(response == 0)
+			{
+				bool paused = gripper != NULL && robostar != NULL &&
+					(gripper->pauseStatus || robostar->pauseStatus);
+				if(!(opcProcessEndResponseOffError && paused))
+				{
+					int result = opcProcessEndResponseResult;
+					opcProcessEndPending = false;
+					opcProcessEndWaitResponseOff = false;
+					opcProcessEndResponseOffError = false;
+					opcProcessEndResponseResult = 0;
+					opcProcessStarted = false;
+					if(result == 1){
+						CompleteProcessStep(14, "ProcessEndResponse returned OFF");
+						BeginProcessStep(15, "D10155 Source Tray Out request");
+						CmdTrayOut(0);
+						CompleteProcessStep(15, "D10155=ON");
+						memoMainLineAdd("[FMS OPC UA] ProcessEnd four-phase handshake complete.");
+					}else{
+						ProcessStepLog(14, "ERROR - ProcessEndResponse=2 / clear complete");
+						ShowCommonError("Source ProcessEnd failed", "FMS returned ProcessEndResponse=2.");
+					}
+				}
 			}
-			ShowCommonError("Source ProcessEnd response timeout",
-				"No ProcessEndResponse from FMS Gateway within 10 seconds.");
+			else if((DWORD)(GetTickCount() - opcProcessEndTick) >= RESPONSE_TIMEOUT_MS)
+			{
+				if(!opcProcessEndResponseOffError){
+					opcProcessEndResponseOffError = true;
+					if(MesOpc != NULL) MesOpc->LogProcessEndResponseOffTimeout();
+					ProcessStepLog(14, "ERROR - ProcessEndResponse OFF timeout");
+					ShowCommonError("ProcessEndResponse OFF timeout",
+						"ProcessEnd is OFF, but ProcessEndResponse stayed ON for 10 seconds.");
+				}else if(gripper != NULL && robostar != NULL &&
+					!gripper->pauseStatus && !robostar->pauseStatus){
+					ShowCommonError("ProcessEndResponse is still ON",
+						"Clear ProcessEndResponse, then press Restart again.");
+				}
+			}
+		}
+		else
+		{
+			int response = MesOpc != NULL ? MesOpc->PROCESS_END_RESPONSE_RESULT() : -1;
+			SetProcessWaitStatus(14, "ProcessEnd Request=ON", "ProcessEndResponse ON", response);
+			if(response == 3){
+				opcProcessEndTick = nowTick;
+				ProcessStepLog(14, "Stale ProcessEndResponse cleared / actual Request=ON");
+			}else if(response == 1 || response == 2){
+				opcProcessEndWaitResponseOff = true;
+				opcProcessEndResponseOffError = false;
+				opcProcessEndResponseResult = response;
+				opcProcessEndTick = nowTick;
+				ProcessStepLog(14, "ProcessEndResponse=" + IntToStr(response) +
+					" / Request=OFF / wait Response=0");
+			}else if(response < 0){
+				opcProcessEndPending = false;
+				opcProcessStarted = false;
+				ProcessStepLog(14, "ERROR - invalid ProcessEndResponse=" + IntToStr(response));
+				ShowCommonError("Source ProcessEnd failed", "Invalid or missing ProcessEndResponse.");
+			}else if((DWORD)(GetTickCount() - opcProcessEndTick) >= RESPONSE_TIMEOUT_MS){
+				opcProcessEndPending = false;
+				opcProcessStarted = false;
+				ProcessStepLog(14, "ERROR - ProcessEndResponse ON timeout");
+				if(MesOpc != NULL){
+					MesOpc->LogProcessEndTimeout();
+					MesOpc->PROCESS_END_CANCEL();
+				}
+				ShowCommonError("Source ProcessEnd response ON timeout",
+					"No ProcessEndResponse from FMS Gateway within 10 seconds.");
+			}
 		}
 	}
+
 	if(opcCellTrackOutPending)
 	{
-		int response = MesOpc != NULL ? MesOpc->CELL_TRACK_OUT_RESPONSE_RESULT() : -1;
-		SetProcessWaitStatus(12, "CellUnloadComplete=ON", "CellUnloadCompleteResponse", response);
-		if(response == 1){
-			opcCellTrackOutPending = false;
-			CompleteProcessStep(12, "CellUnloadCompleteResponse=1");
-			memoMainLineAdd("[FMS OPC UA] CellTrackOut response complete.");
-		}else if(response == 2 || response < 0){
-			opcCellTrackOutPending = false;
-			ProcessStepLog(12, "ERROR - CellUnloadCompleteResponse=" + IntToStr(response));
-			WriteOpcUaLog("ERROR", "CELL_TRACK_OUT response failed", false);
-		}else if((DWORD)(nowTick - opcCellTrackOutStartTick) >= RESPONSE_TIMEOUT_MS){
-			opcCellTrackOutPending = false;
-			ProcessStepLog(12, "ERROR - CellUnloadCompleteResponse timeout");
-			// Log the exact OPC UA response node/raw value before clearing the request.
-			if(MesOpc != NULL){
-				MesOpc->LogCellTrackOutTimeout();
-				MesOpc->CELL_TRACK_OUT_CANCEL();
-			}else{
-				WriteOpcUaLog("ERROR", "CELL_TRACK_OUT_TIMEOUT MesOpc=<null>", true);
+		if(opcCellTrackOutWaitResponseOff)
+		{
+			int response = MesOpc != NULL ? MesOpc->CELL_TRACK_OUT_RESPONSE_VALUE() : -1;
+			SetProcessWaitStatus(12, "CellUnloadComplete=OFF", "CellUnloadCompleteResponse OFF", response);
+			if(response == 0)
+			{
+				bool paused = gripper != NULL && robostar != NULL &&
+					(gripper->pauseStatus || robostar->pauseStatus);
+				if(!(opcCellTrackOutResponseOffError && paused))
+				{
+					int result = opcCellTrackOutResponseResult;
+					opcCellTrackOutPending = false;
+					opcCellTrackOutWaitResponseOff = false;
+					opcCellTrackOutResponseOffError = false;
+					opcCellTrackOutResponseResult = 0;
+					if(result == 1){
+						CompleteProcessStep(12, "CellUnloadCompleteResponse returned OFF");
+						memoMainLineAdd("[FMS OPC UA] CellTrackOut four-phase handshake complete.");
+					}else{
+						ProcessStepLog(12, "ERROR - CellUnloadCompleteResponse=2 / clear complete");
+						ShowCommonError("CellTrackOut failed", "FMS returned CellUnloadCompleteResponse=2.");
+					}
+				}
+			}
+			else if((DWORD)(GetTickCount() - opcCellTrackOutStartTick) >= RESPONSE_TIMEOUT_MS)
+			{
+				if(!opcCellTrackOutResponseOffError){
+					opcCellTrackOutResponseOffError = true;
+					if(MesOpc != NULL) MesOpc->LogCellTrackOutResponseOffTimeout();
+					ProcessStepLog(12, "ERROR - CellUnloadCompleteResponse OFF timeout");
+					ShowCommonError("CellUnloadCompleteResponse OFF timeout",
+						"CellUnloadComplete is OFF, but its response stayed ON for 10 seconds.");
+				}else if(gripper != NULL && robostar != NULL &&
+					!gripper->pauseStatus && !robostar->pauseStatus){
+					ShowCommonError("CellUnloadCompleteResponse is still ON",
+						"Clear the response, then press Restart again.");
+				}
+			}
+		}
+		else
+		{
+			int response = MesOpc != NULL ? MesOpc->CELL_TRACK_OUT_RESPONSE_RESULT() : -1;
+			SetProcessWaitStatus(12, "CellUnloadComplete=ON", "CellUnloadCompleteResponse ON", response);
+			if(response == 3){
+				opcCellTrackOutStartTick = nowTick;
+				ProcessStepLog(12, "Stale CellUnloadCompleteResponse cleared / actual Request=ON");
+			}else if(response == 1 || response == 2){
+				opcCellTrackOutWaitResponseOff = true;
+				opcCellTrackOutResponseOffError = false;
+				opcCellTrackOutResponseResult = response;
+				opcCellTrackOutStartTick = nowTick;
+				ProcessStepLog(12, "CellUnloadCompleteResponse=" + IntToStr(response) +
+					" / Request=OFF / wait Response=0");
+			}else if(response < 0){
+				opcCellTrackOutPending = false;
+				ProcessStepLog(12, "ERROR - invalid CellUnloadCompleteResponse=" + IntToStr(response));
+				ShowCommonError("CellTrackOut failed", "Invalid or missing CellUnloadCompleteResponse.");
+			}else if((DWORD)(GetTickCount() - opcCellTrackOutStartTick) >= RESPONSE_TIMEOUT_MS){
+				opcCellTrackOutPending = false;
+				ProcessStepLog(12, "ERROR - CellUnloadCompleteResponse ON timeout");
+				if(MesOpc != NULL){
+					MesOpc->LogCellTrackOutTimeout();
+					MesOpc->CELL_TRACK_OUT_CANCEL();
+				}
+				ShowCommonError("CellTrackOut response ON timeout",
+					"No CellUnloadCompleteResponse from FMS Gateway within 10 seconds.");
 			}
 		}
 	}
 
 	if(opcTargetUnloadPending)
 	{
-		int response = MesOpc != NULL ? MesOpc->TRAY_UNLOAD_RESPONSE_RESULT() : -1;
-		SetProcessWaitStatus(16, "TrayUnloadRequest=ON", "TrayUnloadResponse", response);
-		if(response == 1){
-			opcTargetUnloadPending = false;
-			CompleteProcessStep(16, "TrayUnloadResponse=1");
-			CmdTrayOut(1);
-		}else if(response == 2 || response < 0){
-			opcTargetUnloadPending = false;
-			ProcessStepLog(16, "ERROR - TrayUnloadResponse=" + IntToStr(response));
-			ShowCommonError("Target tray unload failed", "Check FMS TrayUnloadResponse.");
-		}else if((DWORD)(nowTick - opcTargetUnloadTick) >= RESPONSE_TIMEOUT_MS){
-			opcTargetUnloadPending = false;
-			ProcessStepLog(16, "ERROR - TrayUnloadResponse timeout");
-			if(MesOpc != NULL){
-				MesOpc->LogTrayUnloadTimeout();
-				MesOpc->TRAY_UNLOAD_CANCEL();
+		if(opcTargetUnloadWaitResponseOff)
+		{
+			int response = MesOpc != NULL ? MesOpc->TRAY_UNLOAD_RESPONSE_VALUE() : -1;
+			SetProcessWaitStatus(16, "TrayUnloadRequest=OFF", "TrayUnloadResponse OFF", response);
+			if(response == 0)
+			{
+				bool paused = gripper != NULL && robostar != NULL &&
+					(gripper->pauseStatus || robostar->pauseStatus);
+				if(!(opcTargetUnloadResponseOffError && paused))
+				{
+					int result = opcTargetUnloadResponseResult;
+					opcTargetUnloadPending = false;
+					opcTargetUnloadWaitResponseOff = false;
+					opcTargetUnloadResponseOffError = false;
+					opcTargetUnloadResponseResult = 0;
+					if(result == 1){
+						CompleteProcessStep(16, "TrayUnloadResponse returned OFF");
+						CmdTrayOut(1);
+						memoMainLineAdd("[FMS OPC UA] TrayUnload four-phase handshake complete.");
+					}else{
+						ProcessStepLog(16, "ERROR - TrayUnloadResponse=2 / clear complete");
+						ShowCommonError("Target tray unload failed", "FMS returned TrayUnloadResponse=2.");
+					}
+				}
 			}
-			ShowCommonError("Target tray unload response timeout",
-				"No TrayUnloadResponse from FMS Gateway within 10 seconds.");
+			else if((DWORD)(GetTickCount() - opcTargetUnloadTick) >= RESPONSE_TIMEOUT_MS)
+			{
+				if(!opcTargetUnloadResponseOffError){
+					opcTargetUnloadResponseOffError = true;
+					if(MesOpc != NULL) MesOpc->LogTrayUnloadResponseOffTimeout();
+					ProcessStepLog(16, "ERROR - TrayUnloadResponse OFF timeout");
+					ShowCommonError("TrayUnloadResponse OFF timeout",
+						"TrayUnloadRequest is OFF, but TrayUnloadResponse stayed ON for 10 seconds.");
+				}else if(gripper != NULL && robostar != NULL &&
+					!gripper->pauseStatus && !robostar->pauseStatus){
+					ShowCommonError("TrayUnloadResponse is still ON",
+						"Clear TrayUnloadResponse, then press Restart again.");
+				}
+			}
+		}
+		else
+		{
+			int response = MesOpc != NULL ? MesOpc->TRAY_UNLOAD_RESPONSE_RESULT() : -1;
+			SetProcessWaitStatus(16, "TrayUnloadRequest=ON", "TrayUnloadResponse ON", response);
+			if(response == 3){
+				opcTargetUnloadTick = nowTick;
+				ProcessStepLog(16, "Stale TrayUnloadResponse cleared / actual Request=ON");
+			}else if(response == 1 || response == 2){
+				opcTargetUnloadWaitResponseOff = true;
+				opcTargetUnloadResponseOffError = false;
+				opcTargetUnloadResponseResult = response;
+				opcTargetUnloadTick = nowTick;
+				ProcessStepLog(16, "TrayUnloadResponse=" + IntToStr(response) +
+					" / Request=OFF / wait Response=0");
+			}else if(response < 0){
+				opcTargetUnloadPending = false;
+				ProcessStepLog(16, "ERROR - invalid TrayUnloadResponse=" + IntToStr(response));
+				ShowCommonError("Target tray unload failed", "Invalid or missing TrayUnloadResponse.");
+			}else if((DWORD)(GetTickCount() - opcTargetUnloadTick) >= RESPONSE_TIMEOUT_MS){
+				opcTargetUnloadPending = false;
+				ProcessStepLog(16, "ERROR - TrayUnloadResponse ON timeout");
+				if(MesOpc != NULL){
+					MesOpc->LogTrayUnloadTimeout();
+					MesOpc->TRAY_UNLOAD_CANCEL();
+				}
+				ShowCommonError("Target tray unload response ON timeout",
+					"No TrayUnloadResponse from FMS Gateway within 10 seconds.");
+			}
 		}
 	}
 
@@ -866,6 +1244,8 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 	}
 
 	if(IsSourceTrayInSignal() == 0){
+		opcTrayDisplayed[0] = false;
+		opcTrayLoaded[0] = false;
 		InitStep(&step[0]);
 		if(currentProcessStep != 0) ResetProcessFlow();
 	}
@@ -894,23 +1274,17 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 					}
 				}
 				else{
-					if(IsTargetCenteringSignal() && pTrayid_target->Caption.IsEmpty()){
-						memoMainLineAdd(BaseForm->GetLangStr("MSG_TARGETTRAY_SCAN"));
-						ReadTargetTrayBarcode();                                            // test
-					}else{
-						memoMainLineAdd(BaseForm->GetLangStr("MSG_SOURCETRAY_WAITING"));
-					}
+					// Tray loading is sequential: do not scan/load Target before the
+					// Source TrayLoad handshake has returned Response to zero.
+					// The process panel already shows WAITING FOR SOURCE TRAY.
 				}
 				break;
 			case 1:
-				if(IsSourceCenteringSignal()){
-					CompleteProcessStep(3, "D10104 Source Centering=ON");
-					memoMainLineAdd(BaseForm->GetLangStr("MSG_SOURCETRAY_CENTERING_COMPL"));
-					NotifyTransferIn(pTrayid_source->Caption);	// 작업3. 센터링을 치면 작업시작 보고를 한다.
-					step[0].step += 1;
-				}else{
-					memoMainLineAdd(BaseForm->GetLangStr("MSG_SOURCETRAY_CENTERING"));
-				}
+				// Barcode completion alone must never advance the PLC sequence.
+				// Displayed requires Response=1; Loaded additionally requires Response=0.
+				if(!opcTrayDisplayed[0] || !opcTrayLoaded[0])
+					break;
+				step[0].step = 2;
 				break;
 			case 2:
 				if(IsTargetCenteringSignal()){
@@ -922,13 +1296,18 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 					step[0].step += 1;
 					step[1].step = 1;
 				}else{
-					memoMainLineAdd("The target tray is missing or not centering.");
-					AlarmForm->ShowError("No Target Tray", BaseForm->GetLangStr("MSG_TARGETTRAY_CHECK_CENTERING").c_str());
+					SetProcessWaitStatus(4, "Source TrayLoad complete",
+						"D10106 Target Centering", 0);
 				}
+				break;
 			default:
 				break;
 		}
 
+
+		// ProcessStart is allowed only after both TrayLoad handshakes and Source
+		// Centering are complete. Polling here has no log side effects.
+		TryStartOpcProcess();
 
 		 switch(step[1].step){
 			case 0:
@@ -1487,7 +1866,10 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	}
 	if(IsTargetCenteringSignal())ptargetReady->Color = clLime;
 	else{
-		if(!opcTrayLoadPending[1]) opcTrayLoaded[1] = false;
+		if(!opcTrayLoadPending[1]){
+			opcTrayDisplayed[1] = false;
+			opcTrayLoaded[1] = false;
+		}
 		ptargetReady->Color = clSilver;
 		pwork2->Color = clSilver;
 	}

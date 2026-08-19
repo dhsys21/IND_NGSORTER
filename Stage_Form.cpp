@@ -102,7 +102,10 @@ void __fastcall TMainForm::DisplayTargetCell(int toolNum, int ch)
 	}
 	if(toolNum >= 0){
 		color_target[ch / 24][23 - (ch % 24)] = clYellow;
-		targetGrid->Cells[ch / 24][23 - (ch % 24)] = "Gripper #" + IntToStr(toolNum+1) + " 예약";
+		AnsiString reservation = "Gripper #" + IntToStr(toolNum+1) + " reservation";
+		if(!tray_target.LOSS_CD[ch].Trim().IsEmpty())
+			reservation = tray_target.LOSS_CD[ch].Trim() + " / " + reservation;
+		targetGrid->Cells[ch / 24][23 - (ch % 24)] = reservation;
 	}else{
 		color_target[ch / 24][23 - (ch % 24)] = clInactiveCaption;
 		targetGrid->Cells[ch / 24][23 - (ch % 24)] = tray_target.LOSS_CD[ch] + "-" + getCodeName(tray_target.LOSS_CD[ch].Trim());
@@ -118,7 +121,10 @@ void __fastcall TMainForm::DisplayTargetCellInfo(int toolNum, int ch)
 		if(toolNum < 0) toolNum = 0;
 	}
 	if(toolNum >= 0){
-		pTarget_bad[ch]->Caption = "Gripper #" + IntToStr(toolNum+1) + " 예약";
+		AnsiString reservation = "Gripper #" + IntToStr(toolNum+1) + " reservation";
+		if(!tray_target.LOSS_CD[ch].Trim().IsEmpty())
+			reservation = tray_target.LOSS_CD[ch].Trim() + " / " + reservation;
+		pTarget_bad[ch]->Caption = reservation;
 		pTarget_bad[ch]->Color = clYellow;
 	}else{
 		pTarget_bad[ch]->Caption = tray_target.LOSS_CD[ch] + "-" + getCodeName(tray_target.LOSS_CD[ch].Trim());
@@ -403,6 +409,7 @@ void __fastcall TMainForm::setTrayInfo(int index)
 			m_saveTrayInfo[index].SLOT_POSITION[i] = tray_source.SLOT_POSITION[i];
 			m_saveTrayInfo[index].SLOT_ID[i] = tray_source.SLOT_ID[i];
 			m_saveTrayInfo[index].CELL_LOT_ID[i] = tray_source.CELL_LOT_ID[i];
+			m_saveTrayInfo[index].CELL_EXIST[i] = tray_source.CELL_EXIST[i];
 			m_saveTrayInfo[index].PICK[i] = tray_source.PICK[i];
 			m_saveTrayInfo[index].LOSS_CD[i] = tray_source.LOSS_CD[i];
 			m_saveTrayInfo[index].RANK[i] = tray_source.RANK[i];
@@ -419,6 +426,7 @@ void __fastcall TMainForm::setTrayInfo(int index)
 			m_saveTrayInfo[index].SLOT_POSITION[i] = tray_target.SLOT_POSITION[i];
 			m_saveTrayInfo[index].SLOT_ID[i] = tray_target.SLOT_ID[i];
 			m_saveTrayInfo[index].CELL_LOT_ID[i] = tray_target.CELL_LOT_ID[i];
+			m_saveTrayInfo[index].CELL_EXIST[i] = tray_target.CELL_EXIST[i];
 			m_saveTrayInfo[index].PICK[i] = tray_target.PICK[i];
 			m_saveTrayInfo[index].LOSS_CD[i] = tray_target.LOSS_CD[i];
 			m_saveTrayInfo[index].RANK[i] = tray_target.RANK[i];
@@ -452,6 +460,7 @@ void __fastcall TMainForm::saveTrayInfo(int index)
 			ini->WriteString(section, "SLOT_POSITION", m_saveTrayInfo[index].SLOT_POSITION[i]);
 			ini->WriteString(section, "SLOT_ID", m_saveTrayInfo[index].SLOT_ID[i]);
 			ini->WriteString(section, "LOT_ID", m_saveTrayInfo[index].CELL_LOT_ID[i]);
+			ini->WriteBool(section, "CELL_EXIST", m_saveTrayInfo[index].CELL_EXIST[i]);
 			ini->WriteString(section, "PICK", m_saveTrayInfo[index].PICK[i]);
 			ini->WriteString(section, "LOSS_CD", m_saveTrayInfo[index].LOSS_CD[i]);
 			ini->WriteString(section, "RANK", m_saveTrayInfo[index].RANK[i]);
@@ -464,6 +473,7 @@ void __fastcall TMainForm::saveTrayInfo(int index)
 			ini->WriteString(index, "SLOT_POSITION" + IntToStr(i), m_saveTrayInfo[index].SLOT_POSITION[i]);
 			ini->WriteString(index, "SLOT_ID" + IntToStr(i), m_saveTrayInfo[index].SLOT_ID[i]);
 			ini->WriteString(index, "CELL_LOT_ID" + IntToStr(i), m_saveTrayInfo[index].CELL_LOT_ID[i]);
+			ini->WriteBool(index, "CELL_EXIST" + IntToStr(i), m_saveTrayInfo[index].CELL_EXIST[i]);
 			ini->WriteString(index, "PICK" + IntToStr(i), m_saveTrayInfo[index].PICK[i]);
 			ini->WriteString(index, "LOSS_CD" + IntToStr(i), m_saveTrayInfo[index].LOSS_CD[i]);
 			ini->WriteString(index, "RANK" + IntToStr(i), m_saveTrayInfo[index].RANK[i]);
@@ -507,6 +517,8 @@ void __fastcall TMainForm::loadTrayInfo(int index)
 			m_saveTrayInfo[index].PICK[i] = ini->ReadString(section, "PICK", "N");
 			m_saveTrayInfo[index].LOSS_CD[i] = ini->ReadString(section, "LOSS_CD", "");
 			m_saveTrayInfo[index].RANK[i] = ini->ReadString(section, "RANK", "");
+			m_saveTrayInfo[index].CELL_EXIST[i] = ini->ReadBool(section, "CELL_EXIST",
+				m_saveTrayInfo[index].PICK[i] == "Y" || !m_saveTrayInfo[index].SLOT_ID[i].IsEmpty());
 		}else{
 			m_saveTrayInfo[index].SLOT_POSITION[i] = ini->ReadString(index, "SLOT_POSITION" + IntToStr(i), "");
 			m_saveTrayInfo[index].SLOT_ID[i] = ini->ReadString(index, "SLOT_ID" + IntToStr(i), "");
@@ -514,6 +526,8 @@ void __fastcall TMainForm::loadTrayInfo(int index)
 			m_saveTrayInfo[index].PICK[i] = ini->ReadString(index, "PICK" + IntToStr(i), "");
 			m_saveTrayInfo[index].LOSS_CD[i] = ini->ReadString(index, "LOSS_CD" + IntToStr(i), "");
 			m_saveTrayInfo[index].RANK[i] = ini->ReadString(index, "RANK" + IntToStr(i), "");
+			m_saveTrayInfo[index].CELL_EXIST[i] = ini->ReadBool(index,
+				"CELL_EXIST" + IntToStr(i), !m_saveTrayInfo[index].SLOT_ID[i].IsEmpty());
 		}
 	}
 
@@ -546,6 +560,7 @@ void __fastcall TMainForm::ResetTargetTraySaveInfo(AnsiString trayId)
 		m_saveTrayInfo[1].SLOT_POSITION[i] = IntToStr(i + 1);
 		m_saveTrayInfo[1].SLOT_ID[i] = "";
 		m_saveTrayInfo[1].CELL_LOT_ID[i] = "";
+		m_saveTrayInfo[1].CELL_EXIST[i] = false;
 		m_saveTrayInfo[1].PICK[i] = "N";
 		m_saveTrayInfo[1].LOSS_CD[i] = "";
 		m_saveTrayInfo[1].RANK[i] = "";
@@ -560,7 +575,7 @@ bool __fastcall TMainForm::TargetTrayInfoHasData(int &occupiedCount, int &reserv
 	for(int i = 0; i < m_saveTrayInfo[1].SLOT_COUNT && i < 96; ++i){
 		if(m_saveTrayInfo[1].PICK[i] == "R")
 			++reservedCount;
-		else if(m_saveTrayInfo[1].PICK[i] == "Y" || !m_saveTrayInfo[1].SLOT_ID[i].IsEmpty())
+		else if(m_saveTrayInfo[1].CELL_EXIST[i])
 			++occupiedCount;
 	}
 	return occupiedCount > 0 || reservedCount > 0;
@@ -625,6 +640,7 @@ int __fastcall TMainForm::RestoreTargetTrayInfo(AnsiString trayId, bool confirmE
 		tray_target.SLOT_POSITION[i] = m_saveTrayInfo[1].SLOT_POSITION[i];
 		tray_target.SLOT_ID[i] = m_saveTrayInfo[1].SLOT_ID[i];
 		tray_target.CELL_LOT_ID[i] = m_saveTrayInfo[1].CELL_LOT_ID[i];
+		tray_target.CELL_EXIST[i] = m_saveTrayInfo[1].CELL_EXIST[i];
 		tray_target.PICK[i] = m_saveTrayInfo[1].PICK[i];
 		tray_target.LOSS_CD[i] = m_saveTrayInfo[1].LOSS_CD[i];
 		tray_target.RANK[i] = m_saveTrayInfo[1].RANK[i];
@@ -681,6 +697,7 @@ bool __fastcall TMainForm::checkTrayInfo(int index)
 			{
 				if(m_saveTrayInfo[0].SLOT_POSITION[i] != tray_source.SLOT_POSITION[i]
 				   || m_saveTrayInfo[0].SLOT_ID[i] != tray_source.SLOT_ID[i]
+				   || m_saveTrayInfo[0].CELL_EXIST[i] != tray_source.CELL_EXIST[i]
 				   || m_saveTrayInfo[0].PICK[i] != tray_source.PICK[i])
 				{
 					return false;
@@ -696,6 +713,7 @@ bool __fastcall TMainForm::checkTrayInfo(int index)
 			{
 				if(m_saveTrayInfo[1].SLOT_POSITION[i] != tray_target.SLOT_POSITION[i]
 				   || m_saveTrayInfo[1].SLOT_ID[i] != tray_target.SLOT_ID[i]
+				   || m_saveTrayInfo[1].CELL_EXIST[i] != tray_target.CELL_EXIST[i]
 				   || m_saveTrayInfo[1].PICK[i] != tray_target.PICK[i])
 				{
 					return false;

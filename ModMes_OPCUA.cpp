@@ -218,6 +218,7 @@ static void ClearTrayCells(TRAY_INFO *Tray)
 		Tray->TARGET_SLOT_POSITION[i] = "";
 		Tray->SLOT_ID[i] = "";
 		Tray->CELL_LOT_ID[i] = "";
+		Tray->CELL_EXIST[i] = false;
 		Tray->LOSS_CD[i] = "";
 		Tray->LOSS_DESC[i] = "";
 		Tray->PICK[i] = "";
@@ -232,23 +233,39 @@ static void ApplySourceTrackInCells(TRAY_INFO *Tray)
 		return;
 
 	UnicodeString Root = TAG_SOURCE + L".TrackInCellInformation";
-	Tray->SLOT_COUNT = GetFmsInt(TrackInTag(L"CellCount"));
-	for (int i = 0; i < Tray->SLOT_COUNT && i < 96; ++i)
+	int RecordCount = GetFmsInt(TrackInTag(L"CellCount"));
+	// The physical Source tray always has 96 channels. FMS array order is not
+	// guaranteed to match the channel, so every record is mapped by CellNo.
+	Tray->SLOT_COUNT = 96;
+	Tray->empTray = true;
+	for (int Channel = 0; Channel < 96; ++Channel)
 	{
-		bool CellExist = GetFmsBool(CellTag(Root, i, L"CellExist"));
-		int CellNo = GetFmsInt(CellTag(Root, i, L"CellNo"));
-		UnicodeString Grade = GetFmsString(CellTag(Root, i, L"Grade"));
+		Tray->SLOT_POSITION[Channel] = IntToStr(Channel + 1);
+		Tray->PICK[Channel] = "N";
+	}
 
-		Tray->SLOT_POSITION[i] = AnsiString(IntToStr(CellNo));
+	for (int Record = 0; Record < RecordCount && Record < 96; ++Record)
+	{
+		int CellNo = GetFmsInt(CellTag(Root, Record, L"CellNo"));
+		if (CellNo < 1 || CellNo > 96)
+			continue;
+
+		int Channel = CellNo - 1;
+		bool CellExist = GetFmsBool(CellTag(Root, Record, L"CellExist"));
+		UnicodeString Grade = GetFmsString(CellTag(Root, Record, L"Grade")).Trim();
+		Tray->CELL_EXIST[Channel] = CellExist;
 		if (CellExist)
-			Tray->SLOT_ID[i] = AnsiString(GetFmsString(CellTag(Root, i, L"CellId")).Trim());
-		else
-			Tray->SLOT_ID[i] = "";
-		// Preserve these TrackIn values per cell without substituting target-tray data.
-		Tray->CELL_LOT_ID[i] = AnsiString(GetFmsString(CellTag(Root, i, L"LotId")));
-		Tray->LOSS_CD[i] = AnsiString(GetFmsString(CellTag(Root, i, L"NGCode")));
-		Tray->RANK[i] = AnsiString(Grade);
-		Tray->PICK[i] = (CellExist && Grade.Trim().UpperCase() == L"NG") ? "Y" : "N";
+			Tray->empTray = false;
+
+		Tray->SLOT_ID[Channel] = CellExist ?
+			AnsiString(GetFmsString(CellTag(Root, Record, L"CellId")).Trim()) : AnsiString("");
+		Tray->CELL_LOT_ID[Channel] = AnsiString(GetFmsString(CellTag(Root, Record, L"LotId")));
+		Tray->LOSS_CD[Channel] = AnsiString(GetFmsString(CellTag(Root, Record, L"NGCode"))).Trim();
+		Tray->RANK[Channel] = AnsiString(Grade);
+
+		// NG definition: the cell physically exists and Grade is exactly NG.
+		// NGCode is the defect description only and never decides whether a cell is NG.
+		Tray->PICK[Channel] = (CellExist && Grade.UpperCase() == L"NG") ? "Y" : "N";
 	}
 }
 //---------------------------------------------------------------------------
@@ -286,6 +303,18 @@ __fastcall TMesOpc::TMesOpc(TComponent* Owner)
 	: TDataModule(Owner),
 	  FShutdown(false)
 {
+	FTrayLoadResponseRevision[0] = 0;
+	FTrayLoadResponseRevision[1] = 0;
+	FTrayLoadWaitResponseIdle[0] = false;
+	FTrayLoadWaitResponseIdle[1] = false;
+	FProcessStartResponseRevision = 0;
+	FProcessStartWaitResponseIdle = false;
+	FProcessEndResponseRevision = 0;
+	FProcessEndWaitResponseIdle = false;
+	FCellTrackOutResponseRevision = 0;
+	FCellTrackOutWaitResponseIdle = false;
+	FTrayUnloadResponseRevision = 0;
+	FTrayUnloadWaitResponseIdle = false;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::Shutdown()
@@ -305,6 +334,128 @@ void __fastcall TMesOpc::Shutdown()
 		Mod_Fms->FlushPendingPcTags(false);
 }
 //---------------------------------------------------------------------------
+static void AddDisplayBadCode(const AnsiString &Code)
+{
+	if(MainForm == NULL || MainForm->badList == NULL)
+		return;
+
+	int FoundIndex = -1;
+	for(int i = 0; i < MainForm->badList->Items->Count; ++i)
+	{
+		TListItem *Item = MainForm->badList->Items->Item[i];
+		if(Item != NULL && Item->SubItems->Count > 0 &&
+			Item->SubItems->Strings[0] == Code)
+		{
+			FoundIndex = i;
+			break;
+		}
+	}
+
+	if(FoundIndex < 0)
+	{
+		TListItem *Item = MainForm->badList->Items->Add();
+		Item->Caption = MainForm->badList->Items->Count;
+		Item->SubItems->Add(Code);
+		Item->SubItems->Add(1);
+	}
+	else
+	{
+		TListItem *Item = MainForm->badList->Items->Item[FoundIndex];
+		Item->SubItems->Strings[1] =
+			Item->SubItems->Strings[1].ToIntDef(0) + 1;
+	}
+
+	MainForm->pbad_sum->Caption = MainForm->pbad_sum->Caption.ToIntDef(0) + 1;
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMesOpc::DISPLAY_TRACK_IN_TRAYS()
+{
+	if(MainForm == NULL || Mod_Fms == NULL || !ValidateSourceTrackInCells(true))
+		return false;
+
+	TRAY_INFO *Source = &MainForm->tray_source;
+	ClearTrayCells(Source);
+	ApplySourceTrackInCells(Source);
+	Source->PASS = "N";
+	Source->startTime = Now();
+
+	UnicodeString ProductModel = GetFmsString(TrayInfoTag(TAG_SOURCE, L"ProductModel"));
+	UnicodeString ProcessId = GetFmsString(TrayInfoTag(TAG_SOURCE, L"ProcessId"));
+	UnicodeString LotId = GetFmsString(TrayInfoTag(TAG_SOURCE, L"LotId"));
+	UnicodeString SourceTrayId = Mod_Fms->GetPcTagString(
+		TrayInfoTag(TAG_SOURCE, L"TrayId"), L"").Trim();
+	if(SourceTrayId.IsEmpty())
+		SourceTrayId = MainForm->pTrayid_source->Caption.Trim();
+	if(LotId.IsEmpty())
+		LotId = SourceTrayId;
+	if(!SourceTrayId.IsEmpty())
+		MainForm->pTrayid_source->Caption = SourceTrayId;
+	ApplyTrayDisplay(Source, ProductModel, ProcessId, LotId);
+
+	MainForm->pBYPASS->Caption = Source->PASS;
+	MainForm->pbad_sum->Caption = "0";
+	MainForm->badList->Clear();
+	Source->remainCnt = 0;
+	for(int i = 0; i < 96; ++i)
+	{
+		MainForm->psort_bad[i]->Color = clWhite;
+		MainForm->psort_ing[i]->Color = clWhite;
+		if(i >= Source->SLOT_COUNT)
+		{
+			MainForm->psort_bad[i]->Caption = "";
+			MainForm->psort_ing[i]->Caption = "";
+			continue;
+		}
+
+		bool CellExist = Source->CELL_EXIST[i];
+		MainForm->psort_bad[i]->Caption =
+			(CellExist && Source->PICK[i] == "Y") ? Source->LOSS_CD[i] : AnsiString("");
+		if(CellExist && Source->PICK[i] == "Y")
+		{
+			++Source->remainCnt;
+			MainForm->psort_ing[i]->Caption = "NG";
+			AddDisplayBadCode(Source->LOSS_CD[i]);
+		}
+		else
+			MainForm->psort_ing[i]->Caption = CellExist ? "**" : "";
+	}
+
+	// Location2 has no TrackInCellInformation in the deployed configuration.
+	// Redraw the current locally managed target tray in the same button click.
+	TRAY_INFO *Target = &MainForm->tray_target;
+	if(Target->SLOT_COUNT < 1 || Target->SLOT_COUNT > 96)
+		Target->SLOT_COUNT = 96;
+	Target->remainCnt = 0;
+	MainForm->pSLOT_COUNT_target->Caption = IntToStr(Target->SLOT_COUNT);
+	for(int i = 0; i < 96; ++i)
+	{
+		if(i < Target->SLOT_COUNT &&
+			(Target->PICK[i] == "R" || Target->PICK[i] == "Y" ||
+			 !Target->SLOT_ID[i].IsEmpty()))
+		{
+			MainForm->DisplayTargetCell(-1, i);
+			MainForm->DisplayTargetCellInfo(-1, i);
+		}
+		else
+		{
+			if(i < Target->SLOT_COUNT)
+				++Target->remainCnt;
+			MainForm->color_target[i / 24][23 - (i % 24)] = clWhite;
+			MainForm->targetGrid->Cells[i / 24][23 - (i % 24)] = "";
+			MainForm->pTarget_bad[i]->Caption = "";
+			MainForm->pTarget_bad[i]->Color = clWhite;
+		}
+	}
+	MainForm->targetGrid->Invalidate();
+	MainForm->tray = &MainForm->tray_target;
+
+	LogOpcEvent("DISPLAY TRAY Source TrackIn CellCount=" +
+		IntToStr(Source->SLOT_COUNT) + " Empty=" +
+		AnsiString(Source->empTray ? "true" : "false") +
+		" / Target local slots=" + IntToStr(Target->SLOT_COUNT), true);
+	return true;
+}
+//---------------------------------------------------------------------------
 void __fastcall TMesOpc::TRAY_LOAD_REQUEST()
 {
 	TRAY_LOAD_REQUEST(!IsTargetTrayActive());
@@ -321,23 +472,32 @@ void __fastcall TMesOpc::TRAY_LOAD_REQUEST(bool SourceTray)
 	if (TrayIdPanel != NULL)
 		TrayId = TrayIdPanel->Caption;
 
-	// In production, discard a stale response so only a new FMS handshake is accepted.
-	// MES test mode intentionally preserves the response/data preloaded in Gateway UI.
-	bool MesTestMode = MainForm->cbMES != NULL && MainForm->cbMES->Checked;
-	if (Mod_Fms != NULL && !MesTestMode)
-		Mod_Fms->ClearFmsTag(TrayProcessTag(Location, L"TrayLoadResponse"));
-	else if (MesTestMode)
-		LogOpcEvent("MES TEST: preserve preloaded TrayLoadResponse " + AnsiString(Location));
+	// TrayLoad uses the current response value directly. The previous transaction
+	// is already guaranteed to have completed Response=0 before advancing.
+	// Rejecting an unchanged Revision hid a visible Location2 Response=1.
+	int LocationIndex = SourceTray ? 0 : 1;
+	UnicodeString RequestKey = TrayProcessTag(Location, L"TrayLoad");
+	UnicodeString ResponseKey = TrayProcessTag(Location, L"TrayLoadResponse");
+	int InitialResponse = GetFmsInt(ResponseKey);
+	FTrayLoadResponseRevision[LocationIndex] = Mod_Fms != NULL ?
+		Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
+	FTrayLoadWaitResponseIdle[LocationIndex] = false;
 	SetPcBool(TrayInfoTag(Location, L"TrayExist"), true);
 	SetPcString(TrayInfoTag(Location, L"TrayId"), TrayId);
-	SetPcBool(TrayProcessTag(Location, L"TrayLoad"), true);
-	LogOpcEvent("TRAY_LOAD_REQUEST " + AnsiString(Location) + " TrayId=" + AnsiString(TrayId), true);
+	SetPcBool(RequestKey, true);
+	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
+	LogOpcEvent("TRAY_LOAD_REQUEST " + AnsiString(Location) + " TrayId=" + AnsiString(TrayId) +
+		" InitialResponse=" + IntToStr(InitialResponse) +
+		" Revision=" + IntToStr((__int64)FTrayLoadResponseRevision[LocationIndex]) +
+		" / Request=ON / current Response value is accepted", true);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::TRAY_LOAD_CANCEL(bool SourceTray)
 {
 	UnicodeString Location = LocationFor(SourceTray);
 	SetPcBool(TrayProcessTag(Location, L"TrayLoad"), false);
+	FTrayLoadWaitResponseIdle[SourceTray ? 0 : 1] = false;
+	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 	LogOpcEvent("TRAY_LOAD_CANCEL " + AnsiString(Location));
 }
 //---------------------------------------------------------------------------
@@ -350,21 +510,27 @@ int __fastcall TMesOpc::TRAY_LOAD_RESPONSE(bool SourceTray)
 {
 	UnicodeString Location = LocationFor(SourceTray);
 	UnicodeString ResponseKey = TrayProcessTag(Location, L"TrayLoadResponse");
+	int LocationIndex = SourceTray ? 0 : 1;
+	unsigned __int64 CurrentRevision = Mod_Fms != NULL ? Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
+
 	int Response = GetFmsInt(ResponseKey);
+	// Read the current response directly. Revision remains diagnostic only.
 	if (Response == 0)
 		return 0;
 	if (Response != 1 && Response != 2)
 	{
 		LogOpcEvent("VALIDATION FAIL TrayLoadResponse=" + IntToStr(Response), true);
 		SetPcBool(TrayProcessTag(Location, L"TrayLoad"), false);
-		if (Mod_Fms != NULL) Mod_Fms->ClearFmsTag(ResponseKey);
+		if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
+		FTrayLoadResponseRevision[LocationIndex] = CurrentRevision;
 		return -1;
 	}
 	if (Response == 2)
 	{
 		LogOpcEvent("TRAY_LOAD_RESPONSE FAIL " + AnsiString(Location), true);
 		SetPcBool(TrayProcessTag(Location, L"TrayLoad"), false);
-		if (Mod_Fms != NULL) Mod_Fms->ClearFmsTag(ResponseKey);
+		if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
+		FTrayLoadResponseRevision[LocationIndex] = CurrentRevision;
 		return 2;
 	}
 
@@ -427,10 +593,22 @@ int __fastcall TMesOpc::TRAY_LOAD_RESPONSE(bool SourceTray)
 	}
 
 	SetPcBool(TrayProcessTag(Location, L"TrayLoad"), false);
-	bool MesTestMode = MainForm != NULL && MainForm->cbMES != NULL && MainForm->cbMES->Checked;
-	if (Mod_Fms != NULL && !MesTestMode) Mod_Fms->ClearFmsTag(ResponseKey);
+	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
+	FTrayLoadResponseRevision[LocationIndex] = CurrentRevision;
 	LogOpcEvent("TRAY_LOAD_RESPONSE SUCCESS " + AnsiString(Location));
 	return 1;
+}
+//---------------------------------------------------------------------------
+int __fastcall TMesOpc::TRAY_LOAD_RESPONSE_VALUE(bool SourceTray)
+{
+	if(Mod_Fms == NULL)
+		return -1;
+
+	UnicodeString RawValue;
+	if(!Mod_Fms->GetFmsTagJson(
+		TrayProcessTag(LocationFor(SourceTray), L"TrayLoadResponse"), RawValue))
+		return -1;
+	return StrToIntDef(RawValue.Trim(), -1);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::LogTrayLoadTimeout(bool SourceTray)
@@ -439,8 +617,14 @@ void __fastcall TMesOpc::LogTrayLoadTimeout(bool SourceTray)
 	UnicodeString ResponseJson;
 	bool HasResponse = Mod_Fms != NULL &&
 		Mod_Fms->GetFmsTagJson(TrayProcessTag(Location, L"TrayLoadResponse"), ResponseJson);
+	int LocationIndex = SourceTray ? 0 : 1;
+	unsigned __int64 CurrentRevision = Mod_Fms != NULL ?
+		Mod_Fms->GetFmsTagRevision(TrayProcessTag(Location, L"TrayLoadResponse")) : 0;
 	AnsiString Message = "TRAY_LOAD_TIMEOUT " + AnsiString(Location) +
-		" TrayLoadResponse=" + (HasResponse ? AnsiString(ResponseJson) : AnsiString("<missing>"));
+		" TrayLoadResponse=" + (HasResponse ? AnsiString(ResponseJson) : AnsiString("<missing>")) +
+		" Revision=" + IntToStr((__int64)CurrentRevision) +
+		" RequestRevision=" + IntToStr((__int64)FTrayLoadResponseRevision[LocationIndex]) +
+		" UpdatedAfterRequest=" + AnsiString(CurrentRevision > FTrayLoadResponseRevision[LocationIndex] ? "true" : "false");
 	if (SourceTray)
 		Message += " TrackInCellInformation.CellCount=" + IntToStr(GetFmsInt(TrackInTag(L"CellCount")));
 
@@ -459,6 +643,29 @@ void __fastcall TMesOpc::LogTrayLoadTimeout(bool SourceTray)
 	}
 }
 //---------------------------------------------------------------------------
+void __fastcall TMesOpc::LogTrayLoadResponseOffTimeout(bool SourceTray)
+{
+	UnicodeString Location = LocationFor(SourceTray);
+	UnicodeString ResponseKey = TrayProcessTag(Location, L"TrayLoadResponse");
+	UnicodeString RequestJson;
+	UnicodeString ResponseJson;
+	bool HasRequest = Mod_Fms != NULL &&
+		Mod_Fms->GetPcTagJson(TrayProcessTag(Location, L"TrayLoad"), RequestJson);
+	bool HasResponse = Mod_Fms != NULL &&
+		Mod_Fms->GetFmsTagJson(ResponseKey, ResponseJson);
+	TPanel *TrayIdPanel = TrayIdPanelFor(SourceTray);
+	AnsiString TrayId = "";
+	if(TrayIdPanel != NULL)
+		TrayId = AnsiString(TrayIdPanel->Caption);
+	AnsiString Message = "TRAY_LOAD_RESPONSE_OFF_TIMEOUT " + AnsiString(Location) +
+		" TrayId=" + TrayId +
+		" TrayLoad=" + (HasRequest ? AnsiString(RequestJson) : AnsiString("<missing>")) +
+		" TrayLoadResponse=" + (HasResponse ? AnsiString(ResponseJson) : AnsiString("<missing>")) +
+		" WaitMs=10000";
+	if(MainForm != NULL)
+		MainForm->WriteOpcUaLog("ERROR", Message, true);
+}
+//---------------------------------------------------------------------------
 void __fastcall TMesOpc::RECIPE_REQUEST()
 {
 	LogOpcEvent("RECIPE_REQUEST skipped");
@@ -471,19 +678,26 @@ bool __fastcall TMesOpc::RECIPE_RESPONSE()
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::PROCESS_START_REQUEST()
 {
-	bool MesTestMode = MainForm != NULL && MainForm->cbMES != NULL && MainForm->cbMES->Checked;
-	if (Mod_Fms != NULL && !MesTestMode)
-		Mod_Fms->ClearFmsTag(TrayProcessTag(TAG_SOURCE, L"ProcessStartResponse"));
-	else if (MesTestMode)
-		LogOpcEvent("MES TEST: preserve preloaded ProcessStartResponse");
-	SetPcBool(TrayProcessTag(TAG_SOURCE, L"ProcessStart"), true);
-	LogOpcEvent("PROCESS_START_REQUEST");
+	const UnicodeString RequestKey = TrayProcessTag(TAG_SOURCE, L"ProcessStart");
+	const UnicodeString ResponseKey = TrayProcessTag(TAG_SOURCE, L"ProcessStartResponse");
+	int InitialResponse = GetFmsInt(ResponseKey);
+	FProcessStartResponseRevision = Mod_Fms != NULL ? Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
+	FProcessStartWaitResponseIdle = (InitialResponse != 0);
+	SetPcBool(RequestKey, !FProcessStartWaitResponseIdle);
+	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
+	LogOpcEvent("PROCESS_START_REQUEST InitialResponse=" + IntToStr(InitialResponse) +
+		" BaselineRevision=" + IntToStr((__int64)FProcessStartResponseRevision) +
+		(FProcessStartWaitResponseIdle ?
+			AnsiString(" / hold Request=OFF until stale Response=0") :
+			AnsiString(" / Request=ON")));
 }
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::PROCESS_START_CANCEL()
 {
 	SetPcBool(TrayProcessTag(TAG_SOURCE, L"ProcessStart"), false);
-	LogOpcEvent("PROCESS_START_CANCEL");
+	FProcessStartWaitResponseIdle = false;
+	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
+	LogOpcEvent("PROCESS_START_CANCEL Request=OFF");
 }
 //---------------------------------------------------------------------------
 bool __fastcall TMesOpc::PROCESS_START_RESPONSE()
@@ -493,27 +707,65 @@ bool __fastcall TMesOpc::PROCESS_START_RESPONSE()
 //---------------------------------------------------------------------------
 int __fastcall TMesOpc::PROCESS_START_RESPONSE_RESULT()
 {
-	UnicodeString ResponseKey = TrayProcessTag(TAG_SOURCE, L"ProcessStartResponse");
+	const UnicodeString RequestKey = TrayProcessTag(TAG_SOURCE, L"ProcessStart");
+	const UnicodeString ResponseKey = TrayProcessTag(TAG_SOURCE, L"ProcessStartResponse");
 	int Response = GetFmsInt(ResponseKey);
-	if (Response == 0)
+	unsigned __int64 CurrentRevision = Mod_Fms != NULL ? Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
+	if(FProcessStartWaitResponseIdle)
+	{
+		if(Response != 0) return 0;
+		FProcessStartWaitResponseIdle = false;
+		FProcessStartResponseRevision = CurrentRevision;
+		SetPcBool(RequestKey, true);
+		if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
+		LogOpcEvent("PROCESS_START_RESPONSE IDLE confirmed / Request=ON / BaselineRevision=" +
+			IntToStr((__int64)FProcessStartResponseRevision));
+		return 3;
+	}
+	if(Response == 0)
+		return 0;
+	if(CurrentRevision <= FProcessStartResponseRevision)
 		return 0;
 
-	SetPcBool(TrayProcessTag(TAG_SOURCE, L"ProcessStart"), false);
-	bool MesTestMode = MainForm != NULL && MainForm->cbMES != NULL && MainForm->cbMES->Checked;
-	if (Mod_Fms != NULL && !MesTestMode) Mod_Fms->ClearFmsTag(ResponseKey);
-	if (Response == 1)
-	{
-		LogOpcEvent("PROCESS_START_RESPONSE SUCCESS");
+	// Clear the PC request after either ACK result. Completion is handled only
+	// after the FMS response also returns to zero.
+	SetPcBool(RequestKey, false);
+	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
+	if(Response == 1){
+		LogOpcEvent("PROCESS_START_RESPONSE=1 / Request=OFF / wait Response=0");
 		return 1;
 	}
-	if (Response == 2)
-	{
-		LogOpcEvent("PROCESS_START_RESPONSE FAIL", true);
+	if(Response == 2){
+		LogOpcEvent("PROCESS_START_RESPONSE=2 / Request=OFF / wait Response=0", true);
 		return 2;
 	}
 
 	LogOpcEvent("VALIDATION FAIL ProcessStartResponse=" + IntToStr(Response), true);
 	return -1;
+}
+//---------------------------------------------------------------------------
+int __fastcall TMesOpc::PROCESS_START_RESPONSE_VALUE()
+{
+	if(Mod_Fms == NULL) return -1;
+	UnicodeString RawValue;
+	if(!Mod_Fms->GetFmsTagJson(
+		TrayProcessTag(TAG_SOURCE, L"ProcessStartResponse"), RawValue))
+		return -1;
+	return StrToIntDef(RawValue.Trim(), -1);
+}
+//---------------------------------------------------------------------------
+void __fastcall TMesOpc::LogProcessStartResponseOffTimeout()
+{
+	const UnicodeString RequestKey = TrayProcessTag(TAG_SOURCE, L"ProcessStart");
+	const UnicodeString ResponseKey = TrayProcessTag(TAG_SOURCE, L"ProcessStartResponse");
+	UnicodeString RequestJson, ResponseJson;
+	bool HasRequest = Mod_Fms != NULL && Mod_Fms->GetPcTagJson(RequestKey, RequestJson);
+	bool HasResponse = Mod_Fms != NULL && Mod_Fms->GetFmsTagJson(ResponseKey, ResponseJson);
+	if(MainForm != NULL)
+		MainForm->WriteOpcUaLog("ERROR", "PROCESS_START_RESPONSE_OFF_TIMEOUT Request=" +
+			(HasRequest ? AnsiString(RequestJson) : AnsiString("<missing>")) +
+			" Response=" + (HasResponse ? AnsiString(ResponseJson) : AnsiString("<missing>")) +
+			" WaitMs=10000", true);
 }
 //---------------------------------------------------------------------------
 bool __fastcall TMesOpc::READ_TRACK_IN_CELL(int SourceCellNo, AnsiString &CellId,
@@ -564,7 +816,7 @@ void __fastcall TMesOpc::PROCESS_DATA_WRITE()
 	int CellCount = 0;
 	for (int TargetIndex = 0; TargetIndex < 96; ++TargetIndex)
 	{
-		if (Tray->SLOT_ID[TargetIndex].IsEmpty())
+		if (!Tray->CELL_EXIST[TargetIndex] || Tray->SLOT_ID[TargetIndex].IsEmpty())
 			continue;
 
 		int OutputIndex = CellCount++;
@@ -634,16 +886,18 @@ void __fastcall TMesOpc::CELL_TRACK_OUT_REQUEST(int SourceChannel, int TargetCha
 		return;
 	}
 
-	bool MesTestMode = MainForm->cbMES != NULL && MainForm->cbMES->Checked;
-	if(!MesTestMode)
-		Mod_Fms->ClearFmsTag(CellTrackOutTag(L"CellUnloadCompleteResponse"));
+
+	const UnicodeString ResponseKey = CellTrackOutTag(L"CellUnloadCompleteResponse");
+	int InitialResponse = GetFmsInt(ResponseKey);
+	FCellTrackOutResponseRevision = Mod_Fms->GetFmsTagRevision(ResponseKey);
+	FCellTrackOutWaitResponseIdle = (InitialResponse != 0);
 
 	SetPcInt(CellTrackOutTag(L"CellNoFrom"), SourceChannel);
 	SetPcString(CellTrackOutTag(L"TrayIdFrom"), SourceTrayId);
 	SetPcInt(CellTrackOutTag(L"CellNoTo"), TargetChannel);
 	SetPcString(CellTrackOutTag(L"TrayIdTo"), TargetTrayId);
 	SetPcString(CellTrackOutTag(L"CellId"), UnicodeString(CellId));
-	SetPcBool(CellTrackOutTag(L"CellUnloadComplete"), true);
+	SetPcBool(CellTrackOutTag(L"CellUnloadComplete"), !FCellTrackOutWaitResponseIdle);
 	Mod_Fms->FlushPendingPcTags(false);
 
 	LogOpcEvent("CELL_TRACK_OUT REQUEST CellId=" + CellId +
@@ -651,32 +905,57 @@ void __fastcall TMesOpc::CELL_TRACK_OUT_REQUEST(int SourceChannel, int TargetCha
 		" To=" + AnsiString(TargetTrayId) + "/" + IntToStr(TargetChannel) +
 		" RequestTag=F1NGS01.Location2.CellTrackOut.CellUnloadComplete=true" +
 		" WaitingTag=F1NGS01.Location2.CellTrackOut.CellUnloadCompleteResponse" +
+		" InitialResponse=" + IntToStr(InitialResponse) +
+		" BaselineRevision=" + IntToStr((__int64)FCellTrackOutResponseRevision) +
+		(FCellTrackOutWaitResponseIdle ?
+			AnsiString(" / hold Request=OFF until stale Response=0") :
+			AnsiString(" / Request=ON")) +
 		" Expected=1(Success),2(Fail)", true);
 }
 //---------------------------------------------------------------------------
 int __fastcall TMesOpc::CELL_TRACK_OUT_RESPONSE_RESULT()
 {
-	int Response = GetFmsInt(CellTrackOutTag(L"CellUnloadCompleteResponse"));
+	const UnicodeString RequestKey = CellTrackOutTag(L"CellUnloadComplete");
+	const UnicodeString ResponseKey = CellTrackOutTag(L"CellUnloadCompleteResponse");
+	int Response = GetFmsInt(ResponseKey);
+	unsigned __int64 CurrentRevision = Mod_Fms != NULL ? Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
+	if(FCellTrackOutWaitResponseIdle)
+	{
+		if(Response != 0) return 0;
+		FCellTrackOutWaitResponseIdle = false;
+		FCellTrackOutResponseRevision = CurrentRevision;
+		SetPcBool(RequestKey, true);
+		if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
+		LogOpcEvent("CELL_TRACK_OUT RESPONSE IDLE confirmed / Request=ON / BaselineRevision=" +
+			IntToStr((__int64)FCellTrackOutResponseRevision), true);
+		return 3;
+	}
 	if(Response == 0)
 		return 0;
+	if(CurrentRevision <= FCellTrackOutResponseRevision)
+		return 0;
 
-	SetPcBool(CellTrackOutTag(L"CellUnloadComplete"), false);
-	bool MesTestMode = MainForm != NULL && MainForm->cbMES != NULL && MainForm->cbMES->Checked;
-	if(Mod_Fms != NULL){
-		if(!MesTestMode)
-			Mod_Fms->ClearFmsTag(CellTrackOutTag(L"CellUnloadCompleteResponse"));
-		Mod_Fms->FlushPendingPcTags(false);
-	}
+	SetPcBool(RequestKey, false);
+	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 	if(Response == 1){
-		LogOpcEvent("CELL_TRACK_OUT RESPONSE SUCCESS", true);
+		LogOpcEvent("CELL_TRACK_OUT RESPONSE=1 / Request=OFF / wait Response=0", true);
 		return 1;
 	}
 	if(Response == 2){
-		LogOpcEvent("CELL_TRACK_OUT RESPONSE FAIL", true);
+		LogOpcEvent("CELL_TRACK_OUT RESPONSE=2 / Request=OFF / wait Response=0", true);
 		return 2;
 	}
 	LogOpcEvent("VALIDATION FAIL CellUnloadCompleteResponse=" + IntToStr(Response), true);
 	return -1;
+}
+//---------------------------------------------------------------------------
+int __fastcall TMesOpc::CELL_TRACK_OUT_RESPONSE_VALUE()
+{
+	if(Mod_Fms == NULL) return -1;
+	UnicodeString RawValue;
+	if(!Mod_Fms->GetFmsTagJson(CellTrackOutTag(L"CellUnloadCompleteResponse"), RawValue))
+		return -1;
+	return StrToIntDef(RawValue.Trim(), -1);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::LogCellTrackOutTimeout()
@@ -728,9 +1007,24 @@ void __fastcall TMesOpc::LogCellTrackOutTimeout()
 		MainForm->WriteOpcUaLog("ERROR", Message, true);
 }
 //---------------------------------------------------------------------------
+void __fastcall TMesOpc::LogCellTrackOutResponseOffTimeout()
+{
+	const UnicodeString RequestKey = CellTrackOutTag(L"CellUnloadComplete");
+	const UnicodeString ResponseKey = CellTrackOutTag(L"CellUnloadCompleteResponse");
+	UnicodeString RequestJson, ResponseJson;
+	bool HasRequest = Mod_Fms != NULL && Mod_Fms->GetPcTagJson(RequestKey, RequestJson);
+	bool HasResponse = Mod_Fms != NULL && Mod_Fms->GetFmsTagJson(ResponseKey, ResponseJson);
+	if(MainForm != NULL)
+		MainForm->WriteOpcUaLog("ERROR", "CELL_TRACK_OUT_RESPONSE_OFF_TIMEOUT Request=" +
+			(HasRequest ? AnsiString(RequestJson) : AnsiString("<missing>")) +
+			" Response=" + (HasResponse ? AnsiString(ResponseJson) : AnsiString("<missing>")) +
+			" WaitMs=10000", true);
+}
+//---------------------------------------------------------------------------
 void __fastcall TMesOpc::CELL_TRACK_OUT_CANCEL()
 {
 	SetPcBool(CellTrackOutTag(L"CellUnloadComplete"), false);
+	FCellTrackOutWaitResponseIdle = false;
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 	LogOpcEvent("CELL_TRACK_OUT CANCEL", true);
 }
@@ -739,10 +1033,16 @@ void __fastcall TMesOpc::TRAY_UNLOAD_REQUEST()
 {
 	const UnicodeString RequestKey = TrayProcessTag(TAG_TARGET, L"TrayUnloadRequest");
 	const UnicodeString ResponseKey = TrayProcessTag(TAG_TARGET, L"TrayUnloadResponse");
-	bool MesTestMode = MainForm != NULL && MainForm->cbMES != NULL && MainForm->cbMES->Checked;
-	if(Mod_Fms != NULL && !MesTestMode) Mod_Fms->ClearFmsTag(ResponseKey);
-	SetPcBool(RequestKey, true);
-	LogOpcEvent("TRAY_UNLOAD_REQUEST Location2 Request=true Waiting=TrayUnloadResponse", false);
+	int InitialResponse = GetFmsInt(ResponseKey);
+	FTrayUnloadResponseRevision = Mod_Fms != NULL ? Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
+	FTrayUnloadWaitResponseIdle = (InitialResponse != 0);
+	SetPcBool(RequestKey, !FTrayUnloadWaitResponseIdle);
+	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
+	LogOpcEvent("TRAY_UNLOAD_REQUEST Location2 InitialResponse=" + IntToStr(InitialResponse) +
+		" BaselineRevision=" + IntToStr((__int64)FTrayUnloadResponseRevision) +
+		(FTrayUnloadWaitResponseIdle ?
+			AnsiString(" / hold Request=OFF until stale Response=0") :
+			AnsiString(" / Request=ON")), false);
 }
 //---------------------------------------------------------------------------
 int __fastcall TMesOpc::TRAY_UNLOAD_RESPONSE_RESULT()
@@ -750,20 +1050,43 @@ int __fastcall TMesOpc::TRAY_UNLOAD_RESPONSE_RESULT()
 	const UnicodeString RequestKey = TrayProcessTag(TAG_TARGET, L"TrayUnloadRequest");
 	const UnicodeString ResponseKey = TrayProcessTag(TAG_TARGET, L"TrayUnloadResponse");
 	int Response = GetFmsInt(ResponseKey);
+	unsigned __int64 CurrentRevision = Mod_Fms != NULL ? Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
+	if(FTrayUnloadWaitResponseIdle)
+	{
+		if(Response != 0) return 0;
+		FTrayUnloadWaitResponseIdle = false;
+		FTrayUnloadResponseRevision = CurrentRevision;
+		SetPcBool(RequestKey, true);
+		if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
+		LogOpcEvent("TRAY_UNLOAD_RESPONSE IDLE confirmed / Request=ON / BaselineRevision=" +
+			IntToStr((__int64)FTrayUnloadResponseRevision), false);
+		return 3;
+	}
 	if(Response == 0) return 0;
+	if(CurrentRevision <= FTrayUnloadResponseRevision) return 0;
+
 	SetPcBool(RequestKey, false);
-	bool MesTestMode = MainForm != NULL && MainForm->cbMES != NULL && MainForm->cbMES->Checked;
-	if(Mod_Fms != NULL && !MesTestMode) Mod_Fms->ClearFmsTag(ResponseKey);
+	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 	if(Response == 1){
-		LogOpcEvent("TRAY_UNLOAD_RESPONSE SUCCESS Value=1", false);
+		LogOpcEvent("TRAY_UNLOAD_RESPONSE=1 / Request=OFF / wait Response=0", false);
 		return 1;
 	}
 	if(Response == 2){
-		LogOpcEvent("TRAY_UNLOAD_RESPONSE FAIL Value=2", false);
+		LogOpcEvent("TRAY_UNLOAD_RESPONSE=2 / Request=OFF / wait Response=0", false);
 		return 2;
 	}
 	LogOpcEvent("VALIDATION FAIL TrayUnloadResponse=" + IntToStr(Response), false);
 	return -1;
+}
+//---------------------------------------------------------------------------
+int __fastcall TMesOpc::TRAY_UNLOAD_RESPONSE_VALUE()
+{
+	if(Mod_Fms == NULL) return -1;
+	UnicodeString RawValue;
+	if(!Mod_Fms->GetFmsTagJson(
+		TrayProcessTag(TAG_TARGET, L"TrayUnloadResponse"), RawValue))
+		return -1;
+	return StrToIntDef(RawValue.Trim(), -1);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::LogTrayUnloadTimeout()
@@ -776,25 +1099,42 @@ void __fastcall TMesOpc::LogTrayUnloadTimeout()
 			(HasResponse ? AnsiString(ResponseJson) : AnsiString("<missing>")), false);
 }
 //---------------------------------------------------------------------------
+void __fastcall TMesOpc::LogTrayUnloadResponseOffTimeout()
+{
+	const UnicodeString RequestKey = TrayProcessTag(TAG_TARGET, L"TrayUnloadRequest");
+	const UnicodeString ResponseKey = TrayProcessTag(TAG_TARGET, L"TrayUnloadResponse");
+	UnicodeString RequestJson, ResponseJson;
+	bool HasRequest = Mod_Fms != NULL && Mod_Fms->GetPcTagJson(RequestKey, RequestJson);
+	bool HasResponse = Mod_Fms != NULL && Mod_Fms->GetFmsTagJson(ResponseKey, ResponseJson);
+	if(MainForm != NULL)
+		MainForm->WriteOpcUaLog("ERROR", "TRAY_UNLOAD_RESPONSE_OFF_TIMEOUT Request=" +
+			(HasRequest ? AnsiString(RequestJson) : AnsiString("<missing>")) +
+			" Response=" + (HasResponse ? AnsiString(ResponseJson) : AnsiString("<missing>")) +
+			" WaitMs=10000", true);
+}
+//---------------------------------------------------------------------------
 void __fastcall TMesOpc::TRAY_UNLOAD_CANCEL()
 {
 	SetPcBool(TrayProcessTag(TAG_TARGET, L"TrayUnloadRequest"), false);
-	LogOpcEvent("TRAY_UNLOAD_CANCEL", false);
+	FTrayUnloadWaitResponseIdle = false;
+	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
+	LogOpcEvent("TRAY_UNLOAD_CANCEL Request=OFF", false);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::PROCESS_END_REQUEST()
 {
-	UnicodeString ResponseKey = TrayProcessTag(TAG_SOURCE, L"ProcessEndResponse");
-	bool MesTestMode = MainForm != NULL && MainForm->cbMES != NULL && MainForm->cbMES->Checked;
-	if(Mod_Fms != NULL && !MesTestMode)
-		Mod_Fms->ClearFmsTag(ResponseKey);
-	else if(MesTestMode)
-		LogOpcEvent("MES TEST: preserve preloaded ProcessEndResponse");
-
-	SetPcBool(TrayProcessTag(TAG_SOURCE, L"ProcessEnd"), true);
+	const UnicodeString RequestKey = TrayProcessTag(TAG_SOURCE, L"ProcessEnd");
+	const UnicodeString ResponseKey = TrayProcessTag(TAG_SOURCE, L"ProcessEndResponse");
+	int InitialResponse = GetFmsInt(ResponseKey);
+	FProcessEndResponseRevision = Mod_Fms != NULL ? Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
+	FProcessEndWaitResponseIdle = (InitialResponse != 0);
+	SetPcBool(RequestKey, !FProcessEndWaitResponseIdle);
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
-	LogOpcEvent("PROCESS_END_REQUEST RequestTag=F1NGS01.Location1.TrayProcess.ProcessEnd=true "
-		"WaitingTag=F1NGS01.Location1.TrayProcess.ProcessEndResponse Expected=1(Success),2(Fail)", true);
+	LogOpcEvent("PROCESS_END_REQUEST InitialResponse=" + IntToStr(InitialResponse) +
+		" BaselineRevision=" + IntToStr((__int64)FProcessEndResponseRevision) +
+		(FProcessEndWaitResponseIdle ?
+			AnsiString(" / hold Request=OFF until stale Response=0") :
+			AnsiString(" / Request=ON")), true);
 }
 //---------------------------------------------------------------------------
 bool __fastcall TMesOpc::PROCESS_END_RESPONSE()
@@ -804,30 +1144,48 @@ bool __fastcall TMesOpc::PROCESS_END_RESPONSE()
 //---------------------------------------------------------------------------
 int __fastcall TMesOpc::PROCESS_END_RESPONSE_RESULT()
 {
-	UnicodeString ResponseKey = TrayProcessTag(TAG_SOURCE, L"ProcessEndResponse");
+	const UnicodeString RequestKey = TrayProcessTag(TAG_SOURCE, L"ProcessEnd");
+	const UnicodeString ResponseKey = TrayProcessTag(TAG_SOURCE, L"ProcessEndResponse");
 	int Response = GetFmsInt(ResponseKey);
+	unsigned __int64 CurrentRevision = Mod_Fms != NULL ? Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
+	if(FProcessEndWaitResponseIdle)
+	{
+		if(Response != 0) return 0;
+		FProcessEndWaitResponseIdle = false;
+		FProcessEndResponseRevision = CurrentRevision;
+		SetPcBool(RequestKey, true);
+		if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
+		LogOpcEvent("PROCESS_END_RESPONSE IDLE confirmed / Request=ON / BaselineRevision=" +
+			IntToStr((__int64)FProcessEndResponseRevision), true);
+		return 3;
+	}
 	if(Response == 0)
 		return 0;
+	if(CurrentRevision <= FProcessEndResponseRevision)
+		return 0;
 
-	SetPcBool(TrayProcessTag(TAG_SOURCE, L"ProcessEnd"), false);
-	bool MesTestMode = MainForm != NULL && MainForm->cbMES != NULL && MainForm->cbMES->Checked;
-	if(Mod_Fms != NULL){
-		if(!MesTestMode)
-			Mod_Fms->ClearFmsTag(ResponseKey);
-		Mod_Fms->FlushPendingPcTags(false);
-	}
-
+	SetPcBool(RequestKey, false);
+	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 	if(Response == 1){
-		LogOpcEvent("PROCESS_END_RESPONSE SUCCESS Value=1", true);
+		LogOpcEvent("PROCESS_END_RESPONSE=1 / Request=OFF / wait Response=0", true);
 		return 1;
 	}
 	if(Response == 2){
-		LogOpcEvent("PROCESS_END_RESPONSE FAIL Value=2", true);
+		LogOpcEvent("PROCESS_END_RESPONSE=2 / Request=OFF / wait Response=0", true);
 		return 2;
 	}
-
 	LogOpcEvent("VALIDATION FAIL ProcessEndResponse=" + IntToStr(Response), true);
 	return -1;
+}
+//---------------------------------------------------------------------------
+int __fastcall TMesOpc::PROCESS_END_RESPONSE_VALUE()
+{
+	if(Mod_Fms == NULL) return -1;
+	UnicodeString RawValue;
+	if(!Mod_Fms->GetFmsTagJson(
+		TrayProcessTag(TAG_SOURCE, L"ProcessEndResponse"), RawValue))
+		return -1;
+	return StrToIntDef(RawValue.Trim(), -1);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::LogProcessEndTimeout()
@@ -866,9 +1224,24 @@ void __fastcall TMesOpc::LogProcessEndTimeout()
 		MainForm->WriteOpcUaLog("ERROR", Message, true);
 }
 //---------------------------------------------------------------------------
+void __fastcall TMesOpc::LogProcessEndResponseOffTimeout()
+{
+	const UnicodeString RequestKey = TrayProcessTag(TAG_SOURCE, L"ProcessEnd");
+	const UnicodeString ResponseKey = TrayProcessTag(TAG_SOURCE, L"ProcessEndResponse");
+	UnicodeString RequestJson, ResponseJson;
+	bool HasRequest = Mod_Fms != NULL && Mod_Fms->GetPcTagJson(RequestKey, RequestJson);
+	bool HasResponse = Mod_Fms != NULL && Mod_Fms->GetFmsTagJson(ResponseKey, ResponseJson);
+	if(MainForm != NULL)
+		MainForm->WriteOpcUaLog("ERROR", "PROCESS_END_RESPONSE_OFF_TIMEOUT Request=" +
+			(HasRequest ? AnsiString(RequestJson) : AnsiString("<missing>")) +
+			" Response=" + (HasResponse ? AnsiString(ResponseJson) : AnsiString("<missing>")) +
+			" WaitMs=10000", true);
+}
+//---------------------------------------------------------------------------
 void __fastcall TMesOpc::PROCESS_END_CANCEL()
 {
 	SetPcBool(TrayProcessTag(TAG_SOURCE, L"ProcessEnd"), false);
+	FProcessEndWaitResponseIdle = false;
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 	LogOpcEvent("PROCESS_END_CANCEL", true);
 }

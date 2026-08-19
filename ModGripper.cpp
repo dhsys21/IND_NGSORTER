@@ -192,7 +192,10 @@ void __fastcall Tgripper::Initialize()
 						}
 
                         //* 1. GetZonecode는 nzone이 3일때 항상 true,  2. pick = Y이면 "NG"
-						if(MainForm->psort_ing[i]->Caption == "NG" && GetZoneCode(nzone, MainForm->tray_source.LOSS_CD[i])){	// 선별 채널의 코드와 zone을 확인한다.
+						if(MainForm->tray_source.CELL_EXIST[i] &&
+							MainForm->tray_source.RANK[i].Trim().UpperCase() == "NG" &&
+							MainForm->tray_source.PICK[i] == "Y" &&
+							GetZoneCode(nzone, MainForm->tray_source.LOSS_CD[i])){	// 선별 채널의 코드와 zone을 확인한다.
 							repeatCheck = false; //* zone이 여러개 일때 이전 zone 에서 할당이 된 경우 확인.
 							for(int ch = 0; ch < step.chCnt; ++ch){// 채널이 이미 할당되어 있는지 확인.
 								if(ch < gripCnt)
@@ -217,7 +220,8 @@ void __fastcall Tgripper::Initialize()
                                     //* 4번째(nzone == 3) zone 색상이 white.
                                     //* 현재 대상 채널 모두 white 색이기때문에 nzone = 3만 동작 => white가 아니면(이미 셀이 담겨있으면) false.
 									if(MainForm->GetZoneChannel(nzone, tch)){
-                                        tool[step.chCnt].code = MainForm->psort_bad[i]->Caption;
+                                        // Carry the TrackIn NGCode itself, not formatted panel text.
+                                        tool[step.chCnt].code = MainForm->tray_source.LOSS_CD[i];
                                         tool[step.chCnt].source_ch = MainForm->psort_ch[i]->Caption;
                                         MainForm->DisplaySourceCell(step.chCnt, i);	// 화면 show
 
@@ -225,6 +229,9 @@ void __fastcall Tgripper::Initialize()
                                         MainForm->tray_target.remainCnt -= 1;
                                         tool[step.chCnt].target_ch = tch+1;
                                         MainForm->tray_target.PICK[tch] = "R";
+                                        MainForm->tray_target.CELL_EXIST[tch] = false;
+                                        MainForm->tray_target.LOSS_CD[tch] = MainForm->tray_source.LOSS_CD[i];
+                                        MainForm->tray_target.RANK[tch] = MainForm->tray_source.RANK[i];
                                         MainForm->DisplayTargetCell(step.chCnt, tch);	// 화면 show
                                         MainForm->DisplayTargetCellInfo(step.chCnt, tch);
                                         //* 불량트레이 관리
@@ -263,6 +270,19 @@ void __fastcall Tgripper::Initialize()
 				}
 			}
 			else{
+				int pickYCount = 0;
+				int displayNgCount = 0;
+				for(int i=0; i<MainForm->tray_source.SLOT_COUNT && i<96; ++i){
+					if(MainForm->tray_source.CELL_EXIST[i] &&
+						MainForm->tray_source.RANK[i].Trim().UpperCase() == "NG") ++pickYCount;
+					if(MainForm->psort_ing[i]->Caption == "NG") ++displayNgCount;
+				}
+				MainForm->memoGripperLineAdd("[CYCLE] NG SEARCH RESULT SlotCount=" +
+					IntToStr(MainForm->tray_source.SLOT_COUNT) +
+					" PICK_Y=" + IntToStr(pickYCount) +
+					" DISPLAY_NG=" + IntToStr(displayNgCount) +
+					" REMAIN=" + IntToStr(MainForm->tray_source.remainCnt) +
+					" Selected=" + IntToStr(step.badCnt));
 				MainForm->memoGripperLineAdd("[Init step 2] Sorting has ended.");
 				MainForm->memoGripperLineAdd("[CYCLE] NO NEXT NG -> SOURCE TRAY OUT");
 				InitSequence(seqIdle);						// 시퀀스 종료
@@ -424,6 +444,7 @@ void __fastcall Tgripper::Inserting()
 					MainForm->tray_target.LOSS_CD[targetIndex] = MainForm->tray_source.LOSS_CD[sourceIndex];
 					MainForm->tray_target.PICK[targetIndex] = MainForm->tray_source.PICK[sourceIndex];
 					MainForm->tray_target.RANK[targetIndex] = MainForm->tray_source.RANK[sourceIndex];
+					MainForm->tray_target.CELL_EXIST[targetIndex] = true;
 					//* 불량트레이 관리
 					MainForm->memoGripperLineAdd(
 						"[TARGET CELL] INSERT COMPLETE Gripper=" + IntToStr(i) +

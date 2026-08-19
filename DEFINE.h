@@ -56,6 +56,7 @@ typedef struct{
 	AnsiString TARGET_SLOT_POSITION[96];      //대상 TRAY 안의 CELL 위치 ( 1. 3. 8, 9 … )
 	AnsiString SLOT_ID[96];                   //SLOT cell ID
 	AnsiString CELL_LOT_ID[96];               //TrackIn cell LotId (preserved for TrackOut)
+	bool CELL_EXIST[96];                       //Physical cell existence from CellExist tag
 	AnsiString LOSS_CD[96];                   //SLOT 불량코드
 	AnsiString LOSS_DESC[96];                 //SLOT 의 불량 명
 	AnsiString PICK[96];                      //배출요청 ; Y (불량 선별기, 랭크 선별 장비 이거보고 처리 )

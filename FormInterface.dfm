@@ -491,6 +491,14 @@ object InterfaceForm: TInterfaceForm
         Caption = 'T Tray ULoad'
         TabOrder = 4
       end
+      object btnFmsTest06DisplayTray: TButton
+        Left = 161
+        Top = 63
+        Width = 72
+        Height = 28
+        Caption = 'Display Tray'
+        TabOrder = 5
+      end
     end
   end
   object Timer_PLC_Update: TTimer

@@ -58,11 +58,14 @@ __published:	// IDE-managed Components
 
 private:	// User declarations
 	typedef std::map<System::UnicodeString, System::UnicodeString> TTagMap;
+	typedef std::map<System::UnicodeString, unsigned __int64> TTagRevisionMap;
 	typedef std::map<System::UnicodeString, TFmsTagDefinition> TTagDefinitionMap;
 
 	System::Syncobjs::TCriticalSection *FLock;
 	System::Syncobjs::TCriticalSection *FSendLock;
 	TTagMap FFmsTags;
+	TTagRevisionMap FFmsTagRevisions;
+	unsigned __int64 FFmsRevisionCounter;
 	TTagMap FPcTags;
 	TTagMap FPendingPcTags;
 	TTagDefinitionMap FTagDefinitions;
@@ -92,9 +95,9 @@ private:	// User declarations
 	void __fastcall ApplySnapshot(System::Json::TJSONObject *Json);
 	void __fastcall ApplyChangedTags(System::Json::TJSONObject *Json);
 	void __fastcall CopyTags(System::Json::TJSONObject *Tags, TTagMap &Target, TFmsTagDirection Direction);
+	void __fastcall StoreFmsTag(const System::UnicodeString &Key, const System::UnicodeString &Value);
 	void __fastcall CopyChangedTags(System::Json::TJSONObject *Tags);
-	bool __fastcall IsActiveFmsResponse(const System::UnicodeString &ResponseKey);
-	void __fastcall QueuePcRequestClearsForResponses(void);
+
 	System::UnicodeString __fastcall BuildSuccessResponse(void);
 	System::UnicodeString __fastcall BuildErrorResponse(const System::UnicodeString &ErrorText);
 	System::Json::TJSONValue* __fastcall CreateJsonValue(const System::UnicodeString &JsonText);
@@ -118,6 +121,7 @@ public:		// User declarations
 	bool __fastcall GetPcTagJson(const System::UnicodeString &Key, System::UnicodeString &JsonValue);
 	System::UnicodeString __fastcall GetPcTagString(const System::UnicodeString &Key, const System::UnicodeString &DefaultValue = L"");
 	bool __fastcall GetFmsTagJson(const System::UnicodeString &Key, System::UnicodeString &JsonValue);
+	unsigned __int64 __fastcall GetFmsTagRevision(const System::UnicodeString &Key);
 	bool __fastcall GetFmsTagBool(const System::UnicodeString &Key, bool DefaultValue = false);
 	int __fastcall GetFmsTagInt(const System::UnicodeString &Key, int DefaultValue = 0);
 	System::UnicodeString __fastcall GetFmsTagString(const System::UnicodeString &Key, const System::UnicodeString &DefaultValue = L"");

@@ -224,6 +224,7 @@ __fastcall TMod_Fms::TMod_Fms(TComponent* Owner)
 	: TDataModule(Owner),
 	  FLock(NULL),
 	  FSendLock(NULL),
+	  FFmsRevisionCounter(0),
 	  FSnapshotReceived(false),
 	  FTagConfigLoaded(false),
 	  FGatewayConnected(false),
@@ -764,13 +765,11 @@ UnicodeString __fastcall TMod_Fms::HandleMessage(const UnicodeString &Line)
 				if (Type == L"SNAPSHOT")
 				{
 					ApplySnapshot(Json);
-					QueuePcRequestClearsForResponses();
 					Result = BuildSuccessResponse();
 				}
 				else if (Type == L"FMS_CHANGED")
 				{
 					ApplyChangedTags(Json);
-					QueuePcRequestClearsForResponses();
 					Result = BuildSuccessResponse();
 				}
 				else
@@ -802,6 +801,7 @@ void __fastcall TMod_Fms::ApplySnapshot(TJSONObject *Json)
 		FLastTimestamp = Timestamp->Value();
 
 	FFmsTags.clear();
+	FFmsTagRevisions.clear();
 	FPcTags.clear();
 	if (FmsTags != NULL)
 		CopyTags(FmsTags, FFmsTags, ftdFmsOnly);
@@ -846,9 +846,22 @@ void __fastcall TMod_Fms::CopyTags(TJSONObject *Tags, TTagMap &Target, TFmsTagDi
 			if (KnownTag && !ValidateJsonValue(Definition, Pair->JsonValue))
 				LogOpcUa(L"WARN", L"Type mismatch: " + Key + L" expected " + Definition.DataType);
 
-			Target[KnownTag ? Definition.FullKey : NormalizeTagKey(Key)] = Pair->JsonValue->ToString();
+			UnicodeString NormalizedKey = KnownTag ? Definition.FullKey : NormalizeTagKey(Key);
+			UnicodeString Value = Pair->JsonValue->ToString();
+			if (&Target == &FFmsTags)
+				StoreFmsTag(NormalizedKey, Value);
+			else
+				Target[NormalizedKey] = Value;
 		}
 	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::StoreFmsTag(const UnicodeString &Key, const UnicodeString &Value)
+{
+	// Keep the last received value visible and record a monotonic receive revision.
+	// A request can therefore reject a stale response without deleting the tag value.
+	FFmsTags[Key] = Value;
+	FFmsTagRevisions[Key] = ++FFmsRevisionCounter;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMod_Fms::CopyChangedTags(TJSONObject *Tags)
@@ -878,11 +891,11 @@ void __fastcall TMod_Fms::CopyChangedTags(TJSONObject *Tags)
 				FPcTags[Direct.FullKey] = Value;
 			else if (Direct.Direction == ftdBoth)
 			{
-				FFmsTags[Direct.FullKey] = Value;
+				StoreFmsTag(Direct.FullKey, Value);
 				FPcTags[Direct.FullKey] = Value;
 			}
 			else
-				FFmsTags[Direct.FullKey] = Value;
+				StoreFmsTag(Direct.FullKey, Value);
 			Applied = true;
 		}
 
@@ -899,11 +912,11 @@ void __fastcall TMod_Fms::CopyChangedTags(TJSONObject *Tags)
 				FPcTags[Definition.FullKey] = Value;
 			else if (Definition.Direction == ftdBoth)
 			{
-				FFmsTags[Definition.FullKey] = Value;
+				StoreFmsTag(Definition.FullKey, Value);
 				FPcTags[Definition.FullKey] = Value;
 			}
 			else
-				FFmsTags[Definition.FullKey] = Value;
+				StoreFmsTag(Definition.FullKey, Value);
 
 			Applied = true;
 		}
@@ -911,47 +924,14 @@ void __fastcall TMod_Fms::CopyChangedTags(TJSONObject *Tags)
 		if (!Applied)
 		{
 			UnicodeString NormalizedKey = NormalizeTagKey(Key);
-			FFmsTags[NormalizedKey] = Value;
+			StoreFmsTag(NormalizedKey, Value);
 		}
 	}
 }
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
-bool __fastcall TMod_Fms::IsActiveFmsResponse(const UnicodeString &ResponseKey)
-{
-	UnicodeString NormalizedKey = NormalizeTagKey(ResponseKey);
-	UnicodeString Value;
-	{
-		TLockGuard Guard(FLock);
-		TTagMap::iterator it = FFmsTags.find(NormalizedKey);
-		if (it == FFmsTags.end())
-			return false;
-		Value = it->second.Trim().LowerCase();
-	}
-
-	if (Value == L"true")
-		return true;
-	if (Value == L"false" || Value.IsEmpty())
-		return false;
-
-	return StrToIntDef(Value, 0) != 0;
-}
-//---------------------------------------------------------------------------
-void __fastcall TMod_Fms::QueuePcRequestClearsForResponses(void)
-{
-	if (IsActiveFmsResponse(L"F1NGS01.Location1.TrayProcess.TrayLoadResponse"))
-		SetPcTagJson(L"F1NGS01.Location1.TrayProcess.TrayLoad", L"false");
-	if (IsActiveFmsResponse(L"F1NGS01.Location1.TrayProcess.ProcessStartResponse"))
-		SetPcTagJson(L"F1NGS01.Location1.TrayProcess.ProcessStart", L"false");
-	if (IsActiveFmsResponse(L"F1NGS01.Location1.TrayProcess.ProcessEndResponse"))
-		SetPcTagJson(L"F1NGS01.Location1.TrayProcess.ProcessEnd", L"false");
-	if (IsActiveFmsResponse(L"F1NGS01.Location2.TrayProcess.TrayLoadResponse"))
-		SetPcTagJson(L"F1NGS01.Location2.TrayProcess.TrayLoad", L"false");
-	if (IsActiveFmsResponse(L"F1NGS01.Location2.TrayProcess.TrayUnloadResponse"))
-		SetPcTagJson(L"F1NGS01.Location2.TrayProcess.TrayUnloadRequest", L"false");
-	if (IsActiveFmsResponse(L"F1NGS01.Location2.CellTrackOut.CellUnloadCompleteResponse"))
-		SetPcTagJson(L"F1NGS01.Location2.CellTrackOut.CellUnloadComplete", L"false");
-}
+// Request/response clear timing is owned by TMesOpc. Cached FMS values must
+// never change a PC request behind the active four-phase handshake state.
 //---------------------------------------------------------------------------
 UnicodeString __fastcall TMod_Fms::BuildSuccessResponse(void)
 {
@@ -1121,6 +1101,15 @@ bool __fastcall TMod_Fms::GetFmsTagJson(const UnicodeString &Key, UnicodeString 
 	return true;
 }
 //---------------------------------------------------------------------------
+unsigned __int64 __fastcall TMod_Fms::GetFmsTagRevision(const UnicodeString &Key)
+{
+	UnicodeString SearchKey = NormalizeTagKeyForDirection(Key, ftdFmsOnly);
+	TLockGuard Guard(FLock);
+
+	TTagRevisionMap::iterator it = FFmsTagRevisions.find(SearchKey);
+	return it != FFmsTagRevisions.end() ? it->second : 0;
+}
+//---------------------------------------------------------------------------
 bool __fastcall TMod_Fms::GetFmsTagBool(const UnicodeString &Key, bool DefaultValue)
 {
 	UnicodeString JsonValue;
@@ -1163,6 +1152,7 @@ void __fastcall TMod_Fms::ClearFmsTag(const UnicodeString &Key)
 	UnicodeString SearchKey = NormalizeTagKeyForDirection(Key, ftdFmsOnly);
 	TLockGuard Guard(FLock);
 	FFmsTags.erase(SearchKey);
+	FFmsTagRevisions.erase(SearchKey);
 }
 //---------------------------------------------------------------------------
 bool __fastcall TMod_Fms::IsGatewayConnected(void)

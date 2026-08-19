@@ -381,6 +381,7 @@ void __fastcall TInterfaceForm::SetupMesTestControls()
 	btnFmsTest03ProcessEnd->OnClick = btnFmsTest03ProcessEndClick;
 	btnFmsTest04TTrayLoad->OnClick = btnFmsTest04TTrayLoadClick;
 	btnFmsTest05TTrayUnload->OnClick = btnFmsTest05TTrayUnloadClick;
+	btnFmsTest06DisplayTray->OnClick = btnFmsTest06DisplayTrayClick;
 	// END FMS TEST - REMOVE THIS BLOCK AFTER FMS COMMISSIONING
 	// =====================================================================
 
@@ -754,6 +755,23 @@ void __fastcall TInterfaceForm::btnFmsTest05TTrayUnloadClick(TObject *Sender)
 	bool NextValue = !GetFmsTestBool(Tag);
 	Mod_Fms->SetPcTag(Tag, NextValue);
 	FlushFmsTest("Location2 TrayUnloadRequest", NextValue);
+}
+//---------------------------------------------------------------------------
+void __fastcall TInterfaceForm::btnFmsTest06DisplayTrayClick(TObject *Sender)
+{
+	if(!CanRunMesTest())
+		return;
+
+	if(!MesOpc->DISPLAY_TRACK_IN_TRAYS())
+	{
+		Application->MessageBox(
+			L"Location1 TrackInCellInformation is missing or invalid.",
+			L"DISPLAY TRAY", MB_OK | MB_ICONWARNING);
+		return;
+	}
+
+	MainForm->WriteOpcUaLog("FMS_TEST",
+		"Display Source TrackIn and current Target tray maps", true);
 }
 // ===========================================================================
 // END FMS TEST - REMOVE THIS ENTIRE BLOCK AFTER FMS COMMISSIONING

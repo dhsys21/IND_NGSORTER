@@ -54,6 +54,7 @@ __published:	// IDE-managed Components
 	TButton *btnFmsTest02ProcessStart;
 	TButton *btnFmsTest03ProcessEnd;
 	TButton *btnFmsTest05TTrayUnload;
+	TButton *btnFmsTest06DisplayTray;
 	void __fastcall GroupBox_PLC_PCDblClick(TObject *Sender);
 	void __fastcall btnPlcWriteValueClick(TObject *Sender);
 	void __fastcall Timer_PLC_UpdateTimer(TObject *Sender);
@@ -70,6 +71,7 @@ __published:	// IDE-managed Components
 	void __fastcall btnFmsTest03ProcessEndClick(TObject *Sender);
 	void __fastcall btnFmsTest04TTrayLoadClick(TObject *Sender);
 	void __fastcall btnFmsTest05TTrayUnloadClick(TObject *Sender);
+	void __fastcall btnFmsTest06DisplayTrayClick(TObject *Sender);
 	// END FMS TEST - REMOVE THIS BLOCK AFTER FMS COMMISSIONING
 	// =====================================================================
 private:	// User declarations

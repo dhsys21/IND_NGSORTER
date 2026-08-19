@@ -38,10 +38,11 @@ void __fastcall TMainForm::DisplayTrayInfo()
 		pbad_sum->Caption = "0";
 		badList->Clear();
 		for(int i=0; i<tray->SLOT_COUNT && i<96; ++i){
+			bool CellExist = tray->CELL_EXIST[i];
 			psort_bad[i]->Color = clWhite;
 			psort_ing[i]->Color = clWhite;
-			psort_bad[i]->Caption = tray->LOSS_CD[i] + "[" + tray->PICK[i] + "]";
-			if(tray->PICK[i] == "Y"){
+			psort_bad[i]->Caption = (CellExist && tray->PICK[i] == "Y") ? tray->LOSS_CD[i] : AnsiString("");
+			if(CellExist && tray->PICK[i] == "Y"){
                 tray->remainCnt += 1;
 				psort_ing[i]->Caption = "NG";
 				AddList(tray->LOSS_CD[i]);
@@ -154,8 +155,10 @@ void __fastcall TMainForm::DisplayTranserIn(AnsiString trayid)
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TMainForm::CompleteOpcTrayLoad(bool sourceTray)
+void __fastcall TMainForm::DisplayOpcTrayLoad(bool sourceTray)
 {
+	int displayIndex = sourceTray ? 0 : 1;
+	opcTrayDisplayed[displayIndex] = false;
 	TRAY_INFO *loadedTray = sourceTray ? &tray_source : &tray_target;
 	tray = loadedTray;
 	loadedTray->startTime = Now();
@@ -163,49 +166,34 @@ void __fastcall TMainForm::CompleteOpcTrayLoad(bool sourceTray)
 
 	if (sourceTray)
 	{
-		CompleteProcessStep(2, "TrayLoadResponse=1 / Tray ID=" + pTrayid_source->Caption);
-		memoMainLineAdd("[FMS OPC UA] Source tray load response complete.");
+		ProcessStepLog(2, "Location1.TrayLoadResponse=1 / Source tray data displayed");
+		memoMainLineAdd("[FMS OPC UA] Source TrayLoadResponse=1; tray data displayed. Waiting Response=0.");
 		pBYPASS->Caption = loadedTray->PASS;
 		pbad_sum->Caption = "0";
 		badList->Clear();
-		loadedTray->empTray = true;
-
 		for (int i = 0; i < loadedTray->SLOT_COUNT && i < 96; ++i)
 		{
+			bool CellExist = loadedTray->CELL_EXIST[i];
 			psort_bad[i]->Color = clWhite;
 			psort_ing[i]->Color = clWhite;
-			psort_bad[i]->Caption = loadedTray->LOSS_CD[i] + "[" + loadedTray->PICK[i] + "]";
-			if (loadedTray->PICK[i] == "Y")
+			psort_bad[i]->Caption =
+				(CellExist && loadedTray->PICK[i] == "Y") ? loadedTray->LOSS_CD[i] : AnsiString("");
+			if (CellExist && loadedTray->PICK[i] == "Y")
 			{
 				++loadedTray->remainCnt;
 				psort_ing[i]->Caption = "NG";
 				AddList(loadedTray->LOSS_CD[i]);
 			}
 			else
-			{
-				psort_ing[i]->Caption = "**";
-				if (loadedTray->empTray && !loadedTray->SLOT_ID[i].IsEmpty())
-					loadedTray->empTray = false;
-			}
+				psort_ing[i]->Caption = CellExist ? "**" : "";
 		}
 
 		setTrayInfo(0);
-		if (pbad_sum->Caption.ToIntDef(0) <= stage.limitCnt)
-		{
-			BeginProcessStep(3, "D10154 Centering Request=ON / wait D10104");
-			memoMainLineAdd("[FMS OPC UA] Source tray centering request.");
-			if (PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(true);
-		}
-		else
-		{
-			memoMainLineAdd("[FMS OPC UA] NG count exceeds the configured limit.");
-			ErrorForm_limit->ShowError();
-		}
 	}
 	else
 	{
-		CompleteProcessStep(5, "TrayLoadResponse=1 / Tray ID=" + pTrayid_target->Caption);
-		memoMainLineAdd("[FMS OPC UA] Target tray load response complete.");
+		ProcessStepLog(5, "Location2.TrayLoadResponse=1 / Target tray data displayed");
+		memoMainLineAdd("[FMS OPC UA] Target TrayLoadResponse=1; tray data displayed. Waiting Response=0.");
 		//* 불량트레이 관리
 		// Location2 셀 정보가 제공되기 전까지 바코드별 로컬 파일을 사용한다.
 		int restoreResult = RestoreTargetTrayInfo(pTrayid_target->Caption, false);
@@ -258,7 +246,76 @@ void __fastcall TMainForm::CompleteOpcTrayLoad(bool sourceTray)
 			setTrayInfo(1);
 	}
 
-	opcTrayLoaded[sourceTray ? 0 : 1] = true;
+	opcTrayDisplayed[displayIndex] = true;
+	ProcessStepLog(sourceTray ? 2 : 5,
+		"Tray display complete / Response=1 confirmed");
+	tray = &tray_target;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::AdvanceOpcTrayLoad(bool sourceTray)
+{
+	int index = sourceTray ? 0 : 1;
+	int stepNo = sourceTray ? 2 : 5;
+	AnsiString locationName = sourceTray ? "Location1" : "Location2";
+	AnsiString trayId = sourceTray ? pTrayid_source->Caption : pTrayid_target->Caption;
+
+	if(!opcTrayDisplayed[index])
+	{
+		opcTrayLoaded[index] = false;
+		ProcessStepLog(stepNo, "ERROR - Target advance blocked: tray was not displayed");
+		ShowCommonError(locationName + " TrayLoad sequence error",
+			"TrayLoadResponse=1 display completion is required before Response=0.");
+		return;
+	}
+	opcTrayLoaded[index] = true;
+	CompleteProcessStep(stepNo, locationName +
+		".TrayLoadResponse returned to 0 / Tray ID=" + trayId);
+	memoMainLineAdd("[FMS OPC UA] " + locationName +
+		" TrayLoad handshake complete; advancing to next process.");
+
+	if(sourceTray)
+	{
+		if(pbad_sum->Caption.ToIntDef(0) <= stage.limitCnt)
+		{
+			// Source TrayLoad is complete. Request Source centering, but continue
+			// directly to Target Tray loading; ProcessStart checks D10104 again.
+			BeginProcessStep(3, "D10154 Centering Request=ON / wait D10104");
+			SetProcessWaitStatus(3, "D10154 Source Centering Request=ON",
+				"D10104 Source Centering", IsSourceCenteringSignal() ? 1 : 0);
+			memoMainLineAdd("[FMS OPC UA] Source tray displayed; moving to Target tray process.");
+			if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(true);
+
+			// Skip the old serial wait at step[0]=1. Target Tray load can run while
+			// Source centering is completing.
+			step[0].step = 2;
+			if(opcTrayLoadPending[1] || opcTrayLoaded[1])
+			{
+				// Preserve an already active Target transaction; never scan twice.
+				step[0].step = 3;
+			}
+			else if(IsTargetCenteringSignal())
+			{
+				BeginProcessStep(4, "D10106 Target Centering=ON / waiting barcode");
+				pTrayid_target->Caption = "";
+				pTrayid_target2->Caption = "";
+				ReadTargetTrayBarcode();
+				step[0].step = 3;
+				step[1].step = 1;
+			}
+			else
+			{
+				SetProcessWaitStatus(4, "Source TrayLoad complete",
+					"D10106 Target Centering", 0);
+			}
+		}
+		else
+		{
+			opcTrayLoaded[0] = false;
+			memoMainLineAdd("[FMS OPC UA] NG count exceeds the configured limit.");
+			ErrorForm_limit->ShowError();
+		}
+	}
+
 	TryStartOpcProcess();
 	tray = &tray_target;
 }
@@ -267,7 +324,8 @@ void __fastcall TMainForm::TryStartOpcProcess()
 {
 	if (opcProcessStarted || opcProcessStartPending)
 		return;
-	if (!opcTrayLoaded[0] || !opcTrayLoaded[1])
+	if (!opcTrayDisplayed[0] || !opcTrayDisplayed[1] ||
+		!opcTrayLoaded[0] || !opcTrayLoaded[1])
 		return;
 	if (!IsSourceCenteringSignal())
 		return;
@@ -277,6 +335,9 @@ void __fastcall TMainForm::TryStartOpcProcess()
 	BeginProcessStep(6, "ProcessStart request / wait response");
 	MesOpc->PROCESS_START_REQUEST();
 	opcProcessStartPending = true;
+	opcProcessStartWaitResponseOff = false;
+	opcProcessStartResponseOffError = false;
+	opcProcessStartResponseResult = 0;
 	opcProcessStartTick = GetTickCount();
 	opcMesTimer->Enabled = true;
 	memoMainLineAdd("[FMS OPC UA] Process start request.");
@@ -323,6 +384,8 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 			return;
 		}
 	}
+	opcTrayLoadRetryRequired[index] = false;
+	opcTrayDisplayed[index] = false;
 	opcTrayLoaded[index] = false;
 	if (bsrc)
 	{
@@ -330,6 +393,9 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 		if (opcProcessStartPending && MesOpc != NULL)
 			MesOpc->PROCESS_START_CANCEL();
 		opcProcessStartPending = false;
+		opcProcessStartWaitResponseOff = false;
+		opcProcessStartResponseOffError = false;
+		opcProcessStartResponseResult = 0;
 	}
 	if (bsrc) pwork1->Color = clSilver;
 	else pwork2->Color = clSilver;
@@ -341,10 +407,17 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 		return;
 	}
 
-	BeginProcessStep(bsrc ? 2 : 5, (bsrc ? AnsiString("Source") : AnsiString("Target")) +
-		" TrayLoad request / Tray ID=" + strTray);
+	BeginProcessStep(bsrc ? 2 : 5, (bsrc ? AnsiString("Location1.Source") : AnsiString("Location2.Target")) +
+		" TrayLoad Request=ON / Tray ID=" + strTray + " / WAIT TrayLoadResponse=1");
+	ProcessStepLog(bsrc ? 2 : 5,
+		(bsrc ? AnsiString("Location1") : AnsiString("Location2")) +
+		".TrayLoad Request issued / WAIT " +
+		(bsrc ? AnsiString("Location1") : AnsiString("Location2")) +
+		".TrayLoadResponse=1");
 	MesOpc->TRAY_LOAD_REQUEST(bsrc);
 	opcTrayLoadPending[index] = true;
+	opcTrayLoadWaitResponseOff[index] = false;
+	opcTrayLoadResponseOffError[index] = false;
 	opcTrayLoadStartTick[index] = GetTickCount();
 	opcMesTimer->Enabled = true;
 }
@@ -412,6 +485,8 @@ void __fastcall TMainForm::ReportCellTrackOut(int sourceChannel, int targetChann
 	tray_target.CELL_LOT_ID[targetIndex] = TrackInLotId;
 	tray_target.LOSS_CD[targetIndex] = TrackInNGCode;
 	tray_target.RANK[targetIndex] = TrackInGrade;
+	tray_target.CELL_EXIST[targetIndex] = true;
+	tray_target.PICK[targetIndex] = "Y";
 	setTrayInfo(1);
 
 	BeginProcessStep(12, "CellTrackOut request / wait CellUnloadCompleteResponse");
@@ -423,6 +498,9 @@ void __fastcall TMainForm::ReportCellTrackOut(int sourceChannel, int targetChann
 		" NGCode=" + TrackInNGCode, false);
 	MesOpc->CELL_TRACK_OUT_REQUEST(sourceChannel, targetChannel, TrackInCellId);
 	opcCellTrackOutPending = true;
+	opcCellTrackOutWaitResponseOff = false;
+	opcCellTrackOutResponseOffError = false;
+	opcCellTrackOutResponseResult = 0;
 	opcCellTrackOutStartTick = GetTickCount();
 	opcMesTimer->Enabled = true;
 	SetProcessWaitStatus(12, "CellUnloadComplete=ON", "CellUnloadCompleteResponse", 0);
@@ -443,6 +521,9 @@ void __fastcall TMainForm::NotifyTransferOut(AnsiString strTray)
 			BeginProcessStep(14, "ProcessEnd request / wait response");
 			MesOpc->PROCESS_END_REQUEST();
 			opcProcessEndPending = true;
+			opcProcessEndWaitResponseOff = false;
+			opcProcessEndResponseOffError = false;
+			opcProcessEndResponseResult = 0;
 			opcProcessEndTick = GetTickCount();
 			opcMesTimer->Enabled = true;
 			memoMainLineAdd("[FMS OPC UA] Source ProcessEnd requested; waiting ProcessEndResponse.");
@@ -454,6 +535,9 @@ void __fastcall TMainForm::NotifyTransferOut(AnsiString strTray)
 			BeginProcessStep(16, "TrayUnload request / wait response");
 			MesOpc->TRAY_UNLOAD_REQUEST();
 			opcTargetUnloadPending = true;
+			opcTargetUnloadWaitResponseOff = false;
+			opcTargetUnloadResponseOffError = false;
+			opcTargetUnloadResponseResult = 0;
 			opcTargetUnloadTick = GetTickCount();
 			opcMesTimer->Enabled = true;
 			SetProcessWaitStatus(16, "TrayUnloadRequest=ON", "TrayUnloadResponse", 0);

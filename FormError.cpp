@@ -18,6 +18,14 @@ __fastcall TErrorForm::TErrorForm(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall TErrorForm::ShowError(AnsiString MainStr, AnsiString SubStr, AnsiString SubStr2)
 {
+	// Common automatic-sequence errors must stop motion immediately. Closing
+	// this popup does not release Pause; the existing FormMain Restart button
+	// restores the saved gripper/robot steps after the operator corrects the cause.
+	if(gripper != NULL)
+		gripper->req_Pause(true);
+	if(robostar != NULL)
+		robostar->req_Pause(true);
+
 	MainErr->Caption = MainStr;
 	pTrayId->Caption = SubStr2;
 	SubErr->Caption = SubStr;
