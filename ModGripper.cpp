@@ -13,6 +13,7 @@ __fastcall Tgripper::Tgripper(TComponent* Owner)
 	: TDataModule(Owner)
 {
 	seq = seqIdle;
+	ccLinkNotReadyReported = false;
 	tool[gripCnt].disable = false;	// 7번 그리퍼는 항상 false로 마지막 지점 체크로 사용한다.
 	pauseStatus = false;
 }
@@ -181,7 +182,19 @@ void __fastcall Tgripper::Initialize()
 				int servo_dccl_speed = teachForm->dcclSpeedEdit->Text.ToInt();
 				robostar->req_Speed(servo_speed, servo_accl_speed, servo_dccl_speed);
 
-				// Check the physical cell sensor before clearing the previous tool assignment.
+				if(!robostar->IsCcLinkReady()){
+					if(!ccLinkNotReadyReported){
+						MainForm->memoGripperLineAdd(
+							"[Init step 0] CC-Link is not ready; cell status is unavailable.");
+						AlarmForm->ShowError("CC-Link communication error",
+							"Check CC-Link RUN/L.RUN and remote I/O power.");
+					}
+					ccLinkNotReadyReported = true;
+					return;
+				}
+				ccLinkNotReadyReported = false;
+
+				// CC-Link is ready; check the physical cell sensor before clearing the previous tool assignment.
 				// A cell left after an interrupted insert must use the insert recovery form.
 				for(int i=0; i<gripCnt; ++i){
 					if(disable_gripper[i] == false && robostar->CheckEjectCell_before(i+1) == false){

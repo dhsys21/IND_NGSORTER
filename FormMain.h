@@ -274,7 +274,6 @@ __published:	// IDE-managed Components
 	TAdvSmoothToggleButton *pause_startBtn;
 	TAdvSmoothPanel *pTargetBase;
 	TPanel *Panel31;
-	TPanel *pflow3;
 	TPanel *pflow4;
 	TCheckBox *cbMES;
 	TCheckBox *cbCycle;

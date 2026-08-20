@@ -1,2 +1,3 @@
 KO_DATA RCDATA "Lang_Ko.ini"
 EN_DATA RCDATA "Lang_En.ini"
+HI_DATA RCDATA "Lang_Hi.ini"

@@ -237,6 +237,7 @@
             <BuildOrder>15</BuildOrder>
         </CppCompile>
         <None Include="Lang_En.ini"/>
+        <None Include="Lang_Hi.ini"/>
         <None Include="Lang_Ko.ini"/>
         <LibFiles Include="mc2xxstd.lib" Condition="'$(Platform)'=='Win32'">
             <BuildOrder>26</BuildOrder>

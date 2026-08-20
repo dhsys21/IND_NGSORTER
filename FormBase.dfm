@@ -925,7 +925,7 @@ object BaseForm: TBaseForm
       Top = 4
       Width = 90
       Height = 20
-      Caption = 'magyar'
+      Caption = #2361#2367#2344#2381#2342#2368
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -16
@@ -933,7 +933,6 @@ object BaseForm: TBaseForm
       Font.Style = [fsBold]
       ParentFont = False
       TabOrder = 2
-      Visible = False
       OnClick = RadioButton1Click
     end
   end

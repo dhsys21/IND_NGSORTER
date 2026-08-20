@@ -44,10 +44,11 @@ void __fastcall TServoAlarmListForm::LanguageChange(int index)
 	}
 	else if(index == 2)
 	{
-		mm[0] = Memo_Hu1;
-		mm[1] = Memo_Hu2;
-		mm[2] = Memo_Hu3;
-		mm[3] = Memo_Hu4;
+		// Hindi uses the English legacy alarm details until Hindi tables are added.
+		mm[0] = Memo_En1;
+		mm[1] = Memo_En2;
+		mm[2] = Memo_En3;
+		mm[3] = Memo_En4;
 	}
 
 	for(int i = 0; i < 4; i++)

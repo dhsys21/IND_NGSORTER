@@ -307,8 +307,11 @@ void __fastcall TMainForm::FormShow(TObject *Sender)
 
 	stage.init = true;
 	stage.limitCnt = 10;
-	mdOpen(81,-1,&path);	/*	open 1st CC-Link board		*/
-	robostar->config.path = path;
+	path = 0;
+	short ccLinkOpenResult = mdOpen(81, -1, &path);	/* open 1st CC-Link board */
+	robostar->SetCcLinkOpenResult(ccLinkOpenResult, path);
+	if(ccLinkOpenResult != 0)
+		memoRobostarLineAdd("[CC-LINK] mdOpen failed. code=" + IntToStr(ccLinkOpenResult));
 	robostar->io_Init();
 	// Recover the real controller state after a program restart without rebooting it.
 	robostar->RestoreServoState();
@@ -1047,8 +1050,9 @@ bool __fastcall TMainForm::CheckServoAutoReady(bool showError)
 	bool servoOnReady = m_ServoON;
 	bool servoHomeReady = m_ServoHome;
 	bool gripperOpenReady = robostar->getGripperOpenStatus();
-	// X0022 is active-low: AUTO is allowed only when no cell remains in the gripper.
-	bool gripperCellClear = !robostar->getCellDetectStatus();
+	bool ccLinkReady = robostar->IsCcLinkReady();
+	// X0022 is active-low and must not be interpreted while CC-Link is unavailable.
+	bool gripperCellClear = ccLinkReady && !robostar->getCellDetectStatus();
 
 	if(servoOpenReady && servoOnReady && servoHomeReady && gripperOpenReady && gripperCellClear)
 		return true;
@@ -1057,13 +1061,16 @@ bool __fastcall TMainForm::CheckServoAutoReady(bool showError)
 	detail += L"Servo ON      : " + UnicodeString(servoOnReady ? L"OK" : L"NOT COMPLETE") + L"\r\n";
 	detail += L"Servo HOME    : " + UnicodeString(servoHomeReady ? L"OK" : L"NOT COMPLETE") + L"\r\n";
 	detail += L"Gripper OPEN  : " + UnicodeString(gripperOpenReady ? L"OK" : L"NOT COMPLETE") + L"\r\n";
-	detail += L"Gripper CELL  : " + UnicodeString(gripperCellClear ? L"CLEAR" : L"DETECTED - REMOVE CELL") + L"\r\n";
+	detail += L"CC-Link       : " + UnicodeString(ccLinkReady ? L"READY" : L"NOT READY") + L"\r\n";
+	detail += L"Gripper CELL  : " + UnicodeString(!ccLinkReady ? L"UNKNOWN" :
+		(gripperCellClear ? L"CLEAR" : L"DETECTED - REMOVE CELL")) + L"\r\n";
 	detail += L"Confirm X0021 OPEN=ON, X0020 CHUCK=OFF, and X0022 CELL DETECT=ON before AUTO.";
 
 	memoRobostarLineAdd("[AUTO INTERLOCK] OPEN=" + IntToStr(servoOpenReady ? 1 : 0) +
 		", ON=" + IntToStr(servoOnReady ? 1 : 0) +
 		", HOME=" + IntToStr(servoHomeReady ? 1 : 0) +
 		", GRIPPER_OPEN=" + IntToStr(gripperOpenReady ? 1 : 0) +
+		", CCLINK_READY=" + IntToStr(ccLinkReady ? 1 : 0) +
 		", CELL_CLEAR=" + IntToStr(gripperCellClear ? 1 : 0) +
 		" (X0021=" + IntToStr(robostar->input.GRIPPER1_UNCHUCK ? 1 : 0) +
 		", X0020=" + IntToStr(robostar->input.GRIPPER1_CHUCK ? 1 : 0) +
@@ -1502,7 +1509,7 @@ void __fastcall TMainForm::CreateIoMonitoringPanel()
 		"CP09 TRIP", "CP10 SERVO1 TRIP", "CP11 SERVO2 TRIP", "CP12 SERVO3 TRIP", "CP13 BCR01 TRIP", "CP14 BCR02 TRIP", "MS01 TRIP", "",
 		"SERVO01 INPOS", "SERVO01 ALARM", "SERVO01 OK HOME", "SERVO02 INPOS", "SERVO02 ALARM", "SERVO02 OK HOME", "SERVO03 INPOS", "SERVO03 ALARM",
 		"SERVO03 OK HOME", "", "", "", "", "", "", "",
-		"GRIPPER1 CHUCK", "GRIPPER1 UNCHUCK", "GRIPPER1 CELL DETECT", "X0023 UNUSED", "EMS NORMAL", "OPBOX RESET SWITCH", "SAFETY DOOR #1 UNLOCKED", "SAFETY DOOR #2 UNLOCKED",
+		"GRIPPER1 CHUCK", "GRIPPER1 UNCHUCK", "GRIPPER1 CELL DETECT", "GRIPPER1 BUFFER", "EMS NORMAL", "OPBOX RESET SWITCH", "SAFETY DOOR #1 UNLOCKED", "SAFETY DOOR #2 UNLOCKED",
 		"SAFETY RESET SW ON", "BY-PASS S/W OFF", "BY-PASS S/W ON", "SAFETY EMG READY", "SAFETY DOOR READY", "", "", ""
 	};
 	for(int i = 0; i < 48; ++i){
@@ -1566,7 +1573,7 @@ void __fastcall TMainForm::UpdateIoMonitoringPanel()
 		robostar->input.SERVO02_ALARM, robostar->input.SERVO02_OK_HOME, robostar->input.SERVO03_INPOS, robostar->input.SERVO03_ALARM,
 		robostar->input.SERVO03_OK_HOME, robostar->input.X0019, robostar->input.X001A, robostar->input.X001B,
 		robostar->input.X001C, robostar->input.X001D, robostar->input.X001E, robostar->input.X001F,
-		robostar->input.GRIPPER1_CHUCK, robostar->input.GRIPPER1_UNCHUCK, robostar->input.GRIPPER1_CELL_DETECT, robostar->input.X0023_UNUSED,
+		robostar->input.GRIPPER1_CHUCK, robostar->input.GRIPPER1_UNCHUCK, robostar->input.GRIPPER1_CELL_DETECT, robostar->input.GRIPPER1_BUFFER,
 		robostar->input.EMS_SWITCH, robostar->input.OPBOX_RESET_SWITCH, robostar->input.SAFETY_DOOR_1, robostar->input.SAFETY_DOOR_2,
 		robostar->input.SAFETY_RESET_SW_ON, robostar->input.BYPASS_SW_OFF, robostar->input.BYPASS_SW_ON, robostar->input.SAFETY_EMG_READY,
 		robostar->input.SAFETY_DOOR_READY, robostar->input.SAFETY_DOOR_3, robostar->input.X002E, robostar->input.X002F
@@ -1622,8 +1629,8 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	// X0022 is active-low. This status panel shows logical cell presence,
 	// while the I/O monitoring panel continues to show the physical X0022 state.
 	sensorColor(pcell1, robostar->getCellDetectStatus());
-	// X0023 vertical-cylinder/buffer input is not used on this machine.
-	sensorColor(pflow1, false);
+	// X0023 ON indicates the gripper buffer/collision sensor is active.
+	sensorColor(pflow1, robostar->IsCcLinkReady() && robostar->input.GRIPPER1_BUFFER);
 	sensorColor(popen1, robostar->input.GRIPPER1_UNCHUCK);
 	// CLOSE follows the actual X0020 input and remains visible while Y0030 is commanded.
 	sensorColor(pclose1, robostar->getGripperChuckStatus());

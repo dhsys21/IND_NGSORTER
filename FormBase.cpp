@@ -48,8 +48,9 @@ void __fastcall TBaseForm::FormShow(TObject *Sender)
 	this->Left = 0;//Screen->Width - this->Width;
 	this->Top = 0;
 
-//    ChangeLanguage();
 	RadioButton2->Checked = true;
+	ChangeLanguage();
+	ServoAlarmListForm->LanguageChange(1);
 }
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::FormClose(TObject *Sender, TCloseAction &Action)
@@ -292,6 +293,7 @@ void __fastcall TBaseForm::RadioButton1Click(TObject *Sender)
 	{
         if(rbt->Tag == 0) ReadLanguage("KO");
         else if(rbt->Tag == 1) ReadLanguage("EN");
+        else if(rbt->Tag == 2) ReadLanguage("HI");
 
         ChangeLanguage();
 		ServoAlarmListForm->LanguageChange(rbt->Tag);
@@ -357,10 +359,26 @@ void __fastcall TBaseForm::ChangeLanguage()
 	MainForm->pclose1->Caption = GetLangStr("CAP_CLOSE");
 	MainForm->pcell1->Caption = GetLangStr("CAP_CELL");
 	MainForm->puse1->Caption = GetLangStr("CAP_STOP_USING");
+	MainForm->puse2->Caption = GetLangStr("CAP_STOP_USING");
+	MainForm->pdn1->Caption = GetLangStr("CAP_DOWN");
+	MainForm->pup1->Caption = GetLangStr("CAP_UP");
+	MainForm->pdn2->Caption = GetLangStr("CAP_DOWN");
+	MainForm->pup2->Caption = GetLangStr("CAP_UP");
+	MainForm->pflow2->Caption = GetLangStr("CAP_FLOW");
+	MainForm->popen2->Caption = GetLangStr("CAP_OPEN");
+	MainForm->pclose2->Caption = GetLangStr("CAP_CLOSE");
+	MainForm->pcell2->Caption = GetLangStr("CAP_CELL");
+	MainForm->Panel42->Caption = GetLangStr("CAP_CODE");
+	MainForm->Panel43->Caption = GetLangStr("CAP_SOURCE");
+	MainForm->Panel45->Caption = GetLangStr("CAP_TARGET");
+	MainForm->pflow4->Caption = GetLangStr("CAP_FLOW");
 	MainForm->pnlCode->Caption = GetLangStr("CAP_CODE");
 	MainForm->pnlTarget->Caption = GetLangStr("CAP_TARGET");
 	MainForm->pnlSource->Caption = GetLangStr("CAP_SOURCE");
     MainForm->lblLogTitle->Caption = GetLangStr("CAP_EQUIPMENT_LOG");
+	MainForm->Panel5->Caption = GetLangStr("CAP_PROGRESS_INFO");
+	MainForm->Panel7->Caption = GetLangStr("CAP_INOUT_INFO");
+	MainForm->Panel17->Caption = GetLangStr("CAP_ROBOT_INFO");
 
 	MainForm->pnlTargetTrayTitle->Caption = GetLangStr("CAP_TARGET_TRAY");
 	MainForm->pnlTargetRemaining->Caption = GetLangStr("CAP_REMAINING_COUNT");
@@ -369,6 +387,7 @@ void __fastcall TBaseForm::ChangeLanguage()
 	MainForm->pnlCh->Caption = GetLangStr("CAP_CHANNEL");
 	MainForm->pnlSource2->Caption = GetLangStr("CAP_SOURCE");
 	MainForm->pnlNgCode->Caption = GetLangStr("CAP_NG_CODE");
+	MainForm->zone4->Caption = GetLangStr("CAP_ETC");
 	MainForm->AdvSmoothToggleButton_InitWork->Caption = GetLangStr("CAP_INIT");
 
     //* Teaching Form
@@ -377,7 +396,8 @@ void __fastcall TBaseForm::ChangeLanguage()
     teachForm->lblTargetTray->Caption = GetLangStr("CAP_TARGET_TRAY");
     teachForm->lblServoSetting->Caption = GetLangStr("CAP_SERVO_SETTING");
     teachForm->lblServoInfo->Caption = GetLangStr("CAP_SERVO_STATUS");
-    teachForm->btnApplyTeaching->Caption = GetLangStr("CAP_APPLY_TEACHING");
+    teachForm->btnApplyTeaching->Caption = GetLangStr("CAP_APPLY_TEACHING_LINE1")
+		+ "\r\n" + GetLangStr("CAP_APPLY_TEACHING_LINE2");
     teachForm->pnlSelectGripper->Caption = GetLangStr("CAP_SELECT_GRIPPER");
     teachForm->lblJogControl->Caption = GetLangStr("CAP_JOG_CONTROL");
     teachForm->lblXAxis->Caption = GetLangStr("CAP_X_AXIS");
@@ -392,7 +412,8 @@ void __fastcall TBaseForm::ChangeLanguage()
     teachForm->pnlAcc->Caption = GetLangStr("CAP_ACC");
     teachForm->pnlDcc->Caption = GetLangStr("CAP_DCC");
     teachForm->pnlErrCode->Caption = GetLangStr("CAP_ERR_CODE");
-    teachForm->waitBtn->Caption = GetLangStr("CAP_WAIT_POS");
+    teachForm->waitBtn->Caption = GetLangStr("CAP_WAIT_POS_LINE1")
+		+ "\r\n" + GetLangStr("CAP_WAIT_POS_LINE2");
     teachForm->AdvSmoothButton_Zup->Caption = GetLangStr("CAP_Z_UP");
     teachForm->stopBtn->Caption = GetLangStr("CAP_STOP_MOVING");
     teachForm->pnlSpeed->Caption = GetLangStr("CAP_SPEED");
@@ -401,11 +422,77 @@ void __fastcall TBaseForm::ChangeLanguage()
     teachForm->lblOpenClose->Caption = GetLangStr("CAP_OPEN_CLOSE");
     teachForm->AdvSmoothButton_LoadFactorInfo->Caption = GetLangStr("CAP_LOAD_FACTOR");
     teachForm->lblLoadFactorTitle->Caption = GetLangStr("CAP_LOAD");
-    teachForm->disableChk1->Caption = GetLangStr("CAP_USING");
+	teachForm->btnJogSpeed->Caption = GetLangStr("CAP_JOG_SPEED");
+	teachForm->btnZAxisDown->Caption = GetLangStr("CAP_Z_DOWN");
+	teachForm->Label57->Caption = GetLangStr("CAP_SERVO_MOVING");
+	teachForm->Label59->Caption = GetLangStr("CAP_SERVO_MOVING");
+	teachForm->Label50->Caption = GetLangStr("CAP_MODEL_TEACHING");
+	teachForm->pselect->Caption = GetLangStr("CAP_SELECTED_COLOR");
+	teachForm->lblUpAllGripper->Caption = GetLangStr("CAP_ALL_UP");
+	teachForm->lblDownAllGripper->Caption = GetLangStr("CAP_ALL_DOWN");
+	teachForm->lblOpenAllGripper->Caption = GetLangStr("CAP_ALL_OPEN");
+	teachForm->lblCloseAllGripper->Caption = GetLangStr("CAP_ALL_CLOSE");
+	teachForm->CLR1->Caption = GetLangStr("CAP_GRIPPER") + " #1";
+	teachForm->lblUpDown->Caption = GetLangStr("CAP_UP_DOWN");
+	teachForm->disableChk1->Caption = GetLangStr("CAP_UNSING");
     teachForm->pflow1->Caption = GetLangStr("CAP_FLOW");
     teachForm->popen1->Caption = GetLangStr("CAP_OPEN");
     teachForm->pclose1->Caption = GetLangStr("CAP_CLOSE");
     teachForm->pcell1->Caption = GetLangStr("CAP_CELL");
+	teachForm->pdn1->Caption = GetLangStr("CAP_DOWN");
+	teachForm->pup1->Caption = GetLangStr("CAP_UP");
+	TLabel *gripperLabels[5] = { teachForm->Label14, teachForm->Label17,
+		teachForm->Label20, teachForm->Label23, teachForm->Label26 };
+	TLabel *upDownLabels[5] = { teachForm->Label15, teachForm->Label18,
+		teachForm->Label21, teachForm->Label24, teachForm->Label27 };
+	TLabel *openCloseLabels[5] = { teachForm->Label16, teachForm->Label19,
+		teachForm->Label22, teachForm->Label25, teachForm->Label28 };
+	TPanel *downPanels[5] = { teachForm->pdn2, teachForm->pdn3, teachForm->pdn4,
+		teachForm->pdn5, teachForm->pdn6 };
+	TPanel *upPanels[5] = { teachForm->pup2, teachForm->pup3, teachForm->pup4,
+		teachForm->pup5, teachForm->pup6 };
+	TPanel *flowPanels[5] = { teachForm->pflow2, teachForm->pflow3, teachForm->pflow4,
+		teachForm->pflow5, teachForm->pflow6 };
+	TPanel *openPanels[5] = { teachForm->popen2, teachForm->popen3, teachForm->popen4,
+		teachForm->popen5, teachForm->popen6 };
+	TPanel *closePanels[5] = { teachForm->pclose2, teachForm->pclose3, teachForm->pclose4,
+		teachForm->pclose5, teachForm->pclose6 };
+	TPanel *cellPanels[5] = { teachForm->pcell2, teachForm->pcell3, teachForm->pcell4,
+		teachForm->pcell5, teachForm->pcell6 };
+	TCheckBox *unusedChecks[5] = { teachForm->disableChk2, teachForm->disableChk3,
+		teachForm->disableChk4, teachForm->disableChk5, teachForm->disableChk6 };
+	for(int i = 0; i < 5; i++) {
+		gripperLabels[i]->Caption = GetLangStr("CAP_GRIPPER") + " #" + IntToStr(i + 2);
+		upDownLabels[i]->Caption = GetLangStr("CAP_UP_DOWN");
+		openCloseLabels[i]->Caption = GetLangStr("CAP_OPEN_CLOSE");
+		downPanels[i]->Caption = GetLangStr("CAP_DOWN");
+		upPanels[i]->Caption = GetLangStr("CAP_UP");
+		flowPanels[i]->Caption = GetLangStr("CAP_FLOW");
+		openPanels[i]->Caption = GetLangStr("CAP_OPEN");
+		closePanels[i]->Caption = GetLangStr("CAP_CLOSE");
+		cellPanels[i]->Caption = GetLangStr("CAP_CELL");
+		unusedChecks[i]->Caption = GetLangStr("CAP_UNSING");
+	}
+
+	//* Base / Door / Config Forms
+	btnKeyLock->Caption = GetLangStr("CAP_KEYLOCK_SET");
+	btnKeyUnLock->Caption = GetLangStr("CAP_KEYLOCK_RELEASE");
+	doorForm->Caption = GetLangStr("CAP_ALARM_OCCURRED");
+	doorForm->Label1->Caption = GetLangStr("CAP_ALARM_INFO");
+	doorForm->Label4->Caption = GetLangStr("CAP_ALARM_INFO");
+	doorForm->MainErr5->Caption = GetLangStr("CAP_KEYLOCK_RELEASE");
+	doorForm->btnSetKEYLOCK->Caption = GetLangStr("CAP_KEYLOCK_SET");
+	doorForm->btnKeyUnlock->Caption = GetLangStr("CAP_KEYLOCK_RELEASE");
+	doorForm->btnSetBypass->Caption = GetLangStr("CAP_BYPASS_SET");
+	doorForm->btnServoOpen->Caption = GetLangStr("CAP_SERVO_OPEN_CMD");
+	doorForm->Label6->Caption = GetLangStr("CAP_GRIPPER_OPEN");
+	doorForm->btnGripper1Open->Caption = GetLangStr("CAP_GRIPPER") + " #1 " + GetLangStr("CAP_OPEN");
+	doorForm->btnGripper2Open->Caption = GetLangStr("CAP_GRIPPER") + " #2 " + GetLangStr("CAP_OPEN");
+	doorForm->stopBtn->Caption = GetLangStr("CAP_STOP_MOVING");
+	ConfigForm->GroupBox5->Caption = GetLangStr("CAP_MACHINE_SELECT");
+	ConfigForm->Panel6->Caption = GetLangStr("CAP_MODEL_NO");
+	ConfigForm->GroupBox2->Caption = GetLangStr("CAP_Z_UP_ON_MOVE");
+	ConfigForm->chkZAxisUp->Caption = GetLangStr("CAP_Z_UP");
 
     //* LoadFactor Form
     loadfactorForm->pnlXAxis->Caption = GetLangStr("CAP_X_AXIS");
@@ -431,6 +518,8 @@ void __fastcall TBaseForm::ChangeLanguage()
     ErrorForm_insert->btnMoveTarget->Caption = GetLangStr("CAP_MOVE");
     ErrorForm_insert->CLR1->Caption = GetLangStr("CAP_GRIPPER1");
     ErrorForm_insert->lblOpenClose->Caption = GetLangStr("CAP_OPEN_CLOSE");
+    ErrorForm_insert->pdn1->Caption = GetLangStr("CAP_DOWN");
+    ErrorForm_insert->pup1->Caption = GetLangStr("CAP_UP");
     ErrorForm_insert->pflow1->Caption = GetLangStr("CAP_FLOW");
     ErrorForm_insert->popen1->Caption = GetLangStr("CAP_OPEN");
     ErrorForm_insert->pclose1->Caption = GetLangStr("CAP_CLOSE");
@@ -446,6 +535,8 @@ void __fastcall TBaseForm::ChangeLanguage()
     ErrorForm_eject->btnMoveTarget->Caption = GetLangStr("CAP_MOVE");
     ErrorForm_eject->CLR1->Caption = GetLangStr("CAP_GRIPPER1");
     ErrorForm_eject->lblOpenClose->Caption = GetLangStr("CAP_OPEN_CLOSE");
+    ErrorForm_eject->pdn1->Caption = GetLangStr("CAP_DOWN");
+    ErrorForm_eject->pup1->Caption = GetLangStr("CAP_UP");
     ErrorForm_eject->pflow1->Caption = GetLangStr("CAP_FLOW");
     ErrorForm_eject->popen1->Caption = GetLangStr("CAP_OPEN");
     ErrorForm_eject->pclose1->Caption = GetLangStr("CAP_CLOSE");

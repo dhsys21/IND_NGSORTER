@@ -1286,7 +1286,7 @@ object teachForm: TteachForm
           Status.Appearance.Font.Name = 'Tahoma'
           Status.Appearance.Font.Style = []
           BevelColor = clBlack
-          Caption = #45824#44592' '#50948#52824
+          Caption = 'Standby'#13#10'Position'
           Color = clWhite
           ParentFont = False
           TabOrder = 12
@@ -8511,7 +8511,7 @@ object teachForm: TteachForm
           Status.Appearance.Font.Name = 'Tahoma'
           Status.Appearance.Font.Style = []
           BevelColor = clMedGray
-          Caption = #54000#52845' '#44050' '#51200#51109
+          Caption = 'Save'#13#10'Teaching Value'
           Color = clWhite
           ParentFont = False
           TabOrder = 0

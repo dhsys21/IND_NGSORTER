@@ -58,6 +58,7 @@ private:	// User declarations
 	}STEP;
 
 	TIniFile *ini;
+	bool ccLinkNotReadyReported;
 	void __fastcall Initialize();
 	void __fastcall Sorting();
 	void __fastcall Inserting();

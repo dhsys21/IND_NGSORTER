@@ -59,7 +59,7 @@ typedef struct{
 	uint8_t GRIPPER1_CHUCK:1; //X0020 GRIPPER1 CHUCK
 	uint8_t GRIPPER1_UNCHUCK:1; //X0021 GRIPPER1 UNCHUCK
 	uint8_t GRIPPER1_CELL_DETECT:1; //X0022 active-low: ON=no cell, OFF=cell detected
-	uint8_t X0023_UNUSED:1; //X0023 reserved (gripper vertical cylinder not used)
+	uint8_t GRIPPER1_BUFFER:1; //X0023 GRIPPER1 BUFFER
 	uint8_t EMS_SWITCH:1; //X0024 ON: normal, OFF: emergency stop
 	uint8_t OPBOX_RESET_SWITCH:1; //X0025 OPBOX RESET SWITCH
 	uint8_t SAFETY_DOOR_1:1; //X0026 ON: unlocked/open, OFF: keylock locked
@@ -333,6 +333,8 @@ private:	// User declarations
 	int channel_id;
 	int timeout;
 	bool sscOpened;
+	bool m_ccLinkOpened;
+	bool m_ccLinkRunning;
 	bool keyLockSetPending;                // Y0033/Y0034 ON; waiting to turn Y003D OFF.
 	bool keyLockReleasePending;            // Y003D ON; waiting to turn Y0033/Y0034 OFF.
 	bool previousBypassSwitchOn;           // Detect the hardware BYPASS-key ON edge.
@@ -424,6 +426,8 @@ public:		// User declarations
 	bool __fastcall IsBypassActive() const;
 	bool __fastcall RestoreServoState(); // Attach to the board and reuse an already RUNNING servo system.
 	bool __fastcall IsSscOpened() const;
+	void __fastcall SetCcLinkOpenResult(short result, long openedPath);
+	bool __fastcall IsCcLinkReady() const;
 	bool m_bInsertSave;
     void __fastcall Y003D(bool bOn);
 	__fastcall Trobostar(TComponent* Owner);

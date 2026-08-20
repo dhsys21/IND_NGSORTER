@@ -53,6 +53,8 @@ __fastcall Trobostar::Trobostar(TComponent* Owner)
 	channel_id = 1;
 	timeout = 10000;
 	sscOpened = false;
+	m_ccLinkOpened = false;
+	m_ccLinkRunning = false;
 	keyLockSetPending = false;
 	keyLockReleasePending = false;
 	previousBypassSwitchOn = false;
@@ -80,16 +82,54 @@ int __fastcall Trobostar::io_Init()
 
 	senTimer->Enabled = true;
 
-	short size = sizeof(gripper);
-	mdReceive(config.path, config.stno, DevY, 0x0020, &size, &gripper);	// IO 상태는 초기 상태를 불러온다 : 셀을 놓을 수 있기 때문에
+	if(m_ccLinkOpened){
+		short size = sizeof(gripper);
+		mdReceive(config.path, config.stno, DevY, 0x0020, &size, &gripper);
+	}	// IO 상태는 초기 상태를 불러온다 : 셀을 놓을 수 있기 때문에
 	return 0;
 
 }
 //---------------------------------------------------------------------------
 int __fastcall Trobostar::io_Read()
 {
-	short size = sizeof(input);
-	return mdReceive(config.path, config.stno, DevX, 0x0000, &size, &input);
+	if(!m_ccLinkOpened){
+		m_ccLinkRunning = false;
+		return -1;
+	}
+
+	short led[6] = {0, 0, 0, 0, 0, 0};
+	int ledResult = mdBdLedRead(config.path, &led[0]);
+	if(ledResult != 0){
+		m_ccLinkRunning = false;
+		return ledResult;
+	}
+
+	unsigned short led0 = (unsigned short)led[0];
+	unsigned short led3 = (unsigned short)led[3];
+	unsigned short led4 = (unsigned short)led[4];
+	bool boardRun = (led0 & 0x0001) != 0;
+	bool allStationError = (led0 & 0x0100) != 0;
+	bool lineError = (led3 & 0x0100) != 0;
+	bool timeoutError = (led3 & 0x0001) != 0;
+	bool linkError = (led4 & 0x0100) != 0;
+	bool linkRun = (led4 & 0x0001) != 0;
+
+	// CC-Link inputs are valid only while the board and cyclic data link are healthy.
+	m_ccLinkRunning = boardRun && linkRun && !allStationError &&
+		!lineError && !timeoutError && !linkError;
+	if(!m_ccLinkRunning)
+		return -1;
+
+	INPUT_ROBOT receivedInput = input;
+	short size = sizeof(receivedInput);
+	int receiveResult = mdReceive(config.path, config.stno, DevX, 0x0000,
+		&size, &receivedInput);
+	if(receiveResult == 0)
+		input = receivedInput;
+	else
+		m_ccLinkRunning = false;
+
+	return receiveResult;
 }
 //---------------------------------------------------------------------------
 int __fastcall Trobostar::io_Write()
@@ -1886,8 +1926,8 @@ void __fastcall Trobostar::AutoInsert()
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::getCellDetectStatus()
 {
-	// X0022 is active-low: ON means no cell, OFF means a cell is detected.
-	return !input.GRIPPER1_CELL_DETECT;
+	// X0022 is active-low and is meaningful only while CC-Link is ready.
+	return IsCcLinkReady() && !input.GRIPPER1_CELL_DETECT;
 }
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::getCellDetectStatus(int pos)
@@ -2057,6 +2097,11 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::req_EjectComplete()
 {
+	if(!IsCcLinkReady()){
+		MainForm->memoRobostarLineAdd(
+			"[EJECT COMPLETE INTERLOCK] Request rejected: CC-Link is not ready.");
+		return false;
+	}
 	if(!getCellDetectStatus()){
 		MainForm->memoRobostarLineAdd(
 			"[EJECT COMPLETE INTERLOCK] Request rejected: gripper cell sensor is OFF.");
@@ -2104,6 +2149,10 @@ bool __fastcall Trobostar::CheckEjectCell_after(int pos)
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::CheckEjectCell_before(int pos)
 {
+	// Communication loss must not be interpreted as an empty gripper.
+	if(!IsCcLinkReady())
+		return false;
+
 	// Pre-move/initialization check: X0022 ON means the gripper has no cell.
 	bool bresult = false;
 	switch(pos){
@@ -2170,6 +2219,10 @@ bool __fastcall Trobostar::CheckInsertUnchuck(int pos)
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::CheckInsertCellReleased(int pos)
 {
+	// Communication loss must not confirm that the cell was released.
+	if(!IsCcLinkReady())
+		return false;
+
 	// X0022 is active-low: ON means the gripper is clear after releasing the cell.
 	if(pos == 1)
 		return !getCellDetectStatus();
@@ -2321,6 +2374,19 @@ bool __fastcall Trobostar::IsBypassActive() const
 bool __fastcall Trobostar::IsSscOpened() const
 {
 	return sscOpened;
+}
+//---------------------------------------------------------------------------
+void __fastcall Trobostar::SetCcLinkOpenResult(short result, long openedPath)
+{
+	config.ret = result;
+	m_ccLinkOpened = result == 0;
+	m_ccLinkRunning = false;
+	config.path = m_ccLinkOpened ? openedPath : 0;
+}
+//---------------------------------------------------------------------------
+bool __fastcall Trobostar::IsCcLinkReady() const
+{
+	return m_ccLinkOpened && m_ccLinkRunning;
 }
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::Y003D(bool bOn)
