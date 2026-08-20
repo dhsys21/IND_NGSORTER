@@ -694,9 +694,7 @@ object doorForm: TdoorForm
       Height = 97
       Alignment = taCenter
       AutoSize = False
-      Caption = 
-        #47928' '#45803#44592'  ->  '#48708#49345' '#51221#51648' '#54644#51228'  ->  KEYLOCK '#49444#51221' -> '#13#10'BYPASS '#49444#51221'  ->  SAFETY RE' +
-        'SET  ->  '#49436#48372' OPEN'
+      Caption = 'Close Door -> Release Emergency Stop -> Set KEYLOCK ->'#13#10'Set BYPASS -> SAFETY RESET -> SERVO OPEN'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Height = -16

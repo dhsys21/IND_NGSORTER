@@ -22,14 +22,14 @@ void __fastcall TErrorForm_bcr::ShowError(AnsiString str,  bool bsuccess)
 		ignoreBtn->Color = pon->Color;
 		errMsg1->Caption = "[ " + str + " ] " + BaseForm->GetLangStr("MSG_COMPLETE_SCAN");
 		strBcr = str;
-		ignoreBtn->Caption = "Normal progress";
+		ignoreBtn->Caption = BaseForm->GetLangStr("CAP_NORMAL_PROGRESS");
 	}
 	else{
 		MainForm->BuzzerOn(true);
 		MainForm->LampModeChange(LampAlarm);
 		errMsg1->Caption = str;
 		ignoreBtn->Color = clRed;
-		ignoreBtn->Caption = "Forced Tray Out";
+		ignoreBtn->Caption = BaseForm->GetLangStr("CAP_FORCED_TRAY_OUT");
 	}
 
 	MainForm->WriteErrorLog(errMsg1->Caption, "");

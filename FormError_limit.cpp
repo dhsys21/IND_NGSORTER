@@ -20,8 +20,8 @@ void __fastcall TErrorForm_limit::ShowError()
 {
 
 	MainForm->NotifyAlarm(true, 24);
-	errMsg1->Caption = "S_Maint_NG 셀 개수가 설정 값을 초과 했습니다.";
-	errMsg2->Caption = "선별을 진행 하시겠습니까?";
+	errMsg1->Caption = BaseForm->GetLangStr("MSG_NG_LIMIT_EXCEEDED");
+	errMsg2->Caption = BaseForm->GetLangStr("MSG_CONTINUE_SORTING");
 
 	if(this->Visible == false){
 		MainForm->WriteErrorLog(errMsg1->Caption, errMsg2->Caption);

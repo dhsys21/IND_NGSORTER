@@ -226,11 +226,11 @@ void __fastcall TBaseForm::btnKeyLockClick(TObject *Sender)
 	else{
 		// X0026/X0027 ON means Door #1/#2 is open. Do not start KEYLOCK setting.
 		if(!robostar->CanSetKeyLock()){
-			ShowMessage(L"Close Door #1 and Door #2 before setting KEYLOCK.\n\nX0026/X0027 must both be OFF.");
+			ShowMessage(GetLangStr("MSG_CLOSE_DOORS_FOR_KEYLOCK"));
 			return;
 		}
 		if(!robostar->KeyLock(true))
-			ShowMessage(L"KEYLOCK set command was rejected by the safety interlock.");
+			ShowMessage(GetLangStr("MSG_KEYLOCK_REJECTED"));
 	}
 }
 //---------------------------------------------------------------------------
@@ -257,7 +257,7 @@ void __fastcall TBaseForm::btnKeyUnLockClick(TObject *Sender)
 	}
 	else{
 		if(!robostar->KeyLock(false))
-			ShowMessage(L"KEYLOCK release requires manual mode and the hardware BY-PASS switch ON.");
+			ShowMessage(GetLangStr("MSG_KEYLOCK_RELEASE_REQUIREMENTS"));
 	}
 }
 //---------------------------------------------------------------------------
@@ -269,19 +269,19 @@ void __fastcall TBaseForm::btnBypassOnClick(TObject *Sender)
 		bool keyLockSet = robostar->gripper.DOOR_LEFT_CLOSE
 			&& robostar->gripper.DOOR_RIGHT_CLOSE && robostar->IsKeyLockActive();
 		if(!keyLockSet || robostar->IsBypassActive())
-			ShowMessage(L"Set KEYLOCK completely before enabling BY-PASS SOL.");
+			ShowMessage(GetLangStr("MSG_BYPASS_SET_FIRST"));
 		else
-			ShowMessage(L"Turn the hardware BY-PASS key to ON before enabling BY-PASS SOL.");
+			ShowMessage(GetLangStr("MSG_BYPASS_KEY_ON"));
 		return;
 	}
 	if(!robostar->Bypass(true))
-		ShowMessage(L"BY-PASS SOL command was rejected by the safety interlock.");
+		ShowMessage(GetLangStr("MSG_BYPASS_REJECTED"));
 }
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::btnSafetyResetClick(TObject *Sender)
 {
 	if(!robostar->RequestSafetyResetPulse())
-		ShowMessage(L"CC-Link가 연결되어 있지 않아 SAFETY RESET을 출력할 수 없습니다.");
+		ShowMessage(GetLangStr("MSG_CCLINK_NOT_CONNECTED"));
 }
 //---------------------------------------------------------------------------
 //--------------------     언어 변경          -------------------------------
@@ -304,6 +304,7 @@ UnicodeString __fastcall TBaseForm::GetLangStr(AnsiString key)
 {
     // 이미 메모리에 로드된 LangDict에서 값만 찾아서 반환 (매우 빠름)
     UnicodeString value = LangDict->Values[key];
+	value = StringReplace(value, L"\\r\\n", L"\r\n", TReplaceFlags() << rfReplaceAll);
     return value.IsEmpty() ? L" - " + key : value;
 }
 //---------------------------------------------------------------------------
@@ -475,12 +476,38 @@ void __fastcall TBaseForm::ChangeLanguage()
 	}
 
 	//* Base / Door / Config Forms
+	Button1->Caption = GetLangStr("CAP_CONFIGURATION");
+	AdvSmoothButton3->Caption = GetLangStr("CAP_SERVO_ALARM_LIST");
+	btnSafetyReset->Caption = GetLangStr("CAP_SAFETY_RESET");
+	lblManualOperation->Caption = GetLangStr("CAP_SMOKE_DETECTOR");
+	Label3->Caption = GetLangStr("CAP_CURRENT_VALUES");
+	rbAlarmClear->Caption = GetLangStr("CAP_ALARM_CLEAR");
+	btnSetValue->Caption = GetLangStr("CAP_SET_VALUE");
+	Label8->Caption = GetLangStr("CAP_ALARM_FLAG");
+	Label6->Caption = GetLangStr("CAP_OUTPUT_STATE");
 	btnKeyLock->Caption = GetLangStr("CAP_KEYLOCK_SET");
 	btnKeyUnLock->Caption = GetLangStr("CAP_KEYLOCK_RELEASE");
 	doorForm->Caption = GetLangStr("CAP_ALARM_OCCURRED");
 	doorForm->Label1->Caption = GetLangStr("CAP_ALARM_INFO");
 	doorForm->Label4->Caption = GetLangStr("CAP_ALARM_INFO");
+	doorForm->MainErr1->Caption = GetLangStr("CAP_DOOR") + " #1 " + GetLangStr("CAP_OPEN");
+	doorForm->MainErr2->Caption = GetLangStr("CAP_DOOR") + " #2 " + GetLangStr("CAP_OPEN");
+	doorForm->MainErr3->Caption = GetLangStr("CAP_EMG_STOP");
 	doorForm->MainErr5->Caption = GetLangStr("CAP_KEYLOCK_RELEASE");
+	doorForm->okBtn->Caption = GetLangStr("CAP_OK");
+	doorForm->AdvSmoothButton4->Caption = GetLangStr("CAP_BUZZER_STOP");
+	doorForm->lblSafetyResetGuide->Caption = GetLangStr("CAP_PRESS_RESET_BUTTON");
+	doorForm->StaticText1->Caption = GetLangStr("CAP_CLOSE_DOOR_GUIDE");
+	doorForm->StaticText2->Caption = GetLangStr("CAP_RELEASE_EMERGENCY_SWITCH");
+	doorForm->lblRecoverySequence->Caption = GetLangStr("CAP_RECOVERY_SEQUENCE");
+	doorForm->btnSafetyResetDoor->Caption = GetLangStr("CAP_SAFETY_RESET");
+	doorForm->Label3->Caption = GetLangStr("CAP_ALARM_POSITION");
+	doorForm->perr1->Caption = GetLangStr("CAP_DOOR") + " #1";
+	doorForm->perr2->Caption = GetLangStr("CAP_DOOR") + " #2";
+	doorForm->perr3->Caption = GetLangStr("CAP_EMG_STOP");
+	doorForm->Panel61->Caption = GetLangStr("CAP_PASSWORD");
+	doorForm->cancelBtn2->Caption = GetLangStr("CAP_CANCEL");
+	doorForm->PasswordBtn->Caption = GetLangStr("CAP_OK");
 	doorForm->btnSetKEYLOCK->Caption = GetLangStr("CAP_KEYLOCK_SET");
 	doorForm->btnKeyUnlock->Caption = GetLangStr("CAP_KEYLOCK_RELEASE");
 	doorForm->btnSetBypass->Caption = GetLangStr("CAP_BYPASS_SET");
@@ -489,12 +516,30 @@ void __fastcall TBaseForm::ChangeLanguage()
 	doorForm->btnGripper1Open->Caption = GetLangStr("CAP_GRIPPER") + " #1 " + GetLangStr("CAP_OPEN");
 	doorForm->btnGripper2Open->Caption = GetLangStr("CAP_GRIPPER") + " #2 " + GetLangStr("CAP_OPEN");
 	doorForm->stopBtn->Caption = GetLangStr("CAP_STOP_MOVING");
+	ConfigForm->Caption = GetLangStr("CAP_CONFIGURATION");
+	ConfigForm->AdvSmoothLabel1->Caption->Text = GetLangStr("CAP_CONFIGURATION");
+	ConfigForm->btnConMes->Caption = GetLangStr("CAP_CONNECT");
+	ConfigForm->btnDisconMes->Caption = GetLangStr("CAP_DISCONNECT");
+	ConfigForm->GroupBox3->Caption = GetLangStr("CAP_STAGE_INFO");
+	ConfigForm->AdvSmoothButton2->Caption = GetLangStr("CAP_SAVE");
+	ConfigForm->AdvSmoothButton3->Caption = GetLangStr("CAP_CANCEL");
+	ConfigForm->btnConPLC->Caption = GetLangStr("CAP_CONNECT");
+	ConfigForm->btnDisconPLC->Caption = GetLangStr("CAP_DISCONNECT");
+	ConfigForm->GroupBoxBcr->Caption = GetLangStr("CAP_BARCODE_READER") + " (SRX100W)";
+	ConfigForm->btnBcrSourceConn->Caption = GetLangStr("CAP_SOURCE") + " " + GetLangStr("CAP_CONNECT");
+	ConfigForm->btnBcrSourceDisconn->Caption = GetLangStr("CAP_SOURCE") + " " + GetLangStr("CAP_DISCONNECT");
+	ConfigForm->btnBcrTargetConn->Caption = GetLangStr("CAP_TARGET") + " " + GetLangStr("CAP_CONNECT");
+	ConfigForm->btnBcrTargetDisconn->Caption = GetLangStr("CAP_TARGET") + " " + GetLangStr("CAP_DISCONNECT");
+	ConfigForm->GroupBoxSmoke->Caption = GetLangStr("CAP_SMOKE_DETECTOR");
+	ConfigForm->btnSmokeConn->Caption = GetLangStr("CAP_CONNECT");
+	ConfigForm->btnSmokeDisconn->Caption = GetLangStr("CAP_DISCONNECT");
 	ConfigForm->GroupBox5->Caption = GetLangStr("CAP_MACHINE_SELECT");
 	ConfigForm->Panel6->Caption = GetLangStr("CAP_MODEL_NO");
 	ConfigForm->GroupBox2->Caption = GetLangStr("CAP_Z_UP_ON_MOVE");
 	ConfigForm->chkZAxisUp->Caption = GetLangStr("CAP_Z_UP");
 
     //* LoadFactor Form
+	loadfactorForm->Caption = GetLangStr("CAP_LOAD_FACTOR_INFO");
     loadfactorForm->pnlXAxis->Caption = GetLangStr("CAP_X_AXIS");
     loadfactorForm->pnlYAxis->Caption = GetLangStr("CAP_Y_AXIS");
     loadfactorForm->pnlZAxis->Caption = GetLangStr("CAP_Z_AXIS");
@@ -503,12 +548,32 @@ void __fastcall TBaseForm::ChangeLanguage()
     loadfactorForm->AdvSmoothButton_Cancel->Caption = GetLangStr("CAP_CANCEL");
 
     //* SERVO Alarm List
+	ServoAlarmListForm->Caption = GetLangStr("CAP_SERVO_ALARM_LIST");
     ServoAlarmListForm->gbSystemAlarm->Caption = GetLangStr("CAP_SYSTEM_ALARM");
     ServoAlarmListForm->gbServoAlarm->Caption = GetLangStr("CAP_SERVO_ALARM");
     ServoAlarmListForm->gbOPAlarm->Caption = GetLangStr("CAP_OP_ALARM");
     ServoAlarmListForm->gbSystemError->Caption = GetLangStr("CAP_SYSTEM_ERROR");
 
+	//* Common Error Forms
+	ErrorForm_bcr->Caption = GetLangStr("CAP_BARCODE_ERROR");
+	ErrorForm_bcr->ignoreBtn->Caption = GetLangStr("CAP_NORMAL_PROGRESS");
+	ErrorForm_bcr->btnScan->Caption = GetLangStr("CAP_SCAN_BARCODE_60S");
+	ErrorForm_bcr->AdvSmoothButton5->Caption = GetLangStr("CAP_BUZZER_STOP");
+	ErrorForm_limit->Caption = GetLangStr("CAP_NG_LIMITS");
+	ErrorForm_limit->ignoreBtn->Caption = GetLangStr("CAP_NORMAL_PROGRESS");
+	ErrorForm_limit->AdvSmoothButton1->Caption = GetLangStr("CAP_TRAY_OUT");
+	ErrorForm_limit->AdvSmoothButton5->Caption = GetLangStr("CAP_BUZZER_STOP");
+	ErrorForm_mes->Caption = GetLangStr("CAP_MES_ERROR");
+	ErrorForm_mes->ignoreBtn->Caption = GetLangStr("CAP_FORCED_TRAY_OUT");
+	ErrorForm_mes->retryBtn->Caption = GetLangStr("CAP_RETRY");
+	ErrorForm_mes->AdvSmoothButton5->Caption = GetLangStr("CAP_BUZZER_STOP");
+
     //* FormError_insert
+	ErrorForm_insert->Caption = GetLangStr("CAP_INSERT_ERROR");
+	ErrorForm_insert->ignoreBtn->Caption = GetLangStr("CAP_INSERT_COMPLETE");
+	ErrorForm_insert->retryBtn->Caption = GetLangStr("CAP_RETRY");
+	ErrorForm_insert->AdvSmoothButton1->Caption = GetLangStr("CAP_MANUAL_SWITCHING");
+	ErrorForm_insert->AdvSmoothButton5->Caption = GetLangStr("CAP_BUZZER_STOP");
     ErrorForm_insert->lblTitle->Caption = GetLangStr("CAP_ERROR_CHANNEL_INFO");
     ErrorForm_insert->pnlGripperNo->Caption = GetLangStr("CAP_GRIPPER_NO");
     ErrorForm_insert->pnlSourceChannel->Caption = GetLangStr("CAP_SOURCE_CHANNEL");
@@ -526,6 +591,11 @@ void __fastcall TBaseForm::ChangeLanguage()
     ErrorForm_insert->pcell1->Caption = GetLangStr("CAP_CELL");
 
     //* FormError_eject
+	ErrorForm_eject->Caption = GetLangStr("CAP_EJECT_ERROR");
+	ErrorForm_eject->ignoreBtn->Caption = GetLangStr("CAP_EJECT_COMPLETE");
+	ErrorForm_eject->retryBtn->Caption = GetLangStr("CAP_RETRY");
+	ErrorForm_eject->AdvSmoothButton3->Caption = GetLangStr("CAP_MANUAL_SWITCHING");
+	ErrorForm_eject->AdvSmoothButton5->Caption = GetLangStr("CAP_BUZZER_STOP");
     ErrorForm_eject->lblTitle->Caption = GetLangStr("CAP_ERROR_CHANNEL_INFO");
     ErrorForm_eject->pnlGripperNo->Caption = GetLangStr("CAP_GRIPPER_NO");
     ErrorForm_eject->pnlSourceChannel->Caption = GetLangStr("CAP_SOURCE_CHANNEL");
@@ -541,6 +611,51 @@ void __fastcall TBaseForm::ChangeLanguage()
     ErrorForm_eject->popen1->Caption = GetLangStr("CAP_OPEN");
     ErrorForm_eject->pclose1->Caption = GetLangStr("CAP_CLOSE");
     ErrorForm_eject->pcell1->Caption = GetLangStr("CAP_CELL");
+
+	TLabel *insertGrip[5] = { ErrorForm_insert->Label14, ErrorForm_insert->Label17,
+		ErrorForm_insert->Label20, ErrorForm_insert->Label23, ErrorForm_insert->Label26 };
+	TLabel *insertUpDown[5] = { ErrorForm_insert->Label15, ErrorForm_insert->Label18,
+		ErrorForm_insert->Label21, ErrorForm_insert->Label24, ErrorForm_insert->Label27 };
+	TLabel *insertOpenClose[5] = { ErrorForm_insert->Label16, ErrorForm_insert->Label19,
+		ErrorForm_insert->Label22, ErrorForm_insert->Label25, ErrorForm_insert->Label28 };
+	TPanel *insertDown[5] = { ErrorForm_insert->pdn2, ErrorForm_insert->pdn3, ErrorForm_insert->pdn4, ErrorForm_insert->pdn5, ErrorForm_insert->pdn6 };
+	TPanel *insertUp[5] = { ErrorForm_insert->pup2, ErrorForm_insert->pup3, ErrorForm_insert->pup4, ErrorForm_insert->pup5, ErrorForm_insert->pup6 };
+	TPanel *insertFlow[5] = { ErrorForm_insert->pflow2, ErrorForm_insert->pflow3, ErrorForm_insert->pflow4, ErrorForm_insert->pflow5, ErrorForm_insert->pflow6 };
+	TPanel *insertOpen[5] = { ErrorForm_insert->popen2, ErrorForm_insert->popen3, ErrorForm_insert->popen4, ErrorForm_insert->popen5, ErrorForm_insert->popen6 };
+	TPanel *insertClose[5] = { ErrorForm_insert->pclose2, ErrorForm_insert->pclose3, ErrorForm_insert->pclose4, ErrorForm_insert->pclose5, ErrorForm_insert->pclose6 };
+	TPanel *insertCell[5] = { ErrorForm_insert->pcell2, ErrorForm_insert->pcell3, ErrorForm_insert->pcell4, ErrorForm_insert->pcell5, ErrorForm_insert->pcell6 };
+	TLabel *ejectGrip[5] = { ErrorForm_eject->Label14, ErrorForm_eject->Label17,
+		ErrorForm_eject->Label20, ErrorForm_eject->Label23, ErrorForm_eject->Label26 };
+	TLabel *ejectUpDown[5] = { ErrorForm_eject->Label15, ErrorForm_eject->Label18,
+		ErrorForm_eject->Label21, ErrorForm_eject->Label24, ErrorForm_eject->Label27 };
+	TLabel *ejectOpenClose[5] = { ErrorForm_eject->Label16, ErrorForm_eject->Label19,
+		ErrorForm_eject->Label22, ErrorForm_eject->Label25, ErrorForm_eject->Label28 };
+	TPanel *ejectDown[5] = { ErrorForm_eject->pdn2, ErrorForm_eject->pdn3, ErrorForm_eject->pdn4, ErrorForm_eject->pdn5, ErrorForm_eject->pdn6 };
+	TPanel *ejectUp[5] = { ErrorForm_eject->pup2, ErrorForm_eject->pup3, ErrorForm_eject->pup4, ErrorForm_eject->pup5, ErrorForm_eject->pup6 };
+	TPanel *ejectFlow[5] = { ErrorForm_eject->pflow2, ErrorForm_eject->pflow3, ErrorForm_eject->pflow4, ErrorForm_eject->pflow5, ErrorForm_eject->pflow6 };
+	TPanel *ejectOpen[5] = { ErrorForm_eject->popen2, ErrorForm_eject->popen3, ErrorForm_eject->popen4, ErrorForm_eject->popen5, ErrorForm_eject->popen6 };
+	TPanel *ejectClose[5] = { ErrorForm_eject->pclose2, ErrorForm_eject->pclose3, ErrorForm_eject->pclose4, ErrorForm_eject->pclose5, ErrorForm_eject->pclose6 };
+	TPanel *ejectCell[5] = { ErrorForm_eject->pcell2, ErrorForm_eject->pcell3, ErrorForm_eject->pcell4, ErrorForm_eject->pcell5, ErrorForm_eject->pcell6 };
+	for(int i = 0; i < 5; i++) {
+		insertGrip[i]->Caption = GetLangStr("CAP_GRIPPER") + " #" + IntToStr(i + 2);
+		insertUpDown[i]->Caption = GetLangStr("CAP_UP_DOWN");
+		insertOpenClose[i]->Caption = GetLangStr("CAP_OPEN_CLOSE");
+		insertDown[i]->Caption = GetLangStr("CAP_DOWN");
+		insertUp[i]->Caption = GetLangStr("CAP_UP");
+		insertFlow[i]->Caption = GetLangStr("CAP_FLOW");
+		insertOpen[i]->Caption = GetLangStr("CAP_OPEN");
+		insertClose[i]->Caption = GetLangStr("CAP_CLOSE");
+		insertCell[i]->Caption = GetLangStr("CAP_CELL");
+		ejectGrip[i]->Caption = GetLangStr("CAP_GRIPPER") + " #" + IntToStr(i + 2);
+		ejectUpDown[i]->Caption = GetLangStr("CAP_UP_DOWN");
+		ejectOpenClose[i]->Caption = GetLangStr("CAP_OPEN_CLOSE");
+		ejectDown[i]->Caption = GetLangStr("CAP_DOWN");
+		ejectUp[i]->Caption = GetLangStr("CAP_UP");
+		ejectFlow[i]->Caption = GetLangStr("CAP_FLOW");
+		ejectOpen[i]->Caption = GetLangStr("CAP_OPEN");
+		ejectClose[i]->Caption = GetLangStr("CAP_CLOSE");
+		ejectCell[i]->Caption = GetLangStr("CAP_CELL");
+	}
 }
 void __fastcall TBaseForm::AdvSmoothButton4Click(TObject *Sender)
 {

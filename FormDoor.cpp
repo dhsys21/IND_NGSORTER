@@ -215,11 +215,11 @@ void __fastcall TdoorForm::okBtnClick(TObject *Sender)
 {
 	// Keep the recovery form open if either door-open input blocks KEYLOCK setting.
 	if(!robostar->CanSetKeyLock()){
-		ShowMessage(L"Close Door #1 and Door #2 before setting KEYLOCK.\n\nX0026/X0027 must both be OFF.");
+		ShowMessage(BaseForm->GetLangStr("MSG_CLOSE_DOORS_FOR_KEYLOCK"));
 		return;
 	}
 	if(!robostar->KeyLock(true)){
-		ShowMessage(L"KEYLOCK set command was rejected by the safety interlock.");
+		ShowMessage(BaseForm->GetLangStr("MSG_KEYLOCK_REJECTED"));
 		return;
 	}
 	errTimer->Enabled = false;
@@ -235,11 +235,11 @@ void __fastcall TdoorForm::btnSetKEYLOCKClick(TObject *Sender)
 {
 	// X0026/X0027 ON means Door #1/#2 is open. KEYLOCK setting is prohibited.
 	if(!robostar->CanSetKeyLock()){
-		ShowMessage(L"Close Door #1 and Door #2 before setting KEYLOCK.\n\nX0026/X0027 must both be OFF.");
+		ShowMessage(BaseForm->GetLangStr("MSG_CLOSE_DOORS_FOR_KEYLOCK"));
 		return;
 	}
 	if(!robostar->KeyLock(true))
-		ShowMessage(L"KEYLOCK set command was rejected by the safety interlock.");
+		ShowMessage(BaseForm->GetLangStr("MSG_KEYLOCK_REJECTED"));
 }
 //---------------------------------------------------------------------------
 void __fastcall TdoorForm::btnSetBypassClick(TObject *Sender)
@@ -249,13 +249,13 @@ void __fastcall TdoorForm::btnSetBypassClick(TObject *Sender)
 		bool keyLockSet = robostar->gripper.DOOR_LEFT_CLOSE
 			&& robostar->gripper.DOOR_RIGHT_CLOSE && robostar->IsKeyLockActive();
 		if(!keyLockSet || robostar->IsBypassActive())
-			ShowMessage(L"Set KEYLOCK completely before enabling BY-PASS SOL.");
+			ShowMessage(BaseForm->GetLangStr("MSG_BYPASS_SET_FIRST"));
 		else
-			ShowMessage(L"Turn the hardware BY-PASS key to ON before enabling BY-PASS SOL.");
+			ShowMessage(BaseForm->GetLangStr("MSG_BYPASS_KEY_ON"));
 		return;
 	}
 	if(!robostar->Bypass(true))
-		ShowMessage(L"BY-PASS SOL command was rejected by the safety interlock.");
+		ShowMessage(BaseForm->GetLangStr("MSG_BYPASS_REJECTED"));
 }
 //---------------------------------------------------------------------------
 
@@ -343,13 +343,13 @@ void __fastcall TdoorForm::btnGripper2OpenMouseDown(TObject *Sender, TMouseButto
 void __fastcall TdoorForm::btnKeyUnlockClick(TObject *Sender)
 {
 	if(!robostar->KeyLock(false))
-		ShowMessage(L"KEYLOCK release requires manual mode and the hardware BY-PASS switch ON.");
+		ShowMessage(BaseForm->GetLangStr("MSG_KEYLOCK_RELEASE_REQUIREMENTS"));
 }
 //---------------------------------------------------------------------------
 void __fastcall TdoorForm::btnSafetyResetDoorClick(TObject *Sender)
 {
 	if(!robostar->RequestSafetyResetPulse())
-		ShowMessage(L"Cannot output SAFETY RESET because CC-Link is not connected.");
+		ShowMessage(BaseForm->GetLangStr("MSG_CCLINK_NOT_CONNECTED"));
 }//---------------------------------------------------------------------------
 void __fastcall TdoorForm::Label3DblClick(TObject *Sender)
 {
