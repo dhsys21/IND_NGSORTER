@@ -277,8 +277,16 @@ void __fastcall TMainForm::BeginProcessStep(int stepNo, AnsiString detail)
 	if(stepNo == 1 && currentProcessStep != 1){
 		for(int i = 0; i < 16; ++i) processStepComplete[i] = false;
 	}
+	// A new cell cycle returns from WAIT/NEXT CHECK to NG selection.
+	// Clear only the per-cell steps so the next MOVE/EJECT/INSERT progress is visible.
+	if(currentProcessStep == 13 && stepNo == 7){
+		for(int i = 6; i <= 12; ++i){
+			processStepComplete[i] = false;
+			lastProcessWaitStatus[i] = "";
+		}
+	}
 	// Keep every preceding process panel lime once the sequence advances.
-	// Repeated sorting (STEP 13 -> STEP 07) does not clear prior completions.
+	// Steps before the active cell cycle remain complete.
 	for(int i = 0; i < stepNo - 1; ++i)
 		processStepComplete[i] = true;
 	bool changed = currentProcessStep != stepNo;

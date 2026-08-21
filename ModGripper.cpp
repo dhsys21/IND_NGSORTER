@@ -525,18 +525,40 @@ void __fastcall Tgripper::Inserting()
 			break;
 		default:
 			if(step.step == 5){
-				// Always finish the current insert cycle at the wait position.
-				// The next NG search starts only after WaitPosition reports seqIdle.
-				MainForm->BeginProcessStep(13, "WAIT POSITION move / next NG check");
-				MainForm->memoGripperLineAdd("[Insert complete] WAIT POSITION MOVE START");
+				bool hasNextNg = false;
+				for(int i = 0; i < MainForm->tray_source.SLOT_COUNT && i < 96; ++i){
+					if(MainForm->tray_source.CELL_EXIST[i] &&
+						MainForm->tray_source.RANK[i].Trim().UpperCase() == "NG" &&
+						MainForm->tray_source.PICK[i] == "Y"){
+						hasNextNg = true;
+						break;
+					}
+				}
+				bool directNextNg = hasNextNg && MainForm->tray_target.remainCnt > 0;
+
+				MainForm->BeginProcessStep(13, directNextNg ?
+					"NEXT NG found / direct move to next Source channel" :
+					(hasNextNg ? "TARGET FULL / move to WAIT POSITION" :
+					"NO NEXT NG / move to WAIT POSITION"));
+				if(directNextNg)
+					MainForm->memoGripperLineAdd("[CYCLE] NEXT NG FOUND -> BYPASS WAIT POSITION");
 				MainForm->NotifyIdMatching_target("1");	// 삽입 완료시마다 보고
-				robostar->req_WaitPosition();
-				step.step = 6;
+				if(directNextNg){
+					MainForm->CompleteProcessStep(13,
+						"NEXT NG found / Next Step=07 / WAIT POSITION bypassed");
+					// Keep Z at zero and let AutoEject move X/Y directly from the
+					// Target tray to the next Source NG channel.
+					InitSequence(seqInit, seqSorting);
+				}else{
+					MainForm->memoGripperLineAdd("[Insert complete] WAIT POSITION MOVE START");
+					robostar->req_WaitPosition();
+					step.step = 6;
+				}
 			}
 			else if(step.step == 6 && robostar->seq == seqIdle){
 				MainForm->memoGripperLineAdd("[Insert complete] WAIT POSITION MOVE COMPLETE");
 				MainForm->CompleteProcessStep(13, "WAIT POSITION complete / Next Step=07");
-				MainForm->memoGripperLineAdd("[CYCLE] CHECK NEXT NG CHANNEL");
+				MainForm->memoGripperLineAdd("[CYCLE] NO NEXT NG OR TARGET FULL -> FINAL CHECK");
 				InitSequence(seqInit, seqSorting);
 			}
 			break;
