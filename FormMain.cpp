@@ -165,6 +165,7 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	targetTrayInfoPromptActive = false;
 	targetTrayInfoActiveId = "";
 	opcMesTimer = new TTimer(this);
+	opcMesTimer->Name = "opcMesTimer"; // Required while modal FMS/LOCAL selection pauses this runtime timer.
 	opcMesTimer->Enabled = false;
 	opcMesTimer->Interval = 200;
 	opcMesTimer->OnTimer = opcMesTimerTimer;
@@ -790,9 +791,13 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 			opcTrayLoadPending[i] = false;
 			opcTrayLoadWaitResponseOff[i] = false;
 			opcTrayLoadResponseOffError[i] = false;
-			ProcessStepLog(stepNo, "ERROR - TrayLoadResponse=" + IntToStr(response));
+			AnsiString validationError = MesOpc != NULL ?
+				MesOpc->TRAY_LOAD_VALIDATION_ERROR(sourceTray) : AnsiString("");
+			ProcessStepLog(stepNo, "ERROR - TrayLoadResponse=" + IntToStr(response) +
+				(validationError.IsEmpty() ? AnsiString("") : " / " + validationError));
 			ShowCommonError(trayName + " tray load failed",
-				"Check FMS TrayLoadResponse and tray information.");
+				validationError.IsEmpty() ?
+					AnsiString("Check FMS TrayLoadResponse and tray information.") : validationError);
 		}
 		else if ((DWORD)(GetTickCount() - opcTrayLoadStartTick[i]) >= RESPONSE_TIMEOUT_MS)
 		{

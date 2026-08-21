@@ -203,7 +203,29 @@ void __fastcall TteachForm::tClick(TObject *Sender)
 		//* 이동채널 pnl->Caption->Text
 		int ch = pnl->Tag;
         if(CheckMoveTargetChannel(ch-1) == false){
-			ShowMessage(BaseForm->GetLangStr("MSG_GRIPPER_MOVE_ERR2")  + IntToStr(ch));
+			//* Teaching target move interlock log
+			int channelIndex = ch - 1;
+			AnsiString channelState = "INVALID";
+			AnsiString cellExist = "UNKNOWN";
+			AnsiString pick = "UNKNOWN";
+			if(channelIndex >= 0 && channelIndex < TraySlotCount){
+				TColor channelColor = MainForm->color_target[channelIndex/24][23-(channelIndex%24)];
+				if(channelColor == clInactiveCaption)
+					channelState = "OCCUPIED(INACTIVE)";
+				else if(channelColor == clSilver)
+					channelState = "OCCUPIED(SILVER)";
+				else
+					channelState = "COLOR=" + IntToStr((int)channelColor);
+				cellExist = MainForm->tray_target.CELL_EXIST[channelIndex] ? "true" : "false";
+				pick = MainForm->tray_target.PICK[channelIndex];
+			}
+			AnsiString detail = "TargetCh=" + IntToStr(ch) + " ChannelState=" + channelState +
+				" CELL_EXIST=" + cellExist + " PICK=" + pick +
+				" CCLINK_READY=" + IntToStr(robostar->IsCcLinkReady() ? 1 : 0) +
+				" X0022=" + IntToStr(robostar->input.GRIPPER1_CELL_DETECT ? 1 : 0) +
+				" GripperCellDetected=" + IntToStr(robostar->getCellDetectStatus() ? 1 : 0);
+			MainForm->WriteErrorLog("Teaching target move blocked", detail);
+			MainForm->memoRobostarLineAdd("[TEACHING INTERLOCK] " + detail);
         } else{
 			str = "[" + sCombo->Text + "] " + BaseForm->GetLangStr("MSG_TARGETTRAY_MOVE_Q") + pnl->Caption->Text;
             if(MessageBox(Handle, str.c_str(), L"MOVE", MB_YESNO|MB_ICONQUESTION) == ID_YES){

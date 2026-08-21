@@ -360,7 +360,7 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 		return;
 	}
 	if(!bsrc){
-		ProcessStepLog(5, "PREPARE - restore/create local Target tray information / TrayId=" + strTray);
+		ProcessStepLog(5, "PREPARE - load LOCAL Target tray information for FMS comparison / TrayId=" + strTray);
 		//* 불량트레이 관리
 		// 모달 확인창이 열린 동안 타이머가 다시 스캔을 호출해도 중첩 진입하지 않는다.
 		if(targetTrayInfoPromptActive){
@@ -371,7 +371,9 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 		int prepareResult = 0;
 		try{
 			// 바코드를 읽은 직후 기존 정보를 확인하고, 취소 시 FMS 요청도 보내지 않는다.
-			prepareResult = RestoreTargetTrayInfo(strTray, true);
+			// Use the dedicated FMS/LOCAL comparison dialog after TrackIn validation.
+			// Do not show the legacy Yes/No confirmation before the FMS request.
+			prepareResult = RestoreTargetTrayInfo(strTray, false);
 		}
 		catch(...){
 			targetTrayInfoPromptActive = false;
@@ -385,7 +387,7 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 			tray = &tray_target;
 			return;
 		}
-		ProcessStepLog(5, "READY - local Target tray information prepared / next=TrayLoad Request");
+		ProcessStepLog(5, "READY - LOCAL Target tray information loaded / next=Location2 TrayLoad Request and FMS comparison");
 	}
 	opcTrayLoadRetryRequired[index] = false;
 	opcTrayDisplayed[index] = false;

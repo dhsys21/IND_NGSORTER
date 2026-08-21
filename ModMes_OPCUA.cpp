@@ -7,6 +7,9 @@
 #include "ModMes_Gateway.h"
 
 #include <SysUtils.hpp>
+#include <Vcl.ExtCtrls.hpp>
+#include <Vcl.Forms.hpp>
+#include <Vcl.StdCtrls.hpp>
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma classgroup "Vcl.Controls.TControl"
@@ -16,6 +19,9 @@ TMesOpc *MesOpc;
 static const UnicodeString TAG_SOURCE = L"NGS.F1NGS01.Location1";
 static const UnicodeString TAG_TARGET = L"NGS.F1NGS01.Location2";
 static AnsiString GTrayLoadValidationError[2];
+static bool GTargetInfoPromptActive = false;
+static UnicodeString GTargetInfoResolvedTrayId = L"";
+static int GTargetInfoResolvedChoice = 0;
 
 static void SetTrayLoadValidationError(bool SourceTray, const AnsiString &Message)
 {
@@ -475,74 +481,276 @@ static void ApplyTargetTrackInCells(TRAY_INFO *Tray)
 	}
 }
 //---------------------------------------------------------------------------
-static bool MergeTargetSavedCells(TRAY_INFO *Target,
-	const SAVE_TRAY_INFO &Saved, const UnicodeString &TargetTrayId)
+//* 불량트레이 관리
+// Location2 TrackIn과 로컬 작업 파일의 핵심 셀 정보를 비교하고 사용할
+// 데이터를 작업자가 선택한다. PICK은 설비 내부 상태이므로 비교하지 않는다.
+static AnsiString TargetCellSummary(int Channel, const AnsiString &CellId,
+	const AnsiString &LotId, bool CellExist, const AnsiString &NgCode,
+	const AnsiString &Grade, bool WorkFlag)
 {
-	if (Target == NULL)
-		return false;
-
-	if (!SameText(Saved.LOT_ID.Trim(), AnsiString(TargetTrayId).Trim()))
-		return true;
-
-	int CompletedMerged = 0;
-	int ReservationsCleared = 0;
+	return "CellNo=" + IntToStr(Channel + 1) +
+		" CellId=" + (CellId.Trim().IsEmpty() ? AnsiString("<empty>") : CellId.Trim()) +
+		" LotId=" + (LotId.Trim().IsEmpty() ? AnsiString("<empty>") : LotId.Trim()) +
+		" CellExist=" + AnsiString(CellExist ? "true" : "false") +
+		" NGCode=" + (NgCode.Trim().IsEmpty() ? AnsiString("<empty>") : NgCode.Trim()) +
+		" Grade=" + (Grade.Trim().IsEmpty() ? AnsiString("<empty>") : Grade.Trim()) +
+		" WorkFlag=" + AnsiString(WorkFlag ? "true" : "false");
+}
+//---------------------------------------------------------------------------
+static void ClearSavedTargetReservations(SAVE_TRAY_INFO &Saved)
+{
 	for (int Channel = 0; Channel < 96; ++Channel)
 	{
-		// INIT WORK/reload must never restore an unfinished reservation.
-		if (Saved.PICK[Channel] == "R" && !Saved.CELL_EXIST[Channel])
-		{
-			++ReservationsCleared;
+		// PICK is equipment-only state. An unfinished reservation must never be
+		// restored after INIT WORK, restart, or an FMS/local selection.
+		if (Saved.PICK[Channel] != "R" || Saved.CELL_EXIST[Channel])
 			continue;
-		}
-		if (!Saved.CELL_EXIST[Channel] || Saved.SLOT_ID[Channel].IsEmpty())
-			continue;
-
-		if (Target->CELL_EXIST[Channel])
-		{
-			if (!Target->SLOT_ID[Channel].IsEmpty() &&
-				Target->SLOT_ID[Channel] != Saved.SLOT_ID[Channel])
-			{
-				LogOpcEvent("TARGET TRACKIN/LOCAL CONFLICT Channel=" +
-					IntToStr(Channel + 1) + " FmsCellId=" +
-					Target->SLOT_ID[Channel] + " LocalCellId=" +
-					Saved.SLOT_ID[Channel], true);
-				SetTrayLoadValidationError(false,
-					"Location2 TrackIn/local data conflict\r\nChannel      : " +
-					IntToStr(Channel + 1) + "\r\nFMS CellId   : " +
-					Target->SLOT_ID[Channel] + "\r\nLocal CellId : " +
-					Saved.SLOT_ID[Channel]);
-				return false;
-			}
-			continue;
-		}
-
-		// Preserve cells physically inserted during this Source cycle. FMS
-		// Location2 TrackIn remains the initial snapshot until final TrackOut.
-		Target->SLOT_POSITION[Channel] = IntToStr(Channel + 1);
-		Target->SLOT_ID[Channel] = Saved.SLOT_ID[Channel];
-		Target->CELL_LOT_ID[Channel] = Saved.CELL_LOT_ID[Channel];
-		Target->CELL_EXIST[Channel] = true;
-		Target->WORK_FLAG[Channel] = Saved.WORK_FLAG[Channel];
-		Target->LOSS_CD[Channel] = Saved.LOSS_CD[Channel];
-		Target->RANK[Channel] = Saved.RANK[Channel];
-		Target->PICK[Channel] = "Y";
-		++CompletedMerged;
+		Saved.SLOT_POSITION[Channel] = IntToStr(Channel + 1);
+		Saved.SLOT_ID[Channel] = "";
+		Saved.CELL_LOT_ID[Channel] = "";
+		Saved.CELL_EXIST[Channel] = false;
+		Saved.WORK_FLAG[Channel] = false;
+		Saved.LOSS_CD[Channel] = "";
+		Saved.RANK[Channel] = "";
+		Saved.PICK[Channel] = "N";
 	}
-
+}
+//---------------------------------------------------------------------------
+static bool SavedTargetHasCoreData(const SAVE_TRAY_INFO &Saved)
+{
+	for (int Channel = 0; Channel < 96; ++Channel)
+	{
+		if (Saved.CELL_EXIST[Channel] || Saved.WORK_FLAG[Channel] ||
+			!Saved.SLOT_ID[Channel].Trim().IsEmpty() ||
+			!Saved.CELL_LOT_ID[Channel].Trim().IsEmpty() ||
+			!Saved.LOSS_CD[Channel].Trim().IsEmpty() ||
+			!Saved.RANK[Channel].Trim().IsEmpty())
+			return true;
+	}
+	return false;
+}
+//---------------------------------------------------------------------------
+static void ApplySavedTarget(TRAY_INFO *Target, const SAVE_TRAY_INFO &Saved)
+{
+	ClearTrayCells(Target);
+	Target->SLOT_COUNT = 96;
 	Target->remainCnt = 0;
 	Target->empTray = true;
 	for (int Channel = 0; Channel < 96; ++Channel)
 	{
+		Target->SLOT_POSITION[Channel] = IntToStr(Channel + 1);
+		Target->SLOT_ID[Channel] = Saved.SLOT_ID[Channel].Trim();
+		Target->CELL_LOT_ID[Channel] = Saved.CELL_LOT_ID[Channel].Trim();
+		Target->CELL_EXIST[Channel] = Saved.CELL_EXIST[Channel];
+		Target->WORK_FLAG[Channel] = Saved.WORK_FLAG[Channel];
+		Target->LOSS_CD[Channel] = Saved.LOSS_CD[Channel].Trim();
+		Target->RANK[Channel] = Saved.RANK[Channel].Trim();
+		Target->PICK[Channel] = Target->CELL_EXIST[Channel] ? "Y" : "N";
 		if (Target->CELL_EXIST[Channel])
 			Target->empTray = false;
-		else if (Target->PICK[Channel] == "N")
+		else
 			++Target->remainCnt;
 	}
-	LogOpcEvent("TARGET WORKING MAP READY CompletedMerged=" +
-		IntToStr(CompletedMerged) + " ReservationsCleared=" +
-		IntToStr(ReservationsCleared) + " Remaining=" +
-		IntToStr(Target->remainCnt), true);
-	return true;
+}
+//---------------------------------------------------------------------------
+static int ShowTargetInformationChoice(const UnicodeString &TargetTrayId,
+	int FmsCount, int LocalCount, const AnsiString &Differences)
+{
+	TForm *Dialog = new TForm(MainForm);
+	int Result = mrCancel;
+	try
+	{
+		Dialog->Caption = "Target tray information conflict";
+		Dialog->BorderStyle = bsDialog;
+		Dialog->Position = poMainFormCenter;
+		Dialog->ClientWidth = 700;
+		Dialog->ClientHeight = 440;
+		Dialog->FormStyle = fsStayOnTop;
+
+		TLabel *Title = new TLabel(Dialog);
+		Title->Parent = Dialog;
+		Title->Left = 16;
+		Title->Top = 14;
+		Title->Width = 668;
+		Title->Height = 54;
+		Title->AutoSize = false;
+		Title->WordWrap = true;
+		Title->Font->Size = 11;
+		Title->Font->Style = TFontStyles() << fsBold;
+		Title->Caption = "Target tray information is different. Select the information to use.\r\n"
+			"TrayId=" + AnsiString(TargetTrayId) + " / FMS CellCount=" +
+			IntToStr(FmsCount) + " / LOCAL CellCount=" + IntToStr(LocalCount);
+
+		TMemo *Detail = new TMemo(Dialog);
+		Detail->Parent = Dialog;
+		Detail->Left = 16;
+		Detail->Top = 76;
+		Detail->Width = 668;
+		Detail->Height = 296;
+		Detail->ReadOnly = true;
+		Detail->ScrollBars = ssBoth;
+		Detail->WordWrap = false;
+		Detail->Lines->Text = Differences;
+
+		TButton *FmsButton = new TButton(Dialog);
+		FmsButton->Parent = Dialog;
+		FmsButton->Caption = "FMS";
+		FmsButton->Left = 382;
+		FmsButton->Top = 390;
+		FmsButton->Width = 92;
+		FmsButton->Height = 34;
+		FmsButton->ModalResult = mrYes;
+		FmsButton->Default = true;
+
+		TButton *LocalButton = new TButton(Dialog);
+		LocalButton->Parent = Dialog;
+		LocalButton->Caption = "LOCAL";
+		LocalButton->Left = 482;
+		LocalButton->Top = 390;
+		LocalButton->Width = 92;
+		LocalButton->Height = 34;
+		LocalButton->ModalResult = mrNo;
+
+		TButton *CancelButton = new TButton(Dialog);
+		CancelButton->Parent = Dialog;
+		CancelButton->Caption = "CANCEL";
+		CancelButton->Left = 582;
+		CancelButton->Top = 390;
+		CancelButton->Width = 102;
+		CancelButton->Height = 34;
+		CancelButton->ModalResult = mrCancel;
+		CancelButton->Cancel = true;
+
+		Result = Dialog->ShowModal();
+	}
+	__finally
+	{
+		delete Dialog;
+	}
+	return Result;
+}
+//---------------------------------------------------------------------------
+static bool ResolveTargetSavedCells(TRAY_INFO *Target,
+	const SAVE_TRAY_INFO &OriginalSaved, const UnicodeString &TargetTrayId)
+{
+	if (Target == NULL)
+		return false;
+
+	SAVE_TRAY_INFO Saved = OriginalSaved;
+	ClearSavedTargetReservations(Saved);
+	if (GTargetInfoResolvedChoice != 0 &&
+		SameText(GTargetInfoResolvedTrayId.Trim(), TargetTrayId.Trim()))
+	{
+		if (GTargetInfoResolvedChoice == mrNo)
+			ApplySavedTarget(Target, Saved);
+		LogOpcEvent("TARGET INFO SELECT reused for current TrayLoad Choice=" +
+			AnsiString(GTargetInfoResolvedChoice == mrNo ? "LOCAL" : "FMS") +
+			" TrayId=" + AnsiString(TargetTrayId), false);
+		return true;
+	}
+
+	if (!SameText(Saved.LOT_ID.Trim(), AnsiString(TargetTrayId).Trim()))
+	{
+		LogOpcEvent("TARGET INFO SELECT Choice=FMS Reason=no matching LOCAL TrayId", true);
+		return true;
+	}
+	if (!SavedTargetHasCoreData(Saved))
+	{
+		LogOpcEvent("TARGET INFO SELECT Choice=FMS Reason=LOCAL has no cell data TrayId=" +
+			AnsiString(TargetTrayId), true);
+		return true;
+	}
+
+	int FmsCount = CountExistingTrayCells(Target);
+	int LocalCount = 0;
+	int DifferenceCount = 0;
+	AnsiString Differences = "";
+	for (int Channel = 0; Channel < 96; ++Channel)
+	{
+		if (Saved.CELL_EXIST[Channel])
+			++LocalCount;
+		bool Different =
+			Target->SLOT_POSITION[Channel].ToIntDef(Channel + 1) !=
+				Saved.SLOT_POSITION[Channel].ToIntDef(Channel + 1) ||
+			Target->SLOT_ID[Channel].Trim() != Saved.SLOT_ID[Channel].Trim() ||
+			Target->CELL_LOT_ID[Channel].Trim() != Saved.CELL_LOT_ID[Channel].Trim() ||
+			Target->CELL_EXIST[Channel] != Saved.CELL_EXIST[Channel] ||
+			Target->WORK_FLAG[Channel] != Saved.WORK_FLAG[Channel] ||
+			Target->LOSS_CD[Channel].Trim() != Saved.LOSS_CD[Channel].Trim() ||
+			Target->RANK[Channel].Trim() != Saved.RANK[Channel].Trim();
+		if (Different)
+		{
+			++DifferenceCount;
+			Differences += "CH " + IntToStr(Channel + 1) + "\r\n  FMS   : " +
+				TargetCellSummary(Channel, Target->SLOT_ID[Channel],
+					Target->CELL_LOT_ID[Channel], Target->CELL_EXIST[Channel],
+					Target->LOSS_CD[Channel], Target->RANK[Channel],
+					Target->WORK_FLAG[Channel]) + "\r\n  LOCAL : " +
+				TargetCellSummary(Channel, Saved.SLOT_ID[Channel],
+					Saved.CELL_LOT_ID[Channel], Saved.CELL_EXIST[Channel],
+					Saved.LOSS_CD[Channel], Saved.RANK[Channel],
+					Saved.WORK_FLAG[Channel]) + "\r\n";
+		}
+	}
+
+	if (DifferenceCount == 0)
+	{
+		LogOpcEvent("TARGET INFO MATCH TrayId=" + AnsiString(TargetTrayId) +
+			" CellCount=" + IntToStr(FmsCount) + " / Choice=FMS", true);
+		return true;
+	}
+
+	LogOpcEvent("TARGET INFO DIFFERENT TrayId=" + AnsiString(TargetTrayId) +
+		" FmsCellCount=" + IntToStr(FmsCount) + " LocalCellCount=" +
+		IntToStr(LocalCount) + " DifferentChannels=" +
+		IntToStr(DifferenceCount), true);
+	LogOpcEvent("TARGET INFO DIFFERENCE DETAIL\r\n" + Differences, false);
+
+	// ShowModal pumps Windows messages. Without pausing this timer, the same
+	// TrayLoadResponse=1 is processed again and creates nested choice dialogs.
+	TTimer *OpcTimer = MainForm != NULL ?
+		dynamic_cast<TTimer*>(MainForm->FindComponent("opcMesTimer")) : NULL;
+	bool TimerWasEnabled = OpcTimer != NULL && OpcTimer->Enabled;
+	if (OpcTimer != NULL)
+		OpcTimer->Enabled = false;
+	int Choice = mrCancel;
+	try
+	{
+		GTargetInfoPromptActive = true;
+		LogOpcEvent("TARGET INFO SELECT dialog opened / OPC timer paused", false);
+		Choice = ShowTargetInformationChoice(TargetTrayId, FmsCount,
+			LocalCount, Differences);
+	}
+	__finally
+	{
+		GTargetInfoPromptActive = false;
+		if (OpcTimer != NULL)
+			OpcTimer->Enabled = TimerWasEnabled;
+	}
+	if (Choice == mrNo)
+	{
+		ApplySavedTarget(Target, Saved);
+		GTargetInfoResolvedTrayId = TargetTrayId;
+		GTargetInfoResolvedChoice = mrNo;
+		LogOpcEvent("TARGET INFO SELECT Choice=LOCAL TrayId=" +
+			AnsiString(TargetTrayId) + " CellCount=" + IntToStr(LocalCount), true);
+		return true;
+	}
+	if (Choice == mrYes)
+	{
+		GTargetInfoResolvedTrayId = TargetTrayId;
+		GTargetInfoResolvedChoice = mrYes;
+		LogOpcEvent("TARGET INFO SELECT Choice=FMS TrayId=" +
+			AnsiString(TargetTrayId) + " CellCount=" + IntToStr(FmsCount), true);
+		return true;
+	}
+
+	SetTrayLoadValidationError(false,
+		"Target tray information selection was cancelled. "
+		"Select FMS or LOCAL, then press Restart.");
+	LogOpcEvent("TARGET INFO SELECT CANCELLED TrayId=" +
+		AnsiString(TargetTrayId), true);
+	return false;
 }
 //---------------------------------------------------------------------------
 static void ApplyTrayDisplay(TRAY_INFO *Tray, const UnicodeString &TrayId,
@@ -708,8 +916,8 @@ bool __fastcall TMesOpc::DISPLAY_TRACK_IN_TRAYS()
 			MainForm->psort_ing[i]->Caption = CellExist ? "**" : "";
 	}
 
-	// Location2 TrackIn is the authoritative initial snapshot. Merge only
-	// completed local inserts; transient PICK=R reservations are discarded.
+	// Compare the validated Location2 snapshot with the local working file.
+	// The operator chooses FMS or LOCAL only when core cell data is different.
 	TRAY_INFO *Target = &MainForm->tray_target;
 	if(!ValidateTargetTrackInCells(true))
 		return false;
@@ -722,7 +930,7 @@ bool __fastcall TMesOpc::DISPLAY_TRACK_IN_TRAYS()
 		TargetTrayId = MainForm->pTrayid_target->Caption.Trim();
 	ClearTrayCells(Target);
 	ApplyTargetTrackInCells(Target);
-	if(!MergeTargetSavedCells(Target, SavedTarget, TargetTrayId))
+	if(!ResolveTargetSavedCells(Target, SavedTarget, TargetTrayId))
 		return false;
 	MainForm->setTrayInfo(1);
 	int TargetRecordCount = GetFmsInt(TrackInTag(TAG_TARGET, L"CellCount"));
@@ -772,6 +980,12 @@ void __fastcall TMesOpc::TRAY_LOAD_REQUEST(bool SourceTray)
 {
 	if (MainForm == NULL)
 		return;
+	if (!SourceTray)
+	{
+		// One FMS/LOCAL decision is valid for one Location2 TrayLoad request.
+		GTargetInfoResolvedTrayId = L"";
+		GTargetInfoResolvedChoice = 0;
+	}
 
 	UnicodeString Location = LocationFor(SourceTray);
 	TPanel *TrayIdPanel = TrayIdPanelFor(SourceTray);
@@ -816,6 +1030,11 @@ bool __fastcall TMesOpc::TRAY_LOAD_RESPONSE()
 //---------------------------------------------------------------------------
 int __fastcall TMesOpc::TRAY_LOAD_RESPONSE(bool SourceTray)
 {
+	// A modal choice dialog pumps messages. Ignore any nested timer callback
+	// until the operator has completed the current FMS/LOCAL decision.
+	if (!SourceTray && GTargetInfoPromptActive)
+		return 0;
+
 	UnicodeString Location = LocationFor(SourceTray);
 	UnicodeString ResponseKey = TrayProcessTag(Location, L"TrayLoadResponse");
 	int LocationIndex = SourceTray ? 0 : 1;
@@ -901,14 +1120,14 @@ int __fastcall TMesOpc::TRAY_LOAD_RESPONSE(bool SourceTray)
 		else
 		{
 			ApplyTargetTrackInCells(Tray);
-			if (!MergeTargetSavedCells(Tray, SavedTarget, TrayId))
+			if (!ResolveTargetSavedCells(Tray, SavedTarget, TrayId))
 			{
 				SetPcBool(TrayProcessTag(Location, L"TrayLoad"), false);
 				if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 				return -1;
 			}
 			DisplayCellCount = CountExistingTrayCells(Tray);
-			// Save the merged working snapshot immediately. The subsequent display
+			// Save the selected working snapshot immediately. The subsequent display
 			// restore therefore cannot resurrect stale PICK=R reservations.
 			if (MainForm != NULL)
 				MainForm->setTrayInfo(1);
