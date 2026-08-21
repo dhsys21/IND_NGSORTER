@@ -517,8 +517,8 @@ void __fastcall TMainForm::ReadSourceTrayBarcode()
 {
 	// Cycle test uses a fixed Source tray ID without triggering the reader.
 	if(cbCycle != NULL && cbCycle->Checked){
-		memoMainLineAdd("[CYCLE TEST] Source tray barcode reader bypass: Source1");
-		setBarcode(0, "Source1");
+		memoMainLineAdd("[CYCLE TEST] Source tray barcode reader bypass: TR-20260818-01A");
+		setBarcode(0, "TR-20260818-01A");
 		return;
 	}
 
@@ -530,8 +530,8 @@ void __fastcall TMainForm::ReadTargetTrayBarcode()
 {
 	// Cycle test bypasses the unconfigured Target/NG tray barcode reader.
 	if(cbCycle != NULL && cbCycle->Checked){
-		memoMainLineAdd("[CYCLE TEST] Target tray barcode reader bypass: NG00001");
-		setBarcode(1, "NG00001");
+		memoMainLineAdd("[CYCLE TEST] Target tray barcode reader bypass: TR-20260818-01A");
+		setBarcode(1, "TR-20260818-01A");
 		return;
 	}
 

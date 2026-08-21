@@ -13,8 +13,8 @@
 #pragma resource "*.dfm"
 TMesOpc *MesOpc;
 
-static const UnicodeString TAG_SOURCE = L"F1NGS01.Location1";
-static const UnicodeString TAG_TARGET = L"F1NGS01.Location2";
+static const UnicodeString TAG_SOURCE = L"NGS.F1NGS01.Location1";
+static const UnicodeString TAG_TARGET = L"NGS.F1NGS01.Location2";
 
 static UnicodeString TrayInfoTag(const UnicodeString &Location, const UnicodeString &Name)
 {
@@ -41,9 +41,14 @@ static UnicodeString CellTrackOutTag(const UnicodeString &Name)
 	return TAG_TARGET + L".CellTrackOut." + Name;
 }
 //---------------------------------------------------------------------------
+static UnicodeString CellRecordTag(const UnicodeString &Root, int Index)
+{
+	return Root + L".Cell.Cell[" + IntToStr(Index) + L"]";
+}
+//---------------------------------------------------------------------------
 static UnicodeString CellTag(const UnicodeString &Root, int Index, const UnicodeString &Name)
 {
-	return Root + L".Cell." + IntToStr(Index) + L"." + Name;
+	return CellRecordTag(Root, Index) + L"." + Name;
 }
 //---------------------------------------------------------------------------
 static bool IsCycleResponseBypass(void)
@@ -173,7 +178,7 @@ static bool ValidateSourceTrackInCells(bool LogFailure)
 	}
 
 	int Count = GetFmsInt(TrackInTag(L"CellCount"));
-	if (Count <= 0 || Count > 96)
+	if (Count < 0 || Count > 96)
 	{
 		if(LogFailure) LogOpcEvent("VALIDATION FAIL TrackInCellInformation.CellCount=" + IntToStr(Count), false);
 		return false;
@@ -182,7 +187,8 @@ static bool ValidateSourceTrackInCells(bool LogFailure)
 	for (int i = 0; i < Count; ++i)
 	{
 		UnicodeString Prefix = L"TrackInCellInformation.Cell[" + IntToStr(i) + L"]";
-		if (!HasFmsTag(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"CellNo")) ||
+		if (!HasFmsTag(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"CellId")) ||
+			!HasFmsTag(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"CellNo")) ||
 			!HasFmsTag(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"CellExist")) ||
 			!HasFmsTag(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"WorkFlag")) ||
 			!HasFmsTag(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"LotId")) ||
@@ -194,14 +200,20 @@ static bool ValidateSourceTrackInCells(bool LogFailure)
 		}
 
 		int CellNo = GetFmsInt(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"CellNo"));
+		bool CellExist = GetFmsBool(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"CellExist"));
+		UnicodeString CellId = GetFmsString(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"CellId")).Trim();
+
+		// FMS can keep CellCount at the fixed tray capacity while unused records
+		// remain zero/empty. Those records represent empty cells, not bad data.
+		if (!CellExist && CellNo == 0 && CellId.IsEmpty())
+			continue;
+
 		if (CellNo < 1 || CellNo > 96)
 		{
 			if(LogFailure) LogOpcEvent("VALIDATION FAIL " + AnsiString(Prefix) + ".CellNo=" + IntToStr(CellNo), false);
 			return false;
 		}
 
-		bool CellExist = GetFmsBool(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"CellExist"));
-		UnicodeString CellId = GetFmsString(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"CellId")).Trim();
 		if (CellExist && CellId.IsEmpty())
 		{
 			if(LogFailure) LogOpcEvent("VALIDATION FAIL empty " + AnsiString(Prefix) + ".CellId", false);
@@ -790,15 +802,15 @@ bool __fastcall TMesOpc::READ_TRACK_IN_CELL(int SourceCellNo, AnsiString &CellId
 	if(Mod_Fms == NULL || SourceCellNo < 1 || SourceCellNo > 96)
 		return false;
 
-	// Resolve the actual source cell by CellNo, not by array index.
+	// Resolve the actual source cell by CellNo, not by array index. Scan all
+	// records so a stale or missing CellCount does not hide valid test data.
 	UnicodeString Root = TAG_SOURCE + L".TrackInCellInformation";
-	int CellCount = Mod_Fms->GetFmsTagInt(Root + L".CellCount", 0);
-	if(CellCount <= 0 || CellCount > 96)
-		return false;
-
-	for(int Index = 0; Index < CellCount; ++Index)
+	for(int Index = 0; Index < 96; ++Index)
 	{
-		UnicodeString CellRoot = Root + L".Cell." + IntToStr(Index);
+		UnicodeString CellRoot = CellRecordTag(Root, Index);
+		UnicodeString CellNoJson;
+		if(!Mod_Fms->GetFmsTagJson(CellRoot + L".CellNo", CellNoJson))
+			continue;
 		if(Mod_Fms->GetFmsTagInt(CellRoot + L".CellNo", 0) != SourceCellNo)
 			continue;
 
@@ -809,6 +821,16 @@ bool __fastcall TMesOpc::READ_TRACK_IN_CELL(int SourceCellNo, AnsiString &CellId
 		Grade = AnsiString(Mod_Fms->GetFmsTagString(CellRoot + L".Grade", L""));
 		return CellExist && !CellId.IsEmpty();
 	}
+
+	// Commissioning fallback: some test data is entered by array position
+	// before CellNo/CellCount is populated.
+	UnicodeString CellRoot = CellRecordTag(Root, SourceCellNo - 1);
+	CellId = AnsiString(Mod_Fms->GetFmsTagString(CellRoot + L".CellId", L"").Trim());
+	LotId = AnsiString(Mod_Fms->GetFmsTagString(CellRoot + L".LotId", L""));
+	NGCode = AnsiString(Mod_Fms->GetFmsTagString(CellRoot + L".NGCode", L""));
+	Grade = AnsiString(Mod_Fms->GetFmsTagString(CellRoot + L".Grade", L""));
+	if(!CellId.IsEmpty())
+		return Mod_Fms->GetFmsTagBool(CellRoot + L".CellExist", false);
 
 	return false;
 }
@@ -915,8 +937,8 @@ void __fastcall TMesOpc::CELL_TRACK_OUT_REQUEST(int SourceChannel, int TargetCha
 	LogOpcEvent("CELL_TRACK_OUT REQUEST CellId=" + CellId +
 		" From=" + AnsiString(SourceTrayId) + "/" + IntToStr(SourceChannel) +
 		" To=" + AnsiString(TargetTrayId) + "/" + IntToStr(TargetChannel) +
-		" RequestTag=F1NGS01.Location2.CellTrackOut.CellUnloadComplete=true" +
-		" WaitingTag=F1NGS01.Location2.CellTrackOut.CellUnloadCompleteResponse" +
+		" RequestTag=NGS.F1NGS01.Location2.CellTrackOut.CellUnloadComplete=true" +
+		" WaitingTag=NGS.F1NGS01.Location2.CellTrackOut.CellUnloadCompleteResponse" +
 		" InitialResponse=" + IntToStr(InitialResponse) +
 		" BaselineRevision=" + IntToStr((__int64)FCellTrackOutResponseRevision) +
 		(FCellTrackOutWaitResponseIdle ?
@@ -1013,7 +1035,7 @@ void __fastcall TMesOpc::LogCellTrackOutTimeout()
 		" SnapshotReceived=" + AnsiString(SnapshotReceived ? "true" : "false") +
 		" LastEquipment=" + AnsiString(LastEquipment) +
 		" LastTimestamp=" + AnsiString(LastTimestamp) +
-		" RequestTag=F1NGS01.Location2.CellTrackOut.CellUnloadComplete(true)";
+		" RequestTag=NGS.F1NGS01.Location2.CellTrackOut.CellUnloadComplete(true)";
 
 	if(MainForm != NULL)
 		MainForm->WriteOpcUaLog("ERROR", Message, true);
@@ -1230,7 +1252,7 @@ void __fastcall TMesOpc::LogProcessEndTimeout()
 		" TagPresent=" + AnsiString(TagPresent ? "true" : "false") +
 		" GatewayConnected=" + AnsiString(GatewayConnected ? "true" : "false") +
 		" SnapshotReceived=" + AnsiString(SnapshotReceived ? "true" : "false") +
-		" RequestTag=F1NGS01.Location1.TrayProcess.ProcessEnd(true)";
+		" RequestTag=NGS.F1NGS01.Location1.TrayProcess.ProcessEnd(true)";
 
 	if(MainForm != NULL)
 		MainForm->WriteOpcUaLog("ERROR", Message, true);

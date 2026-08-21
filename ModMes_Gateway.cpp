@@ -131,6 +131,20 @@ static UnicodeString CanonicalCellTagKey(const UnicodeString &Key, bool DisplayT
 	return Result;
 }
 
+static UnicodeString CompatibilityTagKey(const UnicodeString &Key)
+{
+	UnicodeString Result = CanonicalCellTagKey(Key);
+	const UnicodeString RootPrefix = L"NGS.";
+	if(Result.SubString(1, RootPrefix.Length()) == RootPrefix)
+		Result = Result.SubString(RootPrefix.Length() + 1, Result.Length());
+	return Result;
+}
+
+static bool CompatibilityTagKeyEquals(const UnicodeString &Left, const UnicodeString &Right)
+{
+	return CompatibilityTagKey(Left) == CompatibilityTagKey(Right);
+}
+
 static bool TagKeyEndsWith(const UnicodeString &FullKey, const UnicodeString &Key)
 {
 	if (Key.IsEmpty() || FullKey.Length() < Key.Length())
@@ -187,6 +201,13 @@ static UnicodeString FormatGatewayTagKey(const UnicodeString &Key)
 	}
 
 	return Result;
+}
+
+static UnicodeString FormatProtocolTagKey(const UnicodeString &Key)
+{
+	// TCP JSON uses the equipment contract key, independent of the OPC UA
+	// browse root: F1NGS01... and zero-based Cell.<index> records.
+	return CompatibilityTagKey(Key);
 }
 
 //---------------------------------------------------------------------------
@@ -382,7 +403,7 @@ void __fastcall TMod_Fms::Timer_AliveTimer(TObject *Sender)
 	// OPC UA Alive handshake:
 	// EQP only sets Alive ON every 30 seconds. FMS owns the OFF reset,
 	// so EQP must never toggle/write Alive OFF.
-	SetPcTag(L"F1NGS01.Common.Alive", true);
+	SetPcTag(L"NGS.F1NGS01.Common.Alive", true);
 	FlushPendingPcTags(false);
 }
 //---------------------------------------------------------------------------
@@ -583,6 +604,14 @@ void __fastcall TMod_Fms::RegisterTagDefinition(const TFmsTagDefinition &Definit
 	TLockGuard Guard(FLock);
 	FTagDefinitions[Definition.FullKey] = Definition;
 	RegisterTagAlias(Definition.ShortKey, Definition);
+
+	// Accept both the current NGS.F1NGS01 path and the legacy F1NGS01 path.
+	const UnicodeString RootedPrefix = L"NGS.F1NGS01.";
+	const UnicodeString LegacyPrefix = L"F1NGS01.";
+	if(Definition.FullKey.SubString(1, RootedPrefix.Length()) == RootedPrefix)
+		RegisterTagAlias(Definition.FullKey.SubString(5, Definition.FullKey.Length()), Definition);
+	else if(Definition.FullKey.SubString(1, LegacyPrefix.Length()) == LegacyPrefix)
+		RegisterTagAlias(L"NGS." + Definition.FullKey, Definition);
 
 	int LocationPos = Definition.FullKey.Pos(L".Location1.");
 	if (LocationPos <= 0)
@@ -952,7 +981,7 @@ UnicodeString __fastcall TMod_Fms::BuildSuccessResponse(void)
 		TJSONObject *Tags = new TJSONObject();
 		TTagMap FormattedPending;
 		for (TTagMap::iterator it = Pending.begin(); it != Pending.end(); ++it)
-			FormattedPending[FormatGatewayTagKey(it->first)] = it->second;
+			FormattedPending[FormatProtocolTagKey(it->first)] = it->second;
 		for (TTagMap::iterator it = FormattedPending.begin(); it != FormattedPending.end(); ++it)
 			Tags->AddPair(it->first, CreateJsonValue(it->second));
 
@@ -1069,7 +1098,15 @@ bool __fastcall TMod_Fms::GetPcTagJson(const UnicodeString &Key, UnicodeString &
 
 	TTagMap::iterator it = FPcTags.find(SearchKey);
 	if (it == FPcTags.end())
-		return false;
+	{
+		for(it = FPcTags.begin(); it != FPcTags.end(); ++it)
+		{
+			if(CompatibilityTagKeyEquals(it->first, Key))
+				break;
+		}
+		if(it == FPcTags.end())
+			return false;
+	}
 
 	JsonValue = it->second;
 	return true;
@@ -1095,7 +1132,15 @@ bool __fastcall TMod_Fms::GetFmsTagJson(const UnicodeString &Key, UnicodeString 
 
 	TTagMap::iterator it = FFmsTags.find(SearchKey);
 	if (it == FFmsTags.end())
-		return false;
+	{
+		for(it = FFmsTags.begin(); it != FFmsTags.end(); ++it)
+		{
+			if(CompatibilityTagKeyEquals(it->first, Key))
+				break;
+		}
+		if(it == FFmsTags.end())
+			return false;
+	}
 
 	JsonValue = it->second;
 	return true;
@@ -1107,7 +1152,15 @@ unsigned __int64 __fastcall TMod_Fms::GetFmsTagRevision(const UnicodeString &Key
 	TLockGuard Guard(FLock);
 
 	TTagRevisionMap::iterator it = FFmsTagRevisions.find(SearchKey);
-	return it != FFmsTagRevisions.end() ? it->second : 0;
+	if(it != FFmsTagRevisions.end())
+		return it->second;
+
+	for(it = FFmsTagRevisions.begin(); it != FFmsTagRevisions.end(); ++it)
+	{
+		if(CompatibilityTagKeyEquals(it->first, Key))
+			return it->second;
+	}
+	return 0;
 }
 //---------------------------------------------------------------------------
 bool __fastcall TMod_Fms::GetFmsTagBool(const UnicodeString &Key, bool DefaultValue)

@@ -2558,7 +2558,7 @@ object MainForm: TMainForm
     object lblSourceTrayInfo: TLabel
       Left = 350
       Top = 10
-      Width = 103
+      Width = 169
       Height = 21
       Caption = 'SOURCE TRAY INFO'
       Font.Charset = DEFAULT_CHARSET
@@ -2574,7 +2574,7 @@ object MainForm: TMainForm
     object lblTargetTrayInfo: TLabel
       Left = 10
       Top = 10
-      Width = 103
+      Width = 166
       Height = 21
       Caption = 'TARGET TRAY INFO'
       Font.Charset = DEFAULT_CHARSET
@@ -4604,7 +4604,6 @@ object MainForm: TMainForm
       Align = alClient
       ScrollBars = ssBoth
       TabOrder = 6
-      ExplicitWidth = 1146
     end
     object pnlLogTitle: TAdvSmoothPanel
       Left = 5
@@ -4641,7 +4640,6 @@ object MainForm: TMainForm
       Padding.Top = 3
       Padding.Right = 3
       Padding.Bottom = 3
-      ExplicitWidth = 1146
       TMSStyle = 0
       object lblLogTitle: TLabel
         Left = 1

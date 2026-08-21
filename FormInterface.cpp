@@ -9,6 +9,11 @@
 #pragma resource "*.dfm"
 using namespace System::Json;
 TInterfaceForm *InterfaceForm;
+
+static UnicodeString InterfaceCellRecordTag(const UnicodeString &Root, int Index)
+{
+	return Root + L".Cell.Cell[" + IntToStr(Index) + L"]";
+}
 //---------------------------------------------------------------------------
 __fastcall TInterfaceForm::TInterfaceForm(TComponent* Owner)
 	: TForm(Owner)
@@ -544,16 +549,8 @@ void __fastcall TInterfaceForm::WriteTrackOutCellInformationTest()
 		return;
 	}
 
-	const UnicodeString TrackInRoot = L"F1NGS01.Location1.TrackInCellInformation";
-	const UnicodeString TrackOutRoot = L"F1NGS01.Location2.TrackOutCellInformation";
-	int TrackInCount = Mod_Fms->GetFmsTagInt(TrackInRoot + L".CellCount", 0);
-	if (TrackInCount <= 0 || TrackInCount > 96)
-	{
-		Application->MessageBox(L"TrackInCellInformation.CellCount is invalid.",
-			L"NGSORTER MES TEST", MB_OK | MB_ICONWARNING);
-		return;
-	}
-
+	const UnicodeString TrackInRoot = L"NGS.F1NGS01.Location1.TrackInCellInformation";
+	const UnicodeString TrackOutRoot = L"NGS.F1NGS01.Location2.TrackOutCellInformation";
 	int OutputIndex = 0;
 	for (int Channel = 1; Channel <= 96; ++Channel)
 	{
@@ -561,31 +558,42 @@ void __fastcall TInterfaceForm::WriteTrackOutCellInformationTest()
 			continue;
 
 		int TrackInIndex = -1;
-		for (int i = 0; i < TrackInCount; ++i)
+		for (int Index = 0; Index < 96; ++Index)
 		{
-			UnicodeString InputCell = TrackInRoot + L".Cell." + IntToStr(i);
-			if (Mod_Fms->GetFmsTagInt(InputCell + L".CellNo", 0) == Channel)
+			UnicodeString InputCell = InterfaceCellRecordTag(TrackInRoot, Index);
+			UnicodeString CellNoJson;
+			if(!Mod_Fms->GetFmsTagJson(InputCell + L".CellNo", CellNoJson))
+				continue;
+			if(Mod_Fms->GetFmsTagInt(InputCell + L".CellNo", 0) == Channel)
 			{
-				TrackInIndex = i;
+				TrackInIndex = Index;
 				break;
 			}
+		}
+
+		// Commissioning fallback for test data entered by array position.
+		if(TrackInIndex < 0)
+		{
+			UnicodeString InputCell = InterfaceCellRecordTag(TrackInRoot, Channel - 1);
+			if(!Mod_Fms->GetFmsTagString(InputCell + L".CellId", L"").Trim().IsEmpty())
+				TrackInIndex = Channel - 1;
 		}
 
 		if (TrackInIndex < 0)
 		{
 			Application->MessageBox(
 				(L"Channel " + IntToStr(Channel) +
-				 L" was not found in TrackInCellInformation.").c_str(),
+				 L" was not found in TrackInCellInformation.\r\nCheck CellNo and CellId.").c_str(),
 				L"NGSORTER MES TEST", MB_OK | MB_ICONWARNING);
 			return;
 		}
 
-		UnicodeString InputCell = TrackInRoot + L".Cell." + IntToStr(TrackInIndex);
-		UnicodeString OutputCell = TrackOutRoot + L".Cell." + IntToStr(OutputIndex++);
+		UnicodeString InputCell = InterfaceCellRecordTag(TrackInRoot, TrackInIndex);
+		UnicodeString OutputCell = InterfaceCellRecordTag(TrackOutRoot, OutputIndex++);
 		Mod_Fms->SetPcTag(OutputCell + L".CellId",
 			Mod_Fms->GetFmsTagString(InputCell + L".CellId", L""));
 		Mod_Fms->SetPcTag(OutputCell + L".CellNo",
-			Mod_Fms->GetFmsTagInt(InputCell + L".CellNo", 0));
+			Mod_Fms->GetFmsTagInt(InputCell + L".CellNo", Channel));
 		Mod_Fms->SetPcTag(OutputCell + L".LotId",
 			Mod_Fms->GetFmsTagString(InputCell + L".LotId", L""));
 		Mod_Fms->SetPcTag(OutputCell + L".CellExist",
@@ -598,9 +606,9 @@ void __fastcall TInterfaceForm::WriteTrackOutCellInformationTest()
 			Mod_Fms->GetFmsTagBool(InputCell + L".WorkFlag", false));
 	}
 
-	for (int i = OutputIndex; i < 96; ++i)
+	for (int Index = OutputIndex; Index < 96; ++Index)
 	{
-		UnicodeString OutputCell = TrackOutRoot + L".Cell." + IntToStr(i);
+		UnicodeString OutputCell = InterfaceCellRecordTag(TrackOutRoot, Index);
 		Mod_Fms->SetPcTag(OutputCell + L".CellId", L"");
 		Mod_Fms->SetPcTag(OutputCell + L".CellNo", 0);
 		Mod_Fms->SetPcTag(OutputCell + L".LotId", L"");
@@ -639,27 +647,49 @@ void __fastcall TInterfaceForm::WriteCellTrackOutTest()
 	// TrayIdTo   = Location2.TrayInformation.TrayId
 	// CellId     = Location1.TrackInCellInformation cell matching CellNoFrom
 	UnicodeString SourceTrayId = Mod_Fms->GetPcTagString(
-		L"F1NGS01.Location1.TrayInformation.TrayId", L"").Trim();
+		L"NGS.F1NGS01.Location1.TrayInformation.TrayId", L"").Trim();
 	UnicodeString TargetTrayId = Mod_Fms->GetPcTagString(
-		L"F1NGS01.Location2.TrayInformation.TrayId", L"").Trim();
+		L"NGS.F1NGS01.Location2.TrayInformation.TrayId", L"").Trim();
+	if(SourceTrayId.IsEmpty() && MainForm->pTrayid_source != NULL)
+		SourceTrayId = MainForm->pTrayid_source->Caption.Trim();
+	if(TargetTrayId.IsEmpty() && MainForm->pTrayid_target != NULL)
+		TargetTrayId = MainForm->pTrayid_target->Caption.Trim();
 	if (SourceTrayId.IsEmpty() || TargetTrayId.IsEmpty())
 	{
 		Application->MessageBox(
-			L"Location1/Location2 TrayInformation.TrayId is empty.",
+			(L"TrayInformation.TrayId is empty.\r\nSource=" + SourceTrayId +
+			 L"\r\nTarget=" + TargetTrayId).c_str(),
 			L"NGSORTER MES TEST", MB_OK | MB_ICONWARNING);
 		return;
 	}
 
-	UnicodeString CellId = FindTrackInCellId(SourceCellNo);
-	if (CellId.IsEmpty())
+	Mod_Fms->SetPcTag(L"NGS.F1NGS01.Location1.TrayInformation.TrayId", SourceTrayId);
+	Mod_Fms->SetPcTag(L"NGS.F1NGS01.Location2.TrayInformation.TrayId", TargetTrayId);
+
+	AnsiString CellId;
+	AnsiString LotId;
+	AnsiString NGCode;
+	AnsiString Grade;
+	if (!MesOpc->READ_TRACK_IN_CELL(SourceCellNo, CellId, LotId, NGCode, Grade))
 	{
-		Application->MessageBox(
-			L"CellId was not found in Location1 TrackInCellInformation for Cell No From.",
+		int CellCount = Mod_Fms->GetFmsTagInt(
+			L"NGS.F1NGS01.Location1.TrackInCellInformation.CellCount", 0);
+		UnicodeString ErrorMessage =
+			L"TrackInCellInformation was not found for Cell No From " +
+			IntToStr(SourceCellNo) +
+			L". Check CellExist, CellId, and CellNo. CellCount=" +
+			IntToStr(CellCount);
+		MainForm->WriteOpcUaLog("TEST_ERROR", AnsiString(ErrorMessage), true);
+		Application->MessageBox(ErrorMessage.c_str(),
 			L"NGSORTER MES TEST", MB_OK | MB_ICONWARNING);
 		return;
 	}
 
-	MesOpc->CELL_TRACK_OUT_REQUEST(SourceCellNo, TargetCellNo, AnsiString(CellId),
+	AnsiString SourceDataLog = "CELL TRACK OUT SOURCE DATA CellNo=" +
+		AnsiString(IntToStr(SourceCellNo)) + " CellId=" + CellId + " LotId=" + LotId +
+		" NGCode=" + NGCode + " Grade=" + Grade;
+	MainForm->WriteOpcUaLog("TEST", SourceDataLog, true);
+	MesOpc->CELL_TRACK_OUT_REQUEST(SourceCellNo, TargetCellNo, CellId,
 		SourceTrayId, TargetTrayId);
 	RefreshMesTagLists();
 }
@@ -691,12 +721,12 @@ void __fastcall TInterfaceForm::btnFmsTest01STrayLoadClick(TObject *Sender)
 	if(!CanRunMesTest())
 		return;
 
-	const UnicodeString Root = L"F1NGS01.Location1";
+	const UnicodeString Root = L"NGS.F1NGS01.Location1";
 	bool NextValue = !GetFmsTestBool(Root + L".TrayProcess.TrayLoad");
 	if(NextValue)
 	{
 		UnicodeString TrayId = MainForm->pTrayid_source->Caption.Trim();
-		if(TrayId.IsEmpty()) TrayId = L"Source1";
+		if(TrayId.IsEmpty()) TrayId = L"TR-20260818-01A";
 		Mod_Fms->SetPcTag(Root + L".TrayInformation.TrayId", TrayId);
 		Mod_Fms->SetPcTag(Root + L".TrayInformation.TrayExist", true);
 	}
@@ -710,7 +740,7 @@ void __fastcall TInterfaceForm::btnFmsTest02ProcessStartClick(TObject *Sender)
 	if(!CanRunMesTest())
 		return;
 
-	const UnicodeString Tag = L"F1NGS01.Location1.TrayProcess.ProcessStart";
+	const UnicodeString Tag = L"NGS.F1NGS01.Location1.TrayProcess.ProcessStart";
 	bool NextValue = !GetFmsTestBool(Tag);
 	Mod_Fms->SetPcTag(Tag, NextValue);
 	FlushFmsTest("Location1 ProcessStart", NextValue);
@@ -721,7 +751,7 @@ void __fastcall TInterfaceForm::btnFmsTest03ProcessEndClick(TObject *Sender)
 	if(!CanRunMesTest())
 		return;
 
-	const UnicodeString Tag = L"F1NGS01.Location1.TrayProcess.ProcessEnd";
+	const UnicodeString Tag = L"NGS.F1NGS01.Location1.TrayProcess.ProcessEnd";
 	bool NextValue = !GetFmsTestBool(Tag);
 	Mod_Fms->SetPcTag(Tag, NextValue);
 	FlushFmsTest("Location1 ProcessEnd", NextValue);
@@ -732,12 +762,12 @@ void __fastcall TInterfaceForm::btnFmsTest04TTrayLoadClick(TObject *Sender)
 	if(!CanRunMesTest())
 		return;
 
-	const UnicodeString Root = L"F1NGS01.Location2";
+	const UnicodeString Root = L"NGS.F1NGS01.Location2";
 	bool NextValue = !GetFmsTestBool(Root + L".TrayProcess.TrayLoad");
 	if(NextValue)
 	{
 		UnicodeString TrayId = MainForm->pTrayid_target->Caption.Trim();
-		if(TrayId.IsEmpty()) TrayId = L"NG00001";
+		if(TrayId.IsEmpty()) TrayId = L"TR-20260818-01A";
 		Mod_Fms->SetPcTag(Root + L".TrayInformation.TrayId", TrayId);
 		Mod_Fms->SetPcTag(Root + L".TrayInformation.TrayExist", true);
 	}
@@ -751,7 +781,7 @@ void __fastcall TInterfaceForm::btnFmsTest05TTrayUnloadClick(TObject *Sender)
 	if(!CanRunMesTest())
 		return;
 
-	const UnicodeString Tag = L"F1NGS01.Location2.TrayProcess.TrayUnloadRequest";
+	const UnicodeString Tag = L"NGS.F1NGS01.Location2.TrayProcess.TrayUnloadRequest";
 	bool NextValue = !GetFmsTestBool(Tag);
 	Mod_Fms->SetPcTag(Tag, NextValue);
 	FlushFmsTest("Location2 TrayUnloadRequest", NextValue);
