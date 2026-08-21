@@ -514,8 +514,6 @@ void __fastcall Tgripper::Inserting()
 					MainForm->ReportCellTrackOut(sourceIndex + 1, targetIndex + 1,
 						MainForm->tray_target.SLOT_ID[targetIndex]);
 				}
-				MainForm->setTrayInfo(1);
-				MainForm->memoGripperLineAdd("[TARGET CELL] LOCAL FILE CONFIRMED after Z UP completion.");
 				step.step += 1;
 			}else{
 				MainForm->memoGripperLineAdd("[Insert step 2] " + BaseForm->GetLangStr("MSG_INSERTING"));

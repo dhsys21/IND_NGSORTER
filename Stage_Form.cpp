@@ -445,33 +445,45 @@ void __fastcall TMainForm::saveTrayInfo(int index)
 		GetTargetTrayInfoFile(m_saveTrayInfo[index].LOT_ID) :
 		GetSourceTrayInfoFile(m_saveTrayInfo[index].LOT_ID);
 
-	ini = new TIniFile(file);
+	DWORD saveStartTick = GetTickCount();
+	TMemIniFile *trayIni = new TMemIniFile(file);
 	// Local tray schema follows TrackInCellInformation. Pick is the only
 	// equipment-only field and is required to restore reservation/work state.
-	ini->EraseSection("0"); // Remove the legacy Source layout on the next save.
-	ini->EraseSection("1");
-	ini->EraseSection("TRAY");
-	ini->WriteString("TRAY", "TrayId", m_saveTrayInfo[index].LOT_ID);
-	ini->WriteInteger("TRAY", "CellCount", m_saveTrayInfo[index].SLOT_COUNT);
-	ini->WriteString("TRAY", "LastUpdated", FormatDateTime("yyyy-mm-dd hh:nn:ss", Now()));
-	ini->WriteString("TRAY", "State", "ACTIVE");
+	try {
+		trayIni->EraseSection("0"); // Remove the legacy Source layout on the next save.
+		trayIni->EraseSection("1");
+		trayIni->EraseSection("TRAY");
+		trayIni->WriteString("TRAY", "TrayId", m_saveTrayInfo[index].LOT_ID);
+		trayIni->WriteInteger("TRAY", "CellCount", m_saveTrayInfo[index].SLOT_COUNT);
+		trayIni->WriteString("TRAY", "LastUpdated", FormatDateTime("yyyy-mm-dd hh:nn:ss", Now()));
+		trayIni->WriteString("TRAY", "State", "ACTIVE");
 
-	for(int i = 0; i < 96; ++i)
-	{
-		AnsiString section = "CELL_" + IntToStr(i + 1);
-		ini->EraseSection(section); // Remove legacy SLOT_*/LOSS_CD/RANK keys.
-		if(i >= m_saveTrayInfo[index].SLOT_COUNT) continue;
-		ini->WriteString(section, "CellId", m_saveTrayInfo[index].SLOT_ID[i]);
-		ini->WriteInteger(section, "CellNo",
-			m_saveTrayInfo[index].SLOT_POSITION[i].ToIntDef(i + 1));
-		ini->WriteString(section, "LotId", m_saveTrayInfo[index].CELL_LOT_ID[i]);
-		ini->WriteBool(section, "CellExist", m_saveTrayInfo[index].CELL_EXIST[i]);
-		ini->WriteString(section, "NGCode", m_saveTrayInfo[index].LOSS_CD[i]);
-		ini->WriteString(section, "Grade", m_saveTrayInfo[index].RANK[i]);
-		ini->WriteBool(section, "WorkFlag", m_saveTrayInfo[index].WORK_FLAG[i]);
-		ini->WriteString(section, "Pick", m_saveTrayInfo[index].PICK[i]);
+		for(int i = 0; i < 96; ++i)
+		{
+			AnsiString section = "CELL_" + IntToStr(i + 1);
+			trayIni->EraseSection(section); // Remove legacy SLOT_*/LOSS_CD/RANK keys.
+			if(i >= m_saveTrayInfo[index].SLOT_COUNT) continue;
+			trayIni->WriteString(section, "CellId", m_saveTrayInfo[index].SLOT_ID[i]);
+			trayIni->WriteInteger(section, "CellNo",
+				m_saveTrayInfo[index].SLOT_POSITION[i].ToIntDef(i + 1));
+			trayIni->WriteString(section, "LotId", m_saveTrayInfo[index].CELL_LOT_ID[i]);
+			trayIni->WriteBool(section, "CellExist", m_saveTrayInfo[index].CELL_EXIST[i]);
+			trayIni->WriteString(section, "NGCode", m_saveTrayInfo[index].LOSS_CD[i]);
+			trayIni->WriteString(section, "Grade", m_saveTrayInfo[index].RANK[i]);
+			trayIni->WriteBool(section, "WorkFlag", m_saveTrayInfo[index].WORK_FLAG[i]);
+			trayIni->WriteString(section, "Pick", m_saveTrayInfo[index].PICK[i]);
+		}
+		// Build the complete INI in memory and flush it to disk only once.
+		trayIni->UpdateFile();
 	}
-	delete ini;
+	__finally {
+		delete trayIni;
+	}
+
+	DWORD saveElapsed = GetTickCount() - saveStartTick;
+	if(saveElapsed >= 200)
+		AddStatusLog("LOCAL TRAY", "SAVE SLOW Tray=" + m_saveTrayInfo[index].LOT_ID +
+			" ElapsedMs=" + IntToStr((int)saveElapsed));
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::loadTrayInfo(int index)

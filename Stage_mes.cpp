@@ -492,7 +492,6 @@ void __fastcall TMainForm::ReportCellTrackOut(int sourceChannel, int targetChann
 	tray_target.CELL_EXIST[targetIndex] = true;
 	tray_target.WORK_FLAG[targetIndex] = tray_source.WORK_FLAG[sourceChannel - 1];
 	tray_target.PICK[targetIndex] = "Y";
-	setTrayInfo(1);
 
 	BeginProcessStep(12, "CellTrackOut request / wait CellUnloadCompleteResponse");
 	WriteOpcUaLog("DETAIL", "CellTrackOut payload SourceCh=" + IntToStr(sourceChannel) +
