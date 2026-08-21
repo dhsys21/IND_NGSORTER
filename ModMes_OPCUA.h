@@ -30,6 +30,7 @@ public:		// User declarations
     bool __fastcall TRAY_LOAD_RESPONSE();
     int __fastcall TRAY_LOAD_RESPONSE(bool SourceTray);
     int __fastcall TRAY_LOAD_RESPONSE_VALUE(bool SourceTray);
+    AnsiString __fastcall TRAY_LOAD_VALIDATION_ERROR(bool SourceTray) const;
 	void __fastcall LogTrayLoadTimeout(bool SourceTray);
 	void __fastcall LogTrayLoadResponseOffTimeout(bool SourceTray);
     void __fastcall RECIPE_REQUEST();

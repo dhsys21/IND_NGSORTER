@@ -685,7 +685,8 @@ int __fastcall TMainForm::RestoreTargetTrayInfo(AnsiString trayId, bool confirmE
 	int reservedCount = 0;
 	if(confirmExisting && TargetTrayInfoHasData(occupiedCount, reservedCount)){
 		TIniFile *targetIni = new TIniFile(file);
-		AnsiString lastUpdated = targetIni->ReadString("TRAY", "LAST_UPDATED", "-");
+		AnsiString lastUpdated = targetIni->ReadString("TRAY", "LastUpdated",
+			targetIni->ReadString("TRAY", "LAST_UPDATED", "-"));
 		delete targetIni;
 		UnicodeString message = L"기존 불량트레이 정보가 있습니다.\r\n\r\n";
 		message += L"바코드: ";

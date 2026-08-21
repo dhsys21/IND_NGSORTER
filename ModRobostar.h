@@ -347,6 +347,8 @@ private:	// User declarations
 	long activeTarget[AxisCnt];
 	bool activeMoveValid;
 	bool directXYPositionReady;
+	// Explicit Servo OFF invalidates HOME until a new home-return completes.
+	bool homeRequiredAfterServoOff;
     bool bSetPoint;
 	long jogSpeed;
 	bool __fastcall setPoint(int axnum_id, unsigned long int pos);
@@ -428,6 +430,7 @@ public:		// User declarations
 	bool __fastcall IsSscOpened() const;
 	void __fastcall SetCcLinkOpenResult(short result, long openedPath);
 	bool __fastcall IsCcLinkReady() const;
+	bool __fastcall IsHomeRequiredAfterServoOff() const;
 	bool m_bInsertSave;
     void __fastcall Y003D(bool bOn);
 	__fastcall Trobostar(TComponent* Owner);

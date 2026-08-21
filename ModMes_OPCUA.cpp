@@ -15,6 +15,12 @@ TMesOpc *MesOpc;
 
 static const UnicodeString TAG_SOURCE = L"NGS.F1NGS01.Location1";
 static const UnicodeString TAG_TARGET = L"NGS.F1NGS01.Location2";
+static AnsiString GTrayLoadValidationError[2];
+
+static void SetTrayLoadValidationError(bool SourceTray, const AnsiString &Message)
+{
+	GTrayLoadValidationError[SourceTray ? 0 : 1] = Message;
+}
 
 static UnicodeString TrayInfoTag(const UnicodeString &Location, const UnicodeString &Name)
 {
@@ -29,6 +35,11 @@ static UnicodeString TrayProcessTag(const UnicodeString &Location, const Unicode
 static UnicodeString TrackInTag(const UnicodeString &Name)
 {
 	return TAG_SOURCE + L".TrackInCellInformation." + Name;
+}
+//---------------------------------------------------------------------------
+static UnicodeString TrackInTag(const UnicodeString &Location, const UnicodeString &Name)
+{
+	return Location + L".TrackInCellInformation." + Name;
 }
 //---------------------------------------------------------------------------
 static UnicodeString TrackOutTag(const UnicodeString &Name)
@@ -155,6 +166,8 @@ static bool ReadRequiredString(const UnicodeString &Key, UnicodeString &Value, c
 {
 	if (!HasFmsTag(Key))
 	{
+		SetTrayLoadValidationError(true,
+			"Location1 TrayInformation validation failed: missing " + Name + ".");
 		if(LogFailure) LogOpcEvent("VALIDATION FAIL missing " + Name, true);
 		return false;
 	}
@@ -162,6 +175,8 @@ static bool ReadRequiredString(const UnicodeString &Key, UnicodeString &Value, c
 	Value = GetFmsString(Key).Trim();
 	if (Value.IsEmpty())
 	{
+		SetTrayLoadValidationError(true,
+			"Location1 TrayInformation validation failed: " + Name + " is empty.");
 		if(LogFailure) LogOpcEvent("VALIDATION FAIL empty " + Name, true);
 		return false;
 	}
@@ -171,16 +186,27 @@ static bool ReadRequiredString(const UnicodeString &Key, UnicodeString &Value, c
 //---------------------------------------------------------------------------
 static bool ValidateSourceTrackInCells(bool LogFailure)
 {
+	SetTrayLoadValidationError(true, "");
 	if (!HasFmsTag(TrackInTag(L"CellCount")))
 	{
+		SetTrayLoadValidationError(true,
+			"Location1 TrackIn validation failed: missing TrackInCellInformation.CellCount.");
 		if(LogFailure) LogOpcEvent("VALIDATION FAIL missing TrackInCellInformation.CellCount", false);
 		return false;
 	}
 
 	int Count = GetFmsInt(TrackInTag(L"CellCount"));
-	if (Count < 0 || Count > 96)
+	// CellCount is the number of TrackIn array records, not the number of NG cells.
+	// Zero means that the Source tray data has not been supplied and must never
+	// be accepted as a valid empty/good tray.
+	if (Count <= 0 || Count > 96)
 	{
-		if(LogFailure) LogOpcEvent("VALIDATION FAIL TrackInCellInformation.CellCount=" + IntToStr(Count), false);
+		SetTrayLoadValidationError(true,
+			"Location1 TrackIn validation failed: CellCount=" + IntToStr(Count) +
+			". Expected CellCount=1..96.");
+		if(LogFailure)
+			LogOpcEvent("VALIDATION FAIL TrackInCellInformation.CellCount / EXPECTED=1..96 / CURRENT=" +
+				IntToStr(Count), true);
 		return false;
 	}
 
@@ -195,6 +221,10 @@ static bool ValidateSourceTrackInCells(bool LogFailure)
 			!HasFmsTag(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"Grade")) ||
 			!HasFmsTag(CellTag(TAG_SOURCE + L".TrackInCellInformation", i, L"NGCode")))
 		{
+			SetTrayLoadValidationError(true,
+				"Location1 TrackIn validation failed: required tag missing at Cell[" +
+				IntToStr(i) + "]. Required tags: CellId, CellNo, CellExist, "
+				"WorkFlag, LotId, Grade, NGCode.");
 			if(LogFailure) LogOpcEvent("VALIDATION FAIL missing " + AnsiString(Prefix), false);
 			return false;
 		}
@@ -210,18 +240,119 @@ static bool ValidateSourceTrackInCells(bool LogFailure)
 
 		if (CellNo < 1 || CellNo > 96)
 		{
+			SetTrayLoadValidationError(true,
+				"Location1 TrackIn validation failed: Cell[" + IntToStr(i) +
+				"] CellNo=" + IntToStr(CellNo) + " CellExist=" +
+				AnsiString(CellExist ? "true" : "false") + " CellId=" +
+				(CellId.IsEmpty() ? AnsiString("<empty>") : AnsiString(CellId)) +
+				". Expected CellNo=1..96.");
 			if(LogFailure) LogOpcEvent("VALIDATION FAIL " + AnsiString(Prefix) + ".CellNo=" + IntToStr(CellNo), false);
 			return false;
 		}
 
 		if (CellExist && CellId.IsEmpty())
 		{
+			SetTrayLoadValidationError(true,
+				"Location1 TrackIn validation failed: Cell[" + IntToStr(i) +
+				"] CellExist=true but CellId is empty.");
 			if(LogFailure) LogOpcEvent("VALIDATION FAIL empty " + AnsiString(Prefix) + ".CellId", false);
 			return false;
 		}
 	}
 
 	return true;
+}
+//---------------------------------------------------------------------------
+static bool ValidateTargetTrackInCells(bool LogFailure)
+{
+	SetTrayLoadValidationError(false, "");
+	UnicodeString Root = TAG_TARGET + L".TrackInCellInformation";
+	UnicodeString CountKey = TrackInTag(TAG_TARGET, L"CellCount");
+	if (!HasFmsTag(CountKey))
+	{
+		SetTrayLoadValidationError(false,
+			"Location2 TrackIn validation failed: missing TrackInCellInformation.CellCount.");
+		if(LogFailure)
+			LogOpcEvent(GTrayLoadValidationError[1], true);
+		return false;
+	}
+
+	int Count = GetFmsInt(CountKey);
+	// An empty Target tray can legitimately have zero TrackIn records.
+	if (Count < 0 || Count > 96)
+	{
+		SetTrayLoadValidationError(false,
+			"Location2 TrackIn validation failed: CellCount=" + IntToStr(Count) +
+			". Expected CellCount=0..96.");
+		if(LogFailure)
+			LogOpcEvent(GTrayLoadValidationError[1], true);
+		return false;
+	}
+
+	for (int Record = 0; Record < Count; ++Record)
+	{
+		UnicodeString Prefix = L"Location2.TrackInCellInformation.Cell[" +
+			IntToStr(Record) + L"]";
+		if (!HasFmsTag(CellTag(Root, Record, L"CellId")) ||
+			!HasFmsTag(CellTag(Root, Record, L"CellNo")) ||
+			!HasFmsTag(CellTag(Root, Record, L"CellExist")) ||
+			!HasFmsTag(CellTag(Root, Record, L"WorkFlag")) ||
+			!HasFmsTag(CellTag(Root, Record, L"LotId")) ||
+			!HasFmsTag(CellTag(Root, Record, L"Grade")) ||
+			!HasFmsTag(CellTag(Root, Record, L"NGCode")))
+		{
+			SetTrayLoadValidationError(false,
+				"Location2 TrackIn validation failed: required tag missing at Cell[" +
+				IntToStr(Record) + "]. Required tags: CellId, CellNo, CellExist, "
+				"WorkFlag, LotId, Grade, NGCode.");
+			if(LogFailure) LogOpcEvent("VALIDATION FAIL missing " + AnsiString(Prefix), true);
+			return false;
+		}
+
+		int CellNo = GetFmsInt(CellTag(Root, Record, L"CellNo"));
+		bool CellExist = GetFmsBool(CellTag(Root, Record, L"CellExist"));
+		UnicodeString CellId = GetFmsString(CellTag(Root, Record, L"CellId")).Trim();
+		if (!CellExist && CellNo == 0 && CellId.IsEmpty())
+			continue;
+		if (CellNo < 1 || CellNo > 96 || (CellExist && CellId.IsEmpty()))
+		{
+			UnicodeString LotId = GetFmsString(CellTag(Root, Record, L"LotId")).Trim();
+			UnicodeString Grade = GetFmsString(CellTag(Root, Record, L"Grade")).Trim();
+			UnicodeString NGCode = GetFmsString(CellTag(Root, Record, L"NGCode")).Trim();
+			bool WorkFlag = GetFmsBool(CellTag(Root, Record, L"WorkFlag"));
+			AnsiString Detail =
+				"Location2 TrackIn validation failed\r\n"
+				"Array Index : " + IntToStr(Record) + "\r\n" +
+				"CellCount   : " + IntToStr(Count) + "\r\n" +
+				"CellNo      : " + IntToStr(CellNo) + "\r\n" +
+				"CellExist   : " + AnsiString(CellExist ? "true" : "false") + "\r\n" +
+				"CellId      : " + (CellId.IsEmpty() ? AnsiString("<empty>") : AnsiString(CellId)) + "\r\n" +
+				"LotId       : " + (LotId.IsEmpty() ? AnsiString("<empty>") : AnsiString(LotId)) + "\r\n" +
+				"Grade       : " + (Grade.IsEmpty() ? AnsiString("<empty>") : AnsiString(Grade)) + "\r\n" +
+				"NGCode      : " + (NGCode.IsEmpty() ? AnsiString("<empty>") : AnsiString(NGCode)) + "\r\n" +
+				"WorkFlag    : " + AnsiString(WorkFlag ? "true" : "false") + "\r\n" +
+				"Expected    : CellNo=1..96; CellId required when CellExist=true.";
+			SetTrayLoadValidationError(false, Detail);
+			if(LogFailure)
+				LogOpcEvent(Detail, true);
+			return false;
+		}
+	}
+	return true;
+}
+//---------------------------------------------------------------------------
+static int CountExistingTrayCells(TRAY_INFO *Tray)
+{
+	if (Tray == NULL)
+		return 0;
+
+	int Count = 0;
+	for (int Channel = 0; Channel < 96; ++Channel)
+	{
+		if (Tray->CELL_EXIST[Channel])
+			++Count;
+	}
+	return Count;
 }
 //---------------------------------------------------------------------------
 static void ClearTrayCells(TRAY_INFO *Tray)
@@ -236,6 +367,7 @@ static void ClearTrayCells(TRAY_INFO *Tray)
 		Tray->SLOT_ID[i] = "";
 		Tray->CELL_LOT_ID[i] = "";
 		Tray->CELL_EXIST[i] = false;
+		Tray->WORK_FLAG[i] = false;
 		Tray->LOSS_CD[i] = "";
 		Tray->LOSS_DESC[i] = "";
 		Tray->PICK[i] = "";
@@ -293,8 +425,129 @@ static void ApplySourceTrackInCells(TRAY_INFO *Tray)
 	}
 }
 //---------------------------------------------------------------------------
-static void ApplyTrayDisplay(TRAY_INFO *Tray, const UnicodeString &ProductModel,
-	const UnicodeString &ProcessId, const UnicodeString &LotId)
+static void ApplyTargetTrackInCells(TRAY_INFO *Tray)
+{
+	if (Tray == NULL)
+		return;
+
+	UnicodeString Root = TAG_TARGET + L".TrackInCellInformation";
+	int RecordCount = GetFmsInt(TrackInTag(TAG_TARGET, L"CellCount"));
+	Tray->SLOT_COUNT = 96;
+	Tray->empTray = true;
+	Tray->remainCnt = 96;
+	for (int Channel = 0; Channel < 96; ++Channel)
+	{
+		Tray->SLOT_POSITION[Channel] = IntToStr(Channel + 1);
+		Tray->SLOT_ID[Channel] = "";
+		Tray->CELL_LOT_ID[Channel] = "";
+		Tray->CELL_EXIST[Channel] = false;
+		Tray->WORK_FLAG[Channel] = false;
+		Tray->LOSS_CD[Channel] = "";
+		Tray->RANK[Channel] = "";
+		Tray->PICK[Channel] = "N";
+	}
+
+	for (int Record = 0; Record < RecordCount && Record < 96; ++Record)
+	{
+		int CellNo = GetFmsInt(CellTag(Root, Record, L"CellNo"));
+		if (CellNo < 1 || CellNo > 96)
+			continue;
+
+		int Channel = CellNo - 1;
+		bool CellExist = GetFmsBool(CellTag(Root, Record, L"CellExist"));
+		Tray->SLOT_ID[Channel] = AnsiString(
+			GetFmsString(CellTag(Root, Record, L"CellId")).Trim());
+		Tray->CELL_LOT_ID[Channel] = AnsiString(
+			GetFmsString(CellTag(Root, Record, L"LotId")));
+		Tray->CELL_EXIST[Channel] = CellExist;
+		Tray->WORK_FLAG[Channel] = GetFmsBool(CellTag(Root, Record, L"WorkFlag"));
+		Tray->LOSS_CD[Channel] = AnsiString(
+			GetFmsString(CellTag(Root, Record, L"NGCode")).Trim());
+		Tray->RANK[Channel] = AnsiString(
+			GetFmsString(CellTag(Root, Record, L"Grade")).Trim());
+		// PICK=R is equipment-only transient state and never comes from FMS.
+		Tray->PICK[Channel] = CellExist ? "Y" : "N";
+		if (CellExist)
+		{
+			Tray->empTray = false;
+			--Tray->remainCnt;
+		}
+	}
+}
+//---------------------------------------------------------------------------
+static bool MergeTargetSavedCells(TRAY_INFO *Target,
+	const SAVE_TRAY_INFO &Saved, const UnicodeString &TargetTrayId)
+{
+	if (Target == NULL)
+		return false;
+
+	if (!SameText(Saved.LOT_ID.Trim(), AnsiString(TargetTrayId).Trim()))
+		return true;
+
+	int CompletedMerged = 0;
+	int ReservationsCleared = 0;
+	for (int Channel = 0; Channel < 96; ++Channel)
+	{
+		// INIT WORK/reload must never restore an unfinished reservation.
+		if (Saved.PICK[Channel] == "R" && !Saved.CELL_EXIST[Channel])
+		{
+			++ReservationsCleared;
+			continue;
+		}
+		if (!Saved.CELL_EXIST[Channel] || Saved.SLOT_ID[Channel].IsEmpty())
+			continue;
+
+		if (Target->CELL_EXIST[Channel])
+		{
+			if (!Target->SLOT_ID[Channel].IsEmpty() &&
+				Target->SLOT_ID[Channel] != Saved.SLOT_ID[Channel])
+			{
+				LogOpcEvent("TARGET TRACKIN/LOCAL CONFLICT Channel=" +
+					IntToStr(Channel + 1) + " FmsCellId=" +
+					Target->SLOT_ID[Channel] + " LocalCellId=" +
+					Saved.SLOT_ID[Channel], true);
+				SetTrayLoadValidationError(false,
+					"Location2 TrackIn/local data conflict\r\nChannel      : " +
+					IntToStr(Channel + 1) + "\r\nFMS CellId   : " +
+					Target->SLOT_ID[Channel] + "\r\nLocal CellId : " +
+					Saved.SLOT_ID[Channel]);
+				return false;
+			}
+			continue;
+		}
+
+		// Preserve cells physically inserted during this Source cycle. FMS
+		// Location2 TrackIn remains the initial snapshot until final TrackOut.
+		Target->SLOT_POSITION[Channel] = IntToStr(Channel + 1);
+		Target->SLOT_ID[Channel] = Saved.SLOT_ID[Channel];
+		Target->CELL_LOT_ID[Channel] = Saved.CELL_LOT_ID[Channel];
+		Target->CELL_EXIST[Channel] = true;
+		Target->WORK_FLAG[Channel] = Saved.WORK_FLAG[Channel];
+		Target->LOSS_CD[Channel] = Saved.LOSS_CD[Channel];
+		Target->RANK[Channel] = Saved.RANK[Channel];
+		Target->PICK[Channel] = "Y";
+		++CompletedMerged;
+	}
+
+	Target->remainCnt = 0;
+	Target->empTray = true;
+	for (int Channel = 0; Channel < 96; ++Channel)
+	{
+		if (Target->CELL_EXIST[Channel])
+			Target->empTray = false;
+		else if (Target->PICK[Channel] == "N")
+			++Target->remainCnt;
+	}
+	LogOpcEvent("TARGET WORKING MAP READY CompletedMerged=" +
+		IntToStr(CompletedMerged) + " ReservationsCleared=" +
+		IntToStr(ReservationsCleared) + " Remaining=" +
+		IntToStr(Target->remainCnt), true);
+	return true;
+}
+//---------------------------------------------------------------------------
+static void ApplyTrayDisplay(TRAY_INFO *Tray, const UnicodeString &TrayId,
+	const UnicodeString &ProductModel, const UnicodeString &RouteId,
+	const UnicodeString &ProcessId, const UnicodeString &LotId, int CellCount)
 {
 	if (MainForm == NULL || Tray == NULL)
 		return;
@@ -307,19 +560,23 @@ static void ApplyTrayDisplay(TRAY_INFO *Tray, const UnicodeString &ProductModel,
 	TPanel *TrayIdPanel = Tray == &MainForm->tray_source ?
 		MainForm->pTrayid_source2 : MainForm->pTrayid_target2;
 	if (TrayIdPanel != NULL)
-		TrayIdPanel->Caption = LotId;
+		TrayIdPanel->Caption = TrayId;
 
 	if (Tray == &MainForm->tray_source)
 	{
-		MainForm->pPROCESS->Caption = ProcessId;
 		MainForm->pKIND->Caption = ProductModel;
-		MainForm->pSLOT_COUNT->Caption = IntToStr(Tray->SLOT_COUNT);
+		MainForm->pDATE->Caption = RouteId;
+		MainForm->pPROCESS->Caption = ProcessId;
+		MainForm->pOPER->Caption = LotId;
+		MainForm->pSLOT_COUNT->Caption = IntToStr(CellCount);
 	}
 	else
 	{
-		MainForm->pPROCESS_target->Caption = ProcessId;
 		MainForm->pKIND_target->Caption = ProductModel;
-		MainForm->pSLOT_COUNT_target->Caption = IntToStr(Tray->SLOT_COUNT);
+		MainForm->pBYPASS->Caption = RouteId;
+		MainForm->pPROCESS_target->Caption = ProcessId;
+		MainForm->pDATE_target->Caption = LotId;
+		MainForm->pSLOT_COUNT_target->Caption = IntToStr(CellCount);
 	}
 }
 //---------------------------------------------------------------------------
@@ -339,6 +596,11 @@ __fastcall TMesOpc::TMesOpc(TComponent* Owner)
 	FCellTrackOutWaitResponseIdle = false;
 	FTrayUnloadResponseRevision = 0;
 	FTrayUnloadWaitResponseIdle = false;
+}
+//---------------------------------------------------------------------------
+AnsiString __fastcall TMesOpc::TRAY_LOAD_VALIDATION_ERROR(bool SourceTray) const
+{
+	return GTrayLoadValidationError[SourceTray ? 0 : 1];
 }
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::Shutdown()
@@ -404,19 +666,21 @@ bool __fastcall TMesOpc::DISPLAY_TRACK_IN_TRAYS()
 	Source->startTime = Now();
 
 	UnicodeString ProductModel = GetFmsString(TrayInfoTag(TAG_SOURCE, L"ProductModel"));
+	UnicodeString RouteId = GetFmsString(TrayInfoTag(TAG_SOURCE, L"RouteId"));
 	UnicodeString ProcessId = GetFmsString(TrayInfoTag(TAG_SOURCE, L"ProcessId"));
 	UnicodeString LotId = GetFmsString(TrayInfoTag(TAG_SOURCE, L"LotId"));
-	UnicodeString SourceTrayId = Mod_Fms->GetPcTagString(
-		TrayInfoTag(TAG_SOURCE, L"TrayId"), L"").Trim();
+	UnicodeString SourceTrayId = GetFmsString(TrayInfoTag(TAG_SOURCE, L"TrayId")).Trim();
+	if(SourceTrayId.IsEmpty())
+		SourceTrayId = Mod_Fms->GetPcTagString(
+			TrayInfoTag(TAG_SOURCE, L"TrayId"), L"").Trim();
 	if(SourceTrayId.IsEmpty())
 		SourceTrayId = MainForm->pTrayid_source->Caption.Trim();
-	if(LotId.IsEmpty())
-		LotId = SourceTrayId;
 	if(!SourceTrayId.IsEmpty())
 		MainForm->pTrayid_source->Caption = SourceTrayId;
-	ApplyTrayDisplay(Source, ProductModel, ProcessId, LotId);
+	int SourceExistCount = CountExistingTrayCells(Source);
+	ApplyTrayDisplay(Source, SourceTrayId, ProductModel, RouteId,
+		ProcessId, LotId, SourceExistCount);
 
-	MainForm->pBYPASS->Caption = Source->PASS;
 	MainForm->pbad_sum->Caption = "0";
 	MainForm->badList->Clear();
 	Source->remainCnt = 0;
@@ -444,13 +708,31 @@ bool __fastcall TMesOpc::DISPLAY_TRACK_IN_TRAYS()
 			MainForm->psort_ing[i]->Caption = CellExist ? "**" : "";
 	}
 
-	// Location2 has no TrackInCellInformation in the deployed configuration.
-	// Redraw the current locally managed target tray in the same button click.
+	// Location2 TrackIn is the authoritative initial snapshot. Merge only
+	// completed local inserts; transient PICK=R reservations are discarded.
 	TRAY_INFO *Target = &MainForm->tray_target;
+	if(!ValidateTargetTrackInCells(true))
+		return false;
+	SAVE_TRAY_INFO SavedTarget = MainForm->m_saveTrayInfo[1];
+	UnicodeString TargetTrayId = GetFmsString(TrayInfoTag(TAG_TARGET, L"TrayId")).Trim();
+	if(TargetTrayId.IsEmpty())
+		TargetTrayId = Mod_Fms->GetPcTagString(
+			TrayInfoTag(TAG_TARGET, L"TrayId"), L"").Trim();
+	if(TargetTrayId.IsEmpty())
+		TargetTrayId = MainForm->pTrayid_target->Caption.Trim();
+	ClearTrayCells(Target);
+	ApplyTargetTrackInCells(Target);
+	if(!MergeTargetSavedCells(Target, SavedTarget, TargetTrayId))
+		return false;
+	MainForm->setTrayInfo(1);
+	int TargetRecordCount = GetFmsInt(TrackInTag(TAG_TARGET, L"CellCount"));
+	int TargetExistCount = CountExistingTrayCells(Target);
+	ApplyTrayDisplay(Target, TargetTrayId, ProductModel, RouteId,
+		ProcessId, LotId, TargetExistCount);
+
 	if(Target->SLOT_COUNT < 1 || Target->SLOT_COUNT > 96)
 		Target->SLOT_COUNT = 96;
 	Target->remainCnt = 0;
-	MainForm->pSLOT_COUNT_target->Caption = IntToStr(Target->SLOT_COUNT);
 	for(int i = 0; i < 96; ++i)
 	{
 		if(i < Target->SLOT_COUNT &&
@@ -473,10 +755,11 @@ bool __fastcall TMesOpc::DISPLAY_TRACK_IN_TRAYS()
 	MainForm->targetGrid->Invalidate();
 	MainForm->tray = &MainForm->tray_target;
 
-	LogOpcEvent("DISPLAY TRAY Source TrackIn CellCount=" +
-		IntToStr(Source->SLOT_COUNT) + " Empty=" +
+	LogOpcEvent("DISPLAY TRAY Source CellExistCount=" +
+		IntToStr(SourceExistCount) + " Empty=" +
 		AnsiString(Source->empTray ? "true" : "false") +
-		" / Target local slots=" + IntToStr(Target->SLOT_COUNT), true);
+		" / Target TrackIn CellCount=" + IntToStr(TargetRecordCount) +
+		" CellExistCount=" + IntToStr(TargetExistCount), true);
 	return true;
 }
 //---------------------------------------------------------------------------
@@ -500,6 +783,7 @@ void __fastcall TMesOpc::TRAY_LOAD_REQUEST(bool SourceTray)
 	// is already guaranteed to have completed Response=0 before advancing.
 	// Rejecting an unchanged Revision hid a visible Location2 Response=1.
 	int LocationIndex = SourceTray ? 0 : 1;
+	SetTrayLoadValidationError(SourceTray, "");
 	UnicodeString RequestKey = TrayProcessTag(Location, L"TrayLoad");
 	UnicodeString ResponseKey = TrayProcessTag(Location, L"TrayLoadResponse");
 	int InitialResponse = GetFmsInt(ResponseKey);
@@ -561,13 +845,18 @@ int __fastcall TMesOpc::TRAY_LOAD_RESPONSE(bool SourceTray)
 	TRAY_INFO *Tray = TrayFor(SourceTray);
 	if (Tray != NULL)
 	{
+		UnicodeString TrayId;
 		UnicodeString ProductModel;
+		UnicodeString RouteId;
 		UnicodeString ProcessId;
 		UnicodeString LotId;
+		int DisplayCellCount = 0;
+		SAVE_TRAY_INFO SavedTarget;
+		if (!SourceTray && MainForm != NULL)
+			SavedTarget = MainForm->m_saveTrayInfo[1];
 
 		if (SourceTray)
 		{
-			UnicodeString RouteId;
 			// TrayLoadResponse and the 96-cell payload can arrive in separate
 			// FMS_CHANGED messages. Keep waiting instead of deleting the response.
 			bool ValidTrayLoad =
@@ -578,21 +867,27 @@ int __fastcall TMesOpc::TRAY_LOAD_RESPONSE(bool SourceTray)
 				ValidateSourceTrackInCells(false);
 			if (!ValidTrayLoad)
 				return 0;
+
+			TrayId = GetFmsString(TrayInfoTag(Location, L"TrayId")).Trim();
+			if(TrayId.IsEmpty() && MainForm != NULL)
+				TrayId = MainForm->pTrayid_source->Caption.Trim();
 		}
 		else
 		{
-			// Location2 has only TrayExist/TrayId in the deployed NodeSet.
-			// Requiring Location2 ProductModel/RouteId/ProcessId/LotId caused a
-			// permanent validation failure even when TrayLoadResponse was 1.
+			// Target metadata follows the Source tray. TrayId and the complete
+			// initial cell map are read from Location2 TrackInCellInformation.
 			if (MainForm != NULL)
 			{
 				ProductModel = UnicodeString(MainForm->tray_source.KIND);
+				RouteId = MainForm->pDATE->Caption.Trim();
 				ProcessId = UnicodeString(MainForm->tray_source.WORK_CODE);
+				LotId = MainForm->pOPER->Caption.Trim();
 			}
+			TrayId = GetFmsString(TrayInfoTag(Location, L"TrayId")).Trim();
 			TPanel *TrayIdPanel = TrayIdPanelFor(false);
-			if (TrayIdPanel != NULL)
-				LotId = TrayIdPanel->Caption.Trim();
-			if (LotId.IsEmpty())
+			if (TrayId.IsEmpty() && TrayIdPanel != NULL)
+				TrayId = TrayIdPanel->Caption.Trim();
+			if (TrayId.IsEmpty() || !ValidateTargetTrackInCells(false))
 				return 0;
 		}
 
@@ -601,19 +896,27 @@ int __fastcall TMesOpc::TRAY_LOAD_RESPONSE(bool SourceTray)
 		{
 			ApplySourceTrackInCells(Tray);
 			Tray->PASS = "N";
+			DisplayCellCount = CountExistingTrayCells(Tray);
 		}
 		else
 		{
-			Tray->SLOT_COUNT = 96;
-			for (int i = 0; i < Tray->SLOT_COUNT; ++i)
+			ApplyTargetTrackInCells(Tray);
+			if (!MergeTargetSavedCells(Tray, SavedTarget, TrayId))
 			{
-				Tray->SLOT_POSITION[i] = IntToStr(i + 1);
-				Tray->PICK[i] = "N";
+				SetPcBool(TrayProcessTag(Location, L"TrayLoad"), false);
+				if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
+				return -1;
 			}
+			DisplayCellCount = CountExistingTrayCells(Tray);
+			// Save the merged working snapshot immediately. The subsequent display
+			// restore therefore cannot resurrect stale PICK=R reservations.
+			if (MainForm != NULL)
+				MainForm->setTrayInfo(1);
 		}
 
 		Tray->TRAY_GUBUN = IntToStr(Tray->SLOT_COUNT);
-		ApplyTrayDisplay(Tray, ProductModel, ProcessId, LotId);
+		ApplyTrayDisplay(Tray, TrayId, ProductModel, RouteId,
+			ProcessId, LotId, DisplayCellCount);
 	}
 
 	SetPcBool(TrayProcessTag(Location, L"TrayLoad"), false);
@@ -649,8 +952,8 @@ void __fastcall TMesOpc::LogTrayLoadTimeout(bool SourceTray)
 		" Revision=" + IntToStr((__int64)CurrentRevision) +
 		" RequestRevision=" + IntToStr((__int64)FTrayLoadResponseRevision[LocationIndex]) +
 		" UpdatedAfterRequest=" + AnsiString(CurrentRevision > FTrayLoadResponseRevision[LocationIndex] ? "true" : "false");
-	if (SourceTray)
-		Message += " TrackInCellInformation.CellCount=" + IntToStr(GetFmsInt(TrackInTag(L"CellCount")));
+	Message += " TrackInCellInformation.CellCount=" +
+		IntToStr(GetFmsInt(TrackInTag(Location, L"CellCount")));
 
 	if (MainForm != NULL)
 		MainForm->WriteOpcUaLog("ERROR", Message, true);
@@ -659,11 +962,15 @@ void __fastcall TMesOpc::LogTrayLoadTimeout(bool SourceTray)
 	if (SourceTray && GetFmsInt(TrayProcessTag(Location, L"TrayLoadResponse")) == 1)
 	{
 		UnicodeString Value;
+		ValidateSourceTrackInCells(true);
 		ReadRequiredString(TrayInfoTag(Location, L"ProductModel"), Value, "TrayInformation.ProductModel", true);
 		ReadRequiredString(TrayInfoTag(Location, L"RouteId"), Value, "TrayInformation.RouteId", true);
 		ReadRequiredString(TrayInfoTag(Location, L"ProcessId"), Value, "TrayInformation.ProcessId", true);
 		ReadRequiredString(TrayInfoTag(Location, L"LotId"), Value, "TrayInformation.LotId", true);
-		ValidateSourceTrackInCells(true);
+	}
+	else if (!SourceTray && GetFmsInt(TrayProcessTag(Location, L"TrayLoadResponse")) == 1)
+	{
+		ValidateTargetTrackInCells(true);
 	}
 }
 //---------------------------------------------------------------------------

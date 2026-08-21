@@ -154,6 +154,8 @@ void __fastcall Tgripper::Initialize()
 
     if(MainForm->pwork1->Color != clLime)
 	{
+		MainForm->SetProcessOperationStatus(7, "WAIT TRAY READY", "Source tray work state",
+			"LIME (READY)", MainForm->pwork1->Color == clLime ? "LIME" : "NOT READY");
 		AlarmForm->ShowError(BaseForm->GetLangStr("MSG_SOURCETRAY_NOTREADY"), BaseForm->GetLangStr("MSG_CHECK_RESTART"));
 		return;
 	}
@@ -161,6 +163,8 @@ void __fastcall Tgripper::Initialize()
 	switch(step.step){
 		case 0:	// 그리퍼 정보 초기화
 			if(MainForm->pwork2->Color != clLime){
+				MainForm->SetProcessOperationStatus(7, "WAIT TRAY READY", "Target tray work state",
+					"LIME (READY)", MainForm->pwork2->Color == clLime ? "LIME" : "NOT READY");
 				MainForm->memoGripperLineAdd("[Init step 0] " + BaseForm->GetLangStr("MSG_TARGETTRAY_NOTREADY"));
 				return;
 			}
@@ -183,6 +187,8 @@ void __fastcall Tgripper::Initialize()
 				robostar->req_Speed(servo_speed, servo_accl_speed, servo_dccl_speed);
 
 				if(!robostar->IsCcLinkReady()){
+					MainForm->SetProcessOperationStatus(7, "WAIT EQUIPMENT READY", "CC-Link",
+						"READY", "NOT READY");
 					if(!ccLinkNotReadyReported){
 						MainForm->memoGripperLineAdd(
 							"[Init step 0] CC-Link is not ready; cell status is unavailable.");

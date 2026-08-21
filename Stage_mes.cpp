@@ -360,6 +360,7 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 		return;
 	}
 	if(!bsrc){
+		ProcessStepLog(5, "PREPARE - restore/create local Target tray information / TrayId=" + strTray);
 		//* 불량트레이 관리
 		// 모달 확인창이 열린 동안 타이머가 다시 스캔을 호출해도 중첩 진입하지 않는다.
 		if(targetTrayInfoPromptActive){
@@ -384,6 +385,7 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 			tray = &tray_target;
 			return;
 		}
+		ProcessStepLog(5, "READY - local Target tray information prepared / next=TrayLoad Request");
 	}
 	opcTrayLoadRetryRequired[index] = false;
 	opcTrayDisplayed[index] = false;
@@ -391,6 +393,8 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 	if (bsrc)
 	{
 		opcProcessStarted = false;
+		opcSortingStartPending = false;
+		opcSortingStartWaitError = false;
 		if (opcProcessStartPending && MesOpc != NULL)
 			MesOpc->PROCESS_START_CANCEL();
 		opcProcessStartPending = false;
@@ -403,6 +407,7 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 
 	if (MesOpc == NULL || Mod_Fms == NULL || !Mod_Fms->IsGatewayConnected())
 	{
+		ProcessStepLog(bsrc ? 2 : 5, "ERROR - FMS Gateway disconnected / TrayLoad Request not sent");
 		ShowCommonError("FMS Gateway is not connected",
 			"Tray load request was not sent. Check the gateway connection.");
 		return;
@@ -434,12 +439,8 @@ void __fastcall TMainForm::NotifyIdMatching_target(AnsiString matchingStep)
 {
 	// 구형 ASCII ID_MATCHING_EVENT 대신 현재 불량트레이 전체 TrackOut 정보를 갱신한다.
 	mesTimer->Enabled = false;
-	if(MesOpc != NULL && Mod_Fms != NULL && Mod_Fms->IsGatewayConnected()){
-		MesOpc->PROCESS_DATA_WRITE();
-		WriteOpcUaLog("DETAIL", "TrackOutCellInformation updated. Step=" + matchingStep, false);
-	}else{
-		WriteOpcUaLog("ERROR", "TrackOutCellInformation write skipped: Gateway disconnected", true);
-	}
+	// TrackOutCellInformation is written once at Source completion or before Target unload.
+	WriteOpcUaLog("DETAIL", "Target working map saved; final TrackOut deferred. Step=" + matchingStep, false);
 	setTrayInfo(1);
 }
 //---------------------------------------------------------------------------
@@ -492,7 +493,6 @@ void __fastcall TMainForm::ReportCellTrackOut(int sourceChannel, int targetChann
 	setTrayInfo(1);
 
 	BeginProcessStep(12, "CellTrackOut request / wait CellUnloadCompleteResponse");
-	MesOpc->PROCESS_DATA_WRITE();
 	WriteOpcUaLog("DETAIL", "CellTrackOut payload SourceCh=" + IntToStr(sourceChannel) +
 		" TargetCh=" + IntToStr(targetChannel) + " CellId=" + TrackInCellId +
 		" LotId=" + TrackInLotId +
@@ -517,8 +517,17 @@ void __fastcall TMainForm::NotifyTransferOut(AnsiString strTray)
 		WriteOpcUaLog("ERROR", "OPC transfer-out report skipped: Gateway disconnected", true);
 		return;
 	}
+	if(opcCellTrackOutPending){
+		opcFinalTrackOutTrayId = strTray;
+		ProcessStepLog(12, "WAIT - final TrackOutCellInformation deferred until CellTrackOut response completes");
+		memoMainLineAdd("[FMS OPC UA] Waiting for the last CellTrackOut response before final TrackOut report.");
+		return;
+	}
+	opcFinalTrackOutTrayId = "";
 
+	// Final cumulative report: Location2 TrackIn snapshot plus every completed insert.
 	MesOpc->PROCESS_DATA_WRITE();
+	WriteOpcUaLog("DETAIL", "Final TrackOutCellInformation written before process/tray completion", false);
 	if(strTray == pTrayid_source->Caption || strTray == pTrayid_source2->Caption){
 		if(!opcProcessEndPending){
 			BeginProcessStep(14, "ProcessEnd request / wait response");

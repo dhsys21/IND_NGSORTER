@@ -2644,7 +2644,7 @@ object MainForm: TMainForm
     end
     object pKIND: TPanel
       Left = 441
-      Top = 213
+      Top = 97
       Width = 150
       Height = 28
       BevelKind = bkFlat
@@ -2663,7 +2663,7 @@ object MainForm: TMainForm
     end
     object pDATE: TPanel
       Left = 441
-      Top = 184
+      Top = 126
       Width = 150
       Height = 28
       BevelKind = bkFlat
@@ -2701,13 +2701,13 @@ object MainForm: TMainForm
       TabOrder = 5
     end
     object pnlSouceOper: TPanel
-      Left = 350
+      Left = 10
       Top = 97
       Width = 90
       Height = 28
       BevelKind = bkFlat
       BevelOuter = bvNone
-      Caption = 'OPER'
+      Caption = 'PRODUCT MODEL'
       Color = 15269887
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 13996080
@@ -2727,7 +2727,7 @@ object MainForm: TMainForm
       Height = 28
       BevelKind = bkFlat
       BevelOuter = bvNone
-      Caption = 'PROCESS'
+      Caption = 'PROCESS ID'
       Color = 15269887
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 13996080
@@ -2742,7 +2742,7 @@ object MainForm: TMainForm
     end
     object pSLOT_COUNT: TPanel
       Left = 441
-      Top = 242
+      Top = 213
       Width = 150
       Height = 28
       BevelKind = bkFlat
@@ -2761,12 +2761,12 @@ object MainForm: TMainForm
     end
     object pnlSourceKind: TPanel
       Left = 350
-      Top = 213
+      Top = 97
       Width = 90
       Height = 28
       BevelKind = bkFlat
       BevelOuter = bvNone
-      Caption = 'KIND'
+      Caption = 'PRODUCT MODEL'
       Color = 15269887
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 13996080
@@ -2781,12 +2781,12 @@ object MainForm: TMainForm
     end
     object pnlSourceSlotCount: TPanel
       Left = 350
-      Top = 242
+      Top = 213
       Width = 90
       Height = 28
       BevelKind = bkFlat
       BevelOuter = bvNone
-      Caption = 'SLOT COUNT'
+      Caption = 'CELL COUNT'
       Color = 15269887
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 13996080
@@ -2801,7 +2801,7 @@ object MainForm: TMainForm
     end
     object pOPER: TPanel
       Left = 441
-      Top = 97
+      Top = 184
       Width = 150
       Height = 28
       BevelKind = bkFlat
@@ -2825,7 +2825,7 @@ object MainForm: TMainForm
       Height = 28
       BevelKind = bkFlat
       BevelOuter = bvNone
-      Caption = 'DATE'
+      Caption = 'LOT ID'
       Color = 15269887
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 13996080
@@ -2842,13 +2842,13 @@ object MainForm: TMainForm
       Left = 101
       Top = 68
       Width = 150
-      Height = 86
+      Height = 28
       BevelKind = bkFlat
       BevelOuter = bvNone
       Color = clWhite
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
-      Font.Height = -17
+      Font.Height = -13
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentBackground = False
@@ -2878,7 +2878,7 @@ object MainForm: TMainForm
     end
     object pKIND_target: TPanel
       Left = 101
-      Top = 213
+      Top = 97
       Width = 150
       Height = 28
       BevelKind = bkFlat
@@ -2918,7 +2918,7 @@ object MainForm: TMainForm
       Left = 10
       Top = 68
       Width = 90
-      Height = 86
+      Height = 28
       BevelKind = bkFlat
       BevelOuter = bvNone
       Caption = 'TRAY ID'
@@ -2941,7 +2941,7 @@ object MainForm: TMainForm
       Height = 28
       BevelKind = bkFlat
       BevelOuter = bvNone
-      Caption = 'PROCESS'
+      Caption = 'PROCESS ID'
       Color = 15269887
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 13996080
@@ -2956,7 +2956,7 @@ object MainForm: TMainForm
     end
     object pSLOT_COUNT_target: TPanel
       Left = 101
-      Top = 242
+      Top = 213
       Width = 150
       Height = 28
       BevelKind = bkFlat
@@ -2975,12 +2975,12 @@ object MainForm: TMainForm
     end
     object pnlTargetKind: TPanel
       Left = 10
-      Top = 213
+      Top = 126
       Width = 90
       Height = 28
       BevelKind = bkFlat
       BevelOuter = bvNone
-      Caption = 'KIND'
+      Caption = 'ROUTE ID'
       Color = 15269887
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 13996080
@@ -2995,12 +2995,12 @@ object MainForm: TMainForm
     end
     object pnlTargetSlotCount: TPanel
       Left = 10
-      Top = 242
+      Top = 213
       Width = 90
       Height = 28
       BevelKind = bkFlat
       BevelOuter = bvNone
-      Caption = 'SLOT COUNT'
+      Caption = 'CELL COUNT'
       Color = 15269887
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 13996080
@@ -3020,7 +3020,7 @@ object MainForm: TMainForm
       Height = 28
       BevelKind = bkFlat
       BevelOuter = bvNone
-      Caption = 'DATE'
+      Caption = 'LOT ID'
       Color = 15269887
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 13996080
@@ -3034,7 +3034,7 @@ object MainForm: TMainForm
       TabOrder = 22
     end
     object pBYPASS: TPanel
-      Left = 441
+      Left = 101
       Top = 126
       Width = 150
       Height = 28
@@ -3059,7 +3059,7 @@ object MainForm: TMainForm
       Height = 28
       BevelKind = bkFlat
       BevelOuter = bvNone
-      Caption = 'BYPASS'
+      Caption = 'ROUTE ID'
       Color = 15269887
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 13996080

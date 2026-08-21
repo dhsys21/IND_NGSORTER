@@ -400,6 +400,10 @@ private:	// User declarations
 	int opcProcessStartResponseResult;
 	bool opcProcessStarted;
 	DWORD opcProcessStartTick;
+	// ProcessStart ACK is complete, but the local sorting sequence may still be busy.
+	bool opcSortingStartPending;
+	bool opcSortingStartWaitError;
+	DWORD opcSortingStartTick;
 	bool opcProcessEndPending;
 	bool opcProcessEndWaitResponseOff;
 	bool opcProcessEndResponseOffError;
@@ -410,6 +414,7 @@ private:	// User declarations
 	bool opcCellTrackOutResponseOffError;
 	int opcCellTrackOutResponseResult;
 	DWORD opcCellTrackOutStartTick;
+	AnsiString opcFinalTrackOutTrayId; // Deferred until the last CellTrackOut handshake completes.
 	bool opcTargetUnloadPending;
 	bool opcTargetUnloadWaitResponseOff;
 	bool opcTargetUnloadResponseOffError;
@@ -525,6 +530,8 @@ public:		// User declarations
 	void __fastcall CompleteProcessStep(int stepNo, AnsiString detail = "");
 	void __fastcall SetProcessWaitStatus(int stepNo, AnsiString requestName,
 		AnsiString responseName, int responseValue);
+	void __fastcall SetProcessOperationStatus(int stepNo, AnsiString operation,
+		AnsiString checkName, AnsiString expectedValue, AnsiString currentValue);
 	void __fastcall ProcessStepLog(int stepNo, AnsiString msg);
 
 	//* 불량트레이 관리

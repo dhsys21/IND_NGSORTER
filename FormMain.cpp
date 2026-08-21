@@ -10,6 +10,42 @@
 
 TMainForm *MainForm;
 
+static AnsiString GripperSequenceText(int value)
+{
+	switch(value){
+		case 0: return "IDLE(0)";
+		case 1: return "INIT(1)";
+		case 2: return "SORTING(2)";
+		case 3: return "INSERTING(3)";
+		case 4: return "PAUSE(4)";
+		default: return "UNKNOWN(" + IntToStr(value) + ")";
+	}
+}
+
+static AnsiString RobotSequenceText(int value)
+{
+	switch(value){
+		case 0: return "IDLE(0)";
+		case 1: return "INIT(1)";
+		case 2: return "HOME(2)";
+		case 3: return "SERVO_ON(3)";
+		case 4: return "SERVO_OFF(4)";
+		case 5: return "AUTO_MOVE(5)";
+		case 6: return "AUTO_EJECT(6)";
+		case 7: return "EJECT_COMPLETE(7)";
+		case 8: return "AUTO_INSERT(8)";
+		case 9: return "INSERT_COMPLETE(9)";
+		case 21: return "RESET(21)";
+		case 22: return "WAIT_POSITION(22)";
+		case 23: return "Z_UP(23)";
+		case 24: return "Z_DOWN(24)";
+		case 25: return "PAUSE(25)";
+		case 26: return "AUTO_RUN(26)";
+		case 27: return "EMG_AUTO_RUN(27)";
+		default: return "JOG/UNKNOWN(" + IntToStr(value) + ")";
+	}
+}
+
 //---------------------------------------------------------------------------
 __fastcall TMainForm::TMainForm(TComponent* Owner)
 	: TForm(Owner)
@@ -104,6 +140,9 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	opcProcessStartResponseResult = 0;
 	opcProcessStarted = false;
 	opcProcessStartTick = 0;
+	opcSortingStartPending = false;
+	opcSortingStartWaitError = false;
+	opcSortingStartTick = 0;
 	opcProcessEndPending = false;
 	opcProcessEndWaitResponseOff = false;
 	opcProcessEndResponseOffError = false;
@@ -114,6 +153,7 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	opcCellTrackOutResponseOffError = false;
 	opcCellTrackOutResponseResult = 0;
 	opcCellTrackOutStartTick = 0;
+	opcFinalTrackOutTrayId = "";
 	opcTargetUnloadPending = false;
 	opcTargetUnloadWaitResponseOff = false;
 	opcTargetUnloadResponseOffError = false;
@@ -170,6 +210,7 @@ void __fastcall TMainForm::EndThread()
 	opcCellTrackOutWaitResponseOff = false;
 	opcCellTrackOutResponseOffError = false;
 	opcCellTrackOutResponseResult = 0;
+	opcFinalTrackOutTrayId = "";
 	opcTargetUnloadPending = false;
 	opcTargetUnloadWaitResponseOff = false;
 	opcTargetUnloadResponseOffError = false;
@@ -202,7 +243,7 @@ void __fastcall TMainForm::ResetProcessFlow()
 		lastProcessWaitStatus[i] = "";
 	}
 	currentProcessStep = 0;
-	currentProcessDetail = "WAITING FOR SOURCE TRAY";
+	currentProcessDetail = "WAIT D10103 Source Tray In / EXPECTED=1 (ON) / CURRENT=0";
 	UpdateProcessFlowPanel();
 }
 //---------------------------------------------------------------------------
@@ -293,7 +334,29 @@ void __fastcall TMainForm::SetProcessWaitStatus(int stepNo, AnsiString requestNa
 		ProcessStepLog(stepNo, status);
 	}
 }//---------------------------------------------------------------------------
+void __fastcall TMainForm::SetProcessOperationStatus(int stepNo, AnsiString operation,
+	AnsiString checkName, AnsiString expectedValue, AnsiString currentValue)
+{
+	if(stepNo < 1 || stepNo > 16) return;
+	for(int i = 0; i < stepNo - 1; ++i)
+		processStepComplete[i] = true;
+	AnsiString status = "OPERATION=" + operation + " / CHECK=" + checkName +
+		" / EXPECTED=" + expectedValue + " / CURRENT=" + currentValue;
+	currentProcessStep = stepNo;
+	currentProcessDetail = status;
+	UpdateProcessFlowPanel();
+
+	// Moving positions change continuously. Log once per verification item while
+	// keeping CURRENT updated on the process label every timer cycle.
+	AnsiString cacheKey = "OPERATION=" + operation + " / CHECK=" + checkName +
+		" / EXPECTED=" + expectedValue;
+	if(lastProcessWaitStatus[stepNo - 1] != cacheKey){
+		lastProcessWaitStatus[stepNo - 1] = cacheKey;
+		ProcessStepLog(stepNo, status);
+	}
+}//---------------------------------------------------------------------------
 void __fastcall TMainForm::FormShow(TObject *Sender)
+
 {
 	ReadSystemInfo();
 	if(PlcBin != NULL && !BaseForm->config.plcIp.IsEmpty() &&
@@ -479,6 +542,12 @@ void __fastcall TMainForm::pause_startBtnClick(TObject *Sender)
 				}
 			}
 
+			if(opcSortingStartPending){
+				opcSortingStartWaitError = false;
+				opcSortingStartTick = GetTickCount();
+				lastProcessWaitStatus[6] = "";
+				ProcessStepLog(7, "RESTART - retry local sorting start condition");
+			}
 			opcMesTimer->Enabled = true;
 			if(ErrorForm != NULL)
 				ErrorForm->Visible = false;
@@ -541,29 +610,47 @@ void __fastcall TMainForm::ReadTargetTrayBarcode()
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::setBarcode(int pos, AnsiString strBcr)
 {
+	strBcr = strBcr.Trim();
 	memoMainLineAdd(BaseForm->GetLangStr("MSG_COMPLETE_SCAN") + " : " + strBcr);
-	if(strBcr.Length() == 7)
-	{
-		switch(pos){
-			case 0:
-				// Keep only the currently scanned Source tray file.
-				PrepareActiveTrayInfoFile(true, strBcr);
-				this->pTrayid_source->Caption = strBcr;
-				ProcessStepLog(1, "Tray Exist=ON / Tray ID=" + strBcr);
-				CompleteProcessStep(1, "Tray ID=" + strBcr);
-				if(IsSourceTrayInSignal()){
-					NotifyTrayInfo(strBcr, true);
-				}
-				break;
-			case 1:
-				// Keep only the currently scanned Target tray file.
-				PrepareActiveTrayInfoFile(false, strBcr);
-				this->pTrayid_target->Caption = strBcr;
-				ProcessStepLog(4, "Tray Exist=ON / Tray ID=" + strBcr);
-				CompleteProcessStep(4, "Tray ID=" + strBcr);
-				if(IsTargetCenteringSignal())NotifyTrayInfo(strBcr, false);
-				break;
-		}
+	if(pos < 0 || pos > 1){
+		memoMainLineAdd("[BARCODE] ERROR - invalid tray position=" + IntToStr(pos));
+		return;
+	}
+
+	int processStep = pos == 0 ? 1 : 4;
+	AnsiString trayName = pos == 0 ? AnsiString("Source") : AnsiString("Target");
+	if(strBcr.IsEmpty()){
+		ProcessStepLog(processStep, "ERROR - " + trayName + " TrayId is empty");
+		ShowCommonError(trayName + " tray barcode error", "The scanned TrayId is empty.");
+		return;
+	}
+
+	// Tray IDs are not fixed to the legacy seven-character format.
+	// Log the next action explicitly so a stopped sequence shows its wait condition.
+	ProcessStepLog(processStep, "Barcode accepted / TrayId=" + strBcr);
+	switch(pos){
+		case 0:
+			PrepareActiveTrayInfoFile(true, strBcr);
+			pTrayid_source->Caption = strBcr;
+			CompleteProcessStep(1, "Tray ID=" + strBcr);
+			if(IsSourceTrayInSignal()){
+				ProcessStepLog(2, "START - Location1 TrayLoad Request / WAIT TrayLoadResponse=1");
+				NotifyTrayInfo(strBcr, true);
+			}else{
+				ProcessStepLog(1, "WAIT - D10103 Source Tray In=ON / CURRENT=0");
+			}
+			break;
+		case 1:
+			PrepareActiveTrayInfoFile(false, strBcr);
+			pTrayid_target->Caption = strBcr;
+			CompleteProcessStep(4, "Tray ID=" + strBcr);
+			if(IsTargetCenteringSignal()){
+				ProcessStepLog(5, "START - Location2 TrayLoad Request / WAIT TrayLoadResponse=1");
+				NotifyTrayInfo(strBcr, false);
+			}else{
+				ProcessStepLog(4, "WAIT - D10106 Target Centering=ON / CURRENT=0");
+			}
+			break;
 	}
 }
 //---------------------------------------------------------------------------
@@ -717,11 +804,23 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 				MesOpc->LogTrayLoadTimeout(sourceTray);
 				MesOpc->TRAY_LOAD_CANCEL(sourceTray);
 			}
-			ProcessStepLog(stepNo, "ERROR - TrayLoadResponse result timeout / " +
-				AnsiString("EXPECTED=1 or 2 (RESULT) / CURRENT=") + IntToStr(rawResponse));
-			ShowCommonError(trayName + " tray response ON timeout",
-				"EXPECTED=1 or 2 (RESULT), but CURRENT=" + IntToStr(rawResponse) +
-				" or tray data was not completed within 10 seconds. Correct it, then press Restart.");
+			AnsiString validationError = MesOpc != NULL ?
+				MesOpc->TRAY_LOAD_VALIDATION_ERROR(sourceTray) : AnsiString("");
+			if(rawResponse == 1 && !validationError.IsEmpty()){
+				AnsiString logValidation = StringReplace(validationError, "\r\n", " / ",
+					TReplaceFlags() << rfReplaceAll);
+				ProcessStepLog(stepNo, "ERROR - TrayLoadResponse=1 / DATA VALIDATION FAIL / " +
+					logValidation);
+				ShowCommonError(trayName + " tray data validation failed",
+					"TrayLoadResponse=1 was received, but TrackIn data validation failed.\r\n\r\n" +
+					validationError + "\r\n\r\nCorrect the FMS data, then press Restart.");
+			}else{
+				ProcessStepLog(stepNo, "ERROR - TrayLoadResponse result timeout / " +
+					AnsiString("EXPECTED=1 or 2 (RESULT) / CURRENT=") + IntToStr(rawResponse));
+				ShowCommonError(trayName + " tray response ON timeout",
+					"EXPECTED=1 or 2 (RESULT), but CURRENT=" + IntToStr(rawResponse) +
+					" or tray data was not completed within 10 seconds. Correct it, then press Restart.");
+			}
 		}
 	}
 	if (opcProcessStartPending)
@@ -747,8 +846,12 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 						pwork2->Color = clLime;
 						CompleteProcessStep(6, cycleResponseBypass ? "Cycle test: ProcessStartResponse reset bypassed" : "ProcessStartResponse returned OFF");
 						memoMainLineAdd("[FMS OPC UA] ProcessStart four-phase handshake complete.");
-						if(gripper->seq == seqIdle && robostar->seq == seqIdle)
-							gripper->req_Init();
+						// Do not lose the local start request when either sequence is temporarily busy.
+						opcSortingStartPending = true;
+						opcSortingStartWaitError = false;
+						opcSortingStartTick = GetTickCount();
+						lastProcessWaitStatus[6] = "";
+						ProcessStepLog(7, "WAIT - ProcessStart complete / waiting local sorting initialization");
 					}else{
 						ProcessStepLog(6, "ERROR - ProcessStartResponse=2 / clear complete");
 						ShowCommonError("Process start failed", "FMS returned ProcessStartResponse=2.");
@@ -798,6 +901,68 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		}
 	}
 
+	if(opcSortingStartPending)
+	{
+		AnsiString currentState;
+		if(gripper == NULL || robostar == NULL)
+		{
+			currentState = "Gripper/Robot module is NULL";
+			SetProcessOperationStatus(7, "START SORTING SEQUENCE",
+				"Local sequence modules", "Gripper and Robot available", currentState);
+		}
+		else
+		{
+			currentState = "Mode=" + IntToStr((int)equipMode) +
+				" / Gripper=" + GripperSequenceText((int)gripper->seq) +
+				" / Robot=" + RobotSequenceText((int)robostar->seq) +
+				" / Pause=" + IntToStr((gripper->pauseStatus || robostar->pauseStatus) ? 1 : 0);
+
+			if(equipMode != modeAuto)
+			{
+				SetProcessOperationStatus(7, "START SORTING SEQUENCE",
+					"Equipment mode", "AUTO", currentState);
+			}
+			else if(gripper->pauseStatus || robostar->pauseStatus)
+			{
+				SetProcessOperationStatus(7, "START SORTING SEQUENCE",
+					"Pause state", "RUNNING (Pause=0)", currentState);
+			}
+			else if(gripper->seq != seqIdle || robostar->seq != seqIdle)
+			{
+				SetProcessOperationStatus(7, "START SORTING SEQUENCE",
+					"Gripper/Robot sequence", "Gripper=IDLE(0) / Robot=IDLE(0)", currentState);
+			}
+			else
+			{
+				opcSortingStartPending = false;
+				opcSortingStartWaitError = false;
+				BeginProcessStep(7, "Local initialization request accepted / select NG channel");
+				ProcessStepLog(7, "START - Gripper=IDLE(0) / Robot=IDLE(0) / req_Init");
+				gripper->req_Init();
+				if((int)gripper->seq != 1)
+				{
+					// Keep the request pending so Restart can retry the same local start.
+					opcSortingStartPending = true;
+					opcSortingStartWaitError = true;
+					ProcessStepLog(7, "ERROR - req_Init was not accepted / CURRENT=" +
+						GripperSequenceText((int)gripper->seq));
+					ShowCommonError("Sorting initialization failed",
+						"ProcessStart completed, but the Gripper initialization request was not accepted.");
+				}
+			}
+		}
+
+		if(opcSortingStartPending && !opcSortingStartWaitError &&
+			(DWORD)(GetTickCount() - opcSortingStartTick) >= RESPONSE_TIMEOUT_MS)
+		{
+			opcSortingStartWaitError = true;
+			ProcessStepLog(7, "ERROR - Local sorting start blocked for 10 seconds / EXPECTED="
+				"Gripper=IDLE(0), Robot=IDLE(0), Mode=AUTO, Pause=0 / CURRENT=" + currentState);
+			ShowCommonError("Sorting sequence start timeout",
+				"ProcessStart completed, but the local sequence could not start within 10 seconds.\r\n" +
+				currentState + "\r\nCorrect the displayed state, then press Restart.");
+		}
+	}
 	if(opcProcessEndPending)
 	{
 		if(opcProcessEndWaitResponseOff)
@@ -908,6 +1073,12 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 					if(result == 1){
 						CompleteProcessStep(12, cycleResponseBypass ? "Cycle test: CellUnloadCompleteResponse reset bypassed" : "CellUnloadCompleteResponse returned OFF");
 						memoMainLineAdd("[FMS OPC UA] CellTrackOut four-phase handshake complete.");
+						if(!opcFinalTrackOutTrayId.IsEmpty()){
+							AnsiString deferredTrayId = opcFinalTrackOutTrayId;
+							opcFinalTrackOutTrayId = "";
+							memoMainLineAdd("[FMS OPC UA] Last CellTrackOut complete; writing final TrackOutCellInformation.");
+							NotifyTransferOut(deferredTrayId);
+						}
 					}else{
 						ProcessStepLog(12, "ERROR - CellUnloadCompleteResponse=2 / clear complete");
 						ShowCommonError("CellTrackOut failed", "FMS returned CellUnloadCompleteResponse=2.");
@@ -1033,8 +1204,8 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		}
 	}
 
-	bool pending = opcProcessStartPending || opcProcessEndPending ||
-		opcCellTrackOutPending || opcTargetUnloadPending;
+	bool pending = opcProcessStartPending || opcSortingStartPending ||
+		opcProcessEndPending || opcCellTrackOutPending || opcTargetUnloadPending;
 	for (int i = 0; i < 2; ++i)
 		pending = pending || opcTrayLoadPending[i];
 	opcMesTimer->Enabled = pending;
@@ -1054,8 +1225,10 @@ bool __fastcall TMainForm::CheckServoAutoReady(bool showError)
 	// X0022 is active-low and must not be interpreted while CC-Link is unavailable.
 	bool gripperCellClear = ccLinkReady && !robostar->getCellDetectStatus();
 
-	if(servoOpenReady && servoOnReady && servoHomeReady && gripperOpenReady && gripperCellClear)
+	if(servoOpenReady && servoOnReady && servoHomeReady && gripperOpenReady && gripperCellClear){
+		memoRobostarLineAdd("[AUTO INTERLOCK] PASS - ServoOpen=1 ServoOn=1 Home=1 CCLink=1 GripperOpen=1 X0022=1(CellClear)");
 		return true;
+	}
 
 	UnicodeString detail = L"Servo OPEN  : " + UnicodeString(servoOpenReady ? L"OK" : L"NOT COMPLETE") + L"\r\n";
 	detail += L"Servo ON      : " + UnicodeString(servoOnReady ? L"OK" : L"NOT COMPLETE") + L"\r\n";
@@ -1083,19 +1256,9 @@ bool __fastcall TMainForm::CheckServoAutoReady(bool showError)
 
 void __fastcall TMainForm::autoBtnClick(TObject *Sender)
 {
-	// TEMPORARY CYCLE TEST BYPASS:
-	// Set this to false (or remove this block) after the short automatic test.
-	// This bypasses only the PC AUTO-entry readiness check. Hardware EMS and
-	// safety-door circuits remain active and must never be bypassed in software.
-	const bool TEMP_BYPASS_AUTO_INTERLOCK_FOR_CYCLE_TEST = true;
-	bool bypassAutoInterlock = TEMP_BYPASS_AUTO_INTERLOCK_FOR_CYCLE_TEST &&
-		cbCycle != NULL && cbCycle->Checked;
-
-	if(bypassAutoInterlock)
-	{
-		memoRobostarLineAdd("[CYCLE TEST] TEMP AUTO readiness interlock bypass active");
-	}
-	else if(!CheckServoAutoReady(true))
+	// AUTO entry always validates the real servo/CC-Link/gripper interlocks.
+	// cbMES and cbCycle simulate process data only and never bypass safety/readiness.
+	if(!CheckServoAutoReady(true))
 	{
 		autoBtn->Down = false;
 		return;
@@ -1302,6 +1465,11 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 		opcTrayLoaded[0] = false;
 		InitStep(&step[0]);
 		if(currentProcessStep != 0) ResetProcessFlow();
+		AnsiString sourceWait = "WAIT D10103 Source Tray In / EXPECTED=1 (ON) / CURRENT=0";
+		if(lastProcessWaitStatus[0] != sourceWait){
+			lastProcessWaitStatus[0] = sourceWait;
+			ProcessStepLog(1, sourceWait);
+		}
 	}
 	if(IsTargetCenteringSignal() == 0)InitStep(&step[1]);
 
@@ -1680,8 +1848,15 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 			loadfactorForm->Panel_Position[i]->Caption = FormatFloat("0 %", robostar->mr2.mondata[i][0]);
 			teachForm->lblLoadFactor[i]->Caption = FormatFloat("0 %", robostar->mr2.mondata[i][0]);
 			status_pos[i]->Caption = FloatToStr(robostar->mr2.pos[i]);
-			if(!robostar->mr2.zero[i] && popen->Color == clLime) status_org[i]->Color = clLime;
-			else status_org[i]->Color = clSilver;
+			// HOME is valid only while the axis Servo RDY is ON. An explicit Servo OFF
+			// keeps it cleared until the new home-return sequence completes.
+			if(!robostar->mr2.zero[i]
+				&& robostar->mr2.servo[i] == SSC_BIT_ON
+				&& !robostar->IsHomeRequiredAfterServoOff()
+				&& popen->Color == clLime)
+				status_org[i]->Color = clLime;
+			else
+				status_org[i]->Color = clSilver;
 
 			if(robostar->mr2.limit[i] & SSC_BIT_LSP) status_lsp[i]->Color = clSilver;
 			else status_lsp[i]->Color = clRed;
@@ -1792,7 +1967,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		teachForm->pOnZ->Color = pOnZ->Color;
 		teachForm->pOrgX1->Color = pOrgX1->Color;
 		teachForm->pOrgY->Color = pOrgY->Color;
-		teachForm->pOrgZ->Color = pOrgY->Color;
+		teachForm->pOrgZ->Color = pOrgZ->Color;
 		teachForm->pErrorX1->Color = pErrorX1->Color;
 		teachForm->pErrorY->Color = pErrorY->Color;
 		teachForm->pErrorZ->Color = pErrorZ->Color;
@@ -2181,6 +2356,50 @@ void __fastcall TMainForm::AdvSmoothToggleButton_InitWorkClick(TObject *Sender)
 		if(MessageBox(Handle, BaseForm->GetLangStr("MSG_INIT_WORK").c_str(),
 			L"Initialize", MB_YESNO|MB_ICONQUESTION) == ID_YES)
 		{
+			// Never discard a reservation while a physical cell is still held.
+			for(int i = 0; i < gripCnt; ++i){
+				if(!gripper->disable_gripper[i] &&
+					robostar->CheckEjectCell_before(i + 1) == false){
+					memoMainLineAdd("[INIT WORK] BLOCKED - cell detected in gripper " + IntToStr(i + 1));
+					ShowCommonError("Initialize work blocked",
+						"A cell is detected in the gripper. Complete insert/eject recovery first.");
+					return;
+				}
+			}
+			if(opcCellTrackOutPending){
+				memoMainLineAdd("[INIT WORK] BLOCKED - CellTrackOut response is pending");
+				ShowCommonError("Initialize work blocked",
+					"Complete or recover the pending CellTrackOut response first.");
+				return;
+			}
+
+			// Clear equipment-only unfinished reservations. Completed inserts are
+			// retained and will be merged with Location2 TrackIn on the reload.
+			int clearedReservations = 0;
+			for(int ch = 0; ch < 96; ++ch){
+				if(tray_target.PICK[ch] == "R" && !tray_target.CELL_EXIST[ch]){
+					tray_target.PICK[ch] = "N";
+					tray_target.SLOT_ID[ch] = "";
+					tray_target.CELL_LOT_ID[ch] = "";
+					tray_target.WORK_FLAG[ch] = false;
+					tray_target.LOSS_CD[ch] = "";
+					tray_target.RANK[ch] = "";
+					color_target[ch / 24][23 - (ch % 24)] = clWhite;
+					targetGrid->Cells[ch / 24][23 - (ch % 24)] = "";
+					pTarget_bad[ch]->Caption = "";
+					pTarget_bad[ch]->Color = clWhite;
+					++clearedReservations;
+				}
+			}
+			tray_target.remainCnt = 0;
+			for(int ch = 0; ch < 96; ++ch)
+				if(!tray_target.CELL_EXIST[ch] && tray_target.PICK[ch] == "N") ++tray_target.remainCnt;
+			targetGrid->Invalidate();
+			opcFinalTrackOutTrayId = "";
+			setTrayInfo(1);
+			memoMainLineAdd("[INIT WORK] Target reservations cleared=" +
+				IntToStr(clearedReservations) + " / completed inserts retained");
+
             gripper->seq_save = seqIdle;
 			robostar->seq_save = seqIdle;
 

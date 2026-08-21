@@ -66,6 +66,7 @@ __fastcall Trobostar::Trobostar(TComponent* Owner)
 	move.channel = 0;
 	activeMoveValid = false;
 	directXYPositionReady = false;
+	homeRequiredAfterServoOff = false;
 	for(int i = 0; i < AxisCnt; ++i)
 		activeTarget[i] = 0;
 
@@ -538,8 +539,10 @@ bool __fastcall Trobostar::RestoreServoState()
 	if(MainForm != NULL){
 		MainForm->m_ServoOpen = true;
 		MainForm->m_ServoON = allServoOn;
-		MainForm->m_ServoHomeEmg = allServoOn && allOriginComplete;
-		MainForm->m_ServoHome = allServoOn && allOriginComplete && allAtWaitPosition;
+		MainForm->m_ServoHomeEmg = allServoOn && allOriginComplete
+			&& !homeRequiredAfterServoOff;
+		MainForm->m_ServoHome = allServoOn && allOriginComplete && allAtWaitPosition
+			&& !homeRequiredAfterServoOff;
 		MainForm->memoRobostarLineAdd("[SERVO RESTORE] Existing RUNNING state restored: ServoON=" +
 			IntToStr(allServoOn ? 1 : 0) + ", Origin=" + IntToStr(allOriginComplete ? 1 : 0) +
 			", XYZ0=" + IntToStr(allAtWaitPosition ? 1 : 0));
@@ -652,19 +655,23 @@ void __fastcall Trobostar::Home()
 				MainForm->memoRobostarLineAdd("X Axis Servo Home - Moving");
 			}
 			else{
-				MainForm->memoRobostarLineAdd("X Axis Servo Home - Complete");
+				// Z, Y and X home-return completion re-enables the HOME state.
+				homeRequiredAfterServoOff = false;
+				MainForm->memoRobostarLineAdd("X Axis Servo Home - Complete / HOME state restored");
 				step.step += 1;
 			}
 			break;
-		case 8: // 2019 07 05 x, y, z 축 원점 이동 후 그리퍼에 셀이 있는지 확인
+		case 8:
 			teachForm->pnlMovingAlarm->Visible = false;
 			teachForm->pnlMovingAlarm2->Visible = false;
 
+			// X0022 ON means no cell. No cell is the normal HOME completion state.
+			// A detected cell is logged, but either result must terminate seqHome.
 			if(getCellDetectStatus())
-			{
-				MainForm->memoRobostarLineAdd("[B_Ignition] 그리퍼에 셀이 있습니다. 셀을 제거 후 원점으로 이동 해 주세요");
-                step.step = 99;
-			}
+				MainForm->memoRobostarLineAdd("[HOME COMPLETE CHECK] X0022=0 / cell detected on gripper");
+			else
+				MainForm->memoRobostarLineAdd("[HOME COMPLETE CHECK] X0022=1 / gripper cell clear");
+			step.step = 99;
 			break;
 		default:
 			InitSequence(seqIdle);
@@ -869,6 +876,10 @@ void __fastcall Trobostar::AutoMove()
 {
 	AnsiString loadfactor = "", px = "", py = "", zpoint = "", msg1 = "", msg2 = "";
 	UnicodeString msg = "";
+	int moveStepNo = step.reserve == seqAutoEject ? 8 :
+		(step.reserve == seqAutoInsert ? 10 : 0);
+	int actionStepNo = step.reserve == seqAutoEject ? 9 :
+		(step.reserve == seqAutoInsert ? 11 : 0);
 	if(!MainForm->m_ServoOpen)
 	{
 		InitSequence(seqIdle);
@@ -910,6 +921,9 @@ void __fastcall Trobostar::AutoMove()
 			step.step = 1;
 			break;
 		case 1:
+			if(moveStepNo > 0)
+				MainForm->SetProcessOperationStatus(moveStepNo, "Z UP BEFORE X/Y",
+					"Servo Z position", "0", IntToStr((__int64)mr2.pos[Axis_z]));
 			//* Z축 이동 확인. 20초 이내 0으로 이동하지 않으면
             zUpCount++;
 
@@ -943,13 +957,19 @@ void __fastcall Trobostar::AutoMove()
 				IntToStr((__int64)activeTarget[Axis_y]));
 			break;
 		case 11:
+			if(moveStepNo > 0)
+				MainForm->SetProcessOperationStatus(moveStepNo, "MOVE TO TRAY CHANNEL",
+					"Servo X position", IntToStr((__int64)activeTarget[Axis_x]),
+					IntToStr((__int64)mr2.pos[Axis_x]));
 			rangeCheck(Axis_x);
-			MainForm->memoRobostarLineAdd("[CHECK] X");
 			break;
 		case 12:
+			if(moveStepNo > 0)
+				MainForm->SetProcessOperationStatus(moveStepNo, "MOVE TO TRAY CHANNEL",
+					"Servo Y position", IntToStr((__int64)activeTarget[Axis_y]),
+					IntToStr((__int64)mr2.pos[Axis_y]));
 			if(rangeCheck(Axis_y) && step.reserve == seqIdle)
 				step.step = 15; // Teaching channel move ends after X/Y.
-			MainForm->memoRobostarLineAdd("[CHECK] Y");
 			break;
 		case 13:
 		{
@@ -991,8 +1011,11 @@ void __fastcall Trobostar::AutoMove()
 			break;
 		}
 		case 14:
+			if(actionStepNo > 0)
+				MainForm->SetProcessOperationStatus(actionStepNo, "Z DOWN TO TRAY",
+					"Servo Z position", IntToStr((__int64)activeTarget[Axis_z]),
+					IntToStr((__int64)mr2.pos[Axis_z]));
 			rangeCheck(Axis_z);
-			MainForm->memoRobostarLineAdd("[CHECK] Z");
 			break;
 		default:
 		{
@@ -1048,6 +1071,8 @@ void __fastcall Trobostar::WaitPosition()
 			break;
 		case 1:
 			zUpCount++;
+			MainForm->SetProcessOperationStatus(13, "MOVE TO WAIT POSITION",
+				"Servo Z position", "0", IntToStr((__int64)mr2.pos[Axis_z]));
 			if(rangeCheck(Axis_zUp)){
 				zUpCount = 0;
 				break;
@@ -1066,14 +1091,21 @@ void __fastcall Trobostar::WaitPosition()
 			MainForm->memoRobostarLineAdd("[MOVE] X and Y");
 			break;
 		case 3:
+			MainForm->SetProcessOperationStatus(13, "MOVE TO WAIT POSITION",
+				"Servo X position", IntToStr((__int64)Wait_xAxis),
+				IntToStr((__int64)mr2.pos[Axis_x]));
 			rangeCheck(Axis_x);
-			MainForm->memoRobostarLineAdd("[CHECK] X");
 			break;
 		case 4:
+			MainForm->SetProcessOperationStatus(13, "MOVE TO WAIT POSITION",
+				"Servo Y position", IntToStr((__int64)Wait_yAxis),
+				IntToStr((__int64)mr2.pos[Axis_y]));
 			rangeCheck(Axis_y);
-			MainForm->memoRobostarLineAdd("[CHECK] Y");
 			break;
 		case 5:
+			MainForm->SetProcessOperationStatus(13, "WAIT POSITION COMPLETE CHECK",
+				"X0022 gripper cell clear", "1 (NO CELL)",
+				IntToStr(input.GRIPPER1_CELL_DETECT ? 1 : 0));
             teachForm->pnlMovingAlarm->Visible = false;
 			teachForm->pnlMovingAlarm2->Visible = false;
 			if(getCellDetectStatus())
@@ -1192,6 +1224,15 @@ void __fastcall Trobostar::req_ServoOn()
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::req_ServoOff()
 {
+	// Servo OFF always requires a new home-return before AUTO/motion readiness.
+	homeRequiredAfterServoOff = true;
+	directXYPositionReady = false;
+	if(MainForm != NULL){
+		MainForm->m_ServoON = false;
+		MainForm->m_ServoHome = false;
+		MainForm->m_ServoHomeEmg = false;
+		MainForm->memoRobostarLineAdd("[SERVO OFF] HOME state cleared; run HOME again after Servo ON.");
+	}
 	InitSequence(seqServoOff);
 }
 //---------------------------------------------------------------------------
@@ -1686,6 +1727,9 @@ void __fastcall Trobostar::AutoEject()
 
 		switch(step.step){
 			case 0:
+				MainForm->SetProcessOperationStatus(9, "CELL EJECT",
+					"X0022 Source cell detect", "0 (CELL DETECTED)",
+					IntToStr(input.GRIPPER1_CELL_DETECT ? 1 : 0));
 				// Source Z DOWN is already complete. A detected cell is normal here:
 				// confirm the tray cell first, then close (CHUCK) the open gripper.
 				for(int i=0; i<move.cnt; ++i)
@@ -1704,6 +1748,9 @@ void __fastcall Trobostar::AutoEject()
 				}
 				break;
 			case 1:
+				MainForm->SetProcessOperationStatus(9, "CELL EJECT",
+					"X0021 Gripper OPEN", "1 (OPEN)",
+					IntToStr(input.GRIPPER1_UNCHUCK ? 1 : 0));
 				for(int i=0; i<move.cnt; ++i)
 					nresult += CheckEjectUnchuck(move.tool + i);
 				if(nresult == move.cnt){
@@ -1719,6 +1766,9 @@ void __fastcall Trobostar::AutoEject()
 				}
 				break;
 			case 2:
+				MainForm->SetProcessOperationStatus(9, "CELL EJECT",
+					"Source tray centering ready", "1 (LIME)",
+					MainForm->psrcReady->Color == clLime ? "1" : "0");
 				// 척 동작 전 선별 트레이 센터링 재확인
 				if(MainForm->psrcReady->Color != clLime)
 				{
@@ -1729,6 +1779,9 @@ void __fastcall Trobostar::AutoEject()
 				}
 				break;
 			case 3:
+				MainForm->SetProcessOperationStatus(9, "CELL EJECT",
+					"X0020 Gripper CHUCK", "1 (CLOSE)",
+					IntToStr(input.GRIPPER1_CHUCK ? 1 : 0));
 				for(int i=0; i<move.cnt; ++i)
 					nresult += CheckEjectChuck(move.tool + i);
 				if(nresult == move.cnt){
@@ -1737,12 +1790,17 @@ void __fastcall Trobostar::AutoEject()
 				MainForm->memoRobostarLineAdd("[C_Maint] 취출4. GRIPPER CHUCK");
 				break;
 			case 4:
+				MainForm->SetProcessOperationStatus(9, "CELL EJECT",
+					"Gripper CHUCK stabilization", ">=5 ticks", IntToStr(step.delay));
 				if(step.delay >= 5)step.step = 6;
 				else step.delay += 1;
 				MainForm->memoRobostarLineAdd("[C_Maint] 취출4. 척 안정화 대기");
 				break;
 			case 6:
 			{
+				MainForm->SetProcessOperationStatus(9, "CELL EJECT",
+					"X0022 Cell held after CHUCK", "0 (CELL DETECTED)",
+					IntToStr(input.GRIPPER1_CELL_DETECT ? 1 : 0));
 				for(int i=0; i<move.cnt; ++i)
 					nresult += CheckEjectCell_after(move.tool + i);
 				if(nresult == move.cnt){
@@ -1780,6 +1838,8 @@ void __fastcall Trobostar::AutoEject()
 				}
 				break;
 			case 8:
+				MainForm->SetProcessOperationStatus(9, "CELL EJECT COMPLETE",
+					"Servo Z position", "0", IntToStr((__int64)mr2.pos[Axis_z]));
 				zUpCount += 1;
 				if(rangeCheck(Axis_zUp)){
 					zUpCount = 0;
@@ -1814,6 +1874,9 @@ void __fastcall Trobostar::AutoInsert()
 
 		switch(step.step){
 			case 0:
+				MainForm->SetProcessOperationStatus(11, "CELL INSERT",
+					"X0022 Held cell detect", "0 (CELL DETECTED)",
+					IntToStr(input.GRIPPER1_CELL_DETECT ? 1 : 0));
 				for(int i=0; i<move.cnt; ++i)nresult += CheckEjectCell_after(move.tool + i);
 				if(nresult == move.cnt){
 					step.step += 1;
@@ -1828,6 +1891,9 @@ void __fastcall Trobostar::AutoInsert()
 				}
 				break;
 			case 1:
+				MainForm->SetProcessOperationStatus(11, "CELL INSERT",
+					"Target tray centering ready", "1 (LIME)",
+					MainForm->ptargetReady->Color == clLime ? "1" : "0");
 				// 언척 동작 전 대상 트레이 센터링 재확인
 				if(MainForm->ptargetReady->Color != clLime)
 				{
@@ -1838,6 +1904,9 @@ void __fastcall Trobostar::AutoInsert()
 				}
 				break;
 			case 2:
+				MainForm->SetProcessOperationStatus(11, "CELL INSERT",
+					"X0021 Gripper OPEN", "1 (OPEN)",
+					IntToStr(input.GRIPPER1_UNCHUCK ? 1 : 0));
 				for(int i=0; i<move.cnt; ++i)nresult += CheckInsertUnchuck(move.tool + i);
 				if(nresult == move.cnt){
 					step.step = 4;
@@ -1853,6 +1922,8 @@ void __fastcall Trobostar::AutoInsert()
 
 				break;
 			case 4:
+				MainForm->SetProcessOperationStatus(11, "CELL INSERT",
+					"Gripper OPEN stabilization", ">=2 ticks", IntToStr(step.delay));
 				if(step.delay >= 2) step.step = 5;
 				else step.delay += 1;
 				MainForm->memoRobostarLineAdd("[INSERT] Gripper OPEN stabilization wait");
@@ -1871,6 +1942,8 @@ void __fastcall Trobostar::AutoInsert()
 				}
 				break;
 			case 6:
+				MainForm->SetProcessOperationStatus(11, "CELL INSERT",
+					"Servo Z position after release", "0", IntToStr((__int64)mr2.pos[Axis_z]));
 				zUpCount += 1;
 				if(rangeCheck(Axis_zUp)){
 					zUpCount = 0;
@@ -1884,6 +1957,9 @@ void __fastcall Trobostar::AutoInsert()
 				break;
 			case 7:
 			{
+				MainForm->SetProcessOperationStatus(11, "CELL INSERT COMPLETE CHECK",
+					"X0022 Gripper cell clear", "1 (NO CELL)",
+					IntToStr(input.GRIPPER1_CELL_DETECT ? 1 : 0));
 				// X0022 is checked only after the gripper has reached Z=0.
 				for(int i=0; i<move.cnt; ++i)
 					nresult += CheckInsertCellReleased(move.tool + i);
@@ -2387,6 +2463,11 @@ void __fastcall Trobostar::SetCcLinkOpenResult(short result, long openedPath)
 bool __fastcall Trobostar::IsCcLinkReady() const
 {
 	return m_ccLinkOpened && m_ccLinkRunning;
+}
+//---------------------------------------------------------------------------
+bool __fastcall Trobostar::IsHomeRequiredAfterServoOff() const
+{
+	return homeRequiredAfterServoOff;
 }
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::Y003D(bool bOn)
