@@ -16,6 +16,10 @@
 #pragma resource "*.dfm"
 TMesOpc *MesOpc;
 
+// Internal polling result. This value is never received from FMS.
+// It tells FormMain that an old Response was cleared and Request was just ON.
+static const int FMS_POLL_REQUEST_STARTED = 3;
+
 static const UnicodeString TAG_SOURCE = L"NGS.F1NGS01.Location1";
 static const UnicodeString TAG_TARGET = L"NGS.F1NGS01.Location2";
 static AnsiString GTrayLoadValidationError[2];
@@ -1269,6 +1273,8 @@ int __fastcall TMesOpc::PROCESS_START_RESPONSE_RESULT()
 	unsigned __int64 CurrentRevision = Mod_Fms != NULL ? Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
 	if(FProcessStartWaitResponseIdle)
 	{
+		// Retry guard: never reuse the previous transaction's Response=1/2.
+		// Keep Request OFF until FMS clears that stale response to 0.
 		if(Response != 0) return 0;
 		FProcessStartWaitResponseIdle = false;
 		FProcessStartResponseRevision = CurrentRevision;
@@ -1276,7 +1282,7 @@ int __fastcall TMesOpc::PROCESS_START_RESPONSE_RESULT()
 		if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 		LogOpcEvent("PROCESS_START_RESPONSE IDLE confirmed / Request=ON / BaselineRevision=" +
 			IntToStr((__int64)FProcessStartResponseRevision));
-		return 3;
+		return FMS_POLL_REQUEST_STARTED;
 	}
 	if(Response == 0)
 		return 0;
@@ -1367,6 +1373,24 @@ bool __fastcall TMesOpc::READ_TRACK_IN_CELL(int SourceCellNo, AnsiString &CellId
 	return false;
 }
 //---------------------------------------------------------------------------
+void __fastcall TMesOpc::CLEAR_TRACK_OUT_CELL_INFORMATION()
+{
+    UnicodeString Root = TAG_TARGET + L".TrackOutCellInformation";
+    for (int i = 0; i < 96; ++i)
+    {
+        SetPcString(CellTag(Root, i, L"CellId"), L"");
+        SetPcInt(CellTag(Root, i, L"CellNo"), 0);
+        SetPcString(CellTag(Root, i, L"LotId"), L"");
+        SetPcBool(CellTag(Root, i, L"CellExist"), false);
+        SetPcString(CellTag(Root, i, L"NGCode"), L"");
+        SetPcString(CellTag(Root, i, L"Grade"), L"");
+        SetPcBool(CellTag(Root, i, L"WorkFlag"), false);
+    }
+    SetPcInt(TrackOutTag(L"CellCount"), 0);
+    if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
+    LogOpcEvent("TRACK_OUT_CELL_INFORMATION CLEARED FOR NEW SOURCE TRAY PROCESS", true);
+}
+//---------------------------------------------------------------------------
 void __fastcall TMesOpc::PROCESS_DATA_WRITE()
 {
 	if (MainForm == NULL || Mod_Fms == NULL)
@@ -1418,6 +1442,18 @@ void __fastcall TMesOpc::PROCESS_DATA_WRITE()
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 	LogOpcEvent("TRACK_OUT_CELL_INFORMATION WRITE TrayId=" + AnsiString(TargetTrayId) +
 		" Count=" + IntToStr(CellCount), true);
+}
+//---------------------------------------------------------------------------
+void __fastcall TMesOpc::CLEAR_CELL_TRACK_OUT_DATA()
+{
+    SetPcInt(CellTrackOutTag(L"CellNoFrom"), 0);
+    SetPcString(CellTrackOutTag(L"TrayIdFrom"), L"");
+    SetPcInt(CellTrackOutTag(L"CellNoTo"), 0);
+    SetPcString(CellTrackOutTag(L"TrayIdTo"), L"");
+    SetPcString(CellTrackOutTag(L"CellId"), L"");
+    SetPcBool(CellTrackOutTag(L"CellUnloadComplete"), false);
+    if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
+    LogOpcEvent("CELL_TRACK_OUT DATA CLEARED", false);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::CELL_TRACK_OUT_REQUEST(int SourceChannel, int TargetChannel,
@@ -1493,6 +1529,7 @@ int __fastcall TMesOpc::CELL_TRACK_OUT_RESPONSE_RESULT()
 	unsigned __int64 CurrentRevision = Mod_Fms != NULL ? Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
 	if(FCellTrackOutWaitResponseIdle)
 	{
+		// Retry guard: wait for the old CellUnloadCompleteResponse to reset.
 		if(Response != 0) return 0;
 		FCellTrackOutWaitResponseIdle = false;
 		FCellTrackOutResponseRevision = CurrentRevision;
@@ -1500,7 +1537,7 @@ int __fastcall TMesOpc::CELL_TRACK_OUT_RESPONSE_RESULT()
 		if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 		LogOpcEvent("CELL_TRACK_OUT RESPONSE IDLE confirmed / Request=ON / BaselineRevision=" +
 			IntToStr((__int64)FCellTrackOutResponseRevision), true);
-		return 3;
+		return FMS_POLL_REQUEST_STARTED;
 	}
 	if(Response == 0)
 		return 0;
@@ -1636,6 +1673,7 @@ int __fastcall TMesOpc::TRAY_UNLOAD_RESPONSE_RESULT()
 	unsigned __int64 CurrentRevision = Mod_Fms != NULL ? Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
 	if(FTrayUnloadWaitResponseIdle)
 	{
+		// Retry guard: do not turn Request ON while the old response remains.
 		if(Response != 0) return 0;
 		FTrayUnloadWaitResponseIdle = false;
 		FTrayUnloadResponseRevision = CurrentRevision;
@@ -1643,7 +1681,7 @@ int __fastcall TMesOpc::TRAY_UNLOAD_RESPONSE_RESULT()
 		if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 		LogOpcEvent("TRAY_UNLOAD_RESPONSE IDLE confirmed / Request=ON / BaselineRevision=" +
 			IntToStr((__int64)FTrayUnloadResponseRevision), false);
-		return 3;
+		return FMS_POLL_REQUEST_STARTED;
 	}
 	if(Response == 0) return 0;
 	if(!IsCycleResponseBypass() && CurrentRevision <= FTrayUnloadResponseRevision) return 0;
@@ -1733,6 +1771,7 @@ int __fastcall TMesOpc::PROCESS_END_RESPONSE_RESULT()
 	unsigned __int64 CurrentRevision = Mod_Fms != NULL ? Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
 	if(FProcessEndWaitResponseIdle)
 	{
+		// Retry guard: first complete the previous response reset sequence.
 		if(Response != 0) return 0;
 		FProcessEndWaitResponseIdle = false;
 		FProcessEndResponseRevision = CurrentRevision;
@@ -1740,7 +1779,7 @@ int __fastcall TMesOpc::PROCESS_END_RESPONSE_RESULT()
 		if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 		LogOpcEvent("PROCESS_END_RESPONSE IDLE confirmed / Request=ON / BaselineRevision=" +
 			IntToStr((__int64)FProcessEndResponseRevision), true);
-		return 3;
+		return FMS_POLL_REQUEST_STARTED;
 	}
 	if(Response == 0)
 		return 0;

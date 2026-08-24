@@ -48,6 +48,8 @@ public:		// User declarations
     int __fastcall PROCESS_START_RESPONSE_VALUE();
     void __fastcall LogProcessStartResponseOffTimeout();
     void __fastcall PROCESS_DATA_WRITE();
+    void __fastcall CLEAR_TRACK_OUT_CELL_INFORMATION();
+    void __fastcall CLEAR_CELL_TRACK_OUT_DATA();
     bool __fastcall READ_TRACK_IN_CELL(int SourceCellNo, AnsiString &CellId,
         AnsiString &LotId, AnsiString &NGCode, AnsiString &Grade);
     void __fastcall CELL_TRACK_OUT_REQUEST(int SourceChannel, int TargetChannel,

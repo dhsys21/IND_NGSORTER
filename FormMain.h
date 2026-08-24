@@ -453,6 +453,7 @@ private:	// User declarations
 	bool targetTrayInfoWasCentered;
 	bool targetTrayInfoPromptActive;
 	AnsiString targetTrayInfoActiveId;
+	bool sourceTrackOutResetArmed;
 
 	int __fastcall FindList(AnsiString strType);
 	void __fastcall AddList(AnsiString strType);

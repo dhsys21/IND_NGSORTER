@@ -1,4 +1,4 @@
-//---------------------------------------------------------------------------
+﻿//---------------------------------------------------------------------------
 
 #include <vcl.h>
 #pragma hdrstop
@@ -9,6 +9,11 @@
 #pragma resource "*.dfm"
 
 TMainForm *MainForm;
+
+// Internal result returned by the FMS response polling functions.
+// This is not a value received from FMS. It means a stale response was first
+// cleared to 0 and the PC request has just been switched ON.
+static const int FMS_POLL_REQUEST_STARTED = 3;
 
 static AnsiString GripperSequenceText(int value)
 {
@@ -127,6 +132,7 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	fmsAlarmTransaction = fmsAlarmNone;
 	fmsAlarmRetryRequested = false;
 	fmsAlarmRetryStartTick = 0;
+	sourceTrackOutResetArmed = false;
 	for(int i = 0; i < 2; ++i) {
 		comBcr[i] = NULL;
 		opcTrayLoadPending[i] = false;
@@ -532,7 +538,7 @@ void __fastcall TMainForm::pause_startBtnClick(TObject *Sender)
 				opcTrayLoadWaitResponseOff[i] = false;
 				opcTrayLoadResponseOffError[i] = false;
 				opcTrayLoadRetryRequired[i] = false;
-			opcTrayLoadResponseResult[i] = 0;
+				opcTrayLoadResponseResult[i] = 0;
 				opcTrayDisplayed[i] = false;
 				opcTrayLoaded[i] = false;
 				opcTrayLoadStartTick[i] = GetTickCount();
@@ -601,6 +607,11 @@ void __fastcall TMainForm::ReadSourceTrayBarcode()
 {
 	// Cycle test uses a fixed Source tray ID without triggering the reader.
 	if(cbCycle != NULL && cbCycle->Checked){
+		if(MesOpc != NULL){
+			MesOpc->CLEAR_CELL_TRACK_OUT_DATA();
+			MesOpc->CLEAR_TRACK_OUT_CELL_INFORMATION();
+		}
+		sourceTrackOutResetArmed = false;
 		memoMainLineAdd("[CYCLE TEST] Source tray barcode reader bypass: TR-20260818-01A");
 		setBarcode(0, "TR-20260818-01A");
 		return;
@@ -871,7 +882,22 @@ bool __fastcall TMainForm::ProcessFmsAlarmRecovery()
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 {
+	// Every FMS command uses the same four-phase handshake:
+	//   1) PC Request=ON
+	//   2) FMS Response=1(success) or 2(fail)
+	//   3) PC Request=OFF
+	//   4) FMS Response=0(reset), then the transaction is complete
+	//
+	// Poll result values used below:
+	//   0  : still waiting for a response, or Response is currently reset
+	//   1  : FMS success
+	//   2  : FMS fail (TrayLoad alone treats 2 as bypass)
+	//   3  : internal event; stale Response=0 confirmed and Request just turned ON
+	//  -1  : invalid/missing response or validation failure
 	const DWORD RESPONSE_TIMEOUT_MS = 10000;
+
+	// While an FMS alarm is active, recovery owns the request/response flow.
+	// Do not run normal transactions at the same time.
 	if(ProcessFmsAlarmRecovery()){
 		opcMesTimer->Enabled = true;
 		return;
@@ -879,6 +905,9 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 	DWORD nowTick = GetTickCount();
 	bool cycleResponseBypass = cbCycle != NULL && cbCycle->Checked;
 
+	// ----------------------------------------------------------------------
+	// TrayLoad: process Source(Location1) and Target(Location2) independently.
+	// ----------------------------------------------------------------------
 	for (int i = 0; i < 2; ++i)
 	{
 		if (!opcTrayLoadPending[i])
@@ -889,8 +918,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		AnsiString locationName = sourceTray ? "Location1" : "Location2";
 		int stepNo = sourceTray ? 2 : 5;
 
-		// Four-phase TrayLoad handshake:
-		// Request ON -> Response ON -> Request OFF -> Response OFF -> complete.
+		// PHASE 4: Request is already OFF. Wait until FMS resets Response to 0.
 		if (opcTrayLoadWaitResponseOff[i])
 		{
 			int response = MesOpc != NULL ?
@@ -900,9 +928,12 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 
 			if (response == 0 || cycleResponseBypass)
 			{
+				// Save the ON-phase result before clearing transaction state.
 				int trayLoadResult = opcTrayLoadResponseResult[i];
 				if(trayLoadResult == 2)
 				{
+					// TrayLoad Response=2 is a special bypass result. Do not use
+					// tray data; discharge this tray and wait for the next tray.
 					opcTrayLoadPending[i] = false;
 					opcTrayLoadWaitResponseOff[i] = false;
 					opcTrayLoadResponseOffError[i] = false;
@@ -940,13 +971,14 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 				opcTrayLoadWaitResponseOff[i] = false;
 				opcTrayLoadResponseOffError[i] = false;
 				opcTrayLoadRetryRequired[i] = false;
-			opcTrayLoadResponseResult[i] = 0;
+				opcTrayLoadResponseResult[i] = 0;
 				ProcessStepLog(stepNo, locationName +
 					".TrayLoadResponse=0 received / advance to next process");
 				AdvanceOpcTrayLoad(sourceTray);
 				continue;
 			}
 
+			// Request is OFF but Response did not return to 0 within 10 seconds.
 			if ((DWORD)(GetTickCount() - opcTrayLoadStartTick[i]) >= RESPONSE_TIMEOUT_MS)
 			{
 				if (!opcTrayLoadResponseOffError[i])
@@ -974,17 +1006,17 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 			continue;
 		}
 
+		// PHASE 1-2: Request is ON. Wait for the FMS result.
+		// rawResponse is for screen/log diagnostics; response also validates
+		// the tray information received with TrayLoadResponse=1.
 		int rawResponse = MesOpc != NULL ? MesOpc->TRAY_LOAD_RESPONSE_VALUE(sourceTray) : -1;
 		int response = MesOpc != NULL ? MesOpc->TRAY_LOAD_RESPONSE(sourceTray) : -1;
 		SetProcessWaitStatus(stepNo, locationName + ".TrayLoad Request=ON",
 			locationName + ".TrayLoadResponse ON", rawResponse);
-		if(response == 3)
+		if (response == 1)
 		{
-			opcTrayLoadStartTick[i] = nowTick;
-			ProcessStepLog(stepNo, "Stale TrayLoadResponse cleared / actual Request=ON");
-		}
-		else if (response == 1)
-		{
+			// Success: TRAY_LOAD_RESPONSE() already switched Request OFF.
+			// Display the tray now, but do not advance until Response=0.
 			opcTrayLoadResponseResult[i] = 1;
 			// Display the validated tray immediately when Response turns ON.
 			// The next process is still blocked until the same Response returns OFF.
@@ -1006,7 +1038,8 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		}
 		else if (response == 2)
 		{
-			// TrayLoadResponse=2 is the only FMS bypass result.
+			// TrayLoadResponse=2 is the only FMS response treated as bypass.
+			// Keep the transaction until FMS resets the response to 0.
 			opcTrayLoadResponseResult[i] = 2;
 			opcTrayLoadWaitResponseOff[i] = true;
 			opcTrayLoadResponseOffError[i] = false;
@@ -1016,6 +1049,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		}
 		else if (response < 0)
 		{
+			// Response was invalid, or Response=1 arrived with invalid tray data.
 			AnsiString validationError = MesOpc != NULL ?
 				MesOpc->TRAY_LOAD_VALIDATION_ERROR(sourceTray) : AnsiString("");
 			ProcessStepLog(stepNo, "ERROR - TrayLoadResponse=" + IntToStr(response) +
@@ -1028,6 +1062,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		}
 		else if ((DWORD)(GetTickCount() - opcTrayLoadStartTick[i]) >= RESPONSE_TIMEOUT_MS)
 		{
+			// Response is still 0: FMS did not return a result within 10 seconds.
 			opcTrayLoadPending[i] = false;
 			opcTrayLoadWaitResponseOff[i] = false;
 			opcTrayLoadResponseOffError[i] = false;
@@ -1057,14 +1092,20 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 			}
 		}
 	}
+	// ----------------------------------------------------------------------
+	// ProcessStart: tell FMS that sorting for the source tray will start.
+	// ----------------------------------------------------------------------
 	if (opcProcessStartPending)
 	{
+		// PHASE 4: Request is OFF; wait for ProcessStartResponse=0.
 		if(opcProcessStartWaitResponseOff)
 		{
 			int response = MesOpc != NULL ? MesOpc->PROCESS_START_RESPONSE_VALUE() : -1;
 			SetProcessWaitStatus(6, "ProcessStart Request=OFF", "ProcessStartResponse OFF", response);
 			if(response == 0 || cycleResponseBypass)
 			{
+				// Response reset completes the handshake. Only result=1 may start
+				// the local gripper/robot sorting sequence.
 				bool paused = gripper != NULL && robostar != NULL &&
 					(gripper->pauseStatus || robostar->pauseStatus);
 				if(!(opcProcessStartResponseOffError && paused))
@@ -1110,18 +1151,23 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		}
 		else
 		{
+			// PHASE 1-2: Request is ON; wait for success or failure.
 			int response = MesOpc != NULL ? MesOpc->PROCESS_START_RESPONSE_RESULT() : -1;
 			SetProcessWaitStatus(6, "ProcessStart Request=ON", "ProcessStartResponse ON", response);
-			if(response == 3){
+			if(response == FMS_POLL_REQUEST_STARTED){
+				// A previous response was still ON when retry began. It is now
+				// reset, so the polling function issued the real Request=ON.
 				opcProcessStartTick = nowTick;
 				ProcessStepLog(6, "Stale ProcessStartResponse cleared / actual Request=ON");
 			}else if(response == 1){
+				// Request is already OFF. Store success until final Response=0.
 				opcProcessStartWaitResponseOff = true;
 				opcProcessStartResponseOffError = false;
 				opcProcessStartResponseResult = response;
 				opcProcessStartTick = nowTick;
 				ProcessStepLog(6, "ProcessStartResponse=1 / Request=OFF / wait Response=0");
 			}else if(response == 2){
+				// ProcessStart Response=2 is a failure, never a bypass.
 				ProcessStepLog(6, "ERROR - ProcessStartResponse=2");
 				ShowFmsAlarm(fmsAlarmProcessStart, "Process start failed",
 					"FMS returned ProcessStartResponse=2.", response);
@@ -1140,6 +1186,10 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		}
 	}
 
+	// ----------------------------------------------------------------------
+	// Local sequence start: this is not an FMS handshake. ProcessStart has
+	// completed; wait for AUTO/idle/no-pause before starting the gripper.
+	// ----------------------------------------------------------------------
 	if(opcSortingStartPending)
 	{
 		AnsiString currentState;
@@ -1202,8 +1252,12 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 				currentState + "\r\nCorrect the displayed state, then press Restart.");
 		}
 	}
+	// ----------------------------------------------------------------------
+	// ProcessEnd: all NG cells for the current source tray were processed.
+	// ----------------------------------------------------------------------
 	if(opcProcessEndPending)
 	{
+		// PHASE 4: Request is OFF; wait for ProcessEndResponse=0.
 		if(opcProcessEndWaitResponseOff)
 		{
 			int response = MesOpc != NULL ? MesOpc->PROCESS_END_RESPONSE_VALUE() : -1;
@@ -1261,18 +1315,22 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		}
 		else
 		{
+			// PHASE 1-2: Request is ON; wait for success or failure.
 			int response = MesOpc != NULL ? MesOpc->PROCESS_END_RESPONSE_RESULT() : -1;
 			SetProcessWaitStatus(14, "ProcessEnd Request=ON", "ProcessEndResponse ON", response);
-			if(response == 3){
+			if(response == FMS_POLL_REQUEST_STARTED){
+				// Stale response cleared; the real ProcessEnd request just started.
 				opcProcessEndTick = nowTick;
 				ProcessStepLog(14, "Stale ProcessEndResponse cleared / actual Request=ON");
 			}else if(response == 1){
+				// Request is OFF. Preserve result=1 until Response resets to 0.
 				opcProcessEndWaitResponseOff = true;
 				opcProcessEndResponseOffError = false;
 				opcProcessEndResponseResult = response;
 				opcProcessEndTick = nowTick;
 				ProcessStepLog(14, "ProcessEndResponse=1 / Request=OFF / wait Response=0");
 			}else if(response == 2){
+				// ProcessEnd Response=2 is a failure, never a bypass.
 				ProcessStepLog(14, "ERROR - ProcessEndResponse=2");
 				ShowFmsAlarm(fmsAlarmProcessEnd, "Source ProcessEnd failed",
 					"FMS returned ProcessEndResponse=2.", response);
@@ -1297,14 +1355,20 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		}
 	}
 
+	// ----------------------------------------------------------------------
+	// CellTrackOut: report one moved cell from source to target tray.
+	// ----------------------------------------------------------------------
 	if(opcCellTrackOutPending)
 	{
+		// PHASE 4: CellUnloadComplete is OFF; wait for its Response=0.
 		if(opcCellTrackOutWaitResponseOff)
 		{
 			int response = MesOpc != NULL ? MesOpc->CELL_TRACK_OUT_RESPONSE_VALUE() : -1;
 			SetProcessWaitStatus(12, "CellUnloadComplete=OFF", "CellUnloadCompleteResponse OFF", response);
 			if(response == 0 || cycleResponseBypass)
 			{
+				// Clear the one-cell payload only after the handshake completes.
+				// TrackOutCellInformation is the separate accumulated tray result.
 				bool paused = gripper != NULL && robostar != NULL &&
 					(gripper->pauseStatus || robostar->pauseStatus);
 				if(!(opcCellTrackOutResponseOffError && paused))
@@ -1314,6 +1378,8 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 					opcCellTrackOutWaitResponseOff = false;
 					opcCellTrackOutResponseOffError = false;
 					opcCellTrackOutResponseResult = 0;
+					if(MesOpc != NULL)
+						MesOpc->CLEAR_CELL_TRACK_OUT_DATA();
 					if(result == 1){
 						CompleteProcessStep(12, cycleResponseBypass ? "Cycle test: CellUnloadCompleteResponse reset bypassed" : "CellUnloadCompleteResponse returned OFF");
 						memoMainLineAdd("[FMS OPC UA] CellTrackOut four-phase handshake complete.");
@@ -1347,18 +1413,22 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		}
 		else
 		{
+			// PHASE 1-2: CellUnloadComplete is ON; wait for result 1 or 2.
 			int response = MesOpc != NULL ? MesOpc->CELL_TRACK_OUT_RESPONSE_RESULT() : -1;
 			SetProcessWaitStatus(12, "CellUnloadComplete=ON", "CellUnloadCompleteResponse ON", response);
-			if(response == 3){
+			if(response == FMS_POLL_REQUEST_STARTED){
+				// Stale response cleared; CellUnloadComplete was just switched ON.
 				opcCellTrackOutStartTick = nowTick;
 				ProcessStepLog(12, "Stale CellUnloadCompleteResponse cleared / actual Request=ON");
 			}else if(response == 1){
+				// Success. Request is OFF; wait for the final Response=0.
 				opcCellTrackOutWaitResponseOff = true;
 				opcCellTrackOutResponseOffError = false;
 				opcCellTrackOutResponseResult = response;
 				opcCellTrackOutStartTick = nowTick;
 				ProcessStepLog(12, "CellUnloadCompleteResponse=1 / Request=OFF / wait Response=0");
 			}else if(response == 2){
+				// CellTrackOut Response=2 is a failure, never a bypass.
 				ProcessStepLog(12, "ERROR - CellUnloadCompleteResponse=2");
 				ShowFmsAlarm(fmsAlarmCellTrackOut, "CellTrackOut failed",
 					"FMS returned CellUnloadCompleteResponse=2.", response);
@@ -1380,8 +1450,12 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		}
 	}
 
+	// ----------------------------------------------------------------------
+	// TrayUnload: request discharge of the completed target tray.
+	// ----------------------------------------------------------------------
 	if(opcTargetUnloadPending)
 	{
+		// PHASE 4: TrayUnloadRequest is OFF; wait for Response=0.
 		if(opcTargetUnloadWaitResponseOff)
 		{
 			int response = MesOpc != NULL ? MesOpc->TRAY_UNLOAD_RESPONSE_VALUE() : -1;
@@ -1425,18 +1499,22 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		}
 		else
 		{
+			// PHASE 1-2: TrayUnloadRequest is ON; wait for result 1 or 2.
 			int response = MesOpc != NULL ? MesOpc->TRAY_UNLOAD_RESPONSE_RESULT() : -1;
 			SetProcessWaitStatus(16, "TrayUnloadRequest=ON", "TrayUnloadResponse ON", response);
-			if(response == 3){
+			if(response == FMS_POLL_REQUEST_STARTED){
+				// Stale response cleared; TrayUnloadRequest was just switched ON.
 				opcTargetUnloadTick = nowTick;
 				ProcessStepLog(16, "Stale TrayUnloadResponse cleared / actual Request=ON");
 			}else if(response == 1){
+				// Success. Request is OFF; wait for the final Response=0.
 				opcTargetUnloadWaitResponseOff = true;
 				opcTargetUnloadResponseOffError = false;
 				opcTargetUnloadResponseResult = response;
 				opcTargetUnloadTick = nowTick;
 				ProcessStepLog(16, "TrayUnloadResponse=1 / Request=OFF / wait Response=0");
 			}else if(response == 2){
+				// TrayUnload Response=2 is a failure, never a bypass.
 				ProcessStepLog(16, "ERROR - TrayUnloadResponse=2");
 				ShowFmsAlarm(fmsAlarmTrayUnload, "Target tray unload failed",
 					"FMS returned TrayUnloadResponse=2.", response);
@@ -1458,6 +1536,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		}
 	}
 
+	// Stop polling when no transaction or alarm recovery remains pending.
 	bool pending = fmsAlarmTransaction != fmsAlarmNone ||
 		opcProcessStartPending || opcSortingStartPending ||
 		opcProcessEndPending || opcCellTrackOutPending || opcTargetUnloadPending;
@@ -1710,6 +1789,20 @@ void __fastcall TMainForm::InitStep(STEP *data)
 // ����
 void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 {
+	bool plcConnected = PlcBin != NULL && PlcBin->ClientSocket_PLC != NULL &&
+		PlcBin->ClientSocket_PLC->Active;
+	bool sourceTraySimulated = cbMES != NULL && cbMES->Checked;
+	if(plcConnected || sourceTraySimulated){
+		bool sourceTrayIn = IsSourceTrayInSignal();
+		if(!sourceTrayIn)
+			sourceTrackOutResetArmed = true;
+		else if(sourceTrackOutResetArmed && MesOpc != NULL){
+			MesOpc->CLEAR_CELL_TRACK_OUT_DATA();
+			MesOpc->CLEAR_TRACK_OUT_CELL_INFORMATION();
+			sourceTrackOutResetArmed = false;
+		}
+	}
+
 	if(equipMode != modeAuto){
 		memoMainLineAdd(BaseForm->GetLangStr("MSG_AUTOMODE_WARNING"));
 		return;
