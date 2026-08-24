@@ -33,6 +33,7 @@
 #include "FormError_limit.h"
 #include "FormDoor.h"
 #include "FormAlarm.h"
+#include "FormAlarm_fms.h"
 #include "Barcode_comm.h"
 #include "Mod_SRX100W.h"
 #include "SmokeDetector_comm.h"

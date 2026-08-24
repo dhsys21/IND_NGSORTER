@@ -124,12 +124,16 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 		m_saveTrayInfo[0].WORK_FLAG[i] = false;
 		m_saveTrayInfo[1].WORK_FLAG[i] = false;
 	}
+	fmsAlarmTransaction = fmsAlarmNone;
+	fmsAlarmRetryRequested = false;
+	fmsAlarmRetryStartTick = 0;
 	for(int i = 0; i < 2; ++i) {
 		comBcr[i] = NULL;
 		opcTrayLoadPending[i] = false;
 		opcTrayLoadWaitResponseOff[i] = false;
 		opcTrayLoadResponseOffError[i] = false;
 		opcTrayLoadRetryRequired[i] = false;
+			opcTrayLoadResponseResult[i] = 0;
 		opcTrayLoadStartTick[i] = 0;
 		opcTrayDisplayed[i] = false;
 		opcTrayLoaded[i] = false;
@@ -159,7 +163,7 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	opcTargetUnloadResponseOffError = false;
 	opcTargetUnloadResponseResult = 0;
 	opcTargetUnloadTick = 0;
-	//* ºÒ·®Æ®·¹ÀÌ °ü¸®
+	//* ï¿½Ò·ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	targetTrayInfoDeletePending = false;
 	targetTrayInfoWasCentered = false;
 	targetTrayInfoPromptActive = false;
@@ -194,6 +198,7 @@ void __fastcall TMainForm::EndThread()
 		opcTrayLoadWaitResponseOff[i] = false;
 		opcTrayLoadResponseOffError[i] = false;
 		opcTrayLoadRetryRequired[i] = false;
+			opcTrayLoadResponseResult[i] = 0;
 		opcTrayDisplayed[i] = false;
 		opcTrayLoaded[i] = false;
 		if(comBcr[i] != NULL)
@@ -477,8 +482,8 @@ void __fastcall TMainForm::CmdTrayOut(int pos)
 		if(PlcBin != NULL) PlcBin->CmdSourceTrayOut(true);
 		if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(false);
 	}else{
-		//* ºÒ·®Æ®·¹ÀÌ °ü¸®
-		// ¹èÃâ ¸í·É¸¸À¸·Î ÆÄÀÏÀ» Áö¿ìÁö ¾Ê°í D10106 OFF(½Ç¹° ¹èÃâ)¸¦ È®ÀÎÇÑ µÚ »èÁ¦ÇÑ´Ù.
+		//* ï¿½Ò·ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½É¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ D10106 OFF(ï¿½Ç¹ï¿½ ï¿½ï¿½ï¿½ï¿½)ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 		targetTrayInfoDeletePending = true;
 		targetTrayInfoWasCentered = IsTargetCenteringSignal();
 		if(targetTrayInfoActiveId.IsEmpty())
@@ -492,7 +497,7 @@ void __fastcall TMainForm::targetGridDrawCell(TObject *Sender, int ACol,
 	  int ARow, TRect &Rect, TGridDrawState State)
 {
 
-	targetGrid->Canvas->Font = targetGrid->Font; // ÁöÁ¤ÇÏÁö ¾ÊÀ¸¸é System ÆùÆ®°¡ µÊ
+	targetGrid->Canvas->Font = targetGrid->Font; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ System ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½
 	if( State.Contains(gdSelected)){
 		targetGrid->Canvas->Brush->Color = clHighlight;
 		targetGrid->Canvas->Font->Color = clHighlightText;
@@ -527,6 +532,7 @@ void __fastcall TMainForm::pause_startBtnClick(TObject *Sender)
 				opcTrayLoadWaitResponseOff[i] = false;
 				opcTrayLoadResponseOffError[i] = false;
 				opcTrayLoadRetryRequired[i] = false;
+			opcTrayLoadResponseResult[i] = 0;
 				opcTrayDisplayed[i] = false;
 				opcTrayLoaded[i] = false;
 				opcTrayLoadStartTick[i] = GetTickCount();
@@ -666,11 +672,11 @@ void __fastcall TMainForm::setBarcode(int pos, AnsiString strBcr)
 
 void __fastcall TMainForm::EnableButton_auto(bool benable)
 {
-	// ÀÚµ¿»óÅÂ  trueÀÎ °Íµé
+	// ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½  trueï¿½ï¿½ ï¿½Íµï¿½
 	playBtn->Enabled = benable;
 	stopBtn->Enabled = benable;
 
-	// ÀÚµ¿»óÅÂ falseÀÎ °Íµé
+	// ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ falseï¿½ï¿½ ï¿½Íµï¿½
 	openBtn->Enabled = !benable;
 	trayout_srcBtn->Enabled = !benable;
 	trayout_targetBtn->Enabled = !benable;
@@ -683,9 +689,193 @@ void __fastcall TMainForm::mesTimerTimer(TObject *Sender)
 	mesTimer->Enabled = false;
 }
 //---------------------------------------------------------------------------
+void __fastcall TMainForm::ShowFmsAlarm(TFmsAlarmTransaction Transaction,
+	const AnsiString &Title, const AnsiString &Detail, int ResponseValue)
+{
+	if(Transaction == fmsAlarmNone || fmsAlarmTransaction != fmsAlarmNone)
+		return;
+
+	fmsAlarmTransaction = Transaction;
+	fmsAlarmRetryRequested = false;
+	fmsAlarmRetryStartTick = 0;
+	CancelFmsAlarmRequest();
+
+	if(gripper != NULL) gripper->req_Pause(true);
+	if(robostar != NULL) robostar->req_Pause(true);
+	opcMesTimer->Enabled = true;
+
+	AnsiString RequestName;
+	switch(Transaction){
+		case fmsAlarmSourceTrayLoad: RequestName = "Location1.TrayLoad"; break;
+		case fmsAlarmTargetTrayLoad: RequestName = "Location2.TrayLoad"; break;
+		case fmsAlarmProcessStart: RequestName = "Location1.ProcessStart"; break;
+		case fmsAlarmCellTrackOut: RequestName = "Location2.CellUnloadComplete"; break;
+		case fmsAlarmProcessEnd: RequestName = "Location1.ProcessEnd"; break;
+		case fmsAlarmTrayUnload: RequestName = "Location2.TrayUnloadRequest"; break;
+		default: RequestName = "FMS Request"; break;
+	}
+	WriteOpcUaLog("ERROR", Title + " / " + Detail, true);
+	if(AlarmForm_fms != NULL)
+		AlarmForm_fms->ShowFmsError(Title, Detail, RequestName, ResponseValue);
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::ConfirmFmsAlarmRetry()
+{
+	if(fmsAlarmTransaction == fmsAlarmNone)
+		return;
+
+	fmsAlarmRetryRequested = true;
+	fmsAlarmRetryStartTick = GetTickCount();
+	CancelFmsAlarmRequest();
+	if(AlarmForm_fms != NULL)
+		AlarmForm_fms->SetRetryWaiting(
+			"Request is OFF. Waiting for Response=0 before retrying.");
+	opcMesTimer->Enabled = true;
+}
+//---------------------------------------------------------------------------
+int __fastcall TMainForm::GetFmsAlarmResponse() const
+{
+	if(MesOpc == NULL)
+		return -1;
+	switch(fmsAlarmTransaction){
+		case fmsAlarmSourceTrayLoad: return MesOpc->TRAY_LOAD_RESPONSE_VALUE(true);
+		case fmsAlarmTargetTrayLoad: return MesOpc->TRAY_LOAD_RESPONSE_VALUE(false);
+		case fmsAlarmProcessStart: return MesOpc->PROCESS_START_RESPONSE_VALUE();
+		case fmsAlarmCellTrackOut: return MesOpc->CELL_TRACK_OUT_RESPONSE_VALUE();
+		case fmsAlarmProcessEnd: return MesOpc->PROCESS_END_RESPONSE_VALUE();
+		case fmsAlarmTrayUnload: return MesOpc->TRAY_UNLOAD_RESPONSE_VALUE();
+		default: return -1;
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::CancelFmsAlarmRequest()
+{
+	if(MesOpc == NULL)
+		return;
+	switch(fmsAlarmTransaction){
+		case fmsAlarmSourceTrayLoad:
+			MesOpc->TRAY_LOAD_CANCEL(true);
+			opcTrayLoadPending[0] = false;
+			opcTrayLoadWaitResponseOff[0] = false;
+			opcTrayLoadResponseOffError[0] = false;
+			opcTrayLoadResponseResult[0] = 0;
+			break;
+		case fmsAlarmTargetTrayLoad:
+			MesOpc->TRAY_LOAD_CANCEL(false);
+			opcTrayLoadPending[1] = false;
+			opcTrayLoadWaitResponseOff[1] = false;
+			opcTrayLoadResponseOffError[1] = false;
+			opcTrayLoadResponseResult[1] = 0;
+			break;
+		case fmsAlarmProcessStart:
+			MesOpc->PROCESS_START_CANCEL();
+			opcProcessStartPending = false;
+			opcProcessStartWaitResponseOff = false;
+			opcProcessStartResponseOffError = false;
+			opcProcessStartResponseResult = 0;
+			break;
+		case fmsAlarmCellTrackOut:
+			MesOpc->CELL_TRACK_OUT_CANCEL();
+			opcCellTrackOutPending = false;
+			opcCellTrackOutWaitResponseOff = false;
+			opcCellTrackOutResponseOffError = false;
+			opcCellTrackOutResponseResult = 0;
+			break;
+		case fmsAlarmProcessEnd:
+			MesOpc->PROCESS_END_CANCEL();
+			opcProcessEndPending = false;
+			opcProcessEndWaitResponseOff = false;
+			opcProcessEndResponseOffError = false;
+			opcProcessEndResponseResult = 0;
+			break;
+		case fmsAlarmTrayUnload:
+			MesOpc->TRAY_UNLOAD_CANCEL();
+			opcTargetUnloadPending = false;
+			opcTargetUnloadWaitResponseOff = false;
+			opcTargetUnloadResponseOffError = false;
+			opcTargetUnloadResponseResult = 0;
+			break;
+		default: break;
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::ReissueFmsAlarmRequest()
+{
+	DWORD nowTick = GetTickCount();
+	switch(fmsAlarmTransaction){
+		case fmsAlarmSourceTrayLoad:
+			MesOpc->TRAY_LOAD_REQUEST(true);
+			opcTrayLoadPending[0] = true;
+			opcTrayLoadStartTick[0] = nowTick;
+			break;
+		case fmsAlarmTargetTrayLoad:
+			MesOpc->TRAY_LOAD_REQUEST(false);
+			opcTrayLoadPending[1] = true;
+			opcTrayLoadStartTick[1] = nowTick;
+			break;
+		case fmsAlarmProcessStart:
+			MesOpc->PROCESS_START_REQUEST();
+			opcProcessStartPending = true;
+			opcProcessStartTick = nowTick;
+			break;
+		case fmsAlarmCellTrackOut:
+			if(!MesOpc->CELL_TRACK_OUT_RETRY()){
+				if(AlarmForm_fms != NULL)
+					AlarmForm_fms->SetRetryWaiting("Saved CellTrackOut data is unavailable.");
+				return;
+			}
+			opcCellTrackOutPending = true;
+			opcCellTrackOutStartTick = nowTick;
+			break;
+		case fmsAlarmProcessEnd:
+			MesOpc->PROCESS_END_REQUEST();
+			opcProcessEndPending = true;
+			opcProcessEndTick = nowTick;
+			break;
+		case fmsAlarmTrayUnload:
+			MesOpc->TRAY_UNLOAD_REQUEST();
+			opcTargetUnloadPending = true;
+			opcTargetUnloadTick = nowTick;
+			break;
+		default: return;
+	}
+
+	ProcessStepLog(currentProcessStep, "FMS Retry / previous Response=0 / Request=ON");
+	fmsAlarmTransaction = fmsAlarmNone;
+	fmsAlarmRetryRequested = false;
+	fmsAlarmRetryStartTick = 0;
+	if(AlarmForm_fms != NULL)
+		AlarmForm_fms->Hide();
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMainForm::ProcessFmsAlarmRecovery()
+{
+	if(fmsAlarmTransaction == fmsAlarmNone)
+		return false;
+	if(!fmsAlarmRetryRequested)
+		return true;
+
+	int response = GetFmsAlarmResponse();
+	if(response == 0 || (cbCycle != NULL && cbCycle->Checked)){
+		ReissueFmsAlarmRequest();
+		return fmsAlarmTransaction != fmsAlarmNone;
+	}
+
+	if(AlarmForm_fms != NULL &&
+		(DWORD)(GetTickCount() - fmsAlarmRetryStartTick) >= 10000){
+		AlarmForm_fms->SetRetryWaiting("Response is still " + IntToStr(response) +
+			". FMS must reset it to 0 before retry.");
+	}
+	return true;
+}
+//---------------------------------------------------------------------------
 void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 {
 	const DWORD RESPONSE_TIMEOUT_MS = 10000;
+	if(ProcessFmsAlarmRecovery()){
+		opcMesTimer->Enabled = true;
+		return;
+	}
 	DWORD nowTick = GetTickCount();
 	bool cycleResponseBypass = cbCycle != NULL && cbCycle->Checked;
 
@@ -710,7 +900,25 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 
 			if (response == 0 || cycleResponseBypass)
 			{
-				// A Response OFF is valid only after Response ON data was displayed.
+				int trayLoadResult = opcTrayLoadResponseResult[i];
+				if(trayLoadResult == 2)
+				{
+					opcTrayLoadPending[i] = false;
+					opcTrayLoadWaitResponseOff[i] = false;
+					opcTrayLoadResponseOffError[i] = false;
+					opcTrayLoadRetryRequired[i] = false;
+					opcTrayLoadResponseResult[i] = 0;
+					opcTrayDisplayed[i] = false;
+					opcTrayLoaded[i] = false;
+					CompleteProcessStep(stepNo, locationName +
+						".TrayLoadResponse=2 BYPASS / advance to TrayOut");
+					memoMainLineAdd("[FMS OPC UA] " + locationName +
+						" TrayLoad bypass; tray out requested.");
+					CmdTrayOut(sourceTray ? 0 : 1);
+					continue;
+				}
+
+				// A successful Response OFF is valid only after Response=1 data was displayed.
 				if(!opcTrayDisplayed[i])
 				{
 					opcTrayLoadPending[i] = false;
@@ -732,6 +940,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 				opcTrayLoadWaitResponseOff[i] = false;
 				opcTrayLoadResponseOffError[i] = false;
 				opcTrayLoadRetryRequired[i] = false;
+			opcTrayLoadResponseResult[i] = 0;
 				ProcessStepLog(stepNo, locationName +
 					".TrayLoadResponse=0 received / advance to next process");
 				AdvanceOpcTrayLoad(sourceTray);
@@ -748,18 +957,18 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 					ProcessStepLog(stepNo,
 						"ERROR - TrayLoadResponse reset timeout / EXPECTED=0 (RESET) / CURRENT=" +
 						IntToStr(response));
-					ShowCommonError(trayName +
-						" tray TrayLoadResponse OFF timeout",
+					ShowFmsAlarm(sourceTray ? fmsAlarmSourceTrayLoad : fmsAlarmTargetTrayLoad,
+						trayName + " tray TrayLoadResponse OFF timeout",
 						"EXPECTED=0 (RESET), but CURRENT=" + IntToStr(response) +
-						" remained for 10 seconds.");
+						" remained for 10 seconds.", response);
 				}
 				else if (gripper != NULL && robostar != NULL &&
 					!gripper->pauseStatus && !robostar->pauseStatus)
 				{
 					// Restart was pressed before FMS cleared the response.
-					ShowCommonError(trayName +
-						" tray TrayLoadResponse is still ON",
-						"Clear TrayLoadResponse, then press Restart again.");
+					ShowFmsAlarm(sourceTray ? fmsAlarmSourceTrayLoad : fmsAlarmTargetTrayLoad,
+						trayName + " tray TrayLoadResponse is still ON",
+						"Clear TrayLoadResponse, then press Retry again.", response);
 				}
 			}
 			continue;
@@ -776,6 +985,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		}
 		else if (response == 1)
 		{
+			opcTrayLoadResponseResult[i] = 1;
 			// Display the validated tray immediately when Response turns ON.
 			// The next process is still blocked until the same Response returns OFF.
 			DisplayOpcTrayLoad(sourceTray);
@@ -794,18 +1004,27 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 				".TrayLoadResponse=1 received / tray displayed / " +
 				locationName + ".TrayLoad=OFF / WAIT TrayLoadResponse=0");
 		}
-		else if (response == 2 || response < 0)
+		else if (response == 2)
 		{
-			opcTrayLoadPending[i] = false;
-			opcTrayLoadWaitResponseOff[i] = false;
+			// TrayLoadResponse=2 is the only FMS bypass result.
+			opcTrayLoadResponseResult[i] = 2;
+			opcTrayLoadWaitResponseOff[i] = true;
 			opcTrayLoadResponseOffError[i] = false;
+			opcTrayLoadStartTick[i] = nowTick;
+			ProcessStepLog(stepNo, locationName +
+				".TrayLoadResponse=2 BYPASS / Request=OFF / WAIT Response=0");
+		}
+		else if (response < 0)
+		{
 			AnsiString validationError = MesOpc != NULL ?
 				MesOpc->TRAY_LOAD_VALIDATION_ERROR(sourceTray) : AnsiString("");
 			ProcessStepLog(stepNo, "ERROR - TrayLoadResponse=" + IntToStr(response) +
 				(validationError.IsEmpty() ? AnsiString("") : " / " + validationError));
-			ShowCommonError(trayName + " tray load failed",
+			ShowFmsAlarm(sourceTray ? fmsAlarmSourceTrayLoad : fmsAlarmTargetTrayLoad,
+				trayName + " tray load failed",
 				validationError.IsEmpty() ?
-					AnsiString("Check FMS TrayLoadResponse and tray information.") : validationError);
+					AnsiString("Invalid or missing TrayLoadResponse/tray information.") : validationError,
+				response);
 		}
 		else if ((DWORD)(GetTickCount() - opcTrayLoadStartTick[i]) >= RESPONSE_TIMEOUT_MS)
 		{
@@ -824,15 +1043,17 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 					TReplaceFlags() << rfReplaceAll);
 				ProcessStepLog(stepNo, "ERROR - TrayLoadResponse=1 / DATA VALIDATION FAIL / " +
 					logValidation);
-				ShowCommonError(trayName + " tray data validation failed",
+				ShowFmsAlarm(sourceTray ? fmsAlarmSourceTrayLoad : fmsAlarmTargetTrayLoad,
+				trayName + " tray data validation failed",
 					"TrayLoadResponse=1 was received, but TrackIn data validation failed.\r\n\r\n" +
-					validationError + "\r\n\r\nCorrect the FMS data, then press Restart.");
+					validationError + "\r\n\r\nCorrect the FMS data, then press Retry.", rawResponse);
 			}else{
 				ProcessStepLog(stepNo, "ERROR - TrayLoadResponse result timeout / " +
 					AnsiString("EXPECTED=1 or 2 (RESULT) / CURRENT=") + IntToStr(rawResponse));
-				ShowCommonError(trayName + " tray response ON timeout",
+				ShowFmsAlarm(sourceTray ? fmsAlarmSourceTrayLoad : fmsAlarmTargetTrayLoad,
+				trayName + " tray response ON timeout",
 					"EXPECTED=1 or 2 (RESULT), but CURRENT=" + IntToStr(rawResponse) +
-					" or tray data was not completed within 10 seconds. Correct it, then press Restart.");
+					" or tray data was not completed within 10 seconds. Correct it, then press Retry.", rawResponse);
 			}
 		}
 	}
@@ -867,7 +1088,8 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 						ProcessStepLog(7, "WAIT - ProcessStart complete / waiting local sorting initialization");
 					}else{
 						ProcessStepLog(6, "ERROR - ProcessStartResponse=2 / clear complete");
-						ShowCommonError("Process start failed", "FMS returned ProcessStartResponse=2.");
+						ShowFmsAlarm(fmsAlarmProcessStart, "Process start failed",
+						"FMS returned ProcessStartResponse=2.", 2);
 					}
 				}
 			}
@@ -877,12 +1099,12 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 					opcProcessStartResponseOffError = true;
 					if(MesOpc != NULL) MesOpc->LogProcessStartResponseOffTimeout();
 					ProcessStepLog(6, "ERROR - ProcessStartResponse OFF timeout");
-					ShowCommonError("ProcessStartResponse OFF timeout",
-						"ProcessStart is OFF, but ProcessStartResponse stayed ON for 10 seconds.");
+					ShowFmsAlarm(fmsAlarmProcessStart, "ProcessStartResponse OFF timeout",
+						"ProcessStart is OFF, but ProcessStartResponse stayed ON for 10 seconds.", response);
 				}else if(gripper != NULL && robostar != NULL &&
 					!gripper->pauseStatus && !robostar->pauseStatus){
-					ShowCommonError("ProcessStartResponse is still ON",
-						"Clear ProcessStartResponse, then press Restart again.");
+					ShowFmsAlarm(fmsAlarmProcessStart, "ProcessStartResponse is still ON",
+						"Clear ProcessStartResponse, then press Retry again.", response);
 				}
 			}
 		}
@@ -893,23 +1115,27 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 			if(response == 3){
 				opcProcessStartTick = nowTick;
 				ProcessStepLog(6, "Stale ProcessStartResponse cleared / actual Request=ON");
-			}else if(response == 1 || response == 2){
+			}else if(response == 1){
 				opcProcessStartWaitResponseOff = true;
 				opcProcessStartResponseOffError = false;
 				opcProcessStartResponseResult = response;
 				opcProcessStartTick = nowTick;
-				ProcessStepLog(6, "ProcessStartResponse=" + IntToStr(response) +
-					" / Request=OFF / wait Response=0");
+				ProcessStepLog(6, "ProcessStartResponse=1 / Request=OFF / wait Response=0");
+			}else if(response == 2){
+				ProcessStepLog(6, "ERROR - ProcessStartResponse=2");
+				ShowFmsAlarm(fmsAlarmProcessStart, "Process start failed",
+					"FMS returned ProcessStartResponse=2.", response);
 			}else if(response < 0){
 				opcProcessStartPending = false;
 				ProcessStepLog(6, "ERROR - invalid ProcessStartResponse=" + IntToStr(response));
-				ShowCommonError("Process start failed", "Invalid or missing ProcessStartResponse.");
+				ShowFmsAlarm(fmsAlarmProcessStart, "Process start failed",
+					"Invalid or missing ProcessStartResponse.", response);
 			}else if((DWORD)(GetTickCount() - opcProcessStartTick) >= RESPONSE_TIMEOUT_MS){
 				opcProcessStartPending = false;
 				ProcessStepLog(6, "ERROR - ProcessStartResponse ON timeout");
 				if(MesOpc != NULL) MesOpc->PROCESS_START_CANCEL();
-				ShowCommonError("Process start response ON timeout",
-					"No ProcessStartResponse from FMS Gateway within 10 seconds.");
+				ShowFmsAlarm(fmsAlarmProcessStart, "Process start response ON timeout",
+					"No ProcessStartResponse from FMS Gateway within 10 seconds.", response);
 			}
 		}
 	}
@@ -1013,7 +1239,8 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 						memoMainLineAdd("[FMS OPC UA] Source cycle complete; waiting for the next Source TrayLoad.");
 					}else{
 						ProcessStepLog(14, "ERROR - ProcessEndResponse=2 / clear complete");
-						ShowCommonError("Source ProcessEnd failed", "FMS returned ProcessEndResponse=2.");
+						ShowFmsAlarm(fmsAlarmProcessEnd, "Source ProcessEnd failed",
+						"FMS returned ProcessEndResponse=2.", 2);
 					}
 				}
 			}
@@ -1023,12 +1250,12 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 					opcProcessEndResponseOffError = true;
 					if(MesOpc != NULL) MesOpc->LogProcessEndResponseOffTimeout();
 					ProcessStepLog(14, "ERROR - ProcessEndResponse OFF timeout");
-					ShowCommonError("ProcessEndResponse OFF timeout",
-						"ProcessEnd is OFF, but ProcessEndResponse stayed ON for 10 seconds.");
+					ShowFmsAlarm(fmsAlarmProcessEnd, "ProcessEndResponse OFF timeout",
+						"ProcessEnd is OFF, but ProcessEndResponse stayed ON for 10 seconds.", response);
 				}else if(gripper != NULL && robostar != NULL &&
 					!gripper->pauseStatus && !robostar->pauseStatus){
-					ShowCommonError("ProcessEndResponse is still ON",
-						"Clear ProcessEndResponse, then press Restart again.");
+					ShowFmsAlarm(fmsAlarmProcessEnd, "ProcessEndResponse is still ON",
+						"Clear ProcessEndResponse, then press Retry again.", response);
 				}
 			}
 		}
@@ -1039,19 +1266,23 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 			if(response == 3){
 				opcProcessEndTick = nowTick;
 				ProcessStepLog(14, "Stale ProcessEndResponse cleared / actual Request=ON");
-			}else if(response == 1 || response == 2){
+			}else if(response == 1){
 				opcProcessEndWaitResponseOff = true;
 				opcProcessEndResponseOffError = false;
 				opcProcessEndResponseResult = response;
 				opcProcessEndTick = nowTick;
-				ProcessStepLog(14, "ProcessEndResponse=" + IntToStr(response) +
-					" / Request=OFF / wait Response=0");
+				ProcessStepLog(14, "ProcessEndResponse=1 / Request=OFF / wait Response=0");
+			}else if(response == 2){
+				ProcessStepLog(14, "ERROR - ProcessEndResponse=2");
+				ShowFmsAlarm(fmsAlarmProcessEnd, "Source ProcessEnd failed",
+					"FMS returned ProcessEndResponse=2.", response);
 			}else if(response < 0){
 				opcProcessEndPending = false;
 				// Keep the current process active after a ProcessEnd error. Restart must
 				// resume error handling, not issue another ProcessStart for the same tray.
 				ProcessStepLog(14, "ERROR - invalid ProcessEndResponse=" + IntToStr(response));
-				ShowCommonError("Source ProcessEnd failed", "Invalid or missing ProcessEndResponse.");
+				ShowFmsAlarm(fmsAlarmProcessEnd, "Source ProcessEnd failed",
+					"Invalid or missing ProcessEndResponse.", response);
 			}else if((DWORD)(GetTickCount() - opcProcessEndTick) >= RESPONSE_TIMEOUT_MS){
 				opcProcessEndPending = false;
 				// Do not reopen ProcessStart after a ProcessEnd timeout for this source tray.
@@ -1060,8 +1291,8 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 					MesOpc->LogProcessEndTimeout();
 					MesOpc->PROCESS_END_CANCEL();
 				}
-				ShowCommonError("Source ProcessEnd response ON timeout",
-					"No ProcessEndResponse from FMS Gateway within 10 seconds.");
+				ShowFmsAlarm(fmsAlarmProcessEnd, "Source ProcessEnd response ON timeout",
+					"No ProcessEndResponse from FMS Gateway within 10 seconds.", response);
 			}
 		}
 	}
@@ -1094,7 +1325,8 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 						}
 					}else{
 						ProcessStepLog(12, "ERROR - CellUnloadCompleteResponse=2 / clear complete");
-						ShowCommonError("CellTrackOut failed", "FMS returned CellUnloadCompleteResponse=2.");
+						ShowFmsAlarm(fmsAlarmCellTrackOut, "CellTrackOut failed",
+						"FMS returned CellUnloadCompleteResponse=2.", 2);
 					}
 				}
 			}
@@ -1104,12 +1336,12 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 					opcCellTrackOutResponseOffError = true;
 					if(MesOpc != NULL) MesOpc->LogCellTrackOutResponseOffTimeout();
 					ProcessStepLog(12, "ERROR - CellUnloadCompleteResponse OFF timeout");
-					ShowCommonError("CellUnloadCompleteResponse OFF timeout",
-						"CellUnloadComplete is OFF, but its response stayed ON for 10 seconds.");
+					ShowFmsAlarm(fmsAlarmCellTrackOut, "CellUnloadCompleteResponse OFF timeout",
+						"CellUnloadComplete is OFF, but its response stayed ON for 10 seconds.", response);
 				}else if(gripper != NULL && robostar != NULL &&
 					!gripper->pauseStatus && !robostar->pauseStatus){
-					ShowCommonError("CellUnloadCompleteResponse is still ON",
-						"Clear the response, then press Restart again.");
+					ShowFmsAlarm(fmsAlarmCellTrackOut, "CellUnloadCompleteResponse is still ON",
+						"Clear the response, then press Retry again.", response);
 				}
 			}
 		}
@@ -1120,17 +1352,21 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 			if(response == 3){
 				opcCellTrackOutStartTick = nowTick;
 				ProcessStepLog(12, "Stale CellUnloadCompleteResponse cleared / actual Request=ON");
-			}else if(response == 1 || response == 2){
+			}else if(response == 1){
 				opcCellTrackOutWaitResponseOff = true;
 				opcCellTrackOutResponseOffError = false;
 				opcCellTrackOutResponseResult = response;
 				opcCellTrackOutStartTick = nowTick;
-				ProcessStepLog(12, "CellUnloadCompleteResponse=" + IntToStr(response) +
-					" / Request=OFF / wait Response=0");
+				ProcessStepLog(12, "CellUnloadCompleteResponse=1 / Request=OFF / wait Response=0");
+			}else if(response == 2){
+				ProcessStepLog(12, "ERROR - CellUnloadCompleteResponse=2");
+				ShowFmsAlarm(fmsAlarmCellTrackOut, "CellTrackOut failed",
+					"FMS returned CellUnloadCompleteResponse=2.", response);
 			}else if(response < 0){
 				opcCellTrackOutPending = false;
 				ProcessStepLog(12, "ERROR - invalid CellUnloadCompleteResponse=" + IntToStr(response));
-				ShowCommonError("CellTrackOut failed", "Invalid or missing CellUnloadCompleteResponse.");
+				ShowFmsAlarm(fmsAlarmCellTrackOut, "CellTrackOut failed",
+					"Invalid or missing CellUnloadCompleteResponse.", response);
 			}else if((DWORD)(GetTickCount() - opcCellTrackOutStartTick) >= RESPONSE_TIMEOUT_MS){
 				opcCellTrackOutPending = false;
 				ProcessStepLog(12, "ERROR - CellUnloadCompleteResponse ON timeout");
@@ -1138,8 +1374,8 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 					MesOpc->LogCellTrackOutTimeout();
 					MesOpc->CELL_TRACK_OUT_CANCEL();
 				}
-				ShowCommonError("CellTrackOut response ON timeout",
-					"No CellUnloadCompleteResponse from FMS Gateway within 10 seconds.");
+				ShowFmsAlarm(fmsAlarmCellTrackOut, "CellTrackOut response ON timeout",
+					"No CellUnloadCompleteResponse from FMS Gateway within 10 seconds.", response);
 			}
 		}
 	}
@@ -1167,7 +1403,8 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 						memoMainLineAdd("[FMS OPC UA] TrayUnload four-phase handshake complete.");
 					}else{
 						ProcessStepLog(16, "ERROR - TrayUnloadResponse=2 / clear complete");
-						ShowCommonError("Target tray unload failed", "FMS returned TrayUnloadResponse=2.");
+						ShowFmsAlarm(fmsAlarmTrayUnload, "Target tray unload failed",
+						"FMS returned TrayUnloadResponse=2.", 2);
 					}
 				}
 			}
@@ -1177,12 +1414,12 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 					opcTargetUnloadResponseOffError = true;
 					if(MesOpc != NULL) MesOpc->LogTrayUnloadResponseOffTimeout();
 					ProcessStepLog(16, "ERROR - TrayUnloadResponse OFF timeout");
-					ShowCommonError("TrayUnloadResponse OFF timeout",
-						"TrayUnloadRequest is OFF, but TrayUnloadResponse stayed ON for 10 seconds.");
+					ShowFmsAlarm(fmsAlarmTrayUnload, "TrayUnloadResponse OFF timeout",
+						"TrayUnloadRequest is OFF, but TrayUnloadResponse stayed ON for 10 seconds.", response);
 				}else if(gripper != NULL && robostar != NULL &&
 					!gripper->pauseStatus && !robostar->pauseStatus){
-					ShowCommonError("TrayUnloadResponse is still ON",
-						"Clear TrayUnloadResponse, then press Restart again.");
+					ShowFmsAlarm(fmsAlarmTrayUnload, "TrayUnloadResponse is still ON",
+						"Clear TrayUnloadResponse, then press Retry again.", response);
 				}
 			}
 		}
@@ -1193,17 +1430,21 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 			if(response == 3){
 				opcTargetUnloadTick = nowTick;
 				ProcessStepLog(16, "Stale TrayUnloadResponse cleared / actual Request=ON");
-			}else if(response == 1 || response == 2){
+			}else if(response == 1){
 				opcTargetUnloadWaitResponseOff = true;
 				opcTargetUnloadResponseOffError = false;
 				opcTargetUnloadResponseResult = response;
 				opcTargetUnloadTick = nowTick;
-				ProcessStepLog(16, "TrayUnloadResponse=" + IntToStr(response) +
-					" / Request=OFF / wait Response=0");
+				ProcessStepLog(16, "TrayUnloadResponse=1 / Request=OFF / wait Response=0");
+			}else if(response == 2){
+				ProcessStepLog(16, "ERROR - TrayUnloadResponse=2");
+				ShowFmsAlarm(fmsAlarmTrayUnload, "Target tray unload failed",
+					"FMS returned TrayUnloadResponse=2.", response);
 			}else if(response < 0){
 				opcTargetUnloadPending = false;
 				ProcessStepLog(16, "ERROR - invalid TrayUnloadResponse=" + IntToStr(response));
-				ShowCommonError("Target tray unload failed", "Invalid or missing TrayUnloadResponse.");
+				ShowFmsAlarm(fmsAlarmTrayUnload, "Target tray unload failed",
+					"Invalid or missing TrayUnloadResponse.", response);
 			}else if((DWORD)(GetTickCount() - opcTargetUnloadTick) >= RESPONSE_TIMEOUT_MS){
 				opcTargetUnloadPending = false;
 				ProcessStepLog(16, "ERROR - TrayUnloadResponse ON timeout");
@@ -1211,13 +1452,14 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 					MesOpc->LogTrayUnloadTimeout();
 					MesOpc->TRAY_UNLOAD_CANCEL();
 				}
-				ShowCommonError("Target tray unload response ON timeout",
-					"No TrayUnloadResponse from FMS Gateway within 10 seconds.");
+				ShowFmsAlarm(fmsAlarmTrayUnload, "Target tray unload response ON timeout",
+					"No TrayUnloadResponse from FMS Gateway within 10 seconds.", response);
 			}
 		}
 	}
 
-	bool pending = opcProcessStartPending || opcSortingStartPending ||
+	bool pending = fmsAlarmTransaction != fmsAlarmNone ||
+		opcProcessStartPending || opcSortingStartPending ||
 		opcProcessEndPending || opcCellTrackOutPending || opcTargetUnloadPending;
 	for (int i = 0; i < 2; ++i)
 		pending = pending || opcTrayLoadPending[i];
@@ -1356,7 +1598,7 @@ void __fastcall TMainForm::target_idEditKeyDown(TObject *Sender, WORD &Key,
 {
 	if(Key == VK_RETURN){
 		pTrayid_target->Caption = target_idEdit->Text;
-		NotifyTrayInfo(pTrayid_target->Caption, false);	// ´ë»ó Æ®·¹ÀÌ mes º¸°í
+		NotifyTrayInfo(pTrayid_target->Caption, false);	// ï¿½ï¿½ï¿½ Æ®ï¿½ï¿½ï¿½ï¿½ mes ï¿½ï¿½ï¿½ï¿½
 		target_idEdit->Visible = false;
 	}
 	else if(Key == VK_ESCAPE){
@@ -1376,7 +1618,7 @@ void __fastcall TMainForm::src_idEditKeyDown(TObject *Sender, WORD &Key,
 {
 	if(Key == VK_RETURN){
 		pTrayid_source->Caption = src_idEdit->Text;
-		NotifyTrayInfo(pTrayid_source->Caption, true);	// UF Æ®·¹ÀÌ mes º¸°í
+		NotifyTrayInfo(pTrayid_source->Caption, true);	// UF Æ®ï¿½ï¿½ï¿½ï¿½ mes ï¿½ï¿½ï¿½ï¿½
 		src_idEdit->Visible = false;
 	}
 	else if(Key == VK_ESCAPE){
@@ -1465,7 +1707,7 @@ void __fastcall TMainForm::InitStep(STEP *data)
 	data->timeout = 0;
 }
 //---------------------------------------------------------------------------
-// ¿øº»
+// ï¿½ï¿½ï¿½ï¿½
 void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 {
 	if(equipMode != modeAuto){
@@ -1497,7 +1739,7 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 						pTrayid_source->Caption = "";
 						pTrayid_source2->Caption = "";
 						memoMainLineAdd(BaseForm->GetLangStr("MSG_SOURCETRAY_SCAN"));
-						ReadSourceTrayBarcode();	// ÀÛ¾÷1. ¼±º° ¹ÙÄÚµå ÀÐ°í  -> DisplayTrayInfo  	// test
+						ReadSourceTrayBarcode();	// ï¿½Û¾ï¿½1. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Úµï¿½ ï¿½Ð°ï¿½  -> DisplayTrayInfo  	// test
 						step[0].step += 1;
 					}else{
 						// AUTO + D10103 Tray In + BYPASS: cancel centering and eject.
@@ -1527,7 +1769,7 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 					memoMainLineAdd(BaseForm->GetLangStr("MSG_TARGETTRAY_CENTERING_COMPL"));
 					pTrayid_target->Caption = "";       // test
 					pTrayid_target2->Caption = "";      // test
-					ReadTargetTrayBarcode();		// ÀÛ¾÷4. ¼¾ÅÍ¸µÀÌ µÇ¾î ÀÖÀ¸¸é ¹ÙÄÚµå¸¦ ÀÐ°í -> DisplayTrayInfo 	// test
+					ReadTargetTrayBarcode();		// ï¿½Û¾ï¿½4. ï¿½ï¿½ï¿½Í¸ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Úµå¸¦ ï¿½Ð°ï¿½ -> DisplayTrayInfo 	// test
 					step[0].step += 1;
 					step[1].step = 1;
 				}else{
@@ -1550,7 +1792,7 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 					memoMainLineAdd("More target trays arrived.");
 					pTrayid_target->Caption = "";
 					pTrayid_target2->Caption = "";
-					ReadTargetTrayBarcode();		// ÀÛ¾÷4. ¼¾ÅÍ¸µÀÌ µÇ¾î ÀÖÀ¸¸é ¹ÙÄÚµå¸¦ ÀÐ°í -> DisplayTrayInfo     // test
+					ReadTargetTrayBarcode();		// ï¿½Û¾ï¿½4. ï¿½ï¿½ï¿½Í¸ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Úµå¸¦ ï¿½Ð°ï¿½ -> DisplayTrayInfo     // test
 					step[1].step += 1;
 				}
 			default:
@@ -1791,8 +2033,8 @@ void __fastcall TMainForm::btnCloseIoPanelClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 {
-	//* ºÒ·®Æ®·¹ÀÌ °ü¸®
-	// ¹èÃâ µµÁß D10106ÀÌ ÇÑ ¹øÀÌ¶óµµ ONÀÌ¾ú°í OFF·Î ¹Ù²î¸é ½Ç¹° ¹èÃâ ¿Ï·á·Î ÆÇ´ÜÇÑ´Ù.
+	//* ï¿½Ò·ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ D10106ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¶ï¿½ ONï¿½Ì¾ï¿½ï¿½ï¿½ OFFï¿½ï¿½ ï¿½Ù²ï¿½ï¿½ ï¿½Ç¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ï¿½ ï¿½Ç´ï¿½ï¿½Ñ´ï¿½.
 	bool targetCenteringNow = IsTargetCenteringSignal();
 	if(targetTrayInfoDeletePending){
 		if(targetCenteringNow)
@@ -1838,13 +2080,13 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	if(robostar->gripper.SAFETY_BYPASS_ON != safetyBypassOn)
 		robostar->Y003D(safetyBypassOn);
 
-	//* 2026 08 07 Ãµ¾È ºÒ·®¼±º°±â¿Í µ¿ÀÏÇÏ°Ô OPENÀº SSC ½Ã½ºÅÛ RUNNING »óÅÂ·Î Ç¥½Ã
+	//* 2026 08 07 Ãµï¿½ï¿½ ï¿½Ò·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ OPENï¿½ï¿½ SSC ï¿½Ã½ï¿½ï¿½ï¿½ RUNNING ï¿½ï¿½ï¿½Â·ï¿½ Ç¥ï¿½ï¿½
 	if(robostar->IsSscOpened() && robostar->mr2.system_status == SSC_STS_CODE_RUNNING)
 		popen->Color = clLime;
 	else popen->Color = clSilver;
 
 	bool NGflag = false;
-	//* 2026 08 07 Ãµ¾È ºÒ·®¼±º°±â¿Í µ¿ÀÏÇÏ°Ô °¢ ÃàÀÇ ½ÇÁ¦ AX_RDY·Î Servo ON Ç¥½Ã
+	//* 2026 08 07 Ãµï¿½ï¿½ ï¿½Ò·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ AX_RDYï¿½ï¿½ Servo ON Ç¥ï¿½ï¿½
 	for(int i = 1; i <= servoCnt; ++i){
 		if(robostar->IsSscOpened() && robostar->mr2.servo[i] == SSC_BIT_ON)
 			status_on[i]->Color = clLime;
@@ -1856,7 +2098,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		if(robostar->mr2.speed[Axis_x] < 0) robostar->mr2.speed[Axis_x] *= -1;
 		if(robostar->mr2.speed[Axis_y] < 0) robostar->mr2.speed[Axis_y] *= -1;
 		pspeed->Caption = FloatToStr(robostar->mr2.speed[Axis_x]) + " / " + FloatToStr(robostar->mr2.speed[Axis_y]);
-        //* servoCnt = 3, X, Y, Z ÃÑ3°³
+        //* servoCnt = 3, X, Y, Z ï¿½ï¿½3ï¿½ï¿½
 		for(int i = 1; i <= servoCnt; ++i){
 			loadfactorForm->Panel_Position[i]->Caption = FormatFloat("0 %", robostar->mr2.mondata[i][0]);
 			teachForm->lblLoadFactor[i]->Caption = FormatFloat("0 %", robostar->mr2.mondata[i][0]);
@@ -1928,7 +2170,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		{
 			m_ServoON = true;
 
-			//* 2026 08 07 Ãµ¾È ºÒ·®¼±º°±â¿Í µ¿ÀÏÇÏ°Ô ¿øÁ¡ ¿Ï·á¿Í ½ÇÁ¦ ´ë±â À§Ä¡(0)¸¦ ¸ðµÎ È®ÀÎ
+			//* 2026 08 07 Ãµï¿½ï¿½ ï¿½Ò·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡(0)ï¿½ï¿½ ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 			bool allServoOrigin = true;
 			bool allServoAtWaitPosition = true;
 			for(int i = 1; i <= servoCnt; ++i){
@@ -2051,7 +2293,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		perr->Color = clWhite;
 	}
 
-	//* Å×½ºÆ® À§ÇØ ÁÖ¼®Ã³¸® 2019 05 15
+	//* ï¿½×½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¼ï¿½Ã³ï¿½ï¿½ 2019 05 15
 	if(robostar->IsSafetyDoorOpen(1))
 		doorForm->ShowError("DOOR #1 Open", BaseForm->GetLangStr("MSG_CLOSE_DOOR"), 0);
 	if(robostar->IsSafetyDoorOpen(2))
@@ -2084,7 +2326,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	//* FOR MES TEST END
 
 	/*
-	* Å×½ºÆ® À§ÇØ ¾Æ·¡ ÄÚµå ÁÖ¼®Ã³¸®
+	* ï¿½×½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Æ·ï¿½ ï¿½Úµï¿½ ï¿½Ö¼ï¿½Ã³ï¿½ï¿½
 	*/
 
 	// D10104 Source Centering complete resets D10154 through ModPLC_BIN.
@@ -2124,7 +2366,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	psrcOut->Font->Color = clBlack;
 	ptargetOut->Font->Color = clBlack;
 
-	//* 2026 08 07 PC D10150~D10158 Word ½ÅÈ£ Àü¼Û
+	//* 2026 08 07 PC D10150~D10158 Word ï¿½ï¿½È£ ï¿½ï¿½ï¿½ï¿½
 
 	if(PlcBin != NULL){
 		bool doorOpen = robostar->IsSafetyDoorOpen(1) || robostar->IsSafetyDoorOpen(2);
@@ -2259,9 +2501,9 @@ int __fastcall TMainForm::GetZoneCount(int zone)
 
 	for(int i=0; i<12; ++i){
 		if(pt_ch[i]->Fill->Color == zoneBtn[zone]->Color){
-			ntotal += 1;	// zone ÃÑ ¼ö·®
+			ntotal += 1;	// zone ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			if(tray_target.SLOT_ID[i].IsEmpty() && tray_target.PICK[i] == "N")
-				ncnt += 1;	// empty ¼ö·®
+				ncnt += 1;	// empty ï¿½ï¿½ï¿½ï¿½
 		}
 	}
 
@@ -2278,30 +2520,30 @@ bool __fastcall TMainForm::GetZoneChannel(int zone, int ch)
 AnsiString __fastcall TMainForm::GetAlarmMsg(int code)
 {
 	switch(code){
-		case 1: return "MES·ÎºÎÅÍ ¼±º° TRAYÁ¤º¸ÀÀ´ä ERROR"; break;
-		case 2: return "MES·ÎºÎÅÍ ¼±º° TRAY_REPLY_S ÀÀ´ä½Ã°£ ÃÊ°ú"; break;
-		case 3: return "MES·ÎºÎÅÍ ´ë»ó TRAYÁ¤º¸ÀÀ´ä ERROR"; break;
-		case 4: return "MES·ÎºÎÅÍ ´ë»ó TRAY_REPLY_T ÀÀ´ä½Ã°£ ÃÊ°ú"; break;
-		case 5: return "MES·ÎºÎÅÍ ´ë»ó ID_MATCHING ÀÀ´ä Error"; break;
-		case 6: return "MES·ÎºÎÅÍ ´ë»ó ID_MATCHING ÀÀ´ä½Ã°£ ÃÊ°ú"; break;
-		case 7: return "MES·ÎºÎÅÍ ¼±º° TRAY TRANSFER_OUT ÀÀ´ä Error"; break;
-		case 8: return "MES·ÎºÎÅÍ ¼±º° TRAY TRANSFER_OUT ÀÀ´ä½Ã°£ ÃÊ°ú"; break;
-		case 9: return "MES·ÎºÎÅÍ ´ë»ó TRAY TRANSFER_OUT ÀÀ´ä Error"; break;
-		case 10: return "MES·ÎºÎÅÍ ´ë»ó TRAY TRANSFER_OUT ÀÀ´ä½Ã°£ ÃÊ°ú"; break;
-		case 11: return "MES·ÎºÎÅÍ SEND_EVENT ERROR"; break;
-		case 12: return "MES·ÎºÎÅÍ SEND_EVENT ÀÀ´ä½Ã°£ ÃÊ°ú"; break;
-		case 13: return "MES·ÎºÎÅÍ ¼±º° ID_MATCHING ÀÀ´ä Error"; break;
-		case 14: return "MES·ÎºÎÅÍ ¼±º° ID_MATCHING ÀÀ´ä½Ã°£ ÃÊ°ú"; break;
-		case 15: return "[¼±º°TRAY] GRIP DOWN¼¾¼­ °¨Áö ½Ã°£ÃÊ°ú"; break;
-		case 16: return "[¼±º°TRAY] GRIP UP¼¾¼­ °¨Áö ½Ã°£ÃÊ°ú"; break;
-		case 17: return "[¼±º°TRAY] GRIP DOWN½Ã Ãæµ¹µÇ¾ú½À´Ï´Ù"; break;
-		case 18: return "[´ë»óTRAY] GRIP UNCHUCK ¼¾¼­ °¨Áö½Ã°£ ÃÊ°ú"; break;
-		case 19: return "[´ë»óTRAY] GRIP UP ¼¾¼­ °¨Áö½Ã°£ ÃÊ°ú"; break;
-		case 20: return "[¼±º°TRAY] Cell No, Grip No¿¡ ¼¿ÀÌ ¾øÀ½"; break;
-		case 21: return "[´ë»óTRAY] GRIP DOWN½Ã Ãæµ¹µÇ¾ú½À´Ï´Ù"; break;
-		case 22: return "[´ë»óTRAY] GRIP DOWN½Ã°£ ÃÊ°ú"; break;
-		case 23: return "[´ë»óTRAY] Cell No, Grip No ¿¡ ¼¿ÀÌ ¾øÀ½"; break;
-		case 24: return "ºÒ·®¼ö°¡ ¼³Á¤Ä¡ º¸´Ù ¸¹½À´Ï´Ù"; break;
+		case 1: return "MESï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ TRAYï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ERROR"; break;
+		case 2: return "MESï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ TRAY_REPLY_S ï¿½ï¿½ï¿½ï¿½Ã°ï¿½ ï¿½Ê°ï¿½"; break;
+		case 3: return "MESï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ TRAYï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ERROR"; break;
+		case 4: return "MESï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ TRAY_REPLY_T ï¿½ï¿½ï¿½ï¿½Ã°ï¿½ ï¿½Ê°ï¿½"; break;
+		case 5: return "MESï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ID_MATCHING ï¿½ï¿½ï¿½ï¿½ Error"; break;
+		case 6: return "MESï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ID_MATCHING ï¿½ï¿½ï¿½ï¿½Ã°ï¿½ ï¿½Ê°ï¿½"; break;
+		case 7: return "MESï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ TRAY TRANSFER_OUT ï¿½ï¿½ï¿½ï¿½ Error"; break;
+		case 8: return "MESï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ TRAY TRANSFER_OUT ï¿½ï¿½ï¿½ï¿½Ã°ï¿½ ï¿½Ê°ï¿½"; break;
+		case 9: return "MESï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ TRAY TRANSFER_OUT ï¿½ï¿½ï¿½ï¿½ Error"; break;
+		case 10: return "MESï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ TRAY TRANSFER_OUT ï¿½ï¿½ï¿½ï¿½Ã°ï¿½ ï¿½Ê°ï¿½"; break;
+		case 11: return "MESï¿½Îºï¿½ï¿½ï¿½ SEND_EVENT ERROR"; break;
+		case 12: return "MESï¿½Îºï¿½ï¿½ï¿½ SEND_EVENT ï¿½ï¿½ï¿½ï¿½Ã°ï¿½ ï¿½Ê°ï¿½"; break;
+		case 13: return "MESï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ID_MATCHING ï¿½ï¿½ï¿½ï¿½ Error"; break;
+		case 14: return "MESï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ID_MATCHING ï¿½ï¿½ï¿½ï¿½Ã°ï¿½ ï¿½Ê°ï¿½"; break;
+		case 15: return "[ï¿½ï¿½ï¿½ï¿½TRAY] GRIP DOWNï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½Ê°ï¿½"; break;
+		case 16: return "[ï¿½ï¿½ï¿½ï¿½TRAY] GRIP UPï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½Ê°ï¿½"; break;
+		case 17: return "[ï¿½ï¿½ï¿½ï¿½TRAY] GRIP DOWNï¿½ï¿½ ï¿½æµ¹ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½Ï´ï¿½"; break;
+		case 18: return "[ï¿½ï¿½ï¿½TRAY] GRIP UNCHUCK ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ã°ï¿½ ï¿½Ê°ï¿½"; break;
+		case 19: return "[ï¿½ï¿½ï¿½TRAY] GRIP UP ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ã°ï¿½ ï¿½Ê°ï¿½"; break;
+		case 20: return "[ï¿½ï¿½ï¿½ï¿½TRAY] Cell No, Grip Noï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½"; break;
+		case 21: return "[ï¿½ï¿½ï¿½TRAY] GRIP DOWNï¿½ï¿½ ï¿½æµ¹ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½Ï´ï¿½"; break;
+		case 22: return "[ï¿½ï¿½ï¿½TRAY] GRIP DOWNï¿½Ã°ï¿½ ï¿½Ê°ï¿½"; break;
+		case 23: return "[ï¿½ï¿½ï¿½TRAY] Cell No, Grip No ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½"; break;
+		case 24: return "ï¿½Ò·ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½"; break;
 		case 25: return "DOOR #1 Open"; break;
 		case 26: return "DOOR #2 Open"; break;
 		case 27: return "Emergency stop"; break;

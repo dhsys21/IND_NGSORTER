@@ -802,6 +802,12 @@ __fastcall TMesOpc::TMesOpc(TComponent* Owner)
 	FProcessEndWaitResponseIdle = false;
 	FCellTrackOutResponseRevision = 0;
 	FCellTrackOutWaitResponseIdle = false;
+	FLastCellTrackOutSourceChannel = 0;
+	FLastCellTrackOutTargetChannel = 0;
+	FLastCellTrackOutCellId = "";
+	FLastCellTrackOutSourceTrayId = L"";
+	FLastCellTrackOutTargetTrayId = L"";
+	FLastCellTrackOutValid = false;
 	FTrayUnloadResponseRevision = 0;
 	FTrayUnloadWaitResponseIdle = false;
 }
@@ -1438,6 +1444,12 @@ void __fastcall TMesOpc::CELL_TRACK_OUT_REQUEST(int SourceChannel, int TargetCha
 
 	UnicodeString SourceTrayId = SourceTrayIdValue.Trim();
 	UnicodeString TargetTrayId = TargetTrayIdValue.Trim();
+	FLastCellTrackOutSourceChannel = SourceChannel;
+	FLastCellTrackOutTargetChannel = TargetChannel;
+	FLastCellTrackOutCellId = CellId;
+	FLastCellTrackOutSourceTrayId = SourceTrayId;
+	FLastCellTrackOutTargetTrayId = TargetTrayId;
+	FLastCellTrackOutValid = !SourceTrayId.IsEmpty() && !TargetTrayId.IsEmpty();
 	if(SourceTrayId.IsEmpty() || TargetTrayId.IsEmpty())
 	{
 		LogOpcEvent("CELL_TRACK_OUT REQUEST FAIL TrayInformation.TrayId is empty" +
@@ -1579,6 +1591,17 @@ void __fastcall TMesOpc::LogCellTrackOutResponseOffTimeout()
 			(HasRequest ? AnsiString(RequestJson) : AnsiString("<missing>")) +
 			" Response=" + (HasResponse ? AnsiString(ResponseJson) : AnsiString("<missing>")) +
 			" WaitMs=10000", true);
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMesOpc::CELL_TRACK_OUT_RETRY()
+{
+	if(!FLastCellTrackOutValid)
+		return false;
+
+	CELL_TRACK_OUT_REQUEST(FLastCellTrackOutSourceChannel,
+		FLastCellTrackOutTargetChannel, FLastCellTrackOutCellId,
+		FLastCellTrackOutSourceTrayId, FLastCellTrackOutTargetTrayId);
+	return true;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::CELL_TRACK_OUT_CANCEL()

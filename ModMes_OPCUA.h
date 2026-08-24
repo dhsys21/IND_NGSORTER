@@ -18,6 +18,12 @@ private:	// User declarations
     bool FProcessEndWaitResponseIdle;
     unsigned __int64 FCellTrackOutResponseRevision;
     bool FCellTrackOutWaitResponseIdle;
+    int FLastCellTrackOutSourceChannel;
+    int FLastCellTrackOutTargetChannel;
+    AnsiString FLastCellTrackOutCellId;
+    UnicodeString FLastCellTrackOutSourceTrayId;
+    UnicodeString FLastCellTrackOutTargetTrayId;
+    bool FLastCellTrackOutValid;
     unsigned __int64 FTrayUnloadResponseRevision;
     bool FTrayUnloadWaitResponseIdle;
 public:		// User declarations
@@ -53,6 +59,7 @@ public:		// User declarations
     int __fastcall CELL_TRACK_OUT_RESPONSE_VALUE();
     void __fastcall LogCellTrackOutTimeout();
     void __fastcall LogCellTrackOutResponseOffTimeout();
+    bool __fastcall CELL_TRACK_OUT_RETRY();
     void __fastcall CELL_TRACK_OUT_CANCEL();
     void __fastcall TRAY_UNLOAD_REQUEST();
     int __fastcall TRAY_UNLOAD_RESPONSE_RESULT();

@@ -66,6 +66,17 @@ typedef struct
 
 
 
+enum TFmsAlarmTransaction
+{
+	fmsAlarmNone = 0,
+	fmsAlarmSourceTrayLoad,
+	fmsAlarmTargetTrayLoad,
+	fmsAlarmProcessStart,
+	fmsAlarmCellTrackOut,
+	fmsAlarmProcessEnd,
+	fmsAlarmTrayUnload
+};
+//---------------------------------------------------------------------------
 class TMainForm : public TForm
 {
 __published:	// IDE-managed Components
@@ -373,6 +384,12 @@ private:	// User declarations
 	void __fastcall UpdateIoMonitoringPanel();
 	void __fastcall btnCloseIoPanelClick(TObject *Sender);
 	void __fastcall opcMesTimerTimer(TObject *Sender);
+	void __fastcall ShowFmsAlarm(TFmsAlarmTransaction Transaction,
+		const AnsiString &Title, const AnsiString &Detail, int ResponseValue);
+	bool __fastcall ProcessFmsAlarmRecovery();
+	int __fastcall GetFmsAlarmResponse() const;
+	void __fastcall CancelFmsAlarmRequest();
+	void __fastcall ReissueFmsAlarmRequest();
 	void __fastcall DisplayOpcTrayLoad(bool sourceTray);
 	void __fastcall AdvanceOpcTrayLoad(bool sourceTray);
 	void __fastcall TryStartOpcProcess();
@@ -387,10 +404,14 @@ private:	// User declarations
 	int __fastcall GetTargetReservationTool(int ch) const;
 
 	TTimer *opcMesTimer;
+	TFmsAlarmTransaction fmsAlarmTransaction;
+	bool fmsAlarmRetryRequested;
+	DWORD fmsAlarmRetryStartTick;
 	bool opcTrayLoadPending[2];
 	bool opcTrayLoadWaitResponseOff[2];
 	bool opcTrayLoadResponseOffError[2];
 	bool opcTrayLoadRetryRequired[2]; // ON-timeout recovery is resumed by Restart.
+	int opcTrayLoadResponseResult[2];
 	DWORD opcTrayLoadStartTick[2];
 	bool opcTrayDisplayed[2]; // Set only after Response=1 data is drawn on screen.
 	bool opcTrayLoaded[2];    // Set only after the displayed Response returns to 0.
@@ -509,6 +530,7 @@ public:		// User declarations
 	void __fastcall NotifyEquipStatus(AnsiString process);
 	// PLC_INPUT plcInput; // Legacy ASCII interface disabled; use ModPLC_BIN status APIs.
 	// PLC_OUTPUT plcOutput; // Legacy ASCII interface disabled; use ModPLC_BIN commands.
+	void __fastcall ConfirmFmsAlarmRetry();
 	void __fastcall BuzzerOn(bool on);
 	void __fastcall LampModeChange(LampMode mode);
 
