@@ -371,6 +371,8 @@ void __fastcall TdoorForm::PasswordBtnClick(TObject *Sender)
 	    MainForm->cbMES->Checked = true;
 		MainForm->cbCycle->Visible = true;
 		this->Visible = false;
+		//* DRY RUN : Password access exposes the inspection-only entry button.
+		MainForm->btnDryRun->Visible = true;
     }
 }
 //---------------------------------------------------------------------------
@@ -383,6 +385,9 @@ void __fastcall TdoorForm::PassEditKeyUp(TObject *Sender, WORD &Key, TShiftState
         if(PassEdit->Text == "9090"){
             MainForm->cbMES->Visible = true;
             MainForm->cbMES->Checked = true;
+			MainForm->cbCycle->Visible = true;
+			//* DRY RUN : Password access exposes the inspection-only entry button.
+			MainForm->btnDryRun->Visible = true;
             this->Visible = false;
         }
     }

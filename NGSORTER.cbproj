@@ -141,10 +141,10 @@
             <BuildOrder>4</BuildOrder>
         </CppCompile>
         <CppCompile Include="FormAlarm_fms.cpp">
-            <Form>FmsAlarmForm</Form>
+            <Form>AlarmForm_fms</Form>
             <FormType>dfm</FormType>
             <DependentOn>FormAlarm_fms.h</DependentOn>
-            <BuildOrder>39</BuildOrder>
+            <BuildOrder>40</BuildOrder>
         </CppCompile>
         <CppCompile Include="FormAlarm_LoadFactor.cpp">
             <Form>loadfactor_AlarmForm</Form>
@@ -230,6 +230,12 @@
             <DependentOn>FormMain.h</DependentOn>
             <BuildOrder>14</BuildOrder>
         </CppCompile>
+        <CppCompile Include="FormDryRun.cpp">
+            <Form>DryRunForm</Form>
+            <FormType>dfm</FormType>
+            <DependentOn>FormDryRun.h</DependentOn>
+            <BuildOrder>41</BuildOrder>
+        </CppCompile>
         <CppCompile Include="FormServoAlarmList.cpp">
             <Form>ServoAlarmListForm</Form>
             <FormType>dfm</FormType>
@@ -243,6 +249,7 @@
             <BuildOrder>15</BuildOrder>
         </CppCompile>
         <None Include="Lang_En.ini"/>
+        <None Include="Lang_Hi.ini"/>
         <None Include="Lang_Ko.ini"/>
         <LibFiles Include="mc2xxstd.lib" Condition="'$(Platform)'=='Win32'">
             <BuildOrder>26</BuildOrder>
@@ -332,33 +339,34 @@
         <CppCompile Include="Stage_mes.cpp">
             <BuildOrder>25</BuildOrder>
         </CppCompile>
-        <FormResources Include="Modmes.dfm"/>
         <FormResources Include="ModGripper.dfm"/>
+        <FormResources Include="Modmes.dfm"/>
         <FormResources Include="ModMes_OPCUA.dfm"/>
         <FormResources Include="ModMes_Gateway.dfm"/>
-        <FormResources Include="ModPLC_Bin.dfm"/>
         <FormResources Include="SmokeDetector_comm.dfm"/>
-        <FormResources Include="Mod_SRX100W.dfm"/>
         <FormResources Include="ModRobostar.dfm"/>
-        <FormResources Include="FormTeaching.dfm"/>
+        <FormResources Include="ModPLC_Bin.dfm"/>
+        <FormResources Include="Mod_SRX100W.dfm"/>
         <FormResources Include="FormBase.dfm"/>
         <FormResources Include="FormAlarm_TrayInfo.dfm"/>
-        <FormResources Include="FormDoor.dfm"/>
         <FormResources Include="FormConfig.dfm"/>
-        <FormResources Include="FormAlarm_LoadFactor.dfm"/>
-        <FormResources Include="Barcode_comm.dfm"/>
-        <FormResources Include="FormAlarm.dfm"/>
         <FormResources Include="FormError.dfm"/>
+        <FormResources Include="FormDoor.dfm"/>
+        <FormResources Include="Barcode_comm.dfm"/>
+        <FormResources Include="FormAlarm_LoadFactor.dfm"/>
+        <FormResources Include="FormAlarm.dfm"/>
+        <FormResources Include="FormAlarm_fms.dfm"/>
         <FormResources Include="FormLoadFactor.dfm"/>
         <FormResources Include="FormInterface.dfm"/>
-        <FormResources Include="FormServoAlarmList.dfm"/>
         <FormResources Include="FormMain.dfm"/>
-        <FormResources Include="FormError_mes.dfm"/>
+        <FormResources Include="FormDryRun.dfm"/>
+        <FormResources Include="FormTeaching.dfm"/>
+        <FormResources Include="FormServoAlarmList.dfm"/>
         <FormResources Include="FormError_eject.dfm"/>
         <FormResources Include="FormError_bcr.dfm"/>
-        <FormResources Include="FormError_limit.dfm"/>
         <FormResources Include="FormError_insert.dfm"/>
-        <FormResources Include="FormAlarm_fms.dfm"/>
+        <FormResources Include="FormError_mes.dfm"/>
+        <FormResources Include="FormError_limit.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

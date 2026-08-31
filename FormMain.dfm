@@ -2046,6 +2046,44 @@ object MainForm: TMainForm
       OnClick = btnIOMonitoringClick
       TMSStyle = 8
     end
+    object btnDryRun: TAdvSmoothButton
+      Left = 340
+      Top = 1
+      Width = 120
+      Height = 24
+      Appearance.Font.Charset = DEFAULT_CHARSET
+      Appearance.Font.Color = clWindowText
+      Appearance.Font.Height = -11
+      Appearance.Font.Name = 'Tahoma'
+      Appearance.Font.Style = [fsBold]
+      Appearance.Spacing = 0
+      Appearance.Rounding = 3
+      Appearance.WordWrapping = False
+      Status.Caption = '0'
+      Status.Appearance.Fill.Color = clRed
+      Status.Appearance.Fill.ColorMirror = clNone
+      Status.Appearance.Fill.ColorMirrorTo = clNone
+      Status.Appearance.Fill.GradientType = gtSolid
+      Status.Appearance.Fill.GradientMirrorType = gtSolid
+      Status.Appearance.Fill.BorderColor = clGray
+      Status.Appearance.Fill.Rounding = 0
+      Status.Appearance.Fill.ShadowOffset = 0
+      Status.Appearance.Fill.Glow = gmNone
+      Status.Appearance.Font.Charset = DEFAULT_CHARSET
+      Status.Appearance.Font.Color = clWhite
+      Status.Appearance.Font.Height = -11
+      Status.Appearance.Font.Name = 'Tahoma'
+      Status.Appearance.Font.Style = []
+      BevelColor = clBlack
+      Caption = 'DRY RUN'
+      Color = clWhite
+      ParentFont = False
+      TabOrder = 16
+      Visible = False
+      Version = '2.1.1.5'
+      OnClick = btnDryRunClick
+      TMSStyle = 8
+    end
     object manualBtn: TAdvSmoothToggleButton
       Tag = 1
       Left = 110

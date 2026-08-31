@@ -83,6 +83,8 @@ __published:	// IDE-managed Components
 	TClientSocket *Client;
 	TLabel *Label6;
 	TAdvSmoothButton *btnIOMonitoring;
+	//* DRY RUN : Inspection-only modal entry button.
+	TAdvSmoothButton *btnDryRun;
 	TAdvSmoothPanel *pback;
 	TLabel *lblTitle;
 	TAdvSmoothPanel *AdvSmoothPanel2;
@@ -346,6 +348,8 @@ __published:	// IDE-managed Components
 	void __fastcall pnlSource2Click(TObject *Sender);
 	void __fastcall lblTitleClick(TObject *Sender);
 	void __fastcall btnIOMonitoringClick(TObject *Sender);
+	//* DRY RUN : Opens the dedicated dry-run form; it never starts motion directly.
+	void __fastcall btnDryRunClick(TObject *Sender);
 private:	// User declarations
 //------------ Æû °ü·Ã -------------------//
 
@@ -512,6 +516,8 @@ public:		// User declarations
 	bool __fastcall IsSourceCenteringSignal() const;
 	bool __fastcall IsTargetTrayInSignal() const;
 	bool __fastcall IsTargetCenteringSignal() const;
+	//* DRY RUN : True while any production PLC/FMS/local sequence is still active.
+	bool __fastcall IsProductionSequenceBusy() const;
 
 	void __fastcall InitTrayInfo(int pos);
 	void __fastcall DisplayTrayInfo();

@@ -28,6 +28,8 @@ USEFORM("FormLoadFactor.cpp", loadfactorForm);
 USEFORM("FormInterface.cpp", InterfaceForm);
 USEFORM("FormServoAlarmList.cpp", ServoAlarmListForm);
 USEFORM("FormMain.cpp", MainForm);
+//* DRY RUN : Inspection-only modal form and dedicated timer/state machine.
+USEFORM("FormDryRun.cpp", DryRunForm);
 USEFORM("FormError_mes.cpp", ErrorForm_mes);
 USEFORM("FormError_eject.cpp", ErrorForm_eject);
 USEFORM("FormError_bcr.cpp", ErrorForm_bcr);
@@ -73,6 +75,8 @@ int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 		Application->CreateForm(__classid(TloadfactorForm), &loadfactorForm);
 		Application->CreateForm(__classid(TtrayinfoForm), &trayinfoForm);
 		Application->CreateForm(__classid(TPlcBin), &PlcBin);
+		//* DRY RUN : Created after robot/gripper/PLC modules are available.
+		Application->CreateForm(__classid(TDryRunForm), &DryRunForm);
 		Application->CreateForm(__classid(TSmokeDetector), &SmokeDetector);
 		Application->CreateForm(__classid(TInterfaceForm), &InterfaceForm);
 		Application->CreateForm(__classid(TAlarmForm_fms), &AlarmForm_fms);

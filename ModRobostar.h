@@ -245,7 +245,9 @@ typedef enum Sequence
 	seqZdown,
 	seqPause,		// 일시 중지 상태 : 에러발생시
 	seqAutoRun,
-    seqEmgAutoRun
+    seqEmgAutoRun,
+	//* DRY RUN : Dedicated HOME return without production panel or cell checks.
+	seqDryRunWait
 } robotSequence;
 
 typedef struct{
@@ -310,6 +312,8 @@ private:	// User declarations
 	void __fastcall AutoInsert();
 
 	void __fastcall Reset();
+	//* DRY RUN : Motion-only HOME return state machine.
+	void __fastcall DryRunWaitPosition();
 	void __fastcall WaitPosition();
 	void __fastcall zUp();
 	void __fastcall zDown();
@@ -395,6 +399,8 @@ public:		// User declarations
 	void __fastcall req_Reset();
 	void __fastcall req_WaitPosition();
 	void __fastcall req_zUp();
+	//* DRY RUN : Returns Z/X/Y to zero without using production cell conditions.
+	bool __fastcall req_DryRunWaitPosition();
 	bool __fastcall req_zDown();
 	bool __fastcall SetJogSpeed(int speed);
 	int __fastcall GetJogSpeed() const;

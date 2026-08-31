@@ -4,6 +4,8 @@
 #pragma hdrstop
 
 #include "FormBase.h"
+//* DRY RUN : Dedicated inspection form is isolated from the production sequence.
+#include "FormDryRun.h"
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.dfm"
@@ -62,6 +64,11 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 
 	this->Width = 1900;
 	this->Height = 1000;
+
+	//* DRY RUN : Bind the click event explicitly so runtime operation does not
+	//* depend only on the Designer/DFM event metadata.
+	if(btnDryRun != NULL)
+		btnDryRun->OnClick = btnDryRunClick;
 
 	MakePanel();
 	MakePanel_TargetTray();
@@ -1779,6 +1786,18 @@ bool __fastcall TMainForm::IsTargetCenteringSignal() const
 		|| (PlcBin != NULL && PlcBin->IsTargetCentering());
 }
 //---------------------------------------------------------------------------
+// ============================================================================
+//* DRY RUN : Physical inspection starts only after all production work is idle.
+// ============================================================================
+bool __fastcall TMainForm::IsProductionSequenceBusy() const
+{
+	return step[0].step != 0 || step[1].step != 0 ||
+		opcTrayLoadPending[0] || opcTrayLoadPending[1] ||
+		opcProcessStartPending || opcSortingStartPending || opcProcessStarted ||
+		opcProcessEndPending || opcCellTrackOutPending || opcTargetUnloadPending ||
+		fmsAlarmTransaction != fmsAlarmNone;
+}
+//---------------------------------------------------------------------------
 void __fastcall TMainForm::InitStep(STEP *data)
 {
 	data->step = 0;
@@ -2118,6 +2137,32 @@ void __fastcall TMainForm::btnIOMonitoringClick(TObject *Sender)
 	grp_io->BringToFront();
 	grp_io->Visible = true;
 }
+// ============================================================================
+//* DRY RUN : Open the modal inspection controller. Clicking does not start motion.
+// ============================================================================
+void __fastcall TMainForm::btnDryRunClick(TObject *Sender)
+{
+	memoMainLineAdd("[DRY RUN] DRY RUN button click event entered.");
+	//* DRY RUN : Inspection motion is MANUAL-only. In AUTO, an asserted Tray In
+	//* can advance the production sequence at the same time.
+	if(equipMode != modeManual){
+		memoMainLineAdd("[DRY RUN] OPEN BLOCKED - equipment mode is not MANUAL.");
+		ShowMessage(L"Dry Run is available only in MANUAL mode.\r\nChange to MANUAL before opening Dry Run.");
+		return;
+	}
+
+	//* DRY RUN : Normally auto-created by the project. Create it here as a
+	//* fallback instead of silently ignoring the click when creation order changes.
+	if(DryRunForm == NULL)
+		DryRunForm = new TDryRunForm(Application);
+
+	//* DRY RUN : Test simulation modes must not be mixed with physical motion.
+	cbMES->Checked = false;
+	cbCycle->Checked = false;
+	memoMainLineAdd("[DRY RUN] Inspection form opened / MES Test=OFF / Cycle Test=OFF");
+	DryRunForm->ShowModal();
+}
+//---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::btnCloseIoPanelClick(TObject *Sender)
 {
@@ -2612,35 +2657,38 @@ bool __fastcall TMainForm::GetZoneChannel(int zone, int ch)
 //---------------------------------------------------------------------------
 AnsiString __fastcall TMainForm::GetAlarmMsg(int code)
 {
+	// Legacy Korean literals in this block were already damaged during a prior
+	// UTF-8 conversion. Keep these fallback messages ASCII so clean builds work.
 	switch(code){
-		case 1: return "MES�κ��� ���� TRAY�������� ERROR"; break;
-		case 2: return "MES�κ��� ���� TRAY_REPLY_S ����ð� �ʰ�"; break;
-		case 3: return "MES�κ��� ��� TRAY�������� ERROR"; break;
-		case 4: return "MES�κ��� ��� TRAY_REPLY_T ����ð� �ʰ�"; break;
-		case 5: return "MES�κ��� ��� ID_MATCHING ���� Error"; break;
-		case 6: return "MES�κ��� ��� ID_MATCHING ����ð� �ʰ�"; break;
-		case 7: return "MES�κ��� ���� TRAY TRANSFER_OUT ���� Error"; break;
-		case 8: return "MES�κ��� ���� TRAY TRANSFER_OUT ����ð� �ʰ�"; break;
-		case 9: return "MES�κ��� ��� TRAY TRANSFER_OUT ���� Error"; break;
-		case 10: return "MES�κ��� ��� TRAY TRANSFER_OUT ����ð� �ʰ�"; break;
-		case 11: return "MES�κ��� SEND_EVENT ERROR"; break;
-		case 12: return "MES�κ��� SEND_EVENT ����ð� �ʰ�"; break;
-		case 13: return "MES�κ��� ���� ID_MATCHING ���� Error"; break;
-		case 14: return "MES�κ��� ���� ID_MATCHING ����ð� �ʰ�"; break;
-		case 15: return "[����TRAY] GRIP DOWN���� ���� �ð��ʰ�"; break;
-		case 16: return "[����TRAY] GRIP UP���� ���� �ð��ʰ�"; break;
-		case 17: return "[����TRAY] GRIP DOWN�� �浹�Ǿ����ϴ�"; break;
-		case 18: return "[���TRAY] GRIP UNCHUCK ���� �����ð� �ʰ�"; break;
-		case 19: return "[���TRAY] GRIP UP ���� �����ð� �ʰ�"; break;
-		case 20: return "[����TRAY] Cell No, Grip No�� ���� ����"; break;
-		case 21: return "[���TRAY] GRIP DOWN�� �浹�Ǿ����ϴ�"; break;
-		case 22: return "[���TRAY] GRIP DOWN�ð� �ʰ�"; break;
-		case 23: return "[���TRAY] Cell No, Grip No �� ���� ����"; break;
-		case 24: return "�ҷ����� ����ġ ���� �����ϴ�"; break;
-		case 25: return "DOOR #1 Open"; break;
-		case 26: return "DOOR #2 Open"; break;
-		case 27: return "Emergency stop"; break;
+		case 1: return "MES Source tray information error";
+		case 2: return "MES Source tray reply timeout";
+		case 3: return "MES Target tray information error";
+		case 4: return "MES Target tray reply timeout";
+		case 5: return "MES Target ID matching error";
+		case 6: return "MES Target ID matching timeout";
+		case 7: return "MES Source tray transfer-out error";
+		case 8: return "MES Source tray transfer-out timeout";
+		case 9: return "MES Target tray transfer-out error";
+		case 10: return "MES Target tray transfer-out timeout";
+		case 11: return "MES send-event error";
+		case 12: return "MES send-event timeout";
+		case 13: return "MES Source ID matching error";
+		case 14: return "MES Source ID matching timeout";
+		case 15: return "Source tray gripper-down timeout";
+		case 16: return "Source tray gripper-up timeout";
+		case 17: return "Source tray gripper-down collision";
+		case 18: return "Target tray gripper-unchuck timeout";
+		case 19: return "Target tray gripper-up timeout";
+		case 20: return "Source tray Cell No / Gripper No mismatch";
+		case 21: return "Target tray gripper-down collision";
+		case 22: return "Target tray gripper-down timeout";
+		case 23: return "Target tray Cell No / Gripper No mismatch";
+		case 24: return "NG count exceeded the configured limit";
+		case 25: return "DOOR #1 Open";
+		case 26: return "DOOR #2 Open";
+		case 27: return "Emergency stop";
 	}
+	return "Unknown alarm";
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::AddStatusLog(AnsiString source, AnsiString msg)
@@ -2774,6 +2822,12 @@ void __fastcall TMainForm::lblTitleClick(TObject *Sender)
 	cbMES->Visible = showTestOptions;
 	cbCycle->Visible = showTestOptions;
 
+	//* DRY RUN : Use the same hidden commissioning access as MES/Cycle Test.
+	btnDryRun->Visible = showTestOptions;
+	if(showTestOptions){
+		btnDryRun->Enabled = true;
+		btnDryRun->BringToFront();
+	}
 	if(!showTestOptions){
 		cbMES->Checked = false;
 		cbCycle->Checked = false;

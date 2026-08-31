@@ -1118,6 +1118,68 @@ void __fastcall Trobostar::WaitPosition()
 			break;
 	}
 }
+// ============================================================================
+//* DRY RUN : Dedicated Z-up and X/Y HOME return. No X0022 or process STEP use.
+// ============================================================================
+void __fastcall Trobostar::DryRunWaitPosition()
+{
+	switch(step.step){
+		case 0:
+			zUpCount = 0;
+			bSetPoint = setPoint(Axis_zUp, 0);
+			if(!bSetPoint){
+				MainForm->memoRobostarLineAdd("[DRY RUN] HOME return Z UP command failed");
+				req_Stop();
+				return;
+			}
+			step.step = 1;
+			break;
+		case 1:
+			zUpCount++;
+			if(rangeCheck(Axis_zUp)){
+				zUpCount = 0;
+				break;
+			}
+			if(zUpCount > 200){
+				MainForm->memoRobostarLineAdd("[DRY RUN] HOME return Z UP timeout");
+				req_Stop();
+			}
+			break;
+		case 2:
+		{
+			bool xAccepted = setPoint(Axis_x, Wait_xAxis);
+			bool yAccepted = setPoint(Axis_y, Wait_yAxis);
+			if(!xAccepted || !yAccepted){
+				MainForm->memoRobostarLineAdd("[DRY RUN] HOME return X/Y command failed");
+				req_Stop();
+				return;
+			}
+			step.step = 3;
+			break;
+		}
+		case 3:
+			rangeCheck(Axis_x);
+			break;
+		case 4:
+			rangeCheck(Axis_y);
+			break;
+		default:
+			MainForm->memoRobostarLineAdd("[DRY RUN] HOME return complete X/Y/Z=0");
+			InitSequence(seqIdle);
+			break;
+	}
+}
+//---------------------------------------------------------------------------
+bool __fastcall Trobostar::req_DryRunWaitPosition()
+{
+	//* DRY RUN : Request boundary keeps only servo/safety/motion interlocks.
+	if(seq != seqIdle || MainForm == NULL || !MainForm->m_ServoOpen ||
+		!MainForm->m_ServoON || !MainForm->m_ServoHomeEmg || !IsSafetyReady())
+		return false;
+	InitSequence(seqDryRunWait);
+	return seq == seqDryRunWait;
+}
+//---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::zUp()
 {
@@ -2159,6 +2221,8 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 
 	else if(seq == seqWait)WaitPosition();
 	else if(seq == seqZup)zUp();
+	//* DRY RUN : Dedicated return is dispatched independently of production WAIT.
+	else if(seq == seqDryRunWait)DryRunWaitPosition();
 	else if(seq == seqZdown)zDown();
 
 	else if(seq == seqJOGx_Plus)MoveJog(0);
