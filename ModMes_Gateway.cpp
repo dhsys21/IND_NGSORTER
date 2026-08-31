@@ -245,6 +245,7 @@ __fastcall TMod_Fms::TMod_Fms(TComponent* Owner)
 	: TDataModule(Owner),
 	  FLock(NULL),
 	  FSendLock(NULL),
+	  FLogLock(NULL),
 	  FFmsRevisionCounter(0),
 	  FSnapshotReceived(false),
 	  FTagConfigLoaded(false),
@@ -256,12 +257,18 @@ __fastcall TMod_Fms::TMod_Fms(TComponent* Owner)
 {
 	FLock = new TCriticalSection();
 	FSendLock = new TCriticalSection();
+	FLogLock = new TCriticalSection();
 
 	Timer_Alive->Enabled = false;
 	// OPC UA Alive handshake interval: EQP sets ON every 30 seconds.
 	Timer_Alive->Interval = FMS_ALIVE_INTERVAL_MS;
 	Timer_Reconnect->Enabled = false;
 	Timer_Reconnect->Interval = FMS_RECONNECT_INTERVAL_MS;
+	//* FMS RECONNECT : Worker callbacks never touch VCL controls directly.
+	//* This main-thread timer drains their queued file/UI log records.
+	Timer_LogDispatch->Enabled = false;
+	Timer_LogDispatch->Interval = 100;
+	Timer_LogDispatch->OnTimer = Timer_LogDispatchTimer;
 	TcpServer->Active = false;
 	TcpServer->DefaultPort = FBindPort;
 	// Keep application shutdown responsive even if a gateway worker is blocked.
@@ -276,6 +283,8 @@ __fastcall TMod_Fms::TMod_Fms(TComponent* Owner)
 __fastcall TMod_Fms::~TMod_Fms(void)
 {
 	Stop();
+	delete FLogLock;
+	FLogLock = NULL;
 	delete FLock;
 	FLock = NULL;
 	delete FSendLock;
@@ -311,6 +320,7 @@ void __fastcall TMod_Fms::Start(void)
 {
 	FStopping = false;
 	FAutoStartEnabled = true;
+	Timer_LogDispatch->Enabled = true;
 	Timer_Reconnect->Enabled = true;
 	TryStartServer();
 }
@@ -323,6 +333,7 @@ void __fastcall TMod_Fms::Stop(void)
 	FAutoStartEnabled = false;
 	Timer_Reconnect->Enabled = false;
 	Timer_Alive->Enabled = false;
+	Timer_LogDispatch->Enabled = false;
 	{
 		TLockGuard Guard(FLock);
 		FGatewayConnected = false;
@@ -364,6 +375,11 @@ void __fastcall TMod_Fms::Stop(void)
 		}
 		LogOpcUa(L"SERVER", L"STOP");
 	}
+	if (FLogLock != NULL)
+	{
+		TLockGuard LogGuard(FLogLock);
+		FQueuedLogs.clear();
+	}
 }
 //---------------------------------------------------------------------------
 void __fastcall TMod_Fms::Configure(const UnicodeString &BindIp, int BindPort)
@@ -396,6 +412,31 @@ void __fastcall TMod_Fms::Timer_ReconnectTimer(TObject *Sender)
 {
 	if (FAutoStartEnabled && (TcpServer == NULL || !TcpServer->Active))
 		TryStartServer();
+}
+//---------------------------------------------------------------------------
+void __fastcall TMod_Fms::Timer_LogDispatchTimer(TObject *Sender)
+{
+	//* FMS RECONNECT : TTimer runs in the VCL main thread. Drain a bounded
+	//* batch so a large Snapshot cannot freeze the GUI with thousands of logs.
+	if (FLogLock == NULL || MainForm == NULL)
+		return;
+
+	std::deque<TFmsQueuedLog> Batch;
+	{
+		TLockGuard Guard(FLogLock);
+		for (int i = 0; i < 50 && !FQueuedLogs.empty(); ++i)
+		{
+			Batch.push_back(FQueuedLogs.front());
+			FQueuedLogs.pop_front();
+		}
+	}
+
+	while (!Batch.empty())
+	{
+		const TFmsQueuedLog &Entry = Batch.front();
+		MainForm->WriteOpcUaLog(AnsiString(Entry.Type), AnsiString(Entry.Message), Entry.Display);
+		Batch.pop_front();
+	}
 }
 //---------------------------------------------------------------------------
 void __fastcall TMod_Fms::Timer_AliveTimer(TObject *Sender)
@@ -507,8 +548,31 @@ void __fastcall TMod_Fms::TcpServerExecute(TIdContext *AContext)
 //---------------------------------------------------------------------------
 void __fastcall TMod_Fms::LogOpcUa(const UnicodeString &Type, const UnicodeString &Msg, bool bDisplay)
 {
-	if (MainForm != NULL)
+	if (MainForm == NULL)
+		return;
+
+	//* FMS RECONNECT : Indy OnConnect/OnDisconnect/OnExecute run on worker
+	//* threads. Calling MainForm/Memo while holding FLock can deadlock the GUI.
+	if (::GetCurrentThreadId() == System::MainThreadID)
+	{
 		MainForm->WriteOpcUaLog(AnsiString(Type), AnsiString(Msg), bDisplay);
+		return;
+	}
+
+	if (FStopping || FLogLock == NULL)
+		return;
+
+	TFmsQueuedLog Entry;
+	Entry.Type = Type;
+	Entry.Message = Msg;
+	Entry.Display = bDisplay;
+	{
+		TLockGuard Guard(FLogLock);
+		// Bound memory even if a malformed Snapshot generates many warnings.
+		if (FQueuedLogs.size() >= 2000)
+			FQueuedLogs.pop_front();
+		FQueuedLogs.push_back(Entry);
+	}
 }
 //---------------------------------------------------------------------------
 void __fastcall TMod_Fms::LoadTagConfig(const UnicodeString &FileName)
@@ -873,7 +937,8 @@ void __fastcall TMod_Fms::CopyTags(TJSONObject *Tags, TTagMap &Target, TFmsTagDi
 			TFmsTagDefinition Definition;
 			bool KnownTag = FindTagDefinitionForDirection(Key, Direction, Definition);
 			if (KnownTag && !ValidateJsonValue(Definition, Pair->JsonValue))
-				LogOpcUa(L"WARN", L"Type mismatch: " + Key + L" expected " + Definition.DataType);
+				LogOpcUa(L"WARN", L"Type mismatch: " + Key + L" expected " +
+					Definition.DataType + L" actual=" + Pair->JsonValue->ToString());
 
 			UnicodeString NormalizedKey = KnownTag ? Definition.FullKey : NormalizeTagKey(Key);
 			UnicodeString Value = Pair->JsonValue->ToString();
@@ -914,7 +979,8 @@ void __fastcall TMod_Fms::CopyChangedTags(TJSONObject *Tags)
 		if (FindTagDefinition(Key, Direct))
 		{
 			if (!ValidateJsonValue(Direct, Pair->JsonValue))
-				LogOpcUa(L"WARN", L"Type mismatch: " + Key + L" expected " + Direct.DataType);
+				LogOpcUa(L"WARN", L"Type mismatch: " + Key + L" expected " +
+					Direct.DataType + L" actual=" + Pair->JsonValue->ToString());
 
 			if (Direct.Direction == ftdEqpOnly || IsImplicitDirectionTag(Direct, ftdEqpOnly))
 				FPcTags[Direct.FullKey] = Value;
@@ -935,7 +1001,8 @@ void __fastcall TMod_Fms::CopyChangedTags(TJSONObject *Tags)
 				continue;
 
 			if (!ValidateJsonValue(Definition, Pair->JsonValue))
-				LogOpcUa(L"WARN", L"Type mismatch: " + Key + L" expected " + Definition.DataType);
+				LogOpcUa(L"WARN", L"Type mismatch: " + Key + L" expected " +
+					Definition.DataType + L" actual=" + Pair->JsonValue->ToString());
 
 			if (Definition.Direction == ftdEqpOnly || IsImplicitDirectionTag(Definition, ftdEqpOnly))
 				FPcTags[Definition.FullKey] = Value;

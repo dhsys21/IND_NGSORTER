@@ -26,4 +26,11 @@ object Mod_Fms: TMod_Fms
     Left = 208
     Top = 32
   end
+  object Timer_LogDispatch: TTimer
+    Enabled = False
+    Interval = 100
+    OnTimer = Timer_LogDispatchTimer
+    Left = 288
+    Top = 32
+  end
 end

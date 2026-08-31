@@ -14,6 +14,7 @@
 #include <IdCustomTCPServer.hpp>
 #include <Vcl.ExtCtrls.hpp>
 #include <Xml.XMLIntf.hpp>
+#include <deque>
 #include <map>
 
 //---------------------------------------------------------------------------
@@ -50,19 +51,29 @@ __published:	// IDE-managed Components
 	TIdTCPServer *TcpServer;
 	TTimer *Timer_Alive;
 	TTimer *Timer_Reconnect;
+	TTimer *Timer_LogDispatch;
 	void __fastcall TcpServerConnect(TIdContext *AContext);
 	void __fastcall TcpServerDisconnect(TIdContext *AContext);
 	void __fastcall TcpServerExecute(TIdContext *AContext);
 	void __fastcall Timer_AliveTimer(TObject *Sender);
 	void __fastcall Timer_ReconnectTimer(TObject *Sender);
+	void __fastcall Timer_LogDispatchTimer(TObject *Sender);
 
 private:	// User declarations
 	typedef std::map<System::UnicodeString, System::UnicodeString> TTagMap;
 	typedef std::map<System::UnicodeString, unsigned __int64> TTagRevisionMap;
 	typedef std::map<System::UnicodeString, TFmsTagDefinition> TTagDefinitionMap;
+	struct TFmsQueuedLog
+	{
+		System::UnicodeString Type;
+		System::UnicodeString Message;
+		bool Display;
+	};
 
 	System::Syncobjs::TCriticalSection *FLock;
 	System::Syncobjs::TCriticalSection *FSendLock;
+	System::Syncobjs::TCriticalSection *FLogLock;
+	std::deque<TFmsQueuedLog> FQueuedLogs;
 	TTagMap FFmsTags;
 	TTagRevisionMap FFmsTagRevisions;
 	unsigned __int64 FFmsRevisionCounter;
