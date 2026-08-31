@@ -99,9 +99,10 @@ object DryRunForm: TDryRunForm
   end
   object lblInterlock: TLabel
     Left = 18
-    Top = 195
-    Width = 151
-    Height = 14
+    Top = 191
+    Width = 635
+    Height = 30
+    AutoSize = False
     Caption = 'D10104 Source Centering=OFF'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clRed
@@ -109,6 +110,7 @@ object DryRunForm: TDryRunForm
     Font.Name = 'Tahoma'
     Font.Style = [fsBold]
     ParentFont = False
+    WordWrap = True
   end
   object editStartChannel: TEdit
     Left = 108
@@ -232,9 +234,9 @@ object DryRunForm: TDryRunForm
   end
   object memoDryRun: TMemo
     Left = 16
-    Top = 222
+    Top = 228
     Width = 637
-    Height = 209
+    Height = 203
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -12

@@ -95,10 +95,13 @@ void __fastcall TDryRunForm::SetDryStep(TDryRunSequence sequence, int step,
 void __fastcall TDryRunForm::WriteDryRunLog(const AnsiString &message)
 {
 	AnsiString line = FormatDateTime("hh:nn:ss.zzz", Now()) + " [DRY RUN] " + message;
-	memoDryRun->Lines->Add(line);
+	//* DRY RUN : Newest inspection event is always visible at the top.
+	memoDryRun->Lines->Insert(0, line);
 	if(memoDryRun->Lines->Count > 300)
-		memoDryRun->Lines->Delete(0);
-	memoDryRun->SelStart = memoDryRun->Text.Length();
+		memoDryRun->Lines->Delete(memoDryRun->Lines->Count - 1);
+	memoDryRun->SelStart = 0;
+	memoDryRun->SelLength = 0;
+	memoDryRun->Perform(EM_SCROLLCARET, 0, 0);
 	if(MainForm != NULL)
 		MainForm->AddStatusLog("DRY RUN", message);
 }
