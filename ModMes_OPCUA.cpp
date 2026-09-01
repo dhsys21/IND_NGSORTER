@@ -7,6 +7,7 @@
 #include "ModMes_Gateway.h"
 
 #include <SysUtils.hpp>
+#include <math.h>
 #include <Vcl.ExtCtrls.hpp>
 #include <Vcl.Forms.hpp>
 #include <Vcl.StdCtrls.hpp>
@@ -22,6 +23,14 @@ static const int FMS_POLL_REQUEST_STARTED = 3;
 
 static const UnicodeString TAG_SOURCE = L"NGS.F1NGS01.Location1";
 static const UnicodeString TAG_TARGET = L"NGS.F1NGS01.Location2";
+
+// FMS EnvStatus EQP-only tags populated from the TSD-V50 smoke detector.
+static const UnicodeString TAG_ENV_TEMPERATURE = L"NGS.F1NGS01.EnvStatus.Temperature";
+static const UnicodeString TAG_ENV_SMOKE_DETECTED = L"NGS.F1NGS01.EnvStatus.SmokeDetected";
+static const UnicodeString TAG_ENV_TEMP_WARNING = L"NGS.F1NGS01.EnvStatus.TempWarning";
+static const UnicodeString TAG_ENV_TEMP_DANGER = L"NGS.F1NGS01.EnvStatus.TempDanger";
+static const UnicodeString TAG_ENV_RUNNING = L"NGS.F1NGS01.EnvStatus.Running";
+
 static AnsiString GTrayLoadValidationError[2];
 static bool GTargetInfoPromptActive = false;
 static UnicodeString GTargetInfoResolvedTrayId = L"";
@@ -130,6 +139,12 @@ static void SetPcBool(const UnicodeString &Key, bool Value)
 }
 //---------------------------------------------------------------------------
 static void SetPcInt(const UnicodeString &Key, int Value)
+{
+	if (Mod_Fms != NULL)
+		Mod_Fms->SetPcTag(Key, Value);
+}
+//---------------------------------------------------------------------------
+static void SetPcDouble(const UnicodeString &Key, double Value)
 {
 	if (Mod_Fms != NULL)
 		Mod_Fms->SetPcTag(Key, Value);
@@ -794,7 +809,13 @@ static void ApplyTrayDisplay(TRAY_INFO *Tray, const UnicodeString &TrayId,
 //---------------------------------------------------------------------------
 __fastcall TMesOpc::TMesOpc(TComponent* Owner)
 	: TDataModule(Owner),
-	  FShutdown(false)
+	  FShutdown(false),
+	  FEnvStatusInitialized(false),
+	  FLastEnvTemperature(0.0),
+	  FLastEnvSmokeDetected(false),
+	  FLastEnvTempWarning(false),
+	  FLastEnvTempDanger(false),
+	  FLastEnvRunning(false)
 {
 	FTrayLoadResponseRevision[0] = 0;
 	FTrayLoadResponseRevision[1] = 0;
@@ -827,6 +848,12 @@ void __fastcall TMesOpc::Shutdown()
 		return;
 	FShutdown = true;
 
+	// FMS EnvStatus shutdown report: retain the last measured values and only
+	// change Running to false while the Gateway is still available.
+	if(FEnvStatusInitialized)
+		PublishEnvStatus(FLastEnvTemperature, FLastEnvSmokeDetected,
+			FLastEnvTempWarning, FLastEnvTempDanger, false);
+
 	// Gracefully clear every outstanding EQP request before the Gateway stops.
 	SetPcBool(TrayProcessTag(TAG_SOURCE, L"TrayLoad"), false);
 	SetPcBool(TrayProcessTag(TAG_TARGET, L"TrayLoad"), false);
@@ -836,6 +863,36 @@ void __fastcall TMesOpc::Shutdown()
 	SetPcBool(TrayProcessTag(TAG_TARGET, L"TrayUnloadRequest"), false);
 	if(Mod_Fms != NULL)
 		Mod_Fms->FlushPendingPcTags(false);
+}
+//---------------------------------------------------------------------------
+void __fastcall TMesOpc::PublishEnvStatus(double Temperature,
+	bool SmokeDetected, bool TempWarning, bool TempDanger, bool Running)
+{
+	// FMS EnvStatus change filter: a 0.05 C temperature delta or any Boolean
+	// transition publishes the complete five-field state as one update set.
+	bool Changed = !FEnvStatusInitialized ||
+		fabs(Temperature - FLastEnvTemperature) >= 0.05 ||
+		SmokeDetected != FLastEnvSmokeDetected ||
+		TempWarning != FLastEnvTempWarning ||
+		TempDanger != FLastEnvTempDanger ||
+		Running != FLastEnvRunning;
+	if(!Changed)
+		return;
+
+	SetPcDouble(TAG_ENV_TEMPERATURE, Temperature);
+	SetPcBool(TAG_ENV_SMOKE_DETECTED, SmokeDetected);
+	SetPcBool(TAG_ENV_TEMP_WARNING, TempWarning);
+	SetPcBool(TAG_ENV_TEMP_DANGER, TempDanger);
+	SetPcBool(TAG_ENV_RUNNING, Running);
+	if(Mod_Fms != NULL)
+		Mod_Fms->FlushPendingPcTags(false);
+
+	FEnvStatusInitialized = true;
+	FLastEnvTemperature = Temperature;
+	FLastEnvSmokeDetected = SmokeDetected;
+	FLastEnvTempWarning = TempWarning;
+	FLastEnvTempDanger = TempDanger;
+	FLastEnvRunning = Running;
 }
 //---------------------------------------------------------------------------
 static void AddDisplayBadCode(const AnsiString &Code)

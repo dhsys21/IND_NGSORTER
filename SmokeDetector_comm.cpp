@@ -4,6 +4,7 @@
 #pragma hdrstop
 
 #include "FormBase.h"
+#include "ModMes_OPCUA.h"
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma classgroup "Vcl.Controls.TControl"
@@ -15,12 +16,33 @@ __fastcall TSmokeDetector::TSmokeDetector(TComponent* Owner)
 	: TDataModule(Owner)
 {
     retryCnt = 3;
-	retryInterval = 1000; // ?? 1초 주기로 변경
+	retryInterval = 1000; // Retry every one second.
 	tryCnt = 0;
-	failCount = 0;        // ?? 초기화
-	bWaitingResponse = false; // ?? 초기화
+	failCount = 0;        // Reset the consecutive failure count.
+	bWaitingResponse = false; // Clear the response-wait state.
 	slaveId = 1;
 	protocolMode = 0;
+	m_temperature = 0.0;
+	m_smokeDetected = false;
+	m_tempWarning = false;
+	m_tempDanger = false;
+	m_running = false;
+}
+//---------------------------------------------------------------------------
+void __fastcall TSmokeDetector::UpdateFmsEnvStatus(double Temperature,
+	bool SmokeDetected, bool TempWarning, bool TempDanger, bool Running)
+{
+	// FMS EnvStatus retains the last valid detector values so connection-loss
+	// reports can change only Running=false without discarding measurements.
+	m_temperature = Temperature;
+	m_smokeDetected = SmokeDetected;
+	m_tempWarning = TempWarning;
+	m_tempDanger = TempDanger;
+	m_running = Running;
+
+	if(MesOpc != NULL)
+		MesOpc->PublishEnvStatus(Temperature, SmokeDetected, TempWarning,
+			TempDanger, Running);
 }
 //---------------------------------------------------------------------------
 unsigned short __fastcall TSmokeDetector::get_crc16(unsigned char *pBuf, int nLen)
@@ -54,10 +76,10 @@ void __fastcall TSmokeDetector::CommOpen(AnsiString port, int sep, int id, int m
 		}
 
         retryCnt = 3;
-        retryInterval = 3000; // ?? 1초 주기로 변경
+        retryInterval = 3000; // Retry every three seconds.
         tryCnt = 0;
-        failCount = 0;        // ?? 초기화
-        bWaitingResponse = false; // ?? 초기화
+        failCount = 0;        // Reset the consecutive failure count.
+        bWaitingResponse = false; // Clear the response-wait state.
         slaveId = 1;
         protocolMode = 0;
 
@@ -85,13 +107,13 @@ void __fastcall TSmokeDetector::CommOpen(AnsiString port, int sep, int id, int m
         Comm->FlowControl->ControlDTR = dtrEnable;
         Comm->FlowControl->ControlRTS = rtsEnable;
 
-		// ?? [중요] Modbus RTU는 바이너리 통신이므로 특정 종료 문자(0x0a 등)를
-		// 이벤트 캐릭터로 사용하면 데이터 도중 오작동합니다. 0 또는 해제 처리합니다.
+		// Modbus RTU is binary. Disable the event terminator so a data byte
+		// such as 0x0A cannot split a valid packet.
 		Comm->EventChar = 0x00;
 		Comm->Open();
 		Comm->ClearBuffer(true, true);
 
-        // ?? 포트 오픈 성공 시 1초 폴링 타이머 가동
+        // Start the one-second polling timer after the port opens.
 		failCount = 0;
 		bWaitingResponse = false;
 		chkTimer->Interval = 1000; // 1초 주기 고정
@@ -100,19 +122,27 @@ void __fastcall TSmokeDetector::CommOpen(AnsiString port, int sep, int id, int m
 	catch(...){
 		Comm->Close();
         chkTimer->Enabled = false; // 실패 시 타이머 중지
+		UpdateFmsEnvStatus(m_temperature, m_smokeDetected, m_tempWarning,
+			m_tempDanger, false);
 		AlarmForm->ShowError("TSD-V50 COM Port", "Can not open " + port + " port.");
 	}
 }
 //---------------------------------------------------------------------------
 void __fastcall TSmokeDetector::CommClose()
 {
+	chkTimer->Enabled = false;
+	bWaitingResponse = false;
     if(Comm->Connected)
         Comm->Close();
+	UpdateFmsEnvStatus(m_temperature, m_smokeDetected, m_tempWarning,
+		m_tempDanger, false);
 }
 //---------------------------------------------------------------------------
-// ?? 장비 연결이 끊어졌을 때 Close 후 다시 Open 하는 함수
+// Reopen the serial port after the detector connection is lost.
 void __fastcall TSmokeDetector::Reconnect()
 {
+	UpdateFmsEnvStatus(m_temperature, m_smokeDetected, m_tempWarning,
+		m_tempDanger, false);
     BaseForm->Memo1->Lines->Clear();
     BaseForm->Memo1->Lines->Add("=========================================");
     BaseForm->Memo1->Lines->Add("?? 통신 단절 감지! 포트 재연결 시도 중... ");
@@ -147,7 +177,7 @@ void __fastcall TSmokeDetector::Reconnect()
 }
 
 //---------------------------------------------------------------------------
-// ?? TSD-V50 데이터 계측 요청 (Master Request)
+// Request TSD-V50 measurement data as the master.
 void __fastcall TSmokeDetector::GetTsdData()
 {
     if(!Comm->Connected) {
@@ -155,7 +185,7 @@ void __fastcall TSmokeDetector::GetTsdData()
 		return;
 	}
 
-    // ?? 현재 설정된 프로토콜에 따라 함수 분기 실행
+    // Dispatch the request according to the configured protocol.
 	if(protocolMode == 0) {
 		GetTsdData_Modbus();
 	} else {
@@ -163,7 +193,7 @@ void __fastcall TSmokeDetector::GetTsdData()
 	}
 }
 //---------------------------------------------------------------------------
-// ?? TSD-V50 알람 해제
+// Clear TSD-V50 alarms.
 void __fastcall TSmokeDetector::ClearAlarm()
 {
     short addr = 0x1005;
@@ -172,17 +202,17 @@ void __fastcall TSmokeDetector::ClearAlarm()
     setTsdData(addr, tempvalue);
 }
 //---------------------------------------------------------------------------
-// ?? TSD-V50 데이터 셋팅
+// Write a TSD-V50 register value.
 void __fastcall TSmokeDetector::setTsdData(short regAddr, short writeValue)
 {
     unsigned char txBuf[8];
 	txBuf[0] = (unsigned char)slaveId;
 	txBuf[1] = 0x06;                   // Write Single Registers
-	// ?? 레지스터 주소 쪼개기 (예: 1003h -> 10, 03)
+	// Split the register address into high and low bytes.
     txBuf[2] = (unsigned char)((regAddr >> 8) & 0xFF); // 상위 바이트
     txBuf[3] = (unsigned char)(regAddr & 0xFF);        // 하위 바이트
 
-    // ?? 기록할 데이터 쪼개기 (예: 1234h -> 12, 34)
+    // Split the register value into high and low bytes.
     // 음수(예: -0.3도 -> Offset -3)도 정상적으로 비트 처리되어 들어갑니다.
     txBuf[4] = (unsigned char)((writeValue >> 8) & 0xFF); // 상위 바이트
     txBuf[5] = (unsigned char)(writeValue & 0xFF);        // 하위 바이트
@@ -192,7 +222,7 @@ void __fastcall TSmokeDetector::setTsdData(short regAddr, short writeValue)
     txBuf[6] = (unsigned char)(crc & 0xFF);        // CRC 하위(Low) 먼저
     txBuf[7] = (unsigned char)((crc >> 8) & 0xFF); // CRC 상위(High) 나중에
 
-    // ?? 0x00 잘림 방지를 위해 포인터 캐스팅 후 8바이트 전송
+    // Send all bytes through a pointer so embedded 0x00 bytes are preserved.
     Comm->Write((void*)txBuf, 8);
 }
 //---------------------------------------------------------------------------
@@ -338,7 +368,7 @@ void __fastcall TSmokeDetector::Parse_Modbus(unsigned char* rxBuf, int cnt)
     if (cnt < 5 || rxBuf[0] != slaveId) return;
     unsigned char funcCode = rxBuf[1];
 
-    // ?? 1. CRC 검증 (가변 길이 대응: 맨 뒤 2바이트 직전까지 계산)
+    // Validate CRC over every byte except the final two CRC bytes.
     unsigned short receivedCRC = rxBuf[cnt - 2] | (rxBuf[cnt - 1] << 8);
     if (get_crc16(rxBuf, cnt - 2) != receivedCRC)
     {
@@ -352,10 +382,10 @@ void __fastcall TSmokeDetector::Parse_Modbus(unsigned char* rxBuf, int cnt)
 	// 4개 레지스터 응답 정상 데이터 길이는 13바이트 고정
     if(funcCode == 0x03 && cnt >= 15)
     {
-        bWaitingResponse = false; // ?? 응답 받았으므로 대기 해제
-		failCount = 0;            // ?? 에러 카운트 리셋
+        bWaitingResponse = false; // Clear the response-wait state.
+		failCount = 0;            // Reset the consecutive failure count.
 
-        // ?? 1. 사양서 Register Table 기준 (p.33) 각 레지스터 결합 및 파싱
+        // Parse each value according to the TSD-V50 register table.
         // rxBuf[3],[4] : 1000h Status (상태 비트)
         // rxBuf[5],[6] : 1001h Temperature PV (현재 온도)
         // rxBuf[7],[8] : 1002h Temperature Offset (온도 오프셋 - 음수 가능하므로 short)
@@ -374,14 +404,14 @@ void __fastcall TSmokeDetector::Parse_Modbus(unsigned char* rxBuf, int cnt)
         double tempWarningSV     = rawWarning / 10.0;
         double tempDangerSV      = rawDanger / 10.0;
 
-        // ?? 2. Status(1000h) 16비트를 2진수(Binary) 문자열로 변환
+        // Convert the 1000h status word to a binary diagnostic string.
         UnicodeString binStr = "";
         for(int i = 15; i >= 0; i--) {
             binStr += ((status >> i) & 1) ? "1" : "0";
             if(i == 8) binStr += " "; // 가독성을 위해 상위/하위 8비트 사이에 공백 추가
         }
 
-        // ?? 3. 사양서 비트맵 기반 상태값 분석 (마스킹)
+        // Decode output-state and alarm bits from the 1000h status word.
         bool outSmoke   = (status & (1 << 7)); // Bit 7 : Output State - Smoke
         bool outDanger  = (status & (1 << 6)); // Bit 6 : Output State - Danger
         bool outWarning = (status & (1 << 5)); // Bit 5 : Output State - Warning
@@ -390,6 +420,11 @@ void __fastcall TSmokeDetector::Parse_Modbus(unsigned char* rxBuf, int cnt)
         bool alarmSmoke = (status & (1 << 2)); // Bit 2 : Alarm Flag - Smoke
         bool alarmTempD = (status & (1 << 1)); // Bit 1 : Alarm Flag - Temp Danger
         bool alarmTempW = (status & (1 << 0)); // Bit 0 : Alarm Flag - Temp Warning
+
+		// FMS EnvStatus Modbus mapping: Temperature=1001h PV,
+		// Smoke/Warning/Danger=alarm bits 2/0/1, Running=output bit 4.
+		UpdateFmsEnvStatus(finalTemperature, alarmSmoke, alarmTempW,
+			alarmTempD, outRun);
 
         BaseForm->Memo1->Lines->Clear(); // 이전 내용 청소
         BaseForm->Memo1->Lines->Add("=========================================");
@@ -404,7 +439,7 @@ void __fastcall TSmokeDetector::Parse_Modbus(unsigned char* rxBuf, int cnt)
         BaseForm->Memo1->Lines->Add(strRawHex);
         BaseForm->Memo1->Lines->Add("-----------------------------------------");
 
-        // ?? 5. 상태 정보 상세 출력
+        // Display detailed detector status information.
         BaseForm->Memo1->Lines->Add("1000h Status       : 0x" + IntToHex(status, 4) + " (Bin: " + binStr + ")");
         BaseForm->Memo1->Lines->Add("  [Output State]");
         BaseForm->Memo1->Lines->Add("   - Smoke   (Bit7) : " + UnicodeString(outSmoke ? "ON" : "OFF"));
@@ -515,6 +550,10 @@ void __fastcall TSmokeDetector::Parse_HumanAuto(unsigned char* rxBuf, int cnt)
 					// 예시 파싱 구조 (Data 0, Data 1을 상하위 온도 데이터로 임시 지정)
 					short rawTemp = (rxBuf[pos + 4] << 8) | rxBuf[pos + 5];
 					double finalTemperature = rawTemp / 10.0;
+
+					// FMS EnvStatus HumanAutomation mapping: this protocol has no
+					// individual alarm bits, so report temperature and Running=true.
+					UpdateFmsEnvStatus(finalTemperature, false, false, false, true);
 
 					if(ErrorForm_bcr->Visible) {
 						ErrorForm_bcr->ShowError(FormatFloat("0.0", finalTemperature) + " C", true);

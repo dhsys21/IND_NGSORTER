@@ -176,7 +176,7 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	opcTargetUnloadResponseOffError = false;
 	opcTargetUnloadResponseResult = 0;
 	opcTargetUnloadTick = 0;
-	//* �ҷ�Ʈ���� ����
+	// Target tray information deletion state.
 	targetTrayInfoDeletePending = false;
 	targetTrayInfoWasCentered = false;
 	targetTrayInfoPromptActive = false;
@@ -495,8 +495,9 @@ void __fastcall TMainForm::CmdTrayOut(int pos)
 		if(PlcBin != NULL) PlcBin->CmdSourceTrayOut(true);
 		if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(false);
 	}else{
-		//* �ҷ�Ʈ���� ����
-		// ���� ���ɸ����� ������ ������ �ʰ� D10106 OFF(�ǹ� ����)�� Ȯ���� �� �����Ѵ�.
+		// Target tray information deletion.
+		// Do not clear on the tray-out command. Wait for D10106 to change
+		// from ON to OFF, which confirms that target centering was released.
 		targetTrayInfoDeletePending = true;
 		targetTrayInfoWasCentered = IsTargetCenteringSignal();
 		if(targetTrayInfoActiveId.IsEmpty())
@@ -510,7 +511,7 @@ void __fastcall TMainForm::targetGridDrawCell(TObject *Sender, int ACol,
 	  int ARow, TRect &Rect, TGridDrawState State)
 {
 
-	targetGrid->Canvas->Font = targetGrid->Font; // �������� ������ System ��Ʈ�� ��
+	targetGrid->Canvas->Font = targetGrid->Font; // Use the grid font instead of the system default.
 	if( State.Contains(gdSelected)){
 		targetGrid->Canvas->Brush->Color = clHighlight;
 		targetGrid->Canvas->Font->Color = clHighlightText;
@@ -690,11 +691,11 @@ void __fastcall TMainForm::setBarcode(int pos, AnsiString strBcr)
 
 void __fastcall TMainForm::EnableButton_auto(bool benable)
 {
-	// �ڵ�����  true�� �͵�
+	// Controls enabled during automatic operation.
 	playBtn->Enabled = benable;
 	stopBtn->Enabled = benable;
 
-	// �ڵ����� false�� �͵�
+	// Controls enabled while automatic operation is stopped.
 	openBtn->Enabled = !benable;
 	trayout_srcBtn->Enabled = !benable;
 	trayout_targetBtn->Enabled = !benable;
@@ -1684,7 +1685,7 @@ void __fastcall TMainForm::target_idEditKeyDown(TObject *Sender, WORD &Key,
 {
 	if(Key == VK_RETURN){
 		pTrayid_target->Caption = target_idEdit->Text;
-		NotifyTrayInfo(pTrayid_target->Caption, false);	// ��� Ʈ���� mes ����
+		NotifyTrayInfo(pTrayid_target->Caption, false);	// Send target tray information to FMS.
 		target_idEdit->Visible = false;
 	}
 	else if(Key == VK_ESCAPE){
@@ -1704,7 +1705,7 @@ void __fastcall TMainForm::src_idEditKeyDown(TObject *Sender, WORD &Key,
 {
 	if(Key == VK_RETURN){
 		pTrayid_source->Caption = src_idEdit->Text;
-		NotifyTrayInfo(pTrayid_source->Caption, true);	// UF Ʈ���� mes ����
+		NotifyTrayInfo(pTrayid_source->Caption, true);	// Send source tray information to FMS.
 		src_idEdit->Visible = false;
 	}
 	else if(Key == VK_ESCAPE){
@@ -1805,7 +1806,7 @@ void __fastcall TMainForm::InitStep(STEP *data)
 	data->timeout = 0;
 }
 //---------------------------------------------------------------------------
-// ����
+// Automatic equipment sequence.
 void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 {
 	bool plcConnected = PlcBin != NULL && PlcBin->ClientSocket_PLC != NULL &&
@@ -1851,7 +1852,7 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 						pTrayid_source->Caption = "";
 						pTrayid_source2->Caption = "";
 						memoMainLineAdd(BaseForm->GetLangStr("MSG_SOURCETRAY_SCAN"));
-						ReadSourceTrayBarcode();	// �۾�1. ���� ���ڵ� �а�  -> DisplayTrayInfo  	// test
+						ReadSourceTrayBarcode();	// Step 1: read the source barcode, then display tray data.
 						step[0].step += 1;
 					}else{
 						// AUTO + D10103 Tray In + BYPASS: cancel centering and eject.
@@ -1881,7 +1882,7 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 					memoMainLineAdd(BaseForm->GetLangStr("MSG_TARGETTRAY_CENTERING_COMPL"));
 					pTrayid_target->Caption = "";       // test
 					pTrayid_target2->Caption = "";      // test
-					ReadTargetTrayBarcode();		// �۾�4. ���͸��� �Ǿ� ������ ���ڵ带 �а� -> DisplayTrayInfo 	// test
+					ReadTargetTrayBarcode();		// Step 4: read and display the ready target tray.
 					step[0].step += 1;
 					step[1].step = 1;
 				}else{
@@ -1904,7 +1905,7 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 					memoMainLineAdd("More target trays arrived.");
 					pTrayid_target->Caption = "";
 					pTrayid_target2->Caption = "";
-					ReadTargetTrayBarcode();		// �۾�4. ���͸��� �Ǿ� ������ ���ڵ带 �а� -> DisplayTrayInfo     // test
+					ReadTargetTrayBarcode();		// Step 4: read and display the ready target tray.
 					step[1].step += 1;
 				}
 			default:
@@ -2171,8 +2172,9 @@ void __fastcall TMainForm::btnCloseIoPanelClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 {
-	//* �ҷ�Ʈ���� ����
-	// ���� ���� D10106�� �� ���̶� ON�̾��� OFF�� �ٲ�� �ǹ� ���� �Ϸ�� �Ǵ��Ѵ�.
+	// Target tray information deletion.
+	// D10106 is normally ON while centered. Its ON-to-OFF transition confirms
+	// centering release, after which the old target tray information is cleared.
 	bool targetCenteringNow = IsTargetCenteringSignal();
 	if(targetTrayInfoDeletePending){
 		if(targetCenteringNow)
@@ -2218,13 +2220,13 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	if(robostar->gripper.SAFETY_BYPASS_ON != safetyBypassOn)
 		robostar->Y003D(safetyBypassOn);
 
-	//* 2026 08 07 õ�� �ҷ�������� �����ϰ� OPEN�� SSC �ý��� RUNNING ���·� ǥ��
+	// 2026-08-07: Display OPEN from the SSC system RUNNING state.
 	if(robostar->IsSscOpened() && robostar->mr2.system_status == SSC_STS_CODE_RUNNING)
 		popen->Color = clLime;
 	else popen->Color = clSilver;
 
 	bool NGflag = false;
-	//* 2026 08 07 õ�� �ҷ�������� �����ϰ� �� ���� ���� AX_RDY�� Servo ON ǥ��
+	// 2026-08-07: Display Servo ON from each axis AX_RDY state.
 	for(int i = 1; i <= servoCnt; ++i){
 		if(robostar->IsSscOpened() && robostar->mr2.servo[i] == SSC_BIT_ON)
 			status_on[i]->Color = clLime;
@@ -2236,7 +2238,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		if(robostar->mr2.speed[Axis_x] < 0) robostar->mr2.speed[Axis_x] *= -1;
 		if(robostar->mr2.speed[Axis_y] < 0) robostar->mr2.speed[Axis_y] *= -1;
 		pspeed->Caption = FloatToStr(robostar->mr2.speed[Axis_x]) + " / " + FloatToStr(robostar->mr2.speed[Axis_y]);
-        //* servoCnt = 3, X, Y, Z ��3��
+        // servoCnt=3: X, Y and Z axes.
 		for(int i = 1; i <= servoCnt; ++i){
 			loadfactorForm->Panel_Position[i]->Caption = FormatFloat("0 %", robostar->mr2.mondata[i][0]);
 			teachForm->lblLoadFactor[i]->Caption = FormatFloat("0 %", robostar->mr2.mondata[i][0]);
@@ -2308,7 +2310,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		{
 			m_ServoON = true;
 
-			//* 2026 08 07 õ�� �ҷ�������� �����ϰ� ���� �Ϸ�� ���� ��� ��ġ(0)�� ��� Ȯ��
+			// 2026-08-07: Check both origin completion and all axes at wait position 0.
 			bool allServoOrigin = true;
 			bool allServoAtWaitPosition = true;
 			for(int i = 1; i <= servoCnt; ++i){
@@ -2431,7 +2433,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		perr->Color = clWhite;
 	}
 
-	//* �׽�Ʈ ���� �ּ�ó�� 2019 05 15
+	// Door interlock checks restored after the 2019-05-15 test bypass.
 	if(robostar->IsSafetyDoorOpen(1))
 		doorForm->ShowError("DOOR #1 Open", BaseForm->GetLangStr("MSG_CLOSE_DOOR"), 0);
 	if(robostar->IsSafetyDoorOpen(2))
@@ -2464,7 +2466,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	//* FOR MES TEST END
 
 	/*
-	* �׽�Ʈ ���� �Ʒ� �ڵ� �ּ�ó��
+	* The code below remains disabled for the original test configuration.
 	*/
 
 	// D10104 Source Centering complete resets D10154 through ModPLC_BIN.
@@ -2504,7 +2506,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	psrcOut->Font->Color = clBlack;
 	ptargetOut->Font->Color = clBlack;
 
-	//* 2026 08 07 PC D10150~D10158 Word ��ȣ ����
+	// 2026-08-07: Verify PC word signals D10150-D10158.
 
 	if(PlcBin != NULL){
 		bool doorOpen = robostar->IsSafetyDoorOpen(1) || robostar->IsSafetyDoorOpen(2);
@@ -2639,9 +2641,9 @@ int __fastcall TMainForm::GetZoneCount(int zone)
 
 	for(int i=0; i<12; ++i){
 		if(pt_ch[i]->Fill->Color == zoneBtn[zone]->Color){
-			ntotal += 1;	// zone �� ����
+			ntotal += 1;	// Number of cells assigned to this zone.
 			if(tray_target.SLOT_ID[i].IsEmpty() && tray_target.PICK[i] == "N")
-				ncnt += 1;	// empty ����
+				ncnt += 1;	// Number of empty cells in this zone.
 		}
 	}
 

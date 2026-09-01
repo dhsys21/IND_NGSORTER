@@ -21,7 +21,7 @@ private:	// User declarations
     int tryCnt;
     int Tag;          // 설비 내 센서 구분용 (sep)
     int slaveId;      // TSD-V50 국번 (기본값 1)
-    int protocolMode;  // ?? 0: Modbus RTU, 1: HumanAutomation
+    int protocolMode;  // Protocol mode: 0=Modbus RTU, 1=HumanAutomation.
     std::vector<unsigned char> g_rxBuffer;
 
     AnsiString m_savedPort;
@@ -33,7 +33,18 @@ private:	// User declarations
     bool bWaitingResponse; // 현재 응답을 기다리는 중인지 여부
     int failCount;         // 연속 타임아웃 발생 횟수
 
+    // FMS EnvStatus last valid measurement. CommOpen failure, CommClose and
+    // Reconnect retain these values while UpdateFmsEnvStatus() clears Running.
+    double m_temperature;
+    bool m_smokeDetected;
+    bool m_tempWarning;
+    bool m_tempDanger;
+    bool m_running;
+
     void __fastcall Reconnect(); // 재연결 전용 함수
+	// FMS EnvStatus forwarding entry point used by both detector protocols.
+	void __fastcall UpdateFmsEnvStatus(double Temperature, bool SmokeDetected,
+		bool TempWarning, bool TempDanger, bool Running);
 
     unsigned short __fastcall get_crc16(unsigned char *pBuf, int nLen);
     void __fastcall Parse_Modbus(unsigned char* rxBuf, int cnt);

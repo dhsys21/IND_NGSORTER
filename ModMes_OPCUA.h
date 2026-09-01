@@ -10,6 +10,12 @@ class TMesOpc : public TDataModule
 __published:	// IDE-managed Components
 private:	// User declarations
     bool FShutdown;
+	bool FEnvStatusInitialized;
+	double FLastEnvTemperature;
+	bool FLastEnvSmokeDetected;
+	bool FLastEnvTempWarning;
+	bool FLastEnvTempDanger;
+	bool FLastEnvRunning;
     unsigned __int64 FTrayLoadResponseRevision[2];
     bool FTrayLoadWaitResponseIdle[2];
     unsigned __int64 FProcessStartResponseRevision;
@@ -29,6 +35,9 @@ private:	// User declarations
 public:		// User declarations
 	__fastcall TMesOpc(TComponent* Owner);
     void __fastcall Shutdown();
+	// Publishes one coherent TSD-V50 state through F1NGS01.EnvStatus EQP-only tags.
+	void __fastcall PublishEnvStatus(double Temperature, bool SmokeDetected,
+		bool TempWarning, bool TempDanger, bool Running);
     bool __fastcall DISPLAY_TRACK_IN_TRAYS();
     void __fastcall TRAY_LOAD_REQUEST();
     void __fastcall TRAY_LOAD_REQUEST(bool SourceTray);
