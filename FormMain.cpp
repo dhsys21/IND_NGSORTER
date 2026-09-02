@@ -176,6 +176,7 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	opcTargetUnloadResponseOffError = false;
 	opcTargetUnloadResponseResult = 0;
 	opcTargetUnloadTick = 0;
+	opcFmsSuspendedByManual = false;
 	// Target tray information deletion state.
 	targetTrayInfoDeletePending = false;
 	targetTrayInfoWasCentered = false;
@@ -615,11 +616,12 @@ void __fastcall TMainForm::ReadSourceTrayBarcode()
 {
 	// Cycle test uses a fixed Source tray ID without triggering the reader.
 	if(cbCycle != NULL && cbCycle->Checked){
-		if(MesOpc != NULL){
+		// Cycle-test payload initialization is part of the AUTO process only.
+		if(equipMode == modeAuto && MesOpc != NULL){
 			MesOpc->CLEAR_CELL_TRACK_OUT_DATA();
 			MesOpc->CLEAR_TRACK_OUT_CELL_INFORMATION();
+			sourceTrackOutResetArmed = false;
 		}
-		sourceTrackOutResetArmed = false;
 		memoMainLineAdd("[CYCLE TEST] Source tray barcode reader bypass: TR-20260818-01A");
 		setBarcode(0, "TR-20260818-01A");
 		return;
@@ -740,6 +742,8 @@ void __fastcall TMainForm::ShowFmsAlarm(TFmsAlarmTransaction Transaction,
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::ConfirmFmsAlarmRetry()
 {
+	if(!CheckAutomaticFmsMode("FMS alarm retry"))
+		return;
 	if(fmsAlarmTransaction == fmsAlarmNone)
 		return;
 
@@ -888,6 +892,120 @@ bool __fastcall TMainForm::ProcessFmsAlarmRecovery()
 	return true;
 }
 //---------------------------------------------------------------------------
+bool __fastcall TMainForm::CheckAutomaticFmsMode(const AnsiString &Operation)
+{
+	if(equipMode == modeAuto)
+		return true;
+
+	AnsiString modeText;
+	switch(equipMode){
+		case modeAutoStop: modeText = "AUTO STOP"; break;
+		case modeManual: modeText = "MANUAL"; break;
+		case modeEmergency: modeText = "EMERGENCY"; break;
+		default: modeText = "MODE " + IntToStr((int)equipMode); break;
+	}
+	memoMainLineAdd("[FMS AUTO INTERLOCK] BLOCKED - " + Operation +
+		" / EXPECTED=AUTO RUN / CURRENT=" + modeText);
+	return false;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::SuspendAutomaticFmsSequence()
+{
+	if(opcMesTimer != NULL)
+		opcMesTimer->Enabled = false;
+
+	bool active = opcTrayLoadPending[0] || opcTrayLoadPending[1] ||
+		opcProcessStartPending || opcSortingStartPending || opcProcessStarted ||
+		opcProcessEndPending || opcCellTrackOutPending || opcTargetUnloadPending ||
+		fmsAlarmTransaction != fmsAlarmNone;
+	if(!active){
+		opcFmsSuspendedByManual = false;
+		return;
+	}
+	if(opcFmsSuspendedByManual)
+		return;
+
+	// Turn OFF only requests owned by the production sequence. FormInterface
+	// FMS test buttons remain independent and can still be used in MANUAL.
+	if(MesOpc != NULL){
+		if(opcTrayLoadPending[0]) MesOpc->TRAY_LOAD_CANCEL(true);
+		if(opcTrayLoadPending[1]) MesOpc->TRAY_LOAD_CANCEL(false);
+		if(opcProcessStartPending) MesOpc->PROCESS_START_CANCEL();
+		if(opcCellTrackOutPending) MesOpc->CELL_TRACK_OUT_CANCEL();
+		if(opcProcessEndPending) MesOpc->PROCESS_END_CANCEL();
+		if(opcTargetUnloadPending) MesOpc->TRAY_UNLOAD_CANCEL();
+	}
+
+	opcFmsSuspendedByManual = true;
+	memoMainLineAdd("[FMS AUTO INTERLOCK] SUSPEND - production request OFF / CURRENT MODE=" +
+		(equipMode == modeManual ? AnsiString("MANUAL") : AnsiString("AUTO STOP")));
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::ResumeAutomaticFmsSequence()
+{
+	if(equipMode != modeAuto || !opcFmsSuspendedByManual)
+		return;
+
+	opcFmsSuspendedByManual = false;
+	if(fmsAlarmTransaction != fmsAlarmNone){
+		// An alarm transaction is reissued only by the operator Retry/Restart action.
+		opcMesTimer->Enabled = true;
+		memoMainLineAdd("[FMS AUTO INTERLOCK] AUTO restored / waiting FMS alarm Retry");
+		return;
+	}
+
+	DWORD nowTick = GetTickCount();
+	if(MesOpc != NULL){
+		for(int i = 0; i < 2; ++i){
+			if(!opcTrayLoadPending[i]) continue;
+			opcTrayLoadWaitResponseOff[i] = false;
+			opcTrayLoadResponseOffError[i] = false;
+			opcTrayLoadResponseResult[i] = 0;
+			opcTrayLoadStartTick[i] = nowTick;
+			MesOpc->TRAY_LOAD_REQUEST(i == 0);
+		}
+		if(opcProcessStartPending){
+			opcProcessStartWaitResponseOff = false;
+			opcProcessStartResponseOffError = false;
+			opcProcessStartResponseResult = 0;
+			opcProcessStartTick = nowTick;
+			MesOpc->PROCESS_START_REQUEST();
+		}
+		if(opcCellTrackOutPending){
+			opcCellTrackOutWaitResponseOff = false;
+			opcCellTrackOutResponseOffError = false;
+			opcCellTrackOutResponseResult = 0;
+			opcCellTrackOutStartTick = nowTick;
+			if(!MesOpc->CELL_TRACK_OUT_RETRY()){
+				opcCellTrackOutPending = false;
+				ShowCommonError("CellTrackOut resume failed",
+					"Saved CellTrackOut data is unavailable. Check the current tray data.");
+			}
+		}
+		if(opcProcessEndPending){
+			opcProcessEndWaitResponseOff = false;
+			opcProcessEndResponseOffError = false;
+			opcProcessEndResponseResult = 0;
+			opcProcessEndTick = nowTick;
+			MesOpc->PROCESS_END_REQUEST();
+		}
+		if(opcTargetUnloadPending){
+			opcTargetUnloadWaitResponseOff = false;
+			opcTargetUnloadResponseOffError = false;
+			opcTargetUnloadResponseResult = 0;
+			opcTargetUnloadTick = nowTick;
+			MesOpc->TRAY_UNLOAD_REQUEST();
+		}
+	}
+
+	bool pending = opcTrayLoadPending[0] || opcTrayLoadPending[1] ||
+		opcProcessStartPending || opcSortingStartPending ||
+		opcProcessEndPending || opcCellTrackOutPending || opcTargetUnloadPending;
+	opcMesTimer->Enabled = pending;
+	memoMainLineAdd("[FMS AUTO INTERLOCK] RESUME - AUTO RUN / pending=" +
+		IntToStr(pending ? 1 : 0));
+}
+//---------------------------------------------------------------------------
 void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 {
 	// Every FMS command uses the same four-phase handshake:
@@ -903,6 +1021,13 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 	//   3  : internal event; stale Response=0 confirmed and Request just turned ON
 	//  -1  : invalid/missing response or validation failure
 	const DWORD RESPONSE_TIMEOUT_MS = 10000;
+
+	// FMS production requests/responses must never advance in MANUAL or AUTO STOP.
+	// Suspend also forces any request that was already ON back to OFF.
+	if(equipMode != modeAuto){
+		SuspendAutomaticFmsSequence();
+		return;
+	}
 
 	// While an FMS alarm is active, recovery owns the request/response flow.
 	// Do not run normal transactions at the same time.
@@ -1631,6 +1756,7 @@ void __fastcall TMainForm::manualBtnClick(TObject *Sender)
 
 			equipMode = modeManual;
 			nowLampMode = LampManual;
+			SuspendAutomaticFmsSequence();
 			autoBtn->Down = false;
 			manualBtn->Down = true;
 			EnableButton_auto(false);
@@ -1645,6 +1771,7 @@ void __fastcall TMainForm::manualBtnClick(TObject *Sender)
 
 				equipMode = modeManual;
                 nowLampMode = LampManual;
+				SuspendAutomaticFmsSequence();
 				autoBtn->Down = false;
 				manualBtn->Down = true;
 				EnableButton_auto(false);
@@ -1666,6 +1793,7 @@ void __fastcall TMainForm::playBtnClick(TObject *Sender)
 	// START resumes the paused sequence without re-running the AUTO interlock.
 	equipMode = modeAuto;
 	nowLampMode = LampAuto;
+	ResumeAutomaticFmsSequence();
 	playBtn->Down = true;
 	stopBtn->Down = false;
    
@@ -1676,6 +1804,7 @@ void __fastcall TMainForm::stopBtnClick(TObject *Sender)
 {
 	equipMode = modeAutoStop;
 	nowLampMode = LampManual;
+	SuspendAutomaticFmsSequence();
 	playBtn->Down = false;
 	stopBtn->Down = true;
 }
@@ -1809,6 +1938,13 @@ void __fastcall TMainForm::InitStep(STEP *data)
 // Automatic equipment sequence.
 void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 {
+	if(equipMode != modeAuto){
+		memoMainLineAdd(BaseForm->GetLangStr("MSG_AUTOMODE_WARNING"));
+		return;
+	}
+
+	// Automatic-cycle FMS payload cleanup belongs to AUTO only. Previously this
+	// block ran before the mode check and wrote FMS tags while in MANUAL.
 	bool plcConnected = PlcBin != NULL && PlcBin->ClientSocket_PLC != NULL &&
 		PlcBin->ClientSocket_PLC->Active;
 	bool sourceTraySimulated = cbMES != NULL && cbMES->Checked;
@@ -1821,11 +1957,6 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 			MesOpc->CLEAR_TRACK_OUT_CELL_INFORMATION();
 			sourceTrackOutResetArmed = false;
 		}
-	}
-
-	if(equipMode != modeAuto){
-		memoMainLineAdd(BaseForm->GetLangStr("MSG_AUTOMODE_WARNING"));
-		return;
 	}
 
 	if(IsSourceTrayInSignal() == 0){

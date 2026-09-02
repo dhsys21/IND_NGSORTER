@@ -322,6 +322,8 @@ void __fastcall TMainForm::AdvanceOpcTrayLoad(bool sourceTray)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::TryStartOpcProcess()
 {
+	if(!CheckAutomaticFmsMode("ProcessStart"))
+		return;
 	// A new process must not start while the previous ProcessEnd handshake is active.
 	if (opcProcessStarted || opcProcessStartPending || opcProcessEndPending)
 		return;
@@ -346,6 +348,8 @@ void __fastcall TMainForm::TryStartOpcProcess()
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 {
+	if(!CheckAutomaticFmsMode(bsrc ? "Source TrayLoad" : "Target TrayLoad"))
+		return;
 	int index = bsrc ? 0 : 1;
 	tray = bsrc ? &tray_source : &tray_target;
 
@@ -454,6 +458,8 @@ void __fastcall TMainForm::NotifyTransferIn(AnsiString strTray)
 
 void __fastcall TMainForm::ReportCellTrackOut(int sourceChannel, int targetChannel, AnsiString cellId)
 {
+	if(!CheckAutomaticFmsMode("CellTrackOut"))
+		return;
 	// 셀 삽입 완료 직후 전체 TrackOut 맵과 단일 CellTrackOut 이벤트를 함께 보고한다.
 	mesTimer->Enabled = false;
 	if(MesOpc == NULL || Mod_Fms == NULL || !Mod_Fms->IsGatewayConnected()){
@@ -512,6 +518,8 @@ void __fastcall TMainForm::ReportCellTrackOut(int sourceChannel, int targetChann
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::NotifyTransferOut(AnsiString strTray)
 {
+	if(!CheckAutomaticFmsMode("ProcessEnd/TrayUnload"))
+		return;
 	// 구형 ASCII TRANSFER_OUT_EVENT는 사용하지 않는다.
 	mesTimer->Enabled = false;
 	if(MesOpc == NULL || Mod_Fms == NULL || !Mod_Fms->IsGatewayConnected()){

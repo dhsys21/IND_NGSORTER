@@ -394,6 +394,10 @@ private:	// User declarations
 	int __fastcall GetFmsAlarmResponse() const;
 	void __fastcall CancelFmsAlarmRequest();
 	void __fastcall ReissueFmsAlarmRequest();
+	// Production FMS handshakes are valid only while the equipment is RUNNING in AUTO.
+	bool __fastcall CheckAutomaticFmsMode(const AnsiString &Operation);
+	void __fastcall SuspendAutomaticFmsSequence();
+	void __fastcall ResumeAutomaticFmsSequence();
 	void __fastcall DisplayOpcTrayLoad(bool sourceTray);
 	void __fastcall AdvanceOpcTrayLoad(bool sourceTray);
 	void __fastcall TryStartOpcProcess();
@@ -445,6 +449,7 @@ private:	// User declarations
 	bool opcTargetUnloadResponseOffError;
 	int opcTargetUnloadResponseResult;
 	DWORD opcTargetUnloadTick;
+	bool opcFmsSuspendedByManual;
 
 	TPanel *pnlProcessStep[16];
 	bool processStepComplete[16];
