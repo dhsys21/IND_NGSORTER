@@ -30,6 +30,7 @@ __fastcall TPlcBin::TPlcBin(TComponent* Owner)
 	plc_Data.Command[1] = 0x04;
 
 	plc_index = PLC_INDEX_INTERFACE;
+	lastPlcStatusTick = 0;
 
 	// PC
 	pc_Data.SubHeader[0] = 0x50;
@@ -115,6 +116,7 @@ void __fastcall TPlcBin::PLC_Initialization()
 	plc_Read = "";
 	plc_ReadCount = 0;
 	plc_ReadFlag = true;
+	lastPlcStatusTick = 0;
 
 	Timer_PLC_WriteMsg->Enabled = true;
 }
@@ -129,6 +131,7 @@ void __fastcall TPlcBin::ClientSocket_PLCConnect(TObject *Sender, TCustomWinSock
 void __fastcall TPlcBin::ClientSocket_PLCDisconnect(TObject *Sender, TCustomWinSocket *Socket)
 
 {
+	lastPlcStatusTick = 0;
 	if(!bClose) Timer_PLC_AutoConnect->Enabled = true;
 }
 //---------------------------------------------------------------------------
@@ -349,6 +352,7 @@ void __fastcall TPlcBin::PLC_Recv_Interface()
 		plc_Interface_Data[i][1] = StrToInt("0x" + plc_Read.SubString(23 + num + 2, 2));
 		num += 4;
 	}
+	lastPlcStatusTick = GetTickCount();
 }
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
@@ -472,6 +476,12 @@ bool __fastcall TPlcBin::IsSourceTrayIn()         { return GetPlcValue(PLC_D_SOU
 bool __fastcall TPlcBin::IsSourceCentering()      { return GetPlcValue(PLC_D_SOURCE_CENTERING) != 0; }
 bool __fastcall TPlcBin::IsTargetTrayIn()         { return GetPlcValue(PLC_D_TARGET_TRAY_IN) != 0; }
 bool __fastcall TPlcBin::IsTargetCentering()      { return GetPlcValue(PLC_D_TARGET_CENTERING) != 0; }
+bool __fastcall TPlcBin::IsPlcStatusFresh(DWORD maxAgeMs)
+{
+	return ClientSocket_PLC != NULL && ClientSocket_PLC->Active &&
+		lastPlcStatusTick != 0 &&
+		(DWORD)(GetTickCount() - lastPlcStatusTick) <= maxAgeMs;
+}
 //---------------------------------------------------------------------------
 bool __fastcall TPlcBin::IsPcHeartBeatOn()
 {

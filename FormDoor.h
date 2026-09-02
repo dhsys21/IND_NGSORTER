@@ -39,7 +39,6 @@ __published:	// IDE-managed Components
 	TPanel *perr5;
 	TAdvSmoothButton *btnSetKEYLOCK;
 	TAdvSmoothButton *btnSetBypass;
-	TImage *Image2;
 	TImage *imgMachineDrawing;
 	TStaticText *MainErr5;
 	TAdvSmoothButton *btnServoOpen;
@@ -59,7 +58,6 @@ __published:	// IDE-managed Components
 	TEdit *PassEdit;
 	TAdvSmoothButton *cancelBtn2;
 	TAdvSmoothButton *PasswordBtn;
-	TImage *Image3;
 	void __fastcall AdvSmoothButton4Click(TObject *Sender);
 	void __fastcall FormHide(TObject *Sender);
 	void __fastcall errTimerTimer(TObject *Sender);

@@ -364,6 +364,11 @@ private:	// User declarations
 	bool __fastcall SetPositionValue();
 	void __fastcall CaptureMoveRequest();
 	bool __fastcall ValidateActiveMoveTarget();
+	bool __fastcall CheckTrayCenteringMotionInterlock();
+	bool centeringMotionMonitorActive;
+	robotSequence centeringMotionMonitorSeq;
+	bool centeringRequireSource;
+	bool centeringRequireTarget;
 
 
 public:		// User declarations

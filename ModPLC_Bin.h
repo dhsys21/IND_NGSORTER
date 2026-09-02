@@ -137,6 +137,7 @@ private:	// User declarations
     bool plc_ReadFlag;
     AnsiString plc_Read, plc_Read_Temp;
 	int plc_ReadCount, plc_index;
+	DWORD lastPlcStatusTick; // Last successfully parsed D10100-D10106 response.
     void __fastcall PLC_Initialization();
     void __fastcall PLC_DataChange(int subCommand, int address, int devCode, int devLen);
     void __fastcall PLC_Recv_Interface();
@@ -178,6 +179,7 @@ public:		// User declarations
     bool __fastcall IsSourceCentering();
     bool __fastcall IsTargetTrayIn();
     bool __fastcall IsTargetCentering();
+    bool __fastcall IsPlcStatusFresh(DWORD maxAgeMs = 1000);
 
     // PC -> PLC command buffer values.
     bool __fastcall IsPcHeartBeatOn();

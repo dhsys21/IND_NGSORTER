@@ -28,6 +28,7 @@ __fastcall TDryRunForm::TDryRunForm(TComponent* Owner)
 	stepTimeoutMs = 0;
 	running = false;
 	waitPositionRequested = false;
+	highSpeedWarningShown = false;
 	//* DRY RUN : Explicit event binding also works when the form was added to an
 	//* already-open IDE project and its Designer cache has not refreshed yet.
 	if(btnWaitPosition != NULL)
@@ -113,8 +114,8 @@ void __fastcall TDryRunForm::UpdateDryRunStatus()
 		return;
 	}
 
-	bool sourceCentering = PlcBin != NULL && PlcBin->ClientSocket_PLC != NULL &&
-		PlcBin->ClientSocket_PLC->Active && PlcBin->IsSourceCentering();
+	bool plcFresh = PlcBin != NULL && PlcBin->IsPlcStatusFresh(1000);
+	bool sourceCentering = plcFresh && PlcBin->IsSourceCentering();
 	AnsiString channelText = "-";
 	if(currentChannel > 0) channelText = IntToStr(currentChannel);
 	lblCurrentChannel->Caption = "Cycle=" + IntToStr(completedCycleCount + 1) +
@@ -125,6 +126,7 @@ void __fastcall TDryRunForm::UpdateDryRunStatus()
 		" Z=" + IntToStr((__int64)robostar->mr2.pos[Axis_z]);
 	lblInterlock->Caption = "D10104 Source Centering=" +
 		AnsiString(sourceCentering ? "ON" : "OFF") +
+		" / PLC Data=" + AnsiString(plcFresh ? "FRESH" : "STALE") +
 		" / Mode=" + AnsiString(MainForm->equipMode == modeManual ? "MANUAL" : "NOT MANUAL") +
 		" / Production=" + AnsiString(MainForm->IsProductionSequenceBusy() ? "BUSY" : "IDLE") +
 		" / Safety=" + AnsiString(robostar->IsSafetyReady() ? "READY" : "NOT READY") +
@@ -177,9 +179,8 @@ bool __fastcall TDryRunForm::ValidateDryRunStart(AnsiString &reason)
 		reason = "Gripper OPEN confirmation is not ON.";
 		return false;
 	}
-	if(PlcBin == NULL || PlcBin->ClientSocket_PLC == NULL ||
-		!PlcBin->ClientSocket_PLC->Active){
-		reason = "PLC is not connected. D10104 cannot be verified.";
+	if(PlcBin == NULL || !PlcBin->IsPlcStatusFresh(1000)){
+		reason = "PLC status data is disconnected or stale. D10104 cannot be verified.";
 		return false;
 	}
 	if(!PlcBin->IsSourceCentering()){
@@ -226,9 +227,9 @@ bool __fastcall TDryRunForm::ValidateWaitPositionStart(AnsiString &reason)
 		reason = "CC-Link is not ready.";
 		return false;
 	}
-	if(PlcBin == NULL || PlcBin->ClientSocket_PLC == NULL ||
-		!PlcBin->ClientSocket_PLC->Active || !PlcBin->IsSourceCentering()){
-		reason = "PLC connection and D10104 Source Centering=ON are required.";
+	if(PlcBin == NULL || !PlcBin->IsPlcStatusFresh(1000) ||
+		!PlcBin->IsSourceCentering()){
+		reason = "Fresh PLC data and D10104 Source Centering=ON are required.";
 		return false;
 	}
 	return true;
@@ -237,9 +238,22 @@ bool __fastcall TDryRunForm::ValidateWaitPositionStart(AnsiString &reason)
 bool __fastcall TDryRunForm::ApplyDryRunSpeed(AnsiString &reason)
 {
 	int speed = editSpeed->Text.ToIntDef(0);
-	if(speed < 200 || speed > 2000){
-		reason = "Dry Run speed must be between 200 and 2000.";
+	if(speed < 200 || speed > 3000){
+		reason = "Dry Run speed must be between 200 and 3000.";
 		return false;
+	}
+
+	//* DRY RUN : Warn once when entering the high-speed range. Keeping the same
+	//* value for repeated cycles does not interrupt inspection with more popups.
+	if(speed <= 2500){
+		highSpeedWarningShown = false;
+	}else if(!highSpeedWarningShown){
+		highSpeedWarningShown = true;
+		WriteDryRunLog("WARNING - High speed selected: " + IntToStr(speed) +
+			" (over 2500)");
+		MessageBox(Handle,
+			L"Dry Run speed is over 2500.\r\nCheck the motion area before continuing.",
+			L"DRY RUN HIGH SPEED", MB_OK|MB_ICONWARNING);
 	}
 	//* DRY RUN : Keep acceleration/deceleration at the commissioned test value.
 	//* Increasing these time constants together with speed made short channel
@@ -265,9 +279,8 @@ bool __fastcall TDryRunForm::CheckDryRunRuntimeInterlock(AnsiString &reason)
 		reason = "Equipment mode changed from MANUAL.";
 		return false;
 	}
-	if(PlcBin == NULL || PlcBin->ClientSocket_PLC == NULL ||
-		!PlcBin->ClientSocket_PLC->Active){
-		reason = "PLC disconnected while monitoring D10104.";
+	if(PlcBin == NULL || !PlcBin->IsPlcStatusFresh(1000)){
+		reason = "PLC status became disconnected or stale while monitoring D10104.";
 		return false;
 	}
 	if(!PlcBin->IsSourceCentering()){

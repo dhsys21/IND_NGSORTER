@@ -146,103 +146,119 @@ void __fastcall TteachForm::MakePanel()
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::sClick(TObject *Sender)
 {
-	TAdvSmoothPanel *pnl;
-	pnl = (TAdvSmoothPanel*)Sender;
+	TAdvSmoothPanel *pnl = (TAdvSmoothPanel*)Sender;
 	UnicodeString str;
+	bool plcFresh = PlcBin != NULL && PlcBin->IsPlcStatusFresh(1000);
+	bool sourceCentered = plcFresh && PlcBin->IsSourceCentering();
 
-	if(MainForm->psrcReady->Color != clLime)
-	{
-		if(MessageBox(Handle, BaseForm->GetLangStr("MSG_SOURCETRAY_CENTERING_Q").c_str(),
-			L"Centering DOWN", MB_YESNO|MB_ICONQUESTION) == ID_YES)
-		{
-			if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(true);
+	// Manual Source channel move uses the actual D10104 contact. The panel color
+	// is display-only and must never authorize collision-sensitive servo motion.
+	if(!sourceCentered){
+		AnsiString detail = "D10104 Source Centering=" +
+			AnsiString(PlcBin != NULL && PlcBin->IsSourceCentering() ? "ON" : "OFF") +
+			" / PLC_FRESH=" + IntToStr(plcFresh ? 1 : 0);
+		MainForm->WriteErrorLog("Teaching source channel move blocked", detail);
+		MainForm->memoRobostarLineAdd("[TEACHING CENTERING INTERLOCK] " + detail);
+		if(!plcFresh){
+			MessageBox(Handle,
+				L"PLC status is disconnected or stale. Source channel movement is blocked.",
+				L"SOURCE CENTERING", MB_OK|MB_ICONWARNING);
+		}else if(MessageBox(Handle,
+			BaseForm->GetLangStr("MSG_SOURCETRAY_CENTERING_Q").c_str(),
+			L"Centering DOWN", MB_YESNO|MB_ICONQUESTION) == ID_YES){
+			PlcBin->CmdSourceCenteringRequest(true);
 		}
+		return;
 	}
-	else
-	{
-		int ch = pnl->Tag;
-        if(CheckMoveSourceChannel() == false){
-			ShowMessage(BaseForm->GetLangStr("MSG_GRIPPER_MOVE_ERR") + IntToStr(ch));
-        } else{
-            str = "[" + sCombo->Text + "] " + BaseForm->GetLangStr("MSG_SOURCETRAY_MOVE_Q") + pnl->Caption->Text;
-            if(MessageBox(Handle, str.c_str(), L"MOVE", MB_YESNO|MB_ICONQUESTION) == ID_YES){
-				robostar->req_AutoMove(1, 1, ch, 962);
 
-                for(int i = 0; i < TraySlotCount; ++i){
-                    sTray[i]->Fill->Color = clWhite;
-                    sTray[i]->Fill->ColorTo = clWhite;
-                    sTray[i]->Fill->ColorMirror = clWhite;
-                    sTray[i]->Fill->ColorMirrorTo = clWhite;
-                }
-                pnl->Fill->Color = pselect->Color;
-                pnl->Fill->ColorTo = pselect->Color;
-                pnl->Fill->ColorMirror = pselect->Color;
-                pnl->Fill->ColorMirrorTo = pselect->Color;
-            }
-        }
+	int ch = pnl->Tag;
+	if(CheckMoveSourceChannel() == false){
+		ShowMessage(BaseForm->GetLangStr("MSG_GRIPPER_MOVE_ERR") + IntToStr(ch));
+		return;
 	}
+
+	str = "[" + sCombo->Text + "] " +
+		BaseForm->GetLangStr("MSG_SOURCETRAY_MOVE_Q") + pnl->Caption->Text;
+	if(MessageBox(Handle, str.c_str(), L"MOVE", MB_YESNO|MB_ICONQUESTION) != ID_YES)
+		return;
+
+	robostar->req_AutoMove(1, 1, ch, 962);
+	for(int i = 0; i < TraySlotCount; ++i){
+		sTray[i]->Fill->Color = clWhite;
+		sTray[i]->Fill->ColorTo = clWhite;
+		sTray[i]->Fill->ColorMirror = clWhite;
+		sTray[i]->Fill->ColorMirrorTo = clWhite;
+	}
+	pnl->Fill->Color = pselect->Color;
+	pnl->Fill->ColorTo = pselect->Color;
+	pnl->Fill->ColorMirror = pselect->Color;
+	pnl->Fill->ColorMirrorTo = pselect->Color;
 }
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::tClick(TObject *Sender)
 {
-	TAdvSmoothPanel *pnl;
-	pnl = (TAdvSmoothPanel*)Sender;
+	TAdvSmoothPanel *pnl = (TAdvSmoothPanel*)Sender;
 	UnicodeString str;
+	bool plcFresh = PlcBin != NULL && PlcBin->IsPlcStatusFresh(1000);
+	bool targetCentered = plcFresh && PlcBin->IsTargetCentering();
 
-	if(MainForm->psrcReady->Color != clLime)
-	{
-		if(MessageBox(Handle, BaseForm->GetLangStr("MSG_SOURCETRAY_CENTERING_Q").c_str(),
-											L"Centering DOWN", MB_YESNO|MB_ICONQUESTION) == ID_YES)
-			if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(true);
+	// Manual Target channel move must use D10106. The previous code incorrectly
+	// checked the Source-ready panel before moving over the Target tray.
+	if(!targetCentered){
+		AnsiString detail = "D10106 Target Centering=" +
+			AnsiString(PlcBin != NULL && PlcBin->IsTargetCentering() ? "ON" : "OFF") +
+			" / PLC_FRESH=" + IntToStr(plcFresh ? 1 : 0);
+		MainForm->WriteErrorLog("Teaching target channel move blocked", detail);
+		MainForm->memoRobostarLineAdd("[TEACHING CENTERING INTERLOCK] " + detail);
+		MessageBox(Handle,
+			L"D10106 Target Centering must be ON with fresh PLC data before movement.",
+			L"TARGET CENTERING", MB_OK|MB_ICONWARNING);
+		return;
 	}
-	else
-	{
-        //* 그리퍼 선택 그리퍼 1 : sCombo->ItemIndex = 0, 그리퍼 2 : sCombo->ItemIndex = 1
-        //* 그리퍼에 셀이 있고 robostar->input.GRIPPER1_CELL_DETECT == true, robostar->input.GRIPPER2_CELL_DETECT == true
-		//* 대상트레이 해당 채널에 셀이 있으면 color_target[i/6][5-(i%6)] = clSilver; color_target[ch/6][5-(ch%6)] = clInactiveCaption;
-		//* 이동채널 pnl->Caption->Text
-		int ch = pnl->Tag;
-        if(CheckMoveTargetChannel(ch-1) == false){
-			//* Teaching target move interlock log
-			int channelIndex = ch - 1;
-			AnsiString channelState = "INVALID";
-			AnsiString cellExist = "UNKNOWN";
-			AnsiString pick = "UNKNOWN";
-			if(channelIndex >= 0 && channelIndex < TraySlotCount){
-				TColor channelColor = MainForm->color_target[channelIndex/24][23-(channelIndex%24)];
-				if(channelColor == clInactiveCaption)
-					channelState = "OCCUPIED(INACTIVE)";
-				else if(channelColor == clSilver)
-					channelState = "OCCUPIED(SILVER)";
-				else
-					channelState = "COLOR=" + IntToStr((int)channelColor);
-				cellExist = MainForm->tray_target.CELL_EXIST[channelIndex] ? "true" : "false";
-				pick = MainForm->tray_target.PICK[channelIndex];
-			}
-			AnsiString detail = "TargetCh=" + IntToStr(ch) + " ChannelState=" + channelState +
-				" CELL_EXIST=" + cellExist + " PICK=" + pick +
-				" CCLINK_READY=" + IntToStr(robostar->IsCcLinkReady() ? 1 : 0) +
-				" X0022=" + IntToStr(robostar->input.GRIPPER1_CELL_DETECT ? 1 : 0) +
-				" GripperCellDetected=" + IntToStr(robostar->getCellDetectStatus() ? 1 : 0);
-			MainForm->WriteErrorLog("Teaching target move blocked", detail);
-			MainForm->memoRobostarLineAdd("[TEACHING INTERLOCK] " + detail);
-        } else{
-			str = "[" + sCombo->Text + "] " + BaseForm->GetLangStr("MSG_TARGETTRAY_MOVE_Q") + pnl->Caption->Text;
-            if(MessageBox(Handle, str.c_str(), L"MOVE", MB_YESNO|MB_ICONQUESTION) == ID_YES){
-                robostar->req_AutoMove(2, 1, ch, 96);
-                for(int i = 0; i < TraySlotCount; ++i){
-                    tTray[i]->Fill->Color = clWhite;
-                    tTray[i]->Fill->ColorTo = clWhite;
-                    tTray[i]->Fill->ColorMirror = clWhite;
-                    tTray[i]->Fill->ColorMirrorTo = clWhite;
-                }
-				pnl->Fill->Color = pselect->Color;
-                pnl->Fill->ColorTo = pselect->Color;
-                pnl->Fill->ColorMirror = pselect->Color;
-                pnl->Fill->ColorMirrorTo = pselect->Color;
-            }
-        }
+
+	int ch = pnl->Tag;
+	if(CheckMoveTargetChannel(ch - 1) == false){
+		int channelIndex = ch - 1;
+		AnsiString channelState = "INVALID";
+		AnsiString cellExist = "UNKNOWN";
+		AnsiString pick = "UNKNOWN";
+		if(channelIndex >= 0 && channelIndex < TraySlotCount){
+			TColor channelColor = MainForm->color_target[channelIndex/24][23-(channelIndex%24)];
+			if(channelColor == clInactiveCaption)
+				channelState = "OCCUPIED(INACTIVE)";
+			else if(channelColor == clSilver)
+				channelState = "OCCUPIED(SILVER)";
+			else
+				channelState = "COLOR=" + IntToStr((int)channelColor);
+			cellExist = MainForm->tray_target.CELL_EXIST[channelIndex] ? "true" : "false";
+			pick = MainForm->tray_target.PICK[channelIndex];
+		}
+		AnsiString detail = "TargetCh=" + IntToStr(ch) + " ChannelState=" + channelState +
+			" CELL_EXIST=" + cellExist + " PICK=" + pick +
+			" CCLINK_READY=" + IntToStr(robostar->IsCcLinkReady() ? 1 : 0) +
+			" X0022=" + IntToStr(robostar->input.GRIPPER1_CELL_DETECT ? 1 : 0) +
+			" GripperCellDetected=" + IntToStr(robostar->getCellDetectStatus() ? 1 : 0);
+		MainForm->WriteErrorLog("Teaching target move blocked", detail);
+		MainForm->memoRobostarLineAdd("[TEACHING INTERLOCK] " + detail);
+		return;
 	}
+
+	str = "[" + sCombo->Text + "] " +
+		BaseForm->GetLangStr("MSG_TARGETTRAY_MOVE_Q") + pnl->Caption->Text;
+	if(MessageBox(Handle, str.c_str(), L"MOVE", MB_YESNO|MB_ICONQUESTION) != ID_YES)
+		return;
+
+	robostar->req_AutoMove(2, 1, ch, 96);
+	for(int i = 0; i < TraySlotCount; ++i){
+		tTray[i]->Fill->Color = clWhite;
+		tTray[i]->Fill->ColorTo = clWhite;
+		tTray[i]->Fill->ColorMirror = clWhite;
+		tTray[i]->Fill->ColorMirrorTo = clWhite;
+	}
+	pnl->Fill->Color = pselect->Color;
+	pnl->Fill->ColorTo = pselect->Color;
+	pnl->Fill->ColorMirror = pselect->Color;
+	pnl->Fill->ColorMirrorTo = pselect->Color;
 }
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::openBtnClick(TObject *Sender)

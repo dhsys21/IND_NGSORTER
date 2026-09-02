@@ -6,6 +6,7 @@
 
 #include "FormBase.h"
 #include "FormMain.h"
+#include "FormDryRun.h"
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.dfm"
@@ -67,6 +68,10 @@ __fastcall Trobostar::Trobostar(TComponent* Owner)
 	activeMoveValid = false;
 	directXYPositionReady = false;
 	homeRequiredAfterServoOff = false;
+	centeringMotionMonitorActive = false;
+	centeringMotionMonitorSeq = seqIdle;
+	centeringRequireSource = false;
+	centeringRequireTarget = false;
 	for(int i = 0; i < AxisCnt; ++i)
 		activeTarget[i] = 0;
 
@@ -872,6 +877,136 @@ bool __fastcall Trobostar::rangeCheck(int axnum_id)
 }
 
 //---------------------------------------------------------------------------
+bool __fastcall Trobostar::CheckTrayCenteringMotionInterlock()
+{
+	// Production pickup/insert always requires its tray centering contact.
+	// HOME/WAIT POSITION latches only the trays present when motion starts, so
+	// maintenance HOME with no tray remains possible while a centered tray can
+	// never release its collision bracket during axis motion.
+	bool ejectMotion = seq == seqAutoEject ||
+		(seq == seqAutoMove && step.reserve == seqAutoEject);
+	bool insertMotion = seq == seqAutoInsert ||
+		(seq == seqAutoMove && step.reserve == seqAutoInsert);
+	bool waitMotion = seq == seqWait;
+	bool homeMotion = seq == seqHome;
+	bool generalMotion = waitMotion || homeMotion;
+	bool dryRunActive = DryRunForm != NULL && DryRunForm->IsRunning();
+	bool directSourceMove = !dryRunActive && seq == seqAutoMove &&
+		step.reserve == seqIdle && activeMoveValid && activeMove.pallet == 1;
+	bool directTargetMove = !dryRunActive && seq == seqAutoMove &&
+		step.reserve == seqIdle && activeMoveValid && activeMove.pallet == 2;
+	bool directManualMove = directSourceMove || directTargetMove;
+
+	// Preserve the HOME/WAIT latch while paused. Restart must re-enter step 0
+	// with the same required tray signals instead of silently accepting a tray
+	// whose Tray-In and Centering signals both disappeared after the stop.
+	if(seq == seqPause && centeringMotionMonitorActive)
+		return true;
+
+	if(!ejectMotion && !insertMotion && !generalMotion && !directManualMove){
+		centeringMotionMonitorActive = false;
+		centeringMotionMonitorSeq = seqIdle;
+		centeringRequireSource = false;
+		centeringRequireTarget = false;
+		return true;
+	}
+
+	bool plcFresh = PlcBin != NULL && PlcBin->IsPlcStatusFresh(1000);
+	if(!centeringMotionMonitorActive || centeringMotionMonitorSeq != seq){
+		centeringMotionMonitorActive = true;
+		centeringMotionMonitorSeq = seq;
+		centeringRequireSource = ejectMotion || directSourceMove;
+		centeringRequireTarget = insertMotion || directTargetMove;
+	}
+
+	if(generalMotion && plcFresh){
+		// Latch upward only. Once a tray needs collision protection, dropping
+		// Tray-In together with Centering cannot cancel the interlock.
+		centeringRequireSource = centeringRequireSource ||
+			PlcBin->IsSourceTrayIn() || PlcBin->IsSourceCentering();
+		centeringRequireTarget = centeringRequireTarget ||
+			PlcBin->IsTargetTrayIn() || PlcBin->IsTargetCentering();
+	}
+
+	bool sourceCentered = plcFresh && PlcBin->IsSourceCentering();
+	bool targetCentered = plcFresh && PlcBin->IsTargetCentering();
+	bool sourceOkay = !centeringRequireSource || sourceCentered;
+	bool targetOkay = !centeringRequireTarget || targetCentered;
+	if(plcFresh && sourceOkay && targetOkay)
+		return true;
+
+	robotSequence interruptedSeq = seq;
+	int interruptedStep = step.step;
+	int toolNo = activeMove.tool;
+	if(toolNo < 1 || toolNo > gripCnt)
+		toolNo = move.tool >= 1 && move.tool <= gripCnt ? move.tool : 1;
+
+	AnsiString signalName;
+	if(!plcFresh)
+		signalName = "PLC D10100-D10106 status";
+	else if(!sourceOkay && !targetOkay)
+		signalName = "D10104/D10106 Source/Target Centering";
+	else if(!sourceOkay)
+		signalName = "D10104 Source Centering";
+	else
+		signalName = "D10106 Target Centering";
+
+	AnsiString motionName = ejectMotion ? "EJECT" :
+		(insertMotion ? "INSERT" : (waitMotion ? "WAIT POSITION" :
+		(homeMotion ? "HOME" : (directSourceMove ?
+		"MANUAL SOURCE CHANNEL MOVE" : "MANUAL TARGET CHANNEL MOVE"))));
+	AnsiString recoveryAction = directManualMove ?
+		"Correct the centering condition, close this error, and click the channel again." :
+		"Correct the centering condition and use the operator Restart control; motion will restart with Z UP.";
+	AnsiString detail = signalName +
+		" became OFF or PLC data became stale during " + motionName +
+		" servo motion. DriveStop was issued immediately. " + recoveryAction;
+
+	MainForm->memoRobostarLineAdd("[CENTERING MOTION INTERLOCK] STOP - " + motionName +
+		" / SIGNAL=" + signalName +
+		" / PLC_FRESH=" + IntToStr(plcFresh ? 1 : 0) +
+		" / REQUIRE_SRC/TGT=" + IntToStr(centeringRequireSource ? 1 : 0) + "/" +
+		IntToStr(centeringRequireTarget ? 1 : 0) +
+		" / CENTER_SRC/TGT=" + IntToStr(sourceCentered ? 1 : 0) + "/" +
+		IntToStr(targetCentered ? 1 : 0) +
+		" / ROBOT_SEQ=" + IntToStr((int)interruptedSeq) +
+		" / STEP=" + IntToStr(interruptedStep) +
+		" / XYZ=" + IntToStr((__int64)mr2.pos[Axis_x]) + "/" +
+		IntToStr((__int64)mr2.pos[Axis_y]) + "/" +
+		IntToStr((__int64)mr2.pos[Axis_z]));
+
+	// DriveStop must precede Pause/error display. Pause alone does not stop a
+	// position-board move that has already been issued.
+	req_Stop();
+
+	if(generalMotion || directManualMove){
+		// Do not let a stopped position be interpreted as completed motion. Normal
+		// WAIT/HOME Restart resumes step 0. A manual channel move is intentionally
+		// discarded and must be requested again after centering is restored.
+		seq_save = directManualMove ? seqIdle : interruptedSeq;
+		step_save.step = 0;
+		step_save.delay = 0;
+		step_save.timeout = 0;
+		step_save.reserve = seqIdle;
+		seq = seqPause;
+		pauseStatus = true;
+		ShowCommonError(motionName + " stopped by centering interlock", detail);
+	}else if(ejectMotion){
+		if(ErrorForm_eject != NULL)
+			ErrorForm_eject->ShowError("Source centering released during EJECT motion",
+				detail, toolNo, 17);
+		else
+			ShowCommonError("Source centering released during EJECT motion", detail);
+	}else{
+		if(ErrorForm_insert != NULL)
+			ErrorForm_insert->ShowError("Target centering released during INSERT motion",
+				detail, toolNo, 21);
+		else
+			ShowCommonError("Target centering released during INSERT motion", detail);
+	}
+	return false;
+}
+//---------------------------------------------------------------------------
 void __fastcall Trobostar::AutoMove()
 {
 	AnsiString loadfactor = "", px = "", py = "", zpoint = "", msg1 = "", msg2 = "";
@@ -1450,6 +1585,9 @@ void __fastcall Trobostar::req_AutoMove(int pallet, int tool, int channel, int t
 		return;
 	}
 	CaptureMoveRequest();
+	// A new manual channel click is a new recovery transaction. Do not reuse the
+	// latched Source/Target requirement from a previously stopped direct move.
+	centeringMotionMonitorActive = false;
 
 	MainForm->memoRobostarLineAdd("[CHANNEL MOVE] tray=" + IntToStr(pallet) +
 		", tool=" + IntToStr(tool) + ", channel=" + IntToStr(channel) +
@@ -1828,18 +1966,20 @@ void __fastcall Trobostar::AutoEject()
 				}
 				break;
 			case 2:
+			{
+				bool sourceCenteringReady = PlcBin != NULL &&
+					PlcBin->IsPlcStatusFresh(1000) && PlcBin->IsSourceCentering();
 				MainForm->SetProcessOperationStatus(9, "CELL EJECT",
-					"Source tray centering ready", "1 (LIME)",
-					MainForm->psrcReady->Color == clLime ? "1" : "0");
-				// 척 동작 전 선별 트레이 센터링 재확인
-				if(MainForm->psrcReady->Color != clLime)
-				{
-					AlarmForm->ShowError("[C_Maint] 선별 트레이 센터링 여부를 확인해주세요.", "확인하고 재시작 하세요.");
-				}else{
-					step.step += 1;
-					step.timeout = 0;
+					"D10104 Source Centering", "1 (ON)",
+					sourceCenteringReady ? "1" : "0");
+				if(!sourceCenteringReady){
+					CheckTrayCenteringMotionInterlock();
+					return;
 				}
+				step.step += 1;
+				step.timeout = 0;
 				break;
+			}
 			case 3:
 				MainForm->SetProcessOperationStatus(9, "CELL EJECT",
 					"X0020 Gripper CHUCK", "1 (CLOSE)",
@@ -1953,18 +2093,20 @@ void __fastcall Trobostar::AutoInsert()
 				}
 				break;
 			case 1:
+			{
+				bool targetCenteringReady = PlcBin != NULL &&
+					PlcBin->IsPlcStatusFresh(1000) && PlcBin->IsTargetCentering();
 				MainForm->SetProcessOperationStatus(11, "CELL INSERT",
-					"Target tray centering ready", "1 (LIME)",
-					MainForm->ptargetReady->Color == clLime ? "1" : "0");
-				// 언척 동작 전 대상 트레이 센터링 재확인
-				if(MainForm->ptargetReady->Color != clLime)
-				{
-					AlarmForm->ShowError("[C_Maint] 대상 트레이 센터링 여부를 확인해주세요.", "확인하고 재시작 하세요.");
-				}else{
-					step.step += 1;
-					step.timeout = 0;
+					"D10106 Target Centering", "1 (ON)",
+					targetCenteringReady ? "1" : "0");
+				if(!targetCenteringReady){
+					CheckTrayCenteringMotionInterlock();
+					return;
 				}
+				step.step += 1;
+				step.timeout = 0;
 				break;
+			}
 			case 2:
 				MainForm->SetProcessOperationStatus(11, "CELL INSERT",
 					"X0021 Gripper OPEN", "1 (OPEN)",
@@ -2207,6 +2349,12 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 			MainForm->memoRobostarLineAdd("[SAFETY RESET] Y0032 pulse complete: X002C=0 (NOT READY)");
 	}
 	if(sscOpened) mr2Sensing();
+
+	// Collision prevention: continuously stop EJECT/INSERT/HOME/WAIT POSITION
+	// and manual channel moves when a required centering contact is lost or PLC
+	// status data is stale. Dry Run keeps its dedicated runtime interlock.
+	if(!CheckTrayCenteringMotionInterlock())
+		return;
 
 	if(seq == seqInit)Init();
 	else if(seq == seqHome)Home();
