@@ -62,6 +62,7 @@ private:	// User declarations
 	DWORD stepTimeoutMs;
 	bool running;
 	bool waitPositionRequested;
+	bool highSpeedWarningShown;
 
 	void __fastcall SetDryStep(TDryRunSequence sequence, int step,
 		const AnsiString &status, DWORD timeoutMs = 30000);
