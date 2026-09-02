@@ -153,14 +153,6 @@ bool __fastcall TDryRunForm::ValidateDryRunStart(AnsiString &reason)
 		reason = "A production PLC/FMS/local sequence started before MANUAL mode is still active. Complete/cancel it or use Initialize Work first.";
 		return false;
 	}
-	if((int)gripper->seq != 0 || gripper->pauseStatus){
-		reason = "Gripper sequence is not IDLE.";
-		return false;
-	}
-	if(robostar->seq != seqIdle || robostar->pauseStatus){
-		reason = "Robot sequence is not IDLE.";
-		return false;
-	}
 	if(!robostar->RestoreServoState() || !MainForm->m_ServoOpen ||
 		!MainForm->m_ServoON || !MainForm->m_ServoHome){
 		reason = "Servo OPEN/ON/HOME or actual X/Y/Z=0 is not complete.";
@@ -185,6 +177,43 @@ bool __fastcall TDryRunForm::ValidateDryRunStart(AnsiString &reason)
 	}
 	if(!PlcBin->IsSourceCentering()){
 		reason = "D10104 Source Centering is OFF.";
+		return false;
+	}
+
+	//* DRY RUN : START is the operator's restart confirmation. Release only an
+	//* old Pause whose saved work is IDLE, after every physical interlock above
+	//* has passed. A paused production/eject/insert sequence is never discarded.
+	if(gripper->pauseStatus || robostar->pauseStatus){
+		if(gripper->pauseStatus && (int)gripper->seq_save != 0){
+			reason = "Gripper Pause contains a saved work sequence. Use the production Restart or Initialize Work; Dry Run must not clear it.";
+			return false;
+		}
+		if(robostar->pauseStatus && robostar->seq_save != seqIdle){
+			reason = "Robot Pause contains a saved motion sequence. Use the production Restart or complete recovery first.";
+			return false;
+		}
+		if(gripper->pauseStatus && (int)gripper->seq != 0 && (int)gripper->seq != 4){
+			reason = "Gripper is running an unexpected sequence while Pause is set.";
+			return false;
+		}
+		if(robostar->pauseStatus && robostar->seq != seqIdle && robostar->seq != seqPause){
+			reason = "Robot is running an unexpected sequence while Pause is set.";
+			return false;
+		}
+
+		if(gripper->pauseStatus)
+			gripper->req_Pause(false);
+		if(robostar->pauseStatus)
+			robostar->req_Pause(false);
+		WriteDryRunLog("START CONFIRMATION - stale IDLE Pause released by operator START");
+	}
+
+	if((int)gripper->seq != 0 || gripper->pauseStatus){
+		reason = "Gripper sequence is not IDLE after START confirmation.";
+		return false;
+	}
+	if(robostar->seq != seqIdle || robostar->pauseStatus){
+		reason = "Robot sequence is not IDLE after START confirmation.";
 		return false;
 	}
 	return true;
