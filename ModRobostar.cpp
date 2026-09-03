@@ -611,6 +611,19 @@ void __fastcall Trobostar::Home()
 		return;
 	}
 
+	//* Z LIMIT RECOVERY: Never start HOME while either Z travel limit is active.
+	// Reset the alarm, jog DOWN(+) away from the upper LSN limit, and retry HOME
+	// only after both limit inputs return to their normal state.
+	if(IsZLimitActive())
+	{
+		InitSequence(seqIdle);
+		MainForm->memoRobostarLineAdd(
+			"[Z LIMIT RECOVERY] HOME blocked: clear the Z limit with JOG DOWN, then retry HOME.");
+		AlarmForm->ShowError("Z Axis limit is active.",
+			"Reset alarm and JOG DOWN until the limit clears, then run HOME.");
+		return;
+	}
+
 	int sts = 0;
 	int bitInfo = 0;
 
@@ -823,6 +836,22 @@ bool __fastcall Trobostar::SetJogSpeed(int speed)
 int __fastcall Trobostar::GetJogSpeed() const
 {
 	return jogSpeed;
+}
+//---------------------------------------------------------------------------
+bool __fastcall Trobostar::IsZLimitActive() const
+{
+	return !(mr2.limit[Axis_z] & SSC_BIT_LSP) ||
+		!(mr2.limit[Axis_z] & SSC_BIT_LSN);
+}
+//---------------------------------------------------------------------------
+bool __fastcall Trobostar::IsZDownLimitRecoveryAllowed() const
+{
+	bool positiveLimitActive = !(mr2.limit[Axis_z] & SSC_BIT_LSP);
+	bool negativeLimitActive = !(mr2.limit[Axis_z] & SSC_BIT_LSN);
+
+	// On this machine Z DOWN is PLUS. It is the escape direction only from
+	// the upper/minus (LSN) limit. Never override LSP or simultaneous limits.
+	return negativeLimitActive && !positiveLimitActive;
 }
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::Reset()
@@ -1438,6 +1467,29 @@ void __fastcall Trobostar::req_ServoOff()
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::req_JogMove(int ntype)
 {
+	// Mouse-up JOG STOP must always be accepted, including during limit recovery.
+	if(ntype < 0){
+		InitSequence(seqJogStop);
+		return;
+	}
+
+	//* Z LIMIT RECOVERY: While a Z limit is active, allow only DOWN(+) away
+	// from the upper LSN limit. All other jog directions remain interlocked.
+	if(IsZLimitActive()){
+		if(ntype != 4 || !IsZDownLimitRecoveryAllowed()){
+			MainForm->memoRobostarLineAdd(
+				"[Z LIMIT RECOVERY] JOG blocked: only Z DOWN(+) is allowed while Z limit is active. "
+				"LSP=" + IntToStr((mr2.limit[Axis_z] & SSC_BIT_LSP) ? 0 : 1) +
+				" LSN=" + IntToStr((mr2.limit[Axis_z] & SSC_BIT_LSN) ? 0 : 1));
+			return;
+		}
+
+		MainForm->memoRobostarLineAdd(
+			"[Z LIMIT RECOVERY] Z DOWN(+) jog allowed. Release the button after LSN clears, then run HOME.");
+		InitSequence(seqJOGz_Plus);
+		return;
+	}
+
 	if(ntype >= 0 && ntype <= 3)
 		directXYPositionReady = false;
 	// Tag 4 is Z DOWN(+). Source Tray must never descend while the gripper is CHUCK.

@@ -391,6 +391,9 @@ public:		// User declarations
 	void __fastcall req_Home();
 	void __fastcall req_Speed(int speed, int accl, int dccl);
 	void __fastcall req_Stop();
+	//* Z LIMIT RECOVERY: LSN active permits only Z DOWN(+) jog until the limit clears.
+	bool __fastcall IsZLimitActive() const;
+	bool __fastcall IsZDownLimitRecoveryAllowed() const;
 	void __fastcall req_JogMove(int ntype);
 	void __fastcall req_AutoRun();
     void __fastcall req_EmgAutoRun();

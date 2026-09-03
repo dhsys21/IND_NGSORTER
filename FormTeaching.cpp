@@ -587,6 +587,14 @@ void __fastcall TteachForm::Button1MouseDown(TObject *Sender, TMouseButton Butto
 	btn = (TButton*)Sender;
 
 	if(Button == mbLeft){
+		//* Z LIMIT RECOVERY: General centering/position-down checks would block
+		// the escape jog. When upper LSN is active, route only DOWN(+) directly
+		// to the robot's central limit-direction interlock.
+		if(btn->Tag == 4 && robostar->IsZDownLimitRecoveryAllowed()){
+			robostar->req_JogMove(btn->Tag);
+			return;
+		}
+
 		if(MainForm->psrcReady->Color != clLime)
 		{
 			if(MessageBox(Handle, BaseForm->GetLangStr("MSG_SOURCETRAY_CENTERING_Q").c_str(),
