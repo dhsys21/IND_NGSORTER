@@ -145,6 +145,7 @@ private:	// User declarations
     bool pc_ReadFlag;
     AnsiString pc_Read, pc_Read_Temp;
 	int pc_ReadCount, pc_index;
+	DWORD lastPcHeartBeatTick; // D10150 changes once every 1 second; communication remains 200ms.
     void __fastcall PC_Initialization();
     void __fastcall PC_DataChange(int subCommand, int address, int devCode, int devLen);
 public:		// User declarations

@@ -1,4 +1,4 @@
-﻿//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 
 #include <vcl.h>
 #pragma hdrstop
@@ -622,8 +622,10 @@ void __fastcall TMainForm::ReadSourceTrayBarcode()
 			MesOpc->CLEAR_TRACK_OUT_CELL_INFORMATION();
 			sourceTrackOutResetArmed = false;
 		}
-		memoMainLineAdd("[CYCLE TEST] Source tray barcode reader bypass: TR-20260818-01A");
-		setBarcode(0, "TR-20260818-01A");
+		// Cycle-test tray IDs share one base but use different role suffixes so
+		// CellTrackOut TrayIdFrom/TrayIdTo and local files cannot be confused.
+		memoMainLineAdd("[CYCLE TEST] Source tray barcode reader bypass: TR-20260818-src");
+		setBarcode(0, "TR-20260818-src");
 		return;
 	}
 
@@ -635,8 +637,8 @@ void __fastcall TMainForm::ReadTargetTrayBarcode()
 {
 	// Cycle test bypasses the unconfigured Target/NG tray barcode reader.
 	if(cbCycle != NULL && cbCycle->Checked){
-		memoMainLineAdd("[CYCLE TEST] Target tray barcode reader bypass: TR-20260818-01A");
-		setBarcode(1, "TR-20260818-01A");
+		memoMainLineAdd("[CYCLE TEST] Target tray barcode reader bypass: TR-20260818-trg");
+		setBarcode(1, "TR-20260818-trg");
 		return;
 	}
 

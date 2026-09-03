@@ -47,6 +47,7 @@ __fastcall TPlcBin::TPlcBin(TComponent* Owner)
 	pc_Data.Command[1] = 0x14;
 
 	pc_index = PC_INDEX_INTERFACE;
+	lastPcHeartBeatTick = 0;
 
     // Init
     memset(plc_Interface_Data, 0, sizeof(unsigned char) * PLC_D_INTERFACE_LEN * 2);
@@ -189,6 +190,7 @@ void __fastcall TPlcBin::PC_Initialization()
 	pc_Read = "";
 	pc_ReadFlag = true;
 	pc_ReadCount = 0;
+	lastPcHeartBeatTick = 0;
 
 	Timer_PC_WriteMsg->Enabled = true;
 }
@@ -259,7 +261,14 @@ void __fastcall TPlcBin::Timer_PC_WriteMsgTimer(TObject *Sender)
 			{
 				PC_DataChange(0, PC_D_INTERFACE_START_DEV_NUM, DEVCODE_D, PC_D_INTERFACE_LEN);
 
-				CmdPcHeartBeat(!IsPcHeartBeatOn());
+				// D10150 PC HEART BEAT: toggle once per second. Keep the 200ms
+				// interface transmission cycle so the remaining PLC commands stay responsive.
+				DWORD nowTick = GetTickCount();
+				if(lastPcHeartBeatTick == 0 ||
+					(DWORD)(nowTick - lastPcHeartBeatTick) >= 1000){
+					CmdPcHeartBeat(!IsPcHeartBeatOn());
+					lastPcHeartBeatTick = nowTick;
+				}
                 ClientSocket_PC->Socket->SendBuf(&pc_Data, sizeof(pc_Data));        // should comment for emulator
 				ClientSocket_PC->Socket->SendBuf(&pc_Interface_Data, sizeof(pc_Interface_Data));
 
