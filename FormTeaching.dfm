@@ -9810,7 +9810,7 @@ object teachForm: TteachForm
         Caption = 'Auto Calculate'
         Color = clWhite
         ParentFont = False
-        TabOrder = 46
+        TabOrder = 44
         Version = '2.1.1.5'
         OnClick = btnAutoCalculateTargetClick
         TMSStyle = 8

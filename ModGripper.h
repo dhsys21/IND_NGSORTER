@@ -59,6 +59,36 @@ private:	// User declarations
 
 	TIniFile *ini;
 	bool ccLinkNotReadyReported;
+
+	//* CELL TRANSFER RESULT : One CSV row is written after each completed transfer.
+	typedef enum{
+		transferPhaseNone,
+		transferPhaseMoveSource,
+		transferPhaseEject,
+		transferPhaseMoveTarget,
+		transferPhaseInsert,
+		transferPhaseWait
+	} TRANSFER_PHASE;
+	typedef struct{
+		bool active;
+		TRANSFER_PHASE phase;
+		DWORD phaseStartTick;
+		DWORD moveMs;
+		DWORD ejectMs;
+		DWORD insertMs;
+		DWORD waitMs;
+		int sourceChannel;
+		int targetChannel;
+		AnsiString sourceTrayId;
+		AnsiString targetTrayId;
+		int peakLoad[3];
+	} TRANSFER_RESULT;
+	TRANSFER_RESULT transferResult;
+	void __fastcall ResetTransferResult();
+	void __fastcall BeginTransferResult(int toolIndex);
+	void __fastcall StartTransferPhase(TRANSFER_PHASE phase);
+	void __fastcall UpdateTransferResult();
+	void __fastcall SaveTransferResult(bool waitBypassed);
 	void __fastcall Initialize();
 	void __fastcall Sorting();
 	void __fastcall Inserting();

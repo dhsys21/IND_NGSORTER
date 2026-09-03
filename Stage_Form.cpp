@@ -557,6 +557,73 @@ static AnsiString MakeSafeTrayFileId(AnsiString trayId)
 	return safeId;
 }
 //---------------------------------------------------------------------------
+static AnsiString CsvTransferField(const AnsiString &value)
+{
+	AnsiString escaped = "";
+	for(int i = 1; i <= value.Length(); ++i){
+		if(value[i] == '"') escaped += "\"\"";
+		else escaped += value[i];
+	}
+	return "\"" + escaped + "\"";
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMainForm::SaveCellTransferResult(AnsiString sourceTrayId,
+	int sourceChannel, AnsiString targetTrayId, int targetChannel,
+	DWORD ejectMs, DWORD moveMs, DWORD insertMs, DWORD waitMs,
+	int loadX, int loadY, int loadZ, AnsiString waitMode)
+{
+	//* CELL TRANSFER RESULT : Daily folder / one CSV per Source tray.
+	TDateTime savedAt = Now();
+	AnsiString dateText = FormatDateTime("yyyymmdd", savedAt);
+	AnsiString dateFolder = (AnsiString)TRAY_PATH + dateText + "\\";
+	if(!DirectoryExists((AnsiString)TRAY_PATH) && !ForceDirectories((AnsiString)TRAY_PATH)){
+		memoMainLineAdd("[TRANSFER RESULT] ERROR - cannot create TRAY folder: " + AnsiString(TRAY_PATH));
+		return false;
+	}
+	if(!DirectoryExists(dateFolder) && !ForceDirectories(dateFolder)){
+		memoMainLineAdd("[TRANSFER RESULT] ERROR - cannot create date folder: " + dateFolder);
+		return false;
+	}
+
+	AnsiString fileName = dateFolder + dateText + "_" +
+		MakeSafeTrayFileId(sourceTrayId) + ".csv";
+	DWORD totalMs = ejectMs + moveMs + insertMs + waitMs;
+	AnsiString row = CsvTransferField(FormatDateTime("yyyy-mm-dd hh:nn:ss.zzz", savedAt)) + "," +
+		CsvTransferField(sourceTrayId) + "," + IntToStr(sourceChannel) + "," +
+		CsvTransferField(targetTrayId) + "," + IntToStr(targetChannel) + "," +
+		IntToStr((__int64)ejectMs) + "," + IntToStr((__int64)moveMs) + "," +
+		IntToStr((__int64)insertMs) + "," + IntToStr((__int64)waitMs) + "," +
+		IntToStr((__int64)totalMs) + "," + IntToStr(loadX) + "," +
+		IntToStr(loadY) + "," + IntToStr(loadZ) + "," +
+		CsvTransferField(waitMode) + "\r\n";
+	AnsiString header = "Timestamp,SourceTrayId,SourceChannel,TargetTrayId,TargetChannel,"
+		"EjectMs,MoveMs,InsertMs,WaitMs,TotalMs,PeakLoadXPercent,"
+		"PeakLoadYPercent,PeakLoadZPercent,WaitMode\r\n";
+
+	TFileStream *stream = NULL;
+	try{
+		stream = new TFileStream(fileName,
+			FileExists(fileName) ? (fmOpenReadWrite | fmShareDenyWrite) : fmCreate);
+		stream->Seek(0, soFromEnd);
+		if(stream->Size == 0 && header.Length() > 0)
+			stream->WriteBuffer(header.c_str(), header.Length());
+		if(row.Length() > 0)
+			stream->WriteBuffer(row.c_str(), row.Length());
+		delete stream;
+		stream = NULL;
+	}catch(Exception &e){
+		if(stream != NULL) delete stream;
+		memoMainLineAdd("[TRANSFER RESULT] ERROR - " + AnsiString(e.Message));
+		return false;
+	}
+
+	memoMainLineAdd("[TRANSFER RESULT] SAVED SourceCh=" + IntToStr(sourceChannel) +
+		" TargetCh=" + IntToStr(targetChannel) + " TotalMs=" +
+		IntToStr((__int64)totalMs) + " PeakLoad(X/Y/Z)=" + IntToStr(loadX) + "/" +
+		IntToStr(loadY) + "/" + IntToStr(loadZ) + " File=" + fileName);
+	return true;
+}
+//---------------------------------------------------------------------------
 AnsiString __fastcall TMainForm::GetSourceTrayInfoFile(AnsiString trayId) const
 {
 	return (AnsiString)TRAY_PATH + "SourceTray_" + MakeSafeTrayFileId(trayId) + ".ini";

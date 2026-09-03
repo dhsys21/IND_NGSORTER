@@ -16,6 +16,112 @@ __fastcall Tgripper::Tgripper(TComponent* Owner)
 	ccLinkNotReadyReported = false;
 	tool[gripCnt].disable = false;	// 7번 그리퍼는 항상 false로 마지막 지점 체크로 사용한다.
 	pauseStatus = false;
+	ResetTransferResult();
+}
+//---------------------------------------------------------------------------
+void __fastcall Tgripper::ResetTransferResult()
+{
+	transferResult.active = false;
+	transferResult.phase = transferPhaseNone;
+	transferResult.phaseStartTick = 0;
+	transferResult.moveMs = 0;
+	transferResult.ejectMs = 0;
+	transferResult.insertMs = 0;
+	transferResult.waitMs = 0;
+	transferResult.sourceChannel = 0;
+	transferResult.targetChannel = 0;
+	transferResult.sourceTrayId = "";
+	transferResult.targetTrayId = "";
+	for(int i = 0; i < 3; ++i)
+		transferResult.peakLoad[i] = 0;
+}
+//---------------------------------------------------------------------------
+void __fastcall Tgripper::BeginTransferResult(int toolIndex)
+{
+	ResetTransferResult();
+	if(MainForm == NULL || robostar == NULL || toolIndex < 0 || toolIndex >= gripCnt)
+		return;
+
+	transferResult.active = true;
+	transferResult.sourceChannel = tool[toolIndex].source_ch.ToIntDef(0);
+	transferResult.targetChannel = tool[toolIndex].target_ch.ToIntDef(0);
+	if(MainForm->pTrayid_source != NULL)
+		transferResult.sourceTrayId = MainForm->pTrayid_source->Caption.Trim();
+	if(MainForm->pTrayid_target != NULL)
+		transferResult.targetTrayId = MainForm->pTrayid_target->Caption.Trim();
+	transferResult.phase = transferPhaseMoveSource;
+	transferResult.phaseStartTick = GetTickCount();
+	UpdateTransferResult();
+}
+//---------------------------------------------------------------------------
+void __fastcall Tgripper::StartTransferPhase(TRANSFER_PHASE phase)
+{
+	if(!transferResult.active) return;
+
+	DWORD nowTick = GetTickCount();
+	DWORD elapsed = transferResult.phaseStartTick == 0 ? 0 :
+		(DWORD)(nowTick - transferResult.phaseStartTick);
+	switch(transferResult.phase){
+		case transferPhaseMoveSource:
+		case transferPhaseMoveTarget: transferResult.moveMs += elapsed; break;
+		case transferPhaseEject: transferResult.ejectMs += elapsed; break;
+		case transferPhaseInsert: transferResult.insertMs += elapsed; break;
+		case transferPhaseWait: transferResult.waitMs += elapsed; break;
+		default: break;
+	}
+	transferResult.phase = phase;
+	transferResult.phaseStartTick = phase == transferPhaseNone ? 0 : nowTick;
+}
+//---------------------------------------------------------------------------
+void __fastcall Tgripper::UpdateTransferResult()
+{
+	if(!transferResult.active || robostar == NULL) return;
+
+	// Store the maximum absolute load observed during the complete cell transfer.
+	const int loadAxis[3] = {Axis_x, Axis_y, Axis_z};
+	for(int i = 0; i < 3; ++i){
+		int load = (int)robostar->mr2.mondata[loadAxis[i]][0];
+		if(load < 0) load = -load;
+		if(load > transferResult.peakLoad[i]) transferResult.peakLoad[i] = load;
+	}
+
+	// Split positioning motion from the physical Z/gripper action at robot sequence changes.
+	if(transferResult.phase == transferPhaseMoveSource){
+		if(robostar->seq == seqAutoEject || robostar->seq == seqAutoEjectComplete){
+			StartTransferPhase(transferPhaseEject);
+			if(robostar->seq == seqAutoEjectComplete)
+				StartTransferPhase(transferPhaseNone);
+		}
+	}else if(transferResult.phase == transferPhaseEject &&
+		robostar->seq == seqAutoEjectComplete){
+		StartTransferPhase(transferPhaseNone);
+	}else if(transferResult.phase == transferPhaseMoveTarget){
+		if(robostar->seq == seqAutoInsert || robostar->seq == seqAutoInsertComplete){
+			StartTransferPhase(transferPhaseInsert);
+			if(robostar->seq == seqAutoInsertComplete)
+				StartTransferPhase(transferPhaseNone);
+		}
+	}else if(transferResult.phase == transferPhaseInsert &&
+		robostar->seq == seqAutoInsertComplete){
+		StartTransferPhase(transferPhaseNone);
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall Tgripper::SaveTransferResult(bool waitBypassed)
+{
+	if(!transferResult.active || MainForm == NULL) return;
+
+	UpdateTransferResult();
+	StartTransferPhase(transferPhaseNone);
+	if(waitBypassed) transferResult.waitMs = 0;
+	MainForm->SaveCellTransferResult(
+		transferResult.sourceTrayId, transferResult.sourceChannel,
+		transferResult.targetTrayId, transferResult.targetChannel,
+		transferResult.ejectMs, transferResult.moveMs,
+		transferResult.insertMs, transferResult.waitMs,
+		transferResult.peakLoad[0], transferResult.peakLoad[1],
+		transferResult.peakLoad[2], waitBypassed ? "BYPASS" : "WAIT_POSITION");
+	ResetTransferResult();
 }
 //---------------------------------------------------------------------------
 bool __fastcall Tgripper::CommitEjectTrayState(int toolNo)
@@ -96,6 +202,8 @@ void __fastcall Tgripper::req_Pause(bool stop)
 //---------------------------------------------------------------------------
 void __fastcall Tgripper::stepTimerTimer(TObject *Sender)
 {
+	UpdateTransferResult();
+
 	for(int i=0; i<gripCnt; ++i){
 		tool[i].disable = disable_gripper[i];	// true : 사용안함, false : 사용함
 	}
@@ -404,6 +512,8 @@ void __fastcall Tgripper::Sorting()
 						 " SourceCh=" + IntToStr(eject.pos) +
 						 " TargetCh=" + tool[eject.gripper - 1].target_ch);
 					 robostar->req_AutoEject(1, eject.gripper , MainForm->mapSort[0][eject.pos-1], eject.conCnt, 962);
+					 if(robostar->seq == seqAutoMove)
+						 BeginTransferResult(eject.gripper - 1);
 					 MainForm->memoGripperLineAdd("[Eject step 0] 96 Channel " + BaseForm->GetLangStr("MSG_EJECT_START"));
 					 step.step += 1;
 				}else{
@@ -484,6 +594,8 @@ void __fastcall Tgripper::Inserting()
 					" SourceCh=" + tool[insert.gripper - 1].source_ch +
 					" TargetCh=" + IntToStr(insert.pos));
 				robostar->req_AutoInsert(2, insert.gripper , insert.pos, insert.conCnt, 96);
+				if(transferResult.active && robostar->seq == seqAutoMove)
+					StartTransferPhase(transferPhaseMoveTarget);
 				step.step += 1;
 			}else{
 				step.step = 5;
@@ -544,6 +656,7 @@ void __fastcall Tgripper::Inserting()
 					MainForm->memoGripperLineAdd("[CYCLE] NEXT NG FOUND -> BYPASS WAIT POSITION");
 				MainForm->NotifyIdMatching_target("1");	// 삽입 완료시마다 보고
 				if(directNextNg){
+					SaveTransferResult(true);
 					MainForm->CompleteProcessStep(13,
 						"NEXT NG found / Next Step=07 / WAIT POSITION bypassed");
 					// Keep Z at zero and let AutoEject move X/Y directly from the
@@ -551,11 +664,13 @@ void __fastcall Tgripper::Inserting()
 					InitSequence(seqInit, seqSorting);
 				}else{
 					MainForm->memoGripperLineAdd("[Insert complete] WAIT POSITION MOVE START");
+					StartTransferPhase(transferPhaseWait);
 					robostar->req_WaitPosition();
 					step.step = 6;
 				}
 			}
 			else if(step.step == 6 && robostar->seq == seqIdle){
+				SaveTransferResult(false);
 				MainForm->memoGripperLineAdd("[Insert complete] WAIT POSITION MOVE COMPLETE");
 				MainForm->CompleteProcessStep(13, "WAIT POSITION complete / Next Step=07");
 				MainForm->memoGripperLineAdd("[CYCLE] NO NEXT NG OR TARGET FULL -> FINAL CHECK");

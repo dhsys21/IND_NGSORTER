@@ -557,6 +557,11 @@ public:		// User declarations
 	void __fastcall memoMainLineAdd(AnsiString msg);
 	void __fastcall memoGripperLineAdd(AnsiString msg);
 	void __fastcall memoRobostarLineAdd(AnsiString msg);
+	//* CELL TRANSFER RESULT : Append one completed Source-to-Target transfer to the daily CSV.
+	bool __fastcall SaveCellTransferResult(AnsiString sourceTrayId, int sourceChannel,
+		AnsiString targetTrayId, int targetChannel, DWORD ejectMs, DWORD moveMs,
+		DWORD insertMs, DWORD waitMs, int loadX, int loadY, int loadZ,
+		AnsiString waitMode);
 
 	AnsiString __fastcall GetProcessStepName(int stepNo) const;
 	void __fastcall ResetProcessFlow();
