@@ -660,6 +660,54 @@ void __fastcall TteachForm::btnCenteringReqClick(TObject *Sender)
 	if(PlcBin != NULL)
 		PlcBin->CmdSourceCenteringRequest(true);
 }//---------------------------------------------------------------------------
+void __fastcall TteachForm::btnAutoCalculateSourceClick(TObject *Sender)
+{
+	if(MessageBox(Handle,
+		L"Would you like to automatically calculate the Source tray using the default dimensions?",
+		L"Source Tray Auto Calculate", MB_YESNO | MB_ICONQUESTION) != ID_YES)
+		return;
+
+	int sourceX = 0;
+	int sourceY = 0;
+
+	//* DEFAULT TRAY DIMENSION: Calculate only the Source tray from its own CH01 origin.
+	if(!TryStrToInt(editCh01_SX->Text.Trim(), sourceX)
+		|| !TryStrToInt(editCh01_SY->Text.Trim(), sourceY))
+	{
+		MessageBox(Handle, L"Enter valid Source tray CH01 X and Y values first.",
+			L"Source Tray Auto Calculate", MB_OK | MB_ICONWARNING);
+		return;
+	}
+
+	SetDefaultTrayTeaching(true, sourceX, sourceY);
+	MainForm->memoRobostarLineAdd(
+		"[ROBOT] Source tray dimensions calculated from Source CH01.");
+}
+//---------------------------------------------------------------------------
+void __fastcall TteachForm::btnAutoCalculateTargetClick(TObject *Sender)
+{
+	if(MessageBox(Handle,
+		L"Would you like to automatically calculate the Target tray using the default dimensions?",
+		L"Target Tray Auto Calculate", MB_YESNO | MB_ICONQUESTION) != ID_YES)
+		return;
+
+	int targetX = 0;
+	int targetY = 0;
+
+	//* DEFAULT TRAY DIMENSION: Calculate only the Target tray from its own CH01 origin.
+	if(!TryStrToInt(editCh01_TX->Text.Trim(), targetX)
+		|| !TryStrToInt(editCh01_TY->Text.Trim(), targetY))
+	{
+		MessageBox(Handle, L"Enter valid Target tray CH01 X and Y values first.",
+			L"Target Tray Auto Calculate", MB_OK | MB_ICONWARNING);
+		return;
+	}
+
+	SetDefaultTrayTeaching(false, targetX, targetY);
+	MainForm->memoRobostarLineAdd(
+		"[ROBOT] Target tray dimensions calculated from Target CH01.");
+}
+//---------------------------------------------------------------------------
 void __fastcall TteachForm::btnZAxisDownMouseDown(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y)
 {
@@ -747,6 +795,28 @@ bool __fastcall TteachForm::CheckPositionDown(int gripperIndex)
 		&& pos_y <= tTray_Position.Left && pos_y >= tTray_Position.Right))
 		return true;
 	return false;
+}
+//---------------------------------------------------------------------------
+void __fastcall TteachForm::SetDefaultTrayTeaching(bool sourceTray, int baseX, int baseY)
+{
+	//* DEFAULT TRAY DIMENSION: Servo teaching values use 1,000 pulses per mm.
+	static const int ColumnOffset[4] = {0, 230000, 490000, 720000};
+	static const int SecondRowOffset = 590000; // CH01->CH12: 11 x 45 mm, CH12->CH13: 95 mm.
+
+	TrayAxisEdit xEditType = sourceTray ? asSourceX : asTargetX;
+	TrayAxisEdit yEditType = sourceTray ? asSourceY : asTargetY;
+	for(int group = 0; group < TraySlotCount / TrayTeachingGroupSize; ++group){
+		int channel = group * TrayTeachingGroupSize + 1;
+		int column = group / 2;
+		bool secondRow = (group % 2) != 0;
+		TEdit *xEdit = GetTrayEdit(channel, xEditType);
+		TEdit *yEdit = GetTrayEdit(channel, yEditType);
+
+		if(xEdit != NULL)
+			xEdit->Text = IntToStr(baseX + ColumnOffset[column]);
+		if(yEdit != NULL)
+			yEdit->Text = IntToStr(baseY + (secondRow ? SecondRowOffset : 0));
+	}
 }
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::ApplyTeaching()

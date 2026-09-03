@@ -274,6 +274,23 @@ __published:	// IDE-managed Components
 	TPanel *pg1;
 	TAdvSmoothPanel *AdvSmoothPanel8;
 	TLabel *Label50;
+	TPanel *pnlDimension;
+	TLabel *lblTrayPitchTitle;
+	TLabel *lblTrayPitchY;
+	TLabel *lblTrayPitch45;
+	TLabel *lblTrayPitch95;
+	TLabel *lblTrayPitch230A;
+	TLabel *lblTrayPitch260;
+	TLabel *lblTrayPitch230B;
+	TPanel *pnlPitchCh01;
+	TPanel *pnlPitchCh02;
+	TPanel *pnlPitchCh12;
+	TPanel *pnlPitchCh13;
+	TPanel *pnlPitchCh25;
+	TPanel *pnlPitchCh36;
+	TPanel *pnlPitchCh37;
+	TPanel *pnlPitchCh49;
+	TPanel *pnlPitchCh73;
 	TPanel *pnlDcc;
 	TPanel *pnlAcc;
 	TEdit *acclSpeedEdit;
@@ -339,6 +356,8 @@ __published:	// IDE-managed Components
 	TLabel *lblMsgRobot;
 	TAdvSmoothButton *btnApplyTeaching;
 	TAdvSmoothButton *btnCenteringReq;
+	TAdvSmoothButton *btnAutoCalculateSource;
+	TAdvSmoothButton *btnAutoCalculateTarget;
 	TAdvSmoothPanel *pnlBackground;
 	TAdvSmoothButton *AdvSmoothButton1;
 	void __fastcall FormCreate(TObject *Sender);
@@ -370,6 +389,8 @@ __published:	// IDE-managed Components
 	void __fastcall AdvSmoothButton_LoadFactorInfoClick(TObject *Sender);
 	void __fastcall btnApplyTeachingClick(TObject *Sender);
 	void __fastcall btnCenteringReqClick(TObject *Sender);
+	void __fastcall btnAutoCalculateSourceClick(TObject *Sender);
+	void __fastcall btnAutoCalculateTargetClick(TObject *Sender);
 	void __fastcall btnZAxisDownMouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift,
           int X, int Y);
 	void __fastcall btnZAxisDownMouseUp(TObject *Sender, TMouseButton Button, TShiftState Shift,
@@ -400,6 +421,7 @@ private:	// User declarations
     UnicodeString teachingFilePath;
     void __fastcall MakePanel();
 	void __fastcall ApplyTeaching();
+	void __fastcall SetDefaultTrayTeaching(bool sourceTray, int baseX, int baseY);
     bool __fastcall SaveTeaching(const UnicodeString &filePath);
 	bool __fastcall LoadTeaching(const UnicodeString &filePath);
     void __fastcall SetTrayMaxPosition();

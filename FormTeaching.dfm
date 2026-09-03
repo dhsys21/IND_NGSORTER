@@ -8467,9 +8467,9 @@ object teachForm: TteachForm
         object Label50: TLabel
           Left = 7
           Top = 10
-          Width = 85
+          Width = 48
           Height = 16
-          Caption = #44592#51333#48324' '#54000#52845' '#49444#51221
+          Caption = #54000#52845' '#49444#51221
           Font.Charset = DEFAULT_CHARSET
           Font.Color = 13204573
           Font.Height = -13
@@ -8479,17 +8479,290 @@ object teachForm: TteachForm
           ParentShowHint = False
           ShowHint = False
           Transparent = True
-          Visible = False
+        end
+        object pnlDimension: TPanel
+          Left = 12
+          Top = 40
+          Width = 329
+          Height = 160
+          BevelOuter = bvLowered
+          ParentBackground = False
+          TabOrder = 2
+          object lblTrayPitchTitle: TLabel
+            Left = 4
+            Top = 0
+            Width = 321
+            Height = 14
+            Alignment = taCenter
+            AutoSize = False
+            Caption = 'TRAY DIMENSION (mm)'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clNavy
+            Font.Height = -11
+            Font.Name = 'Tahoma'
+            Font.Style = [fsBold]
+            ParentFont = False
+            Transparent = True
+          end
+          object lblTrayPitchY: TLabel
+            Left = 4
+            Top = 14
+            Width = 321
+            Height = 11
+            Alignment = taCenter
+            AutoSize = False
+            Caption = 'Y PITCH 45  /  CENTER GAP 95 mm'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 4210816
+            Font.Height = -9
+            Font.Name = 'Tahoma'
+            Font.Style = [fsBold]
+            ParentFont = False
+            Transparent = True
+          end
+          object lblTrayPitch45: TLabel
+            Left = 277
+            Top = 105
+            Width = 38
+            Height = 10
+            Alignment = taCenter
+            AutoSize = False
+            Caption = '45 mm'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clRed
+            Font.Height = -9
+            Font.Name = 'Tahoma'
+            Font.Style = [fsBold]
+            ParentFont = False
+            Transparent = True
+          end
+          object lblTrayPitch95: TLabel
+            Left = 277
+            Top = 56
+            Width = 38
+            Height = 10
+            Alignment = taCenter
+            AutoSize = False
+            Caption = '95 mm'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clRed
+            Font.Height = -9
+            Font.Name = 'Tahoma'
+            Font.Style = [fsBold]
+            ParentFont = False
+            Transparent = True
+          end
+          object lblTrayPitch230A: TLabel
+            Left = 40
+            Top = 137
+            Width = 52
+            Height = 11
+            Alignment = taCenter
+            AutoSize = False
+            Caption = '230 mm'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clBlue
+            Font.Height = -9
+            Font.Name = 'Tahoma'
+            Font.Style = [fsBold]
+            ParentFont = False
+            Transparent = True
+          end
+          object lblTrayPitch260: TLabel
+            Left = 132
+            Top = 137
+            Width = 52
+            Height = 11
+            Alignment = taCenter
+            AutoSize = False
+            Caption = '260 mm'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clBlue
+            Font.Height = -9
+            Font.Name = 'Tahoma'
+            Font.Style = [fsBold]
+            ParentFont = False
+            Transparent = True
+          end
+          object lblTrayPitch230B: TLabel
+            Left = 224
+            Top = 137
+            Width = 52
+            Height = 11
+            Alignment = taCenter
+            AutoSize = False
+            Caption = '230 mm'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clBlue
+            Font.Height = -9
+            Font.Name = 'Tahoma'
+            Font.Style = [fsBold]
+            ParentFont = False
+            Transparent = True
+          end
+          object pnlPitchCh37: TPanel
+            Left = 188
+            Top = 37
+            Width = 28
+            Height = 17
+            BevelOuter = bvNone
+            Caption = '37'
+            Color = 13996080
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clWhite
+            Font.Height = -9
+            Font.Name = 'Tahoma'
+            Font.Style = [fsBold]
+            ParentBackground = False
+            ParentFont = False
+            TabOrder = 0
+          end
+          object pnlPitchCh13: TPanel
+            Left = 282
+            Top = 37
+            Width = 28
+            Height = 17
+            BevelOuter = bvNone
+            Caption = '13'
+            Color = 13996080
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clWhite
+            Font.Height = -9
+            Font.Name = 'Tahoma'
+            Font.Style = [fsBold]
+            ParentBackground = False
+            ParentFont = False
+            TabOrder = 1
+          end
+          object pnlPitchCh36: TPanel
+            Left = 188
+            Top = 67
+            Width = 28
+            Height = 17
+            BevelOuter = bvNone
+            Caption = '36'
+            Color = 13996080
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clWhite
+            Font.Height = -9
+            Font.Name = 'Tahoma'
+            Font.Style = [fsBold]
+            ParentBackground = False
+            ParentFont = False
+            TabOrder = 2
+          end
+          object pnlPitchCh12: TPanel
+            Left = 282
+            Top = 67
+            Width = 28
+            Height = 17
+            BevelOuter = bvNone
+            Caption = '12'
+            Color = 13996080
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clWhite
+            Font.Height = -9
+            Font.Name = 'Tahoma'
+            Font.Style = [fsBold]
+            ParentBackground = False
+            ParentFont = False
+            TabOrder = 3
+          end
+          object pnlPitchCh02: TPanel
+            Left = 282
+            Top = 87
+            Width = 28
+            Height = 17
+            BevelOuter = bvNone
+            Caption = '02'
+            Color = 16752190
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clNavy
+            Font.Height = -9
+            Font.Name = 'Tahoma'
+            Font.Style = [fsBold]
+            ParentBackground = False
+            ParentFont = False
+            TabOrder = 8
+          end
+          object pnlPitchCh73: TPanel
+            Left = 8
+            Top = 116
+            Width = 28
+            Height = 17
+            BevelOuter = bvNone
+            Caption = '73'
+            Color = 16752190
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clNavy
+            Font.Height = -9
+            Font.Name = 'Tahoma'
+            Font.Style = [fsBold]
+            ParentBackground = False
+            ParentFont = False
+            TabOrder = 5
+          end
+          object pnlPitchCh49: TPanel
+            Left = 96
+            Top = 116
+            Width = 28
+            Height = 17
+            BevelOuter = bvNone
+            Caption = '49'
+            Color = 16752190
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clNavy
+            Font.Height = -9
+            Font.Name = 'Tahoma'
+            Font.Style = [fsBold]
+            ParentBackground = False
+            ParentFont = False
+            TabOrder = 7
+          end
+          object pnlPitchCh25: TPanel
+            Left = 188
+            Top = 116
+            Width = 28
+            Height = 17
+            BevelOuter = bvNone
+            Caption = '25'
+            Color = 16752190
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clNavy
+            Font.Height = -9
+            Font.Name = 'Tahoma'
+            Font.Style = [fsBold]
+            ParentBackground = False
+            ParentFont = False
+            TabOrder = 4
+          end
+          object pnlPitchCh01: TPanel
+            Left = 282
+            Top = 116
+            Width = 28
+            Height = 17
+            BevelOuter = bvNone
+            Caption = '01'
+            Color = 16752190
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clNavy
+            Font.Height = -9
+            Font.Name = 'Tahoma'
+            Font.Style = [fsBold]
+            ParentBackground = False
+            ParentFont = False
+            TabOrder = 6
+          end
         end
         object btnApplyTeaching: TAdvSmoothButton
-          Left = 108
-          Top = 66
-          Width = 165
-          Height = 84
+          Left = 10
+          Top = 216
+          Width = 160
+          Height = 52
           Appearance.GlowPercentage = 50
           Appearance.Font.Charset = DEFAULT_CHARSET
           Appearance.Font.Color = clWindowText
-          Appearance.Font.Height = -16
+          Appearance.Font.Height = -13
           Appearance.Font.Name = 'Tahoma'
           Appearance.Font.Style = [fsBold]
           Appearance.Spacing = 0
@@ -8520,14 +8793,14 @@ object teachForm: TteachForm
           TMSStyle = 8
         end
         object btnCenteringReq: TAdvSmoothButton
-          Left = 108
-          Top = 160
-          Width = 165
-          Height = 84
+          Left = 183
+          Top = 216
+          Width = 160
+          Height = 52
           Appearance.GlowPercentage = 50
           Appearance.Font.Charset = DEFAULT_CHARSET
           Appearance.Font.Color = clWindowText
-          Appearance.Font.Height = -16
+          Appearance.Font.Height = -13
           Appearance.Font.Name = 'Tahoma'
           Appearance.Font.Style = [fsBold]
           Appearance.Spacing = 0
@@ -8604,6 +8877,44 @@ object teachForm: TteachForm
         ParentShowHint = False
         ShowHint = False
         Transparent = True
+      end
+      object btnAutoCalculateSource: TAdvSmoothButton
+        Left = 310
+        Top = 5
+        Width = 120
+        Height = 24
+        Appearance.GlowPercentage = 50
+        Appearance.Font.Charset = DEFAULT_CHARSET
+        Appearance.Font.Color = clWindowText
+        Appearance.Font.Height = -11
+        Appearance.Font.Name = 'Tahoma'
+        Appearance.Font.Style = [fsBold]
+        Appearance.Spacing = 0
+        Appearance.Rounding = 3
+        Appearance.WordWrapping = False
+        Status.Caption = '0'
+        Status.Appearance.Fill.Color = clRed
+        Status.Appearance.Fill.ColorMirror = clNone
+        Status.Appearance.Fill.ColorMirrorTo = clNone
+        Status.Appearance.Fill.GradientType = gtSolid
+        Status.Appearance.Fill.GradientMirrorType = gtSolid
+        Status.Appearance.Fill.BorderColor = clGray
+        Status.Appearance.Fill.Rounding = 0
+        Status.Appearance.Fill.ShadowOffset = 0
+        Status.Appearance.Fill.Glow = gmNone
+        Status.Appearance.Font.Charset = DEFAULT_CHARSET
+        Status.Appearance.Font.Color = clWhite
+        Status.Appearance.Font.Height = -11
+        Status.Appearance.Font.Name = 'Tahoma'
+        Status.Appearance.Font.Style = []
+        BevelColor = clMedGray
+        Caption = 'Auto Calculate'
+        Color = clWhite
+        ParentFont = False
+        TabOrder = 46
+        Version = '2.1.1.5'
+        OnClick = btnAutoCalculateSourceClick
+        TMSStyle = 8
       end
       object editCh85_SX: TEdit
         Left = 83
@@ -9465,6 +9776,44 @@ object teachForm: TteachForm
         ParentShowHint = False
         ShowHint = False
         Transparent = True
+      end
+      object btnAutoCalculateTarget: TAdvSmoothButton
+        Left = 310
+        Top = 5
+        Width = 120
+        Height = 24
+        Appearance.GlowPercentage = 50
+        Appearance.Font.Charset = DEFAULT_CHARSET
+        Appearance.Font.Color = clWindowText
+        Appearance.Font.Height = -11
+        Appearance.Font.Name = 'Tahoma'
+        Appearance.Font.Style = [fsBold]
+        Appearance.Spacing = 0
+        Appearance.Rounding = 3
+        Appearance.WordWrapping = False
+        Status.Caption = '0'
+        Status.Appearance.Fill.Color = clRed
+        Status.Appearance.Fill.ColorMirror = clNone
+        Status.Appearance.Fill.ColorMirrorTo = clNone
+        Status.Appearance.Fill.GradientType = gtSolid
+        Status.Appearance.Fill.GradientMirrorType = gtSolid
+        Status.Appearance.Fill.BorderColor = clGray
+        Status.Appearance.Fill.Rounding = 0
+        Status.Appearance.Fill.ShadowOffset = 0
+        Status.Appearance.Fill.Glow = gmNone
+        Status.Appearance.Font.Charset = DEFAULT_CHARSET
+        Status.Appearance.Font.Color = clWhite
+        Status.Appearance.Font.Height = -11
+        Status.Appearance.Font.Name = 'Tahoma'
+        Status.Appearance.Font.Style = []
+        BevelColor = clMedGray
+        Caption = 'Auto Calculate'
+        Color = clWhite
+        ParentFont = False
+        TabOrder = 46
+        Version = '2.1.1.5'
+        OnClick = btnAutoCalculateTargetClick
+        TMSStyle = 8
       end
       object editCh13_TX: TEdit
         Left = 505
@@ -10468,6 +10817,7 @@ object teachForm: TteachForm
     Color = clWhite
     ParentFont = False
     TabOrder = 4
+    Visible = False
     Version = '2.1.1.5'
     OnClick = btnKeyLockClick
     TMSStyle = 8
@@ -10546,6 +10896,7 @@ object teachForm: TteachForm
     Color = clWhite
     ParentFont = False
     TabOrder = 7
+    Visible = False
     Version = '2.1.1.5'
     OnClick = AdvSmoothButton1Click
     TMSStyle = 8

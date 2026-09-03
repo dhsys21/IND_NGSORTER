@@ -880,16 +880,19 @@ bool __fastcall Trobostar::rangeCheck(int axnum_id)
 bool __fastcall Trobostar::CheckTrayCenteringMotionInterlock()
 {
 	// Production pickup/insert always requires its tray centering contact.
-	// HOME/WAIT POSITION latches only the trays present when motion starts, so
-	// maintenance HOME with no tray remains possible while a centered tray can
-	// never release its collision bracket during axis motion.
+	// WAIT POSITION keeps the existing centering latch. MANUAL HOME is allowed
+	// without tray centering only when CC-Link confirms X0022 ON (no cell).
 	bool ejectMotion = seq == seqAutoEject ||
 		(seq == seqAutoMove && step.reserve == seqAutoEject);
 	bool insertMotion = seq == seqAutoInsert ||
 		(seq == seqAutoMove && step.reserve == seqAutoInsert);
 	bool waitMotion = seq == seqWait;
 	bool homeMotion = seq == seqHome;
-	bool generalMotion = waitMotion || homeMotion;
+	//* MANUAL HOME INTERLOCK: X0022 ON is the physical no-cell confirmation.
+	bool manualHomeCellClear = homeMotion && MainForm != NULL &&
+		MainForm->equipMode == modeManual && IsCcLinkReady() &&
+		input.GRIPPER1_CELL_DETECT;
+	bool generalMotion = waitMotion || (homeMotion && !manualHomeCellClear);
 	bool dryRunActive = DryRunForm != NULL && DryRunForm->IsRunning();
 	bool directSourceMove = !dryRunActive && seq == seqAutoMove &&
 		step.reserve == seqIdle && activeMoveValid && activeMove.pallet == 1;
