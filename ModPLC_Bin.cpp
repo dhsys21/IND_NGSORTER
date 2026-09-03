@@ -48,6 +48,7 @@ __fastcall TPlcBin::TPlcBin(TComponent* Owner)
 
 	pc_index = PC_INDEX_INTERFACE;
 	lastPcHeartBeatTick = 0;
+	sourceTrayOutInterlockActive = false;
 
     // Init
     memset(plc_Interface_Data, 0, sizeof(unsigned char) * PLC_D_INTERFACE_LEN * 2);
@@ -269,6 +270,14 @@ void __fastcall TPlcBin::Timer_PC_WriteMsgTimer(TObject *Sender)
 					CmdPcHeartBeat(!IsPcHeartBeatOn());
 					lastPcHeartBeatTick = nowTick;
 				}
+
+				// Last-line safety check immediately before the PLC write frame.
+				// D10155 has priority, so an impossible ON/ON buffer is corrected to OFF/ON.
+				if(IsSourceTrayOutOn() && IsSourceCenteringRequestOn()){
+					SetDouble(pc_Interface_Data, PC_D_SOURCE_CENTERING_REQ, 0);
+					if(MainForm != NULL)
+						MainForm->memoMainLineAdd("[PLC SAFETY] ON/ON conflict corrected before PC interface transmission.");
+				}
                 ClientSocket_PC->Socket->SendBuf(&pc_Data, sizeof(pc_Data));        // should comment for emulator
 				ClientSocket_PC->Socket->SendBuf(&pc_Interface_Data, sizeof(pc_Interface_Data));
 
@@ -464,6 +473,23 @@ void __fastcall TPlcBin::SetPcData(int pc_address, int bit_num, bool bValue)
 //---------------------------------------------------------------------------
 void __fastcall TPlcBin::SetPcValue(int pc_address, int value)
 {
+	// FINAL D10154/D10155 MUTUAL EXCLUSION:
+	// Source Tray Out has priority. This also protects direct FormInterface
+	// writes which do not pass through the normal command wrapper functions.
+	if(pc_address == PC_D_SOURCE_TRAY_OUT && value != 0){
+		sourceTrayOutInterlockActive = true;
+		if((int)GetPcValue(PC_D_SOURCE_CENTERING_REQ) != 0){
+			SetDouble(pc_Interface_Data, PC_D_SOURCE_CENTERING_REQ, 0);
+			if(MainForm != NULL)
+				MainForm->memoMainLineAdd("[PLC SAFETY] D10155 ON forced D10154 OFF before transmission.");
+		}
+	}else if(pc_address == PC_D_SOURCE_CENTERING_REQ && value != 0 &&
+		(sourceTrayOutInterlockActive || IsSourceTrayOutOn())){
+		value = 0;
+		if(MainForm != NULL)
+			MainForm->memoMainLineAdd("[PLC SAFETY] D10154 ON blocked while Source Tray Out is active.");
+	}
+
     if((int)GetPcValue(pc_address) == value)
         return;
 
@@ -522,8 +548,34 @@ void __fastcall TPlcBin::CmdPcAutoMode(bool bAuto)
 //---------------------------------------------------------------------------
 void __fastcall TPlcBin::CmdPcError(bool bOn)                  { SetPcValue(PC_D_ERROR, bOn ? 1 : 0); }
 void __fastcall TPlcBin::CmdTrayInReady(bool bOn)              { SetPcValue(PC_D_TRAY_IN_READY, bOn ? 1 : 0); }
-void __fastcall TPlcBin::CmdSourceCenteringRequest(bool bOn)   { SetPcValue(PC_D_SOURCE_CENTERING_REQ, bOn ? 1 : 0); }
-void __fastcall TPlcBin::CmdSourceTrayOut(bool bOn)            { SetPcValue(PC_D_SOURCE_TRAY_OUT, bOn ? 1 : 0); }
+void __fastcall TPlcBin::PrepareSourceTrayOut()
+{
+	// Latch the safety interlock before the timer delay begins. This blocks
+	// every D10154 ON call path, including FMS and mode-change code.
+	sourceTrayOutInterlockActive = true;
+	SetPcValue(PC_D_SOURCE_CENTERING_REQ, 0);
+}
+void __fastcall TPlcBin::CmdSourceCenteringRequest(bool bOn)
+{
+	// D10154 must remain OFF throughout preparation and while D10155 is ON.
+	if(bOn && (sourceTrayOutInterlockActive || IsSourceTrayOutOn())){
+		SetPcValue(PC_D_SOURCE_CENTERING_REQ, 0);
+		return;
+	}
+	SetPcValue(PC_D_SOURCE_CENTERING_REQ, bOn ? 1 : 0);
+}
+void __fastcall TPlcBin::CmdSourceTrayOut(bool bOn)
+{
+	// Clear centering first so the same PC write frame never contains
+	// D10154=ON together with D10155=ON.
+	if(bOn){
+		sourceTrayOutInterlockActive = true;
+		SetPcValue(PC_D_SOURCE_CENTERING_REQ, 0);
+	}else{
+		sourceTrayOutInterlockActive = false;
+	}
+	SetPcValue(PC_D_SOURCE_TRAY_OUT, bOn ? 1 : 0);
+}
 void __fastcall TPlcBin::CmdTargetTrayOut(bool bOn)            { SetPcValue(PC_D_TARGET_TRAY_OUT, bOn ? 1 : 0); }
 void __fastcall TPlcBin::CmdPcEmergency(bool bOn)              { SetPcValue(PC_D_EMERGENCY, bOn ? 1 : 0); }
 void __fastcall TPlcBin::CmdPcDoorOpen(bool bOn)               { SetPcValue(PC_D_DOOR_OPEN, bOn ? 1 : 0); }

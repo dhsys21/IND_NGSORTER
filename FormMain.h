@@ -226,6 +226,8 @@ __published:	// IDE-managed Components
 	TAdvSmoothToggleButton *btnScanSourceTray;
 	TTimer *senTimer;
 	TTimer *mesTimer;
+	//* SOURCE TRAY OUT : D10154 OFF-to-D10155 ON nonblocking delay timer.
+	TTimer *sourceTrayOutTimer;
 	TEdit *target_idEdit;
 	TEdit *src_idEdit;
 	TPanel *psrcReady;
@@ -325,6 +327,7 @@ __published:	// IDE-managed Components
 	void __fastcall btnScanTargetTrayClick(TObject *Sender);
 	void __fastcall senTimerTimer(TObject *Sender);
 	void __fastcall mesTimerTimer(TObject *Sender);
+	void __fastcall sourceTrayOutTimerTimer(TObject *Sender);
 	void __fastcall autoBtnClick(TObject *Sender);
 	void __fastcall manualBtnClick(TObject *Sender);
 	void __fastcall playBtnClick(TObject *Sender);
@@ -463,6 +466,7 @@ private:	// User declarations
 	bool targetTrayInfoPromptActive;
 	AnsiString targetTrayInfoActiveId;
 	bool sourceTrackOutResetArmed;
+	bool sourceTrayOutPending; // D10154 is held OFF while the delayed D10155 request is pending.
 
 	int __fastcall FindList(AnsiString strType);
 	void __fastcall AddList(AnsiString strType);

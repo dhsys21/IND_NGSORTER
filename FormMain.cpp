@@ -140,6 +140,7 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	fmsAlarmRetryRequested = false;
 	fmsAlarmRetryStartTick = 0;
 	sourceTrackOutResetArmed = false;
+	sourceTrayOutPending = false;
 	for(int i = 0; i < 2; ++i) {
 		comBcr[i] = NULL;
 		opcTrayLoadPending[i] = false;
@@ -198,6 +199,8 @@ void __fastcall TMainForm::EndThread()
 	if(senTimer != NULL) senTimer->Enabled = false;
 	if(stepTimer != NULL) stepTimer->Enabled = false;
 	if(mesTimer != NULL) mesTimer->Enabled = false;
+	if(sourceTrayOutTimer != NULL) sourceTrayOutTimer->Enabled = false;
+	sourceTrayOutPending = false;
 	if(gripper != NULL){
 		gripper->stepTimer->Enabled = false;
 		gripper->waitTimer->Enabled = false;
@@ -486,16 +489,23 @@ void __fastcall TMainForm::InitBarcodeAndSmoke()
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::CmdTrayOut(int pos)
 {
-	Sleep(3000);
-
-    if(pos == 0){
+	if(pos == 0){
 		NotifyEquipStatus("IDLE");
 
-		// Legacy SRC_EMP omitted: no corresponding ModPLC_BIN word in D10150-D10158.
-
-		if(PlcBin != NULL) PlcBin->CmdSourceTrayOut(true);
-		if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(false);
+		// SOURCE TRAY OUT SAFETY SEQUENCE:
+		// 1) D10154 Centering Request OFF is transmitted first.
+		// 2) Keep it OFF for 3 seconds without blocking the UI.
+		// 3) The dedicated timer turns D10155 Tray Out ON.
+		sourceTrayOutPending = true;
+		if(PlcBin != NULL) PlcBin->PrepareSourceTrayOut();
+		if(sourceTrayOutTimer != NULL){
+			sourceTrayOutTimer->Enabled = false;
+			sourceTrayOutTimer->Enabled = true;
+		}
+		ProcessStepLog(15, "D10154 Centering Request=OFF / WAIT 3000ms before D10155 Tray Out=ON");
 	}else{
+		// Keep the existing target tray delay; it has no D10154 conflict.
+		Sleep(3000);
 		// Target tray information deletion.
 		// Do not clear on the tray-out command. Wait for D10106 to change
 		// from ON to OFF, which confirms that target centering was released.
@@ -504,6 +514,25 @@ void __fastcall TMainForm::CmdTrayOut(int pos)
 		if(targetTrayInfoActiveId.IsEmpty())
 			targetTrayInfoActiveId = pTrayid_target->Caption.Trim();
 		if(PlcBin != NULL) PlcBin->CmdTargetTrayOut(true);
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::sourceTrayOutTimerTimer(TObject *Sender)
+{
+	if(sourceTrayOutTimer != NULL) sourceTrayOutTimer->Enabled = false;
+	if(!sourceTrayOutPending) return;
+
+	// Reassert D10154 OFF immediately before D10155 ON. ModPLC_BIN also blocks
+	// any later D10154 ON request while D10155 remains ON.
+	if(PlcBin != NULL){
+		PlcBin->PrepareSourceTrayOut();
+		PlcBin->CmdSourceTrayOut(true);
+		sourceTrayOutPending = false;
+		CompleteProcessStep(15, "D10154=OFF maintained 3000ms / D10155 Source Tray Out=ON");
+		memoMainLineAdd("[PLC] SOURCE TRAY OUT sequence complete: D10154=OFF -> 3000ms -> D10155=ON");
+	}else{
+		sourceTrayOutPending = false;
+		ShowCommonError("Source Tray Out failed", "PLC interface is not available. D10155 was not turned ON.");
 	}
 }
 //---------------------------------------------------------------------------
@@ -1423,9 +1452,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 						CompleteProcessStep(14, cycleResponseBypass ? "Cycle test: ProcessEndResponse reset bypassed" : "ProcessEndResponse returned OFF");
 						BeginProcessStep(15, "D10155 Source Tray Out request");
 						CmdTrayOut(0);
-						CompleteProcessStep(15, "D10155=ON");
-						memoMainLineAdd("[FMS OPC UA] ProcessEnd four-phase handshake complete.");
-						memoMainLineAdd("[FMS OPC UA] Source cycle complete; waiting for the next Source TrayLoad.");
+						memoMainLineAdd("[FMS OPC UA] ProcessEnd handshake complete; Source Tray Out safety delay is running.");
 					}else{
 						ProcessStepLog(14, "ERROR - ProcessEndResponse=2 / clear complete");
 						ShowFmsAlarm(fmsAlarmProcessEnd, "Source ProcessEnd failed",
@@ -2658,7 +2685,13 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		PlcBin->CmdTrayInReady(m_ServoHome);
 
 		if(pcAutoMode){
-			if(sourceTrayIn && chkBypass->Checked){
+			bool sourceTrayOut = PlcBin->IsSourceTrayOutOn();
+			// During D10155 Tray Out, D10103 can remain ON until the tray has
+			// physically left. Never interpret that overlap as a new centering request.
+			if(sourceTrayOutPending || sourceTrayOut){
+				PlcBin->CmdSourceCenteringRequest(false);
+			}
+			else if(sourceTrayIn && chkBypass->Checked){
 				// Tray Out itself is issued by the automatic sequence.
 				PlcBin->CmdSourceCenteringRequest(false);
 			}
@@ -2671,8 +2704,14 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		}
 
 		// D10103 OFF completes D10155.
-		if(!sourceTrayIn)
+		if(!sourceTrayIn){
+			// A tray-absent confirmation cancels a not-yet-issued delayed request
+			// and releases the D10154 software interlock safely.
+			sourceTrayOutPending = false;
+			if(sourceTrayOutTimer != NULL) sourceTrayOutTimer->Enabled = false;
+			PlcBin->CmdSourceCenteringRequest(false);
 			PlcBin->CmdSourceTrayOut(false);
+		}
 		if(!targetTrayIn)
 			PlcBin->CmdTargetTrayOut(false);
 

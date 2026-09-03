@@ -6933,4 +6933,11 @@ object MainForm: TMainForm
     Left = 416
     Top = 224
   end
+  object sourceTrayOutTimer: TTimer
+    Enabled = False
+    Interval = 3000
+    OnTimer = sourceTrayOutTimerTimer
+    Left = 488
+    Top = 224
+  end
 end

@@ -146,6 +146,7 @@ private:	// User declarations
     AnsiString pc_Read, pc_Read_Temp;
 	int pc_ReadCount, pc_index;
 	DWORD lastPcHeartBeatTick; // D10150 changes once every 1 second; communication remains 200ms.
+	bool sourceTrayOutInterlockActive; // Blocks every D10154 ON path throughout the Tray Out sequence.
     void __fastcall PC_Initialization();
     void __fastcall PC_DataChange(int subCommand, int address, int devCode, int devLen);
 public:		// User declarations
@@ -196,6 +197,7 @@ public:		// User declarations
     void __fastcall CmdPcAutoMode(bool bAuto);
     void __fastcall CmdPcError(bool bOn);
     void __fastcall CmdTrayInReady(bool bOn);
+	void __fastcall PrepareSourceTrayOut();
     void __fastcall CmdSourceCenteringRequest(bool bOn);
     void __fastcall CmdSourceTrayOut(bool bOn);
     void __fastcall CmdTargetTrayOut(bool bOn);
