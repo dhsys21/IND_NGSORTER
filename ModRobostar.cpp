@@ -1768,6 +1768,12 @@ void __fastcall Trobostar::req_AutoEject(int pallet, int tool, int channel, int 
 		", X/Y/Z=" + IntToStr((__int64)activeTarget[Axis_x]) + "/" +
 		IntToStr((__int64)activeTarget[Axis_y]) + "/" + IntToStr((__int64)activeTarget[Axis_z]));
 	InitSequence(seqAutoMove, seqAutoEject);
+	if(BaseForm != NULL && BaseForm->config.optimizeSequenceDelay &&
+		CheckTrayCenteringMotionInterlock()){
+		MainForm->memoRobostarLineAdd(
+			"[FAST OPTION] Start Source move immediately in request call");
+		AutoMove();
+	}
 }
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::req_AutoInsert(int pallet, int tool, int channel, int cnt, int type)
@@ -1795,6 +1801,12 @@ void __fastcall Trobostar::req_AutoInsert(int pallet, int tool, int channel, int
 		", X/Y/Z=" + IntToStr((__int64)activeTarget[Axis_x]) + "/" +
 		IntToStr((__int64)activeTarget[Axis_y]) + "/" + IntToStr((__int64)activeTarget[Axis_z]));
 	InitSequence(seqAutoMove, seqAutoInsert);
+	if(BaseForm != NULL && BaseForm->config.optimizeSequenceDelay &&
+		CheckTrayCenteringMotionInterlock()){
+		MainForm->memoRobostarLineAdd(
+			"[FAST OPTION] Start Target move immediately in request call");
+		AutoMove();
+	}
 }
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::req_WaitPosition()

@@ -85,10 +85,15 @@ private:	// User declarations
 		int peakLoad[3];
 	} TRANSFER_RESULT;
 	TRANSFER_RESULT transferResult;
+	TRANSFER_RESULT pendingTransferResult;
+	bool pendingTransferResultValid;
+	bool deferTargetReservationSave;
 	void __fastcall ResetTransferResult();
 	void __fastcall BeginTransferResult(int toolIndex);
 	void __fastcall StartTransferPhase(TRANSFER_PHASE phase);
 	void __fastcall UpdateTransferResult();
+	void __fastcall SaveTransferResultRecord(const TRANSFER_RESULT &result, bool waitBypassed);
+	void __fastcall SavePendingTransferResult(bool waitBypassed);
 	void __fastcall SaveTransferResult(bool waitBypassed);
 	void __fastcall Initialize();
 	void __fastcall Sorting();

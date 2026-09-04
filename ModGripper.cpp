@@ -16,6 +16,8 @@ __fastcall Tgripper::Tgripper(TComponent* Owner)
 	ccLinkNotReadyReported = false;
 	tool[gripCnt].disable = false;	// 7번 그리퍼는 항상 false로 마지막 지점 체크로 사용한다.
 	pauseStatus = false;
+	pendingTransferResultValid = false;
+	deferTargetReservationSave = false;
 	ResetTransferResult();
 }
 //---------------------------------------------------------------------------
@@ -108,6 +110,28 @@ void __fastcall Tgripper::UpdateTransferResult()
 	}
 }
 //---------------------------------------------------------------------------
+void __fastcall Tgripper::SaveTransferResultRecord(const TRANSFER_RESULT &result,
+	bool waitBypassed)
+{
+	if(!result.active || MainForm == NULL) return;
+
+	MainForm->SaveCellTransferResult(
+		result.sourceTrayId, result.sourceChannel,
+		result.targetTrayId, result.targetChannel,
+		result.moveSourceChMs, result.ejectMs,
+		result.moveTargetChMs, result.insertMs,
+		waitBypassed ? 0 : result.moveWaitingMs,
+		result.peakLoad[0], result.peakLoad[1], result.peakLoad[2],
+		waitBypassed ? "BYPASS" : "WAIT_POSITION");
+}
+//---------------------------------------------------------------------------
+void __fastcall Tgripper::SavePendingTransferResult(bool waitBypassed)
+{
+	if(!pendingTransferResultValid) return;
+	SaveTransferResultRecord(pendingTransferResult, waitBypassed);
+	pendingTransferResultValid = false;
+}
+//---------------------------------------------------------------------------
 void __fastcall Tgripper::SaveTransferResult(bool waitBypassed)
 {
 	if(!transferResult.active || MainForm == NULL) return;
@@ -115,14 +139,7 @@ void __fastcall Tgripper::SaveTransferResult(bool waitBypassed)
 	UpdateTransferResult();
 	StartTransferPhase(transferPhaseNone);
 	if(waitBypassed) transferResult.moveWaitingMs = 0;
-	MainForm->SaveCellTransferResult(
-		transferResult.sourceTrayId, transferResult.sourceChannel,
-		transferResult.targetTrayId, transferResult.targetChannel,
-		transferResult.moveSourceChMs, transferResult.ejectMs,
-		transferResult.moveTargetChMs, transferResult.insertMs,
-		transferResult.moveWaitingMs,
-		transferResult.peakLoad[0], transferResult.peakLoad[1],
-		transferResult.peakLoad[2], waitBypassed ? "BYPASS" : "WAIT_POSITION");
+	SaveTransferResultRecord(transferResult, waitBypassed);
 	ResetTransferResult();
 }
 //---------------------------------------------------------------------------
@@ -418,7 +435,8 @@ void __fastcall Tgripper::Initialize()
                                         MainForm->DisplayTargetCell(step.chCnt, tch);	// 화면 show
                                         MainForm->DisplayTargetCellInfo(step.chCnt, tch);
                                         //* 불량트레이 관리
-                                        MainForm->setTrayInfo(1); // Persist PICK=R until insert completion.
+                                        if(!deferTargetReservationSave)
+                                            MainForm->setTrayInfo(1); // Persist PICK=R until insert completion.
                                         MainForm->memoGripperLineAdd(
                                             "[TARGET CELL] RESERVATION CREATE Gripper=" + IntToStr(step.chCnt + 1) +
                                             " SourceCh=" + MainForm->psort_ch[i]->Caption +
@@ -597,23 +615,34 @@ void __fastcall Tgripper::StartNextCycleOrWait()
 		"NO NEXT NG / move to WAIT POSITION"));
 	if(directNextNg)
 		MainForm->memoGripperLineAdd("[CYCLE] NEXT NG FOUND -> BYPASS WAIT POSITION");
-	MainForm->NotifyIdMatching_target("1");
 	if(directNextNg){
-		SaveTransferResult(true);
+		// Snapshot the completed timing row in memory. Disk output is deferred until
+		// after the next X/Y command so result saving cannot hold up motion.
+		UpdateTransferResult();
+		StartTransferPhase(transferPhaseNone);
+		transferResult.moveWaitingMs = 0;
+		pendingTransferResult = transferResult;
+		pendingTransferResultValid = transferResult.active;
+		ResetTransferResult();
 		MainForm->CompleteProcessStep(13,
 			"NEXT NG found / Next Step=07 / WAIT POSITION bypassed");
 		// Keep Z at zero and let AutoEject move X/Y directly from the
-		// Target tray to the next Source NG channel.
+		// Target tray to the next Source NG channel. The reservation snapshot is
+		// persisted immediately after the motion command.
+		deferTargetReservationSave = true;
 		InitSequence(seqInit, seqSorting);
 		if(BaseForm != NULL && BaseForm->config.optimizeSequenceDelay)
 			Initialize();
+		deferTargetReservationSave = false;
 	}else{
 		MainForm->memoGripperLineAdd("[Insert complete] WAIT POSITION MOVE START");
 		StartTransferPhase(transferPhaseMoveWaiting);
 		robostar->req_WaitPosition();
 		step.step = 6;
 	}
+
 }
+
 //---------------------------------------------------------------------------
 void __fastcall Tgripper::Inserting()
 {
@@ -680,7 +709,15 @@ void __fastcall Tgripper::Inserting()
 			}
 			break;
 		case 2:	// Insert motion completes only after Z reaches zero.
+		{
 			if(robostar->seq == seqAutoInsertComplete){
+				DWORD transitionStartTick = GetTickCount();
+				DWORD nextMoveCommandElapsed = 0;
+				int reportCount = 0;
+				int reportSourceChannel[gripCnt] = {0};
+				int reportTargetChannel[gripCnt] = {0};
+				AnsiString reportCellId[gripCnt];
+
 				MainForm->memoGripperLineAdd("[Insert step 2] Z UP complete / Insert complete");
 				for(int i=insert.gripper; i<insert.gripper + insert.conCnt; ++i){
 					int toolIndex = i - 1;
@@ -692,17 +729,47 @@ void __fastcall Tgripper::Inserting()
 						" SourceCh=" + tool[toolIndex].source_ch +
 						" TargetCh=" + tool[toolIndex].target_ch +
 						" CellId=" + MainForm->tray_target.SLOT_ID[targetIndex]);
-					// External FMS reporting starts only after Z UP completion.
-					MainForm->ReportCellTrackOut(sourceIndex + 1, targetIndex + 1,
-						MainForm->tray_target.SLOT_ID[targetIndex]);
+					if(reportCount < gripCnt){
+						reportSourceChannel[reportCount] = sourceIndex + 1;
+						reportTargetChannel[reportCount] = targetIndex + 1;
+						reportCellId[reportCount] = MainForm->tray_target.SLOT_ID[targetIndex];
+						reportCount++;
+					}
+				}
+
+				// Start the next safe motion first. Suppress only the expensive 1,000-line
+				// on-screen log insertion during this critical path; file logs remain.
+				MainForm->memoGripperLineAdd(
+					"[FAST TRANSITION] Insert complete / start next move before FMS report");
+				MainForm->SetStatusLogDisplaySuppressed(true);
+				try{
+					StartNextCycleOrWait();
+					nextMoveCommandElapsed = GetTickCount() - transitionStartTick;
+				}
+				__finally{
+					MainForm->SetStatusLogDisplaySuppressed(false);
 				}
 				MainForm->memoGripperLineAdd(
-					"[FAST TRANSITION] Insert complete / decide next move in same gripper scan");
-				StartNextCycleOrWait();
+					"[FAST TRANSITION] Next move command elapsed=" +
+					IntToStr((int)nextMoveCommandElapsed) + " ms");
+
+				// These disk/network operations now occur after X/Y has started.
+				SavePendingTransferResult(true);
+				MainForm->NotifyIdMatching_target("1");
+
+				// External FMS reporting remains after physical Z UP completion. Its
+				// CellUnloadCompleteResponse is still checked asynchronously.
+				for(int i = 0; i < reportCount; ++i)
+					MainForm->ReportCellTrackOut(reportSourceChannel[i],
+						reportTargetChannel[i], reportCellId[i]);
+				MainForm->memoGripperLineAdd(
+					"[POST INSERT] FMS report queued after motion start / total=" +
+					IntToStr((int)(GetTickCount() - transitionStartTick)) + " ms");
 			}else{
 				MainForm->memoGripperLineAdd("[Insert step 2] " + BaseForm->GetLangStr("MSG_INSERTING"));
 			}
 			break;
+		}
 		case 3:
 			MainForm->memoGripperLineAdd("[Insert step 3] " + BaseForm->GetLangStr("MSG_INSERT_CHECK"));
 			InitSequence(seqInserting);

@@ -23,6 +23,28 @@ void __fastcall TMainForm::WriteProgLog(AnsiString msg)
 	FileClose(file_handle);
 }
 //---------------------------------------------------------------------------
+void __fastcall TMainForm::WriteProgLogBatch(const std::deque<AnsiString> &messages)
+{
+	if(messages.empty()) return;
+
+	AnsiString fileName = (AnsiString)PROG_LOG + "STATUS_" +
+		Now().FormatString("yymmdd") + ".log";
+	int fileHandle = FileExists(fileName) ?
+		FileOpen(fileName, fmOpenWrite) : FileCreate(fileName);
+	if(fileHandle < 0) return;
+
+	FileSeek(fileHandle, 0, 2);
+	AnsiString rows;
+	for(std::deque<AnsiString>::const_iterator it = messages.begin();
+		it != messages.end(); ++it){
+		rows += Now().FormatString("yyyy-mm-dd hh:nn:ss ") + "," +
+			pTrayid_source2->Caption + "," + pTrayid_target2->Caption + "," +
+			*it + "\r\n";
+	}
+	if(!rows.IsEmpty()) FileWrite(fileHandle, rows.c_str(), rows.Length());
+	FileClose(fileHandle);
+}
+//---------------------------------------------------------------------------
 void __fastcall TMainForm::WriteOpcUaLog(AnsiString Type, AnsiString Msg, bool bDisplay)
 {
 	AnsiString str;

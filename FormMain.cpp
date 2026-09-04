@@ -57,6 +57,7 @@ static AnsiString RobotSequenceText(int value)
 __fastcall TMainForm::TMainForm(TComponent* Owner)
 	: TForm(Owner)
 {
+	statusLogDisplaySuppressed = false;
 	this->Parent = BaseForm;
 	this->Visible = true;
 	this->Left = 15;
@@ -2887,6 +2888,10 @@ void __fastcall TMainForm::AddStatusLog(AnsiString source, AnsiString msg)
 {
 	AnsiString logMsg = "[" + source + "] " + msg;
 
+	if(statusLogDisplaySuppressed){
+		deferredStatusLogs.push_back(logMsg);
+		return;
+	}
 	WriteProgLog(logMsg);
 
 	if(memoLog == NULL)
@@ -2908,6 +2913,23 @@ void __fastcall TMainForm::AddStatusLog(AnsiString source, AnsiString msg)
 	memoLog->SelStart = 0;
 	memoLog->SelLength = 0;
 	memoLog->Perform(EM_SCROLLCARET, 0, 0);
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::SetStatusLogDisplaySuppressed(bool suppressed)
+{
+	if(statusLogDisplaySuppressed == suppressed) return;
+
+	if(suppressed){
+		deferredStatusLogs.clear();
+		statusLogDisplaySuppressed = true;
+		return;
+	}
+
+	statusLogDisplaySuppressed = false;
+	if(!deferredStatusLogs.empty()){
+		WriteProgLogBatch(deferredStatusLogs);
+		deferredStatusLogs.clear();
+	}
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::memoMainLineAdd(AnsiString msg)
