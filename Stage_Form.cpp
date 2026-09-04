@@ -567,38 +567,226 @@ static AnsiString CsvTransferField(const AnsiString &value)
 	return "\"" + escaped + "\"";
 }
 //---------------------------------------------------------------------------
-bool __fastcall TMainForm::SaveCellTransferResult(AnsiString sourceTrayId,
-	int sourceChannel, AnsiString targetTrayId, int targetChannel,
-	DWORD ejectMs, DWORD moveMs, DWORD insertMs, DWORD waitMs,
-	int loadX, int loadY, int loadZ, AnsiString waitMode)
+static AnsiString TrayResultTimeText(const TDateTime &value, bool hasValue)
 {
-	//* CELL TRANSFER RESULT : Daily folder / one CSV per Source tray.
-	TDateTime savedAt = Now();
-	AnsiString dateText = FormatDateTime("yyyymmdd", savedAt);
-	AnsiString dateFolder = (AnsiString)TRAY_PATH + dateText + "\\";
+	if(!hasValue) return "";
+	return AnsiString(FormatDateTime("yyyy-mm-dd hh:nn:ss.zzz", value));
+}
+//---------------------------------------------------------------------------
+static AnsiString PadTrayDuration(__int64 value, int width)
+{
+	AnsiString text = IntToStr(value);
+	while(text.Length() < width) text = "0" + text;
+	return text;
+}
+//---------------------------------------------------------------------------
+static AnsiString TrayResultDurationText(const TDateTime &startTime,
+	const TDateTime &endTime, bool hasValue)
+{
+	if(!hasValue) return "";
+
+	__int64 totalMs = MilliSecondsBetween(endTime, startTime);
+	__int64 hours = totalMs / 3600000;
+	__int64 minutes = (totalMs / 60000) % 60;
+	__int64 seconds = (totalMs / 1000) % 60;
+	__int64 milliseconds = totalMs % 1000;
+	return PadTrayDuration(hours, 2) + ":" + PadTrayDuration(minutes, 2) + ":" +
+		PadTrayDuration(seconds, 2) + "." + PadTrayDuration(milliseconds, 3);
+}
+//---------------------------------------------------------------------------
+AnsiString __fastcall TMainForm::GetSourceTrayResultFileName()
+{
+	if(!sourceTrayResultFileName.IsEmpty()) return sourceTrayResultFileName;
+	if(sourceTrayResultId.Trim().IsEmpty()) return "";
+
+	TDateTime fileTime = sourceTrayInTimeSet ? sourceTrayInTime : Now();
+	AnsiString dateText = FormatDateTime("yyyymmdd", fileTime);
+	sourceTrayResultFileName = (AnsiString)TRAY_PATH + dateText + "\\" +
+		dateText + "_" + MakeSafeTrayFileId(sourceTrayResultId) + ".csv";
+	return sourceTrayResultFileName;
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMainForm::WriteSourceTrayResultSummary()
+{
+	if(!sourceTrayResultActive || sourceTrayResultId.Trim().IsEmpty()) return false;
+
+	AnsiString fileName = GetSourceTrayResultFileName();
+	AnsiString dateFolder = ExtractFileDir(fileName) + "\\";
 	if(!DirectoryExists((AnsiString)TRAY_PATH) && !ForceDirectories((AnsiString)TRAY_PATH)){
-		memoMainLineAdd("[TRANSFER RESULT] ERROR - cannot create TRAY folder: " + AnsiString(TRAY_PATH));
+		memoMainLineAdd("[TRAY RESULT] ERROR - cannot create TRAY folder: " + AnsiString(TRAY_PATH));
 		return false;
 	}
 	if(!DirectoryExists(dateFolder) && !ForceDirectories(dateFolder)){
-		memoMainLineAdd("[TRANSFER RESULT] ERROR - cannot create date folder: " + dateFolder);
+		memoMainLineAdd("[TRAY RESULT] ERROR - cannot create date folder: " + dateFolder);
 		return false;
 	}
 
-	AnsiString fileName = dateFolder + dateText + "_" +
-		MakeSafeTrayFileId(sourceTrayId) + ".csv";
-	DWORD totalMs = ejectMs + moveMs + insertMs + waitMs;
+	AnsiString header = "Timestamp,SourceTrayId,SourceChannel,TargetTrayId,TargetChannel,"
+		"MoveSourceChMs,EjectMs,MoveTargetChMs,InsertMs,MoveWaitingMs,TotalMs,"
+		"PeakLoadXPercent,PeakLoadYPercent,PeakLoadZPercent,MoveWaitingMode\r\n";
+	AnsiString resultBody = header;
+	TFileStream *input = NULL;
+	try{
+		if(FileExists(fileName)){
+			input = new TFileStream(fileName, fmOpenRead | fmShareDenyNone);
+			int size = (int)input->Size;
+			if(size > 0){
+				AnsiString existing;
+				existing.SetLength(size);
+				input->ReadBuffer(&existing[1], size);
+				AnsiString legacyHeader =
+					"Timestamp,SourceTrayId,SourceChannel,TargetTrayId,TargetChannel,"
+					"EjectMs,MoveMs,InsertMs,WaitMs,TotalMs,PeakLoadXPercent,"
+					"PeakLoadYPercent,PeakLoadZPercent,WaitMode\r\n";
+				int headerPos = existing.Pos(header);
+				int legacyHeaderPos = existing.Pos(legacyHeader);
+				if(legacyHeaderPos > 0 && (headerPos <= 0 || legacyHeaderPos < headerPos)){
+					resultBody = existing.SubString(legacyHeaderPos,
+						existing.Length() - legacyHeaderPos + 1);
+					if(headerPos <= 0)
+						resultBody += "\r\n" + header;
+				}else if(headerPos > 0)
+					resultBody = existing.SubString(headerPos, existing.Length() - headerPos + 1);
+				else
+					resultBody = header + existing;
+			}
+			delete input;
+			input = NULL;
+		}
+	}catch(Exception &e){
+		if(input != NULL) delete input;
+		memoMainLineAdd("[TRAY RESULT] ERROR - " + AnsiString(e.Message));
+		return false;
+	}
+
+	AnsiString totalTime = TrayResultDurationText(sourceTrayInTime, sourceTrayOutTime,
+		sourceTrayInTimeSet && sourceTrayOutTimeSet);
+	AnsiString summary =
+		"Tray ID," + CsvTransferField(sourceTrayResultId) + "\r\n" +
+		"Tray In Time," + CsvTransferField(TrayResultTimeText(sourceTrayInTime, sourceTrayInTimeSet)) + "\r\n" +
+		"Sort Start Time," + CsvTransferField(TrayResultTimeText(sourceSortStartTime, sourceSortStartTimeSet)) + "\r\n" +
+		"Sort End Time," + CsvTransferField(TrayResultTimeText(sourceSortEndTime, sourceSortEndTimeSet)) + "\r\n" +
+		"Tray Out Time," + CsvTransferField(TrayResultTimeText(sourceTrayOutTime, sourceTrayOutTimeSet)) + "\r\n" +
+		"Total Time," + CsvTransferField(totalTime) + "\r\n\r\n";
+
+	AnsiString temporaryPath = fileName + ".tmp";
+	TFileStream *output = NULL;
+	try{
+		output = new TFileStream(temporaryPath, fmCreate);
+		AnsiString content = summary + resultBody;
+		if(content.Length() > 0)
+			output->WriteBuffer(content.c_str(), content.Length());
+		delete output;
+		output = NULL;
+		if(!MoveFileExW(UnicodeString(temporaryPath).c_str(), UnicodeString(fileName).c_str(),
+			MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
+		{
+			int errorCode = GetLastError();
+			DeleteFile(temporaryPath);
+			throw Exception("Tray result replacement failed: " + SysErrorMessage(errorCode));
+		}
+	}catch(Exception &e){
+		if(output != NULL) delete output;
+		DeleteFile(temporaryPath);
+		memoMainLineAdd("[TRAY RESULT] ERROR - " + AnsiString(e.Message));
+		return false;
+	}
+	return true;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::CaptureSourceTrayInTime()
+{
+	sourceTrayResultActive = false;
+	sourceTrayResultId = "";
+	sourceTrayResultFileName = "";
+	sourceTrayInTime = Now();
+	sourceTrayInTimeSet = true;
+	sourceSortStartTimeSet = false;
+	sourceSortEndTimeSet = false;
+	sourceTrayOutTimeSet = false;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::BeginSourceTrayResult(AnsiString sourceTrayId)
+{
+	AnsiString newTrayId = sourceTrayId.Trim();
+	if(newTrayId.IsEmpty()) return;
+	if(sourceTrayResultActive && sourceTrayResultId == newTrayId) return;
+
+	bool capturedTrayIn = !sourceTrayResultActive && sourceTrayResultId.IsEmpty() &&
+		sourceTrayInTimeSet;
+	sourceTrayResultId = newTrayId;
+	sourceTrayResultFileName = "";
+	sourceTrayResultActive = true;
+	if(!capturedTrayIn){
+		sourceTrayInTime = Now();
+		sourceTrayInTimeSet = true;
+	}
+	sourceSortStartTimeSet = false;
+	sourceSortEndTimeSet = false;
+	sourceTrayOutTimeSet = false;
+	WriteSourceTrayResultSummary();
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::MarkSourceSortStart()
+{
+	if(!sourceTrayResultActive)
+		BeginSourceTrayResult(pTrayid_source->Caption);
+	if(!sourceTrayResultActive || sourceSortStartTimeSet) return;
+	sourceSortStartTime = Now();
+	sourceSortStartTimeSet = true;
+	WriteSourceTrayResultSummary();
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::MarkSourceSortEnd()
+{
+	if(!sourceTrayResultActive || sourceSortEndTimeSet) return;
+	sourceSortEndTime = Now();
+	sourceSortEndTimeSet = true;
+	WriteSourceTrayResultSummary();
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::FinalizeSourceTrayResult()
+{
+	if(!sourceTrayResultActive || sourceTrayOutTimeSet) return;
+	if(!sourceSortEndTimeSet){
+		sourceSortEndTime = Now();
+		sourceSortEndTimeSet = true;
+	}
+	sourceTrayOutTime = Now();
+	sourceTrayOutTimeSet = true;
+	if(WriteSourceTrayResultSummary())
+		memoMainLineAdd("[TRAY RESULT] SUMMARY SAVED File=" + GetSourceTrayResultFileName());
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMainForm::SaveCellTransferResult(AnsiString sourceTrayId,
+	int sourceChannel, AnsiString targetTrayId, int targetChannel,
+	DWORD moveSourceChMs, DWORD ejectMs, DWORD moveTargetChMs,
+	DWORD insertMs, DWORD moveWaitingMs, int loadX, int loadY, int loadZ,
+	AnsiString moveWaitingMode)
+{
+	//* CELL TRANSFER RESULT : Daily folder / one CSV per Source tray.
+	TDateTime savedAt = Now();
+	if(!sourceTrayResultActive ||
+		!SameText(sourceTrayResultId.Trim(), sourceTrayId.Trim()))
+	{
+		BeginSourceTrayResult(sourceTrayId);
+	}
+	AnsiString fileName = GetSourceTrayResultFileName();
+	if(fileName.IsEmpty() || (!FileExists(fileName) && !WriteSourceTrayResultSummary()))
+		return false;
+	DWORD totalMs = moveSourceChMs + ejectMs + moveTargetChMs + insertMs +
+		moveWaitingMs;
 	AnsiString row = CsvTransferField(FormatDateTime("yyyy-mm-dd hh:nn:ss.zzz", savedAt)) + "," +
 		CsvTransferField(sourceTrayId) + "," + IntToStr(sourceChannel) + "," +
 		CsvTransferField(targetTrayId) + "," + IntToStr(targetChannel) + "," +
-		IntToStr((__int64)ejectMs) + "," + IntToStr((__int64)moveMs) + "," +
-		IntToStr((__int64)insertMs) + "," + IntToStr((__int64)waitMs) + "," +
-		IntToStr((__int64)totalMs) + "," + IntToStr(loadX) + "," +
-		IntToStr(loadY) + "," + IntToStr(loadZ) + "," +
-		CsvTransferField(waitMode) + "\r\n";
+		IntToStr((__int64)moveSourceChMs) + "," + IntToStr((__int64)ejectMs) + "," +
+		IntToStr((__int64)moveTargetChMs) + "," + IntToStr((__int64)insertMs) + "," +
+		IntToStr((__int64)moveWaitingMs) + "," + IntToStr((__int64)totalMs) + "," +
+		IntToStr(loadX) + "," + IntToStr(loadY) + "," + IntToStr(loadZ) + "," +
+		CsvTransferField(moveWaitingMode) + "\r\n";
 	AnsiString header = "Timestamp,SourceTrayId,SourceChannel,TargetTrayId,TargetChannel,"
-		"EjectMs,MoveMs,InsertMs,WaitMs,TotalMs,PeakLoadXPercent,"
-		"PeakLoadYPercent,PeakLoadZPercent,WaitMode\r\n";
+		"MoveSourceChMs,EjectMs,MoveTargetChMs,InsertMs,MoveWaitingMs,TotalMs,"
+		"PeakLoadXPercent,PeakLoadYPercent,PeakLoadZPercent,MoveWaitingMode\r\n";
 
 	TFileStream *stream = NULL;
 	try{
@@ -618,9 +806,15 @@ bool __fastcall TMainForm::SaveCellTransferResult(AnsiString sourceTrayId,
 	}
 
 	memoMainLineAdd("[TRANSFER RESULT] SAVED SourceCh=" + IntToStr(sourceChannel) +
-		" TargetCh=" + IntToStr(targetChannel) + " TotalMs=" +
-		IntToStr((__int64)totalMs) + " PeakLoad(X/Y/Z)=" + IntToStr(loadX) + "/" +
-		IntToStr(loadY) + "/" + IntToStr(loadZ) + " File=" + fileName);
+		" TargetCh=" + IntToStr(targetChannel) +
+		" MoveSourceChMs=" + IntToStr((__int64)moveSourceChMs) +
+		" EjectMs=" + IntToStr((__int64)ejectMs) +
+		" MoveTargetChMs=" + IntToStr((__int64)moveTargetChMs) +
+		" InsertMs=" + IntToStr((__int64)insertMs) +
+		" MoveWaitingMs=" + IntToStr((__int64)moveWaitingMs) +
+		" TotalMs=" + IntToStr((__int64)totalMs) +
+		" PeakLoad(X/Y/Z)=" + IntToStr(loadX) + "/" + IntToStr(loadY) + "/" +
+		IntToStr(loadZ) + " File=" + fileName);
 	return true;
 }
 //---------------------------------------------------------------------------

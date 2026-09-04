@@ -67,16 +67,17 @@ private:	// User declarations
 		transferPhaseEject,
 		transferPhaseMoveTarget,
 		transferPhaseInsert,
-		transferPhaseWait
+		transferPhaseMoveWaiting
 	} TRANSFER_PHASE;
 	typedef struct{
 		bool active;
 		TRANSFER_PHASE phase;
 		DWORD phaseStartTick;
-		DWORD moveMs;
+		DWORD moveSourceChMs;
 		DWORD ejectMs;
+		DWORD moveTargetChMs;
 		DWORD insertMs;
-		DWORD waitMs;
+		DWORD moveWaitingMs;
 		int sourceChannel;
 		int targetChannel;
 		AnsiString sourceTrayId;
@@ -92,6 +93,7 @@ private:	// User declarations
 	void __fastcall Initialize();
 	void __fastcall Sorting();
 	void __fastcall Inserting();
+	void __fastcall StartNextCycleOrWait();
 
 	WORK eject;
 	WORK insert;

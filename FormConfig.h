@@ -36,6 +36,8 @@ __published:	// IDE-managed Components
 	TPanel *Panel6;
 	TGroupBox *GroupBox2;
 	TCheckBox *chkZAxisUp;
+	TCheckBox *chkOptimizeSequenceDelay;
+	TCheckBox *chkSkipGripStabilization;
 	TGroupBox *GroupBox4;
 	TEdit *editPlcPort1;
 	TAdvSmoothButton *btnConPLC;

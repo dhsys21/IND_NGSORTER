@@ -141,6 +141,13 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	fmsAlarmRetryStartTick = 0;
 	sourceTrackOutResetArmed = false;
 	sourceTrayOutPending = false;
+	sourceTrayResultActive = false;
+	sourceTrayResultId = "";
+	sourceTrayResultFileName = "";
+	sourceTrayInTimeSet = false;
+	sourceSortStartTimeSet = false;
+	sourceSortEndTimeSet = false;
+	sourceTrayOutTimeSet = false;
 	for(int i = 0; i < 2; ++i) {
 		comBcr[i] = NULL;
 		opcTrayLoadPending[i] = false;
@@ -528,6 +535,14 @@ void __fastcall TMainForm::sourceTrayOutTimerTimer(TObject *Sender)
 		PlcBin->PrepareSourceTrayOut();
 		PlcBin->CmdSourceTrayOut(true);
 		sourceTrayOutPending = false;
+		FinalizeSourceTrayResult();
+		// Location2 remains physically centered across Source tray cycles, but its
+		// TrackIn snapshot is valid for only one Source process. Force the next
+		// Source cycle to request and apply Location2 TrackInCellInformation again.
+		opcTrayDisplayed[1] = false;
+		opcTrayLoaded[1] = false;
+		pwork2->Color = clSilver;
+		memoMainLineAdd("[FMS OPC UA] Location2 snapshot invalidated after Source Tray Out; reload required for next Source tray.");
 		CompleteProcessStep(15, "D10154=OFF maintained 3000ms / D10155 Source Tray Out=ON");
 		memoMainLineAdd("[PLC] SOURCE TRAY OUT sequence complete: D10154=OFF -> 3000ms -> D10155=ON");
 	}else{
@@ -1402,6 +1417,8 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 					ShowCommonError("Sorting initialization failed",
 						"ProcessStart completed, but the Gripper initialization request was not accepted.");
 				}
+				else
+					MarkSourceSortStart();
 			}
 		}
 
@@ -2006,6 +2023,7 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 		switch(step[0].step){
 			case 0:
 				if(IsSourceTrayInSignal()){
+					CaptureSourceTrayInTime();
 					BeginProcessStep(1, "Tray Exist=ON / waiting barcode");
 					NotifyEquipStatus("PROCESS");
 					if(chkBypass->Checked == false){

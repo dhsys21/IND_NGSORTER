@@ -20,9 +20,13 @@ __published:	// IDE-managed Components
 	TLabel *lblStartChannel;
 	TLabel *lblEndChannel;
 	TLabel *lblSpeed;
+	TLabel *lblAcceleration;
+	TLabel *lblDeceleration;
 	TEdit *editStartChannel;
 	TEdit *editEndChannel;
 	TEdit *editSpeed;
+	TEdit *editAcceleration;
+	TEdit *editDeceleration;
 	TButton *btnStart;
 	TButton *btnStop;
 	TButton *btnWaitPosition;

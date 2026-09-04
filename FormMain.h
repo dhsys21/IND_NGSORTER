@@ -467,6 +467,20 @@ private:	// User declarations
 	AnsiString targetTrayInfoActiveId;
 	bool sourceTrackOutResetArmed;
 	bool sourceTrayOutPending; // D10154 is held OFF while the delayed D10155 request is pending.
+	//* SOURCE TRAY RESULT SUMMARY : Lines written above the transfer CSV title.
+	bool sourceTrayResultActive;
+	AnsiString sourceTrayResultId;
+	AnsiString sourceTrayResultFileName;
+	TDateTime sourceTrayInTime;
+	TDateTime sourceSortStartTime;
+	TDateTime sourceSortEndTime;
+	TDateTime sourceTrayOutTime;
+	bool sourceTrayInTimeSet;
+	bool sourceSortStartTimeSet;
+	bool sourceSortEndTimeSet;
+	bool sourceTrayOutTimeSet;
+	AnsiString __fastcall GetSourceTrayResultFileName();
+	bool __fastcall WriteSourceTrayResultSummary();
 
 	int __fastcall FindList(AnsiString strType);
 	void __fastcall AddList(AnsiString strType);
@@ -563,9 +577,14 @@ public:		// User declarations
 	void __fastcall memoRobostarLineAdd(AnsiString msg);
 	//* CELL TRANSFER RESULT : Append one completed Source-to-Target transfer to the daily CSV.
 	bool __fastcall SaveCellTransferResult(AnsiString sourceTrayId, int sourceChannel,
-		AnsiString targetTrayId, int targetChannel, DWORD ejectMs, DWORD moveMs,
-		DWORD insertMs, DWORD waitMs, int loadX, int loadY, int loadZ,
-		AnsiString waitMode);
+		AnsiString targetTrayId, int targetChannel, DWORD moveSourceChMs, DWORD ejectMs,
+		DWORD moveTargetChMs, DWORD insertMs, DWORD moveWaitingMs,
+		int loadX, int loadY, int loadZ, AnsiString moveWaitingMode);
+	void __fastcall CaptureSourceTrayInTime();
+	void __fastcall BeginSourceTrayResult(AnsiString sourceTrayId);
+	void __fastcall MarkSourceSortStart();
+	void __fastcall MarkSourceSortEnd();
+	void __fastcall FinalizeSourceTrayResult();
 
 	AnsiString __fastcall GetProcessStepName(int stepNo) const;
 	void __fastcall ResetProcessFlow();

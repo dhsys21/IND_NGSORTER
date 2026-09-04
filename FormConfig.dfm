@@ -434,6 +434,40 @@ object ConfigForm: TConfigForm
       ShowHint = False
       TabOrder = 1
     end
+    object chkOptimizeSequenceDelay: TCheckBox
+      Left = 250
+      Top = 24
+      Width = 210
+      Height = 17
+      Caption = 'Optimize safe transitions'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      Hint = 'Expected Result TotalMs: approximately 14.4-14.8s'
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 2
+    end
+    object chkSkipGripStabilization: TCheckBox
+      Left = 250
+      Top = 48
+      Width = 210
+      Height = 17
+      Caption = 'Skip 0.2s stabilization (TEST)'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clRed
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      Hint = 'TEST ONLY: expected Result TotalMs approximately 14.0-14.4s'
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 3
+    end
   end
   object AdvSmoothButton2: TAdvSmoothButton
     Left = 686

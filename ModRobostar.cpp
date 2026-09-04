@@ -1088,6 +1088,11 @@ void __fastcall Trobostar::AutoMove()
 			step.step = 1;
 			break;
 		case 1:
+			if(BaseForm != NULL && BaseForm->config.optimizeSequenceDelay && sscOpened){
+				long currentZ = mr2.pos[Axis_z];
+				if(sscGetCurrentCmdPositionFast(board_id, channel_id, Axis_z, &currentZ) == SSC_OK)
+					mr2.pos[Axis_z] = currentZ;
+			}
 			if(moveStepNo > 0)
 				MainForm->SetProcessOperationStatus(moveStepNo, "Z UP BEFORE X/Y",
 					"Servo Z position", "0", IntToStr((__int64)mr2.pos[Axis_z]));
@@ -1110,8 +1115,14 @@ void __fastcall Trobostar::AutoMove()
 				req_Stop();
 				return;
 			}
-			if(rangeCheck(Axis_zUp))step.step = 10;
-			break;
+			if(!rangeCheck(Axis_zUp))
+				break;
+			step.step = 10;
+			if(BaseForm == NULL || !BaseForm->config.optimizeSequenceDelay)
+				break;
+			MainForm->memoRobostarLineAdd(
+				"[FAST OPTION] Z=0 confirmed / start X/Y in same scan");
+			// fall through
 
 		case 10:
 			bSetPoint = false;
@@ -1124,20 +1135,49 @@ void __fastcall Trobostar::AutoMove()
 				IntToStr((__int64)activeTarget[Axis_y]));
 			break;
 		case 11:
+		{
+			if(BaseForm != NULL && BaseForm->config.optimizeSequenceDelay && sscOpened){
+				long currentX = mr2.pos[Axis_x];
+				long currentY = mr2.pos[Axis_y];
+				if(sscGetCurrentCmdPositionFast(board_id, channel_id, Axis_x, &currentX) == SSC_OK)
+					mr2.pos[Axis_x] = currentX;
+				if(sscGetCurrentCmdPositionFast(board_id, channel_id, Axis_y, &currentY) == SSC_OK)
+					mr2.pos[Axis_y] = currentY;
+			}
 			if(moveStepNo > 0)
 				MainForm->SetProcessOperationStatus(moveStepNo, "MOVE TO TRAY CHANNEL",
 					"Servo X position", IntToStr((__int64)activeTarget[Axis_x]),
 					IntToStr((__int64)mr2.pos[Axis_x]));
-			rangeCheck(Axis_x);
-			break;
+			if(!rangeCheck(Axis_x) ||
+				BaseForm == NULL || !BaseForm->config.optimizeSequenceDelay)
+				break;
+			MainForm->memoRobostarLineAdd(
+				"[FAST OPTION] X complete / check Y in same scan");
+		}
+		// fall through
 		case 12:
+		{
+			if(BaseForm != NULL && BaseForm->config.optimizeSequenceDelay && sscOpened){
+				long currentY = mr2.pos[Axis_y];
+				if(sscGetCurrentCmdPositionFast(board_id, channel_id, Axis_y, &currentY) == SSC_OK)
+					mr2.pos[Axis_y] = currentY;
+			}
 			if(moveStepNo > 0)
 				MainForm->SetProcessOperationStatus(moveStepNo, "MOVE TO TRAY CHANNEL",
 					"Servo Y position", IntToStr((__int64)activeTarget[Axis_y]),
 					IntToStr((__int64)mr2.pos[Axis_y]));
-			if(rangeCheck(Axis_y) && step.reserve == seqIdle)
+			if(!rangeCheck(Axis_y))
+				break;
+			if(step.reserve == seqIdle){
 				step.step = 15; // Teaching channel move ends after X/Y.
-			break;
+				break;
+			}
+			if(BaseForm == NULL || !BaseForm->config.optimizeSequenceDelay)
+				break;
+			MainForm->memoRobostarLineAdd(
+				"[FAST OPTION] X/Y complete / start Z DOWN in same scan");
+		}
+		// fall through
 		case 13:
 		{
 			// Recalculate the accepted pallet/tool/channel immediately before Z DOWN.
@@ -1182,7 +1222,33 @@ void __fastcall Trobostar::AutoMove()
 				MainForm->SetProcessOperationStatus(actionStepNo, "Z DOWN TO TRAY",
 					"Servo Z position", IntToStr((__int64)activeTarget[Axis_z]),
 					IntToStr((__int64)mr2.pos[Axis_z]));
-			rangeCheck(Axis_z);
+
+			// Refresh Z on every 100 ms motion scan while waiting for DOWN completion.
+			// The general monitor refreshes each axis less frequently, which added latency.
+			if(sscOpened){
+				long currentZ = mr2.pos[Axis_z];
+				if(sscGetCurrentCmdPositionFast(board_id, channel_id, Axis_z, &currentZ) == SSC_OK)
+					mr2.pos[Axis_z] = currentZ;
+			}
+
+			if(rangeCheck(Axis_z)){
+				robotSequence completedReserve = step.reserve;
+				move = activeMove;
+				for(int i = 0; i < AxisCnt; ++i)
+					point[i].position = activeTarget[i];
+				directXYPositionReady = (completedReserve == seqIdle);
+				MainForm->memoRobostarLineAdd("[FAST TRANSITION] Z DOWN complete / start gripper action immediately");
+				teachForm->pnlMovingAlarm->Visible = false;
+				teachForm->pnlMovingAlarm2->Visible = false;
+				InitSequence(completedReserve);
+
+				// Run the first safe gripper step in this same scan instead of waiting
+				// for another 100 ms timer event.
+				if(completedReserve == seqAutoEject)
+					AutoEject();
+				else if(completedReserve == seqAutoInsert)
+					AutoInsert();
+			}
 			break;
 		default:
 		{
@@ -1982,57 +2048,56 @@ void __fastcall Trobostar::AutoEject()
 
 		switch(step.step){
 			case 0:
+			{
+				// All prerequisites use the input snapshot read at the start of this scan.
+				// Successful checks are combined so the CHUCK output is not delayed by
+				// multiple 100 ms sequence transitions.
 				MainForm->SetProcessOperationStatus(9, "CELL EJECT",
 					"X0022 Source cell detect", "0 (CELL DETECTED)",
 					IntToStr(input.GRIPPER1_CELL_DETECT ? 1 : 0));
-				// Source Z DOWN is already complete. A detected cell is normal here:
-				// confirm the tray cell first, then close (CHUCK) the open gripper.
 				for(int i=0; i<move.cnt; ++i)
 					nresult += CheckEjectCell_after(move.tool + i);
-				if(nresult == move.cnt){
-					MainForm->memoRobostarLineAdd("Eject step 1. Source cell detected - ready to CHUCK");
-					step.step += 1;
-					step.timeout = 0;
-				}
-				else{
+				if(nresult != move.cnt){
 					step.timeout += 1;
-					if(step.timeout == errCnt){
-						ErrorForm_eject->ShowError(msg + " cannot detect the Source tray cell.", "Eject step 1. Source cell detect error", move.tool, 20);
-					}
+					if(step.timeout == errCnt)
+						ErrorForm_eject->ShowError(msg + " cannot detect the Source tray cell.",
+							"Eject step 1. Source cell detect error", move.tool, 20);
 					MainForm->memoRobostarLineAdd("Eject step 1. Waiting for Source cell detection");
+					break;
 				}
-				break;
-			case 1:
+
+				nresult = 0;
 				MainForm->SetProcessOperationStatus(9, "CELL EJECT",
 					"X0021 Gripper OPEN", "1 (OPEN)",
 					IntToStr(input.GRIPPER1_UNCHUCK ? 1 : 0));
 				for(int i=0; i<move.cnt; ++i)
 					nresult += CheckEjectUnchuck(move.tool + i);
-				if(nresult == move.cnt){
-					step.step += 1;
-					step.timeout = 0;
-				}
-				else{
+				if(nresult != move.cnt){
+					// CheckEjectUnchuck selected OPEN; transmit it without waiting for
+					// the next periodic I/O write and wait for physical confirmation.
+					io_WriteGripper();
 					step.timeout += 1;
-					if(step.timeout == errCnt){
-						ErrorForm_eject->ShowError("[B_Ignition] " + msg + " UNCHUCK 센서 감지 실패", "취출 2단계. 그리퍼 열기 에러", move.tool, 0);
-					}
-					MainForm->memoRobostarLineAdd("[C_Maint] 취출2. GRIPPER UNCHUCK");
+					if(step.timeout == errCnt)
+						ErrorForm_eject->ShowError("[B_Ignition] " + msg + " UNCHUCK sensor detection failed",
+							"Eject step 2. Gripper open error", move.tool, 0);
+					MainForm->memoRobostarLineAdd("[FAST EJECT] Waiting for physical OPEN confirmation");
+					break;
 				}
-				break;
-			case 2:
-			{
+				step.timeout = 0;
+
 				bool sourceCenteringReady = PlcBin != NULL &&
 					PlcBin->IsPlcStatusFresh(1000) && PlcBin->IsSourceCentering();
 				MainForm->SetProcessOperationStatus(9, "CELL EJECT",
-					"D10104 Source Centering", "1 (ON)",
-					sourceCenteringReady ? "1" : "0");
+					"D10104 Source Centering", "1 (ON)", sourceCenteringReady ? "1" : "0");
 				if(!sourceCenteringReady){
 					CheckTrayCenteringMotionInterlock();
 					return;
 				}
-				step.step += 1;
-				step.timeout = 0;
+
+				GripperChuck(move.tool, false, true);
+				io_WriteGripper();
+				step.step = 3;
+				MainForm->memoRobostarLineAdd("[FAST EJECT] Z DOWN checks complete / CHUCK output sent immediately");
 				break;
 			}
 			case 3:
@@ -2041,18 +2106,29 @@ void __fastcall Trobostar::AutoEject()
 					IntToStr(input.GRIPPER1_CHUCK ? 1 : 0));
 				for(int i=0; i<move.cnt; ++i)
 					nresult += CheckEjectChuck(move.tool + i);
-				if(nresult == move.cnt){
-					step.step += 1;
-				}
 				MainForm->memoRobostarLineAdd("[C_Maint] 취출4. GRIPPER CHUCK");
-				break;
+				if(nresult != move.cnt)
+					break;
+				step.step = 4;
+				if(BaseForm == NULL || !BaseForm->config.skipGripStabilization)
+					break;
+				// TEST option: physical CHUCK is confirmed; continue without stabilization.
+				// fall through
 			case 4:
 				MainForm->SetProcessOperationStatus(9, "CELL EJECT",
-					"Gripper CHUCK stabilization", ">=5 ticks", IntToStr(step.delay));
-				if(step.delay >= 5)step.step = 6;
-				else step.delay += 1;
-				MainForm->memoRobostarLineAdd("[C_Maint] 취출4. 척 안정화 대기");
-				break;
+					"Gripper CHUCK stabilization", "200 ms after sensor confirmation", IntToStr(step.delay));
+				if((BaseForm == NULL || !BaseForm->config.skipGripStabilization) && step.delay < 1){
+					step.delay += 1;
+					MainForm->memoRobostarLineAdd("[C_Maint] 취출4. 척 안정화 대기");
+					break;
+				}
+				if(BaseForm != NULL && BaseForm->config.skipGripStabilization)
+					MainForm->memoRobostarLineAdd(
+						"[TEST OPTION] CHUCK stabilization 0.2 s skipped");
+				step.delay = 0;
+				step.step = 6;
+				// The 0.2 s stabilization has completed; perform the cell check now.
+				// fall through
 			case 6:
 			{
 				MainForm->SetProcessOperationStatus(9, "CELL EJECT",
@@ -2081,8 +2157,10 @@ void __fastcall Trobostar::AutoEject()
 					}
 					MainForm->memoRobostarLineAdd("Eject step 6. Waiting for cell confirmation after CHUCK");
 				}
-				break;
+				if(step.step != 7) break;
 			}
+			// Cell confirmation passed; issue Z UP in this same scan.
+			// fall through
 			case 7:
 				zUpCount = 0;
 				bSetPoint = setPoint(Axis_zUp, 0);
@@ -2095,20 +2173,57 @@ void __fastcall Trobostar::AutoEject()
 				}
 				break;
 			case 8:
+			{
 				MainForm->SetProcessOperationStatus(9, "CELL EJECT COMPLETE",
 					"Servo Z position", "0", IntToStr((__int64)mr2.pos[Axis_z]));
 				zUpCount += 1;
-				if(rangeCheck(Axis_zUp)){
-					zUpCount = 0;
-					MainForm->memoRobostarLineAdd("[EJECT] Z UP position 0 confirmed");
-				}else if(zUpCount > 200){
-					zUpCount = 0;
-					ErrorForm_eject->ShowError(msg + " Z UP timeout.",
-						"Eject Z axis did not reach position 0", move.tool, 17);
+
+				// Refresh Z every 100 ms while waiting for UP completion. Once Z=0 is
+				// confirmed, continue directly to the final cell check in this scan.
+				if(sscOpened){
+					long currentZ = mr2.pos[Axis_z];
+					if(sscGetCurrentCmdPositionFast(board_id, channel_id, Axis_z, &currentZ) == SSC_OK)
+						mr2.pos[Axis_z] = currentZ;
+				}
+				if(!rangeCheck(Axis_zUp)){
+					if(zUpCount > 200){
+						zUpCount = 0;
+						ErrorForm_eject->ShowError(msg + " Z UP timeout.",
+							"Eject Z axis did not reach position 0", move.tool, 17);
+					}
+					break;
+				}
+				zUpCount = 0;
+				step.timeout = 0;
+				MainForm->memoRobostarLineAdd(
+					"[FAST EJECT COMPLETE] Z=0 confirmed / check picked cell in same scan");
+			}
+			// fall through
+			case 9:
+				MainForm->SetProcessOperationStatus(9, "CELL EJECT COMPLETE CHECK",
+					"X0022 Cell held at Z=0", "0 (CELL DETECTED)",
+					IntToStr(input.GRIPPER1_CELL_DETECT ? 1 : 0));
+				if(getCellDetectStatus()){
+					step.timeout = 0;
+					MainForm->memoRobostarLineAdd(
+						"[FAST EJECT COMPLETE] Z=0 / X0022 OFF / target move ready");
+					MainForm->CompleteProcessStep(9,
+						"Cell pickup saved / Z position 0 / cell detected");
+					InitSequence(seqAutoEjectComplete);
+				}else{
+					step.timeout += 1;
+					if(step.timeout == errCnt){
+						ErrorForm_eject->ShowError(
+							msg + " cannot detect the picked cell after Z UP.",
+							"Eject cell detect error at Z=0", move.tool, 20);
+					}
+					MainForm->memoRobostarLineAdd(
+						"[EJECT] Z=0 / waiting X0022 OFF / no picked cell detected");
 				}
 				break;
 			default:
-				MainForm->CompleteProcessStep(9, "Cell pickup saved / Z position 0 confirmed");
+				MainForm->CompleteProcessStep(9,
+					"Cell pickup saved / Z position 0 / cell detected");
 				InitSequence(seqAutoEjectComplete);
 				break;
 		}
@@ -2131,62 +2246,74 @@ void __fastcall Trobostar::AutoInsert()
 
 		switch(step.step){
 			case 0:
+			{
+				// Combine the held-cell and Target-centering checks, then transmit OPEN
+				// immediately. Physical OPEN feedback and stabilization remain mandatory.
 				MainForm->SetProcessOperationStatus(11, "CELL INSERT",
 					"X0022 Held cell detect", "0 (CELL DETECTED)",
 					IntToStr(input.GRIPPER1_CELL_DETECT ? 1 : 0));
-				for(int i=0; i<move.cnt; ++i)nresult += CheckEjectCell_after(move.tool + i);
-				if(nresult == move.cnt){
-					step.step += 1;
-					step.timeout = 0;
-				}
-				else{
+				for(int i=0; i<move.cnt; ++i)
+					nresult += CheckEjectCell_after(move.tool + i);
+				if(nresult != move.cnt){
 					step.timeout += 1;
-					if(step.timeout == errCnt){
-						ErrorForm_insert->ShowError("[B_Ignition] " + msg + " 셀이 없습니다.", "이재 1단계. 셀 체크 에러", move.tool, 23);
-					}
-					MainForm->memoRobostarLineAdd("삽입1. 셀체크");
+					if(step.timeout == errCnt)
+						ErrorForm_insert->ShowError("[B_Ignition] " + msg + " has no cell.",
+							"Insert step 1. Cell check error", move.tool, 23);
+					MainForm->memoRobostarLineAdd("[FAST INSERT] Waiting for held-cell confirmation");
+					break;
 				}
-				break;
-			case 1:
-			{
+				step.timeout = 0;
+
 				bool targetCenteringReady = PlcBin != NULL &&
 					PlcBin->IsPlcStatusFresh(1000) && PlcBin->IsTargetCentering();
 				MainForm->SetProcessOperationStatus(11, "CELL INSERT",
-					"D10106 Target Centering", "1 (ON)",
-					targetCenteringReady ? "1" : "0");
+					"D10106 Target Centering", "1 (ON)", targetCenteringReady ? "1" : "0");
 				if(!targetCenteringReady){
 					CheckTrayCenteringMotionInterlock();
 					return;
 				}
-				step.step += 1;
-				step.timeout = 0;
+
+				GripperChuck(move.tool, true, false);
+				io_WriteGripper();
+				step.step = 2;
+				MainForm->memoRobostarLineAdd("[FAST INSERT] Z DOWN checks complete / UNCHUCK output sent immediately");
 				break;
 			}
 			case 2:
 				MainForm->SetProcessOperationStatus(11, "CELL INSERT",
 					"X0021 Gripper OPEN", "1 (OPEN)",
 					IntToStr(input.GRIPPER1_UNCHUCK ? 1 : 0));
-				for(int i=0; i<move.cnt; ++i)nresult += CheckInsertUnchuck(move.tool + i);
-				if(nresult == move.cnt){
-					step.step = 4;
-					step.timeout = 0;
-				}
-				else{
+				for(int i=0; i<move.cnt; ++i)
+					nresult += CheckInsertUnchuck(move.tool + i);
+				if(nresult != move.cnt){
 					step.timeout += 1;
 					if(step.timeout == errCnt){
 						ErrorForm_insert->ShowError("[B_Ignition] " + msg + " UNCHUCK 센서 감지 실패", "이재 3단계. 그리퍼 열기 에러", move.tool, 0);
 					}
 					MainForm->memoRobostarLineAdd("[C_Maint] 삽입3. GRIPPER UNCHUCK");
+					break;
 				}
-
-				break;
+				step.step = 4;
+				step.timeout = 0;
+				if(BaseForm == NULL || !BaseForm->config.skipGripStabilization)
+					break;
+				// TEST option: physical OPEN is confirmed; continue without stabilization.
+				// fall through
 			case 4:
 				MainForm->SetProcessOperationStatus(11, "CELL INSERT",
-					"Gripper OPEN stabilization", ">=2 ticks", IntToStr(step.delay));
-				if(step.delay >= 2) step.step = 5;
-				else step.delay += 1;
-				MainForm->memoRobostarLineAdd("[INSERT] Gripper OPEN stabilization wait");
-				break;
+					"Gripper OPEN stabilization", "200 ms after sensor confirmation", IntToStr(step.delay));
+				if((BaseForm == NULL || !BaseForm->config.skipGripStabilization) && step.delay < 1){
+					step.delay += 1;
+					MainForm->memoRobostarLineAdd("[INSERT] Gripper OPEN stabilization wait");
+					break;
+				}
+				if(BaseForm != NULL && BaseForm->config.skipGripStabilization)
+					MainForm->memoRobostarLineAdd(
+						"[TEST OPTION] UNCHUCK stabilization 0.2 s skipped");
+				step.delay = 0;
+				step.step = 5;
+				// The 0.2 s stabilization has completed; issue Z UP in this same scan.
+				// fall through
 			case 5:
 				// The tray cell can keep X0022 active while Z is down even after OPEN.
 				// Raise the gripper first; cell-clear confirmation is performed at Z=0.
@@ -2201,19 +2328,32 @@ void __fastcall Trobostar::AutoInsert()
 				}
 				break;
 			case 6:
+			{
 				MainForm->SetProcessOperationStatus(11, "CELL INSERT",
 					"Servo Z position after release", "0", IntToStr((__int64)mr2.pos[Axis_z]));
 				zUpCount += 1;
-				if(rangeCheck(Axis_zUp)){
-					zUpCount = 0;
-					step.timeout = 0;
-					MainForm->memoRobostarLineAdd("[INSERT] Z UP position 0 confirmed / start cell-clear check");
-				}else if(zUpCount > 200){
-					zUpCount = 0;
-					ErrorForm_insert->ShowError(msg + " Z UP timeout.",
-						"Insert Z axis did not reach position 0", move.tool, 21);
+
+				// Refresh Z every 100 ms while waiting for UP completion. Once Z=0 is
+				// confirmed, continue directly to the cell-clear check in this scan.
+				if(sscOpened){
+					long currentZ = mr2.pos[Axis_z];
+					if(sscGetCurrentCmdPositionFast(board_id, channel_id, Axis_z, &currentZ) == SSC_OK)
+						mr2.pos[Axis_z] = currentZ;
 				}
-				break;
+				if(!rangeCheck(Axis_zUp)){
+					if(zUpCount > 200){
+						zUpCount = 0;
+						ErrorForm_insert->ShowError(msg + " Z UP timeout.",
+							"Insert Z axis did not reach position 0", move.tool, 21);
+					}
+					break;
+				}
+				zUpCount = 0;
+				step.timeout = 0;
+				MainForm->memoRobostarLineAdd(
+					"[FAST INSERT COMPLETE] Z=0 confirmed / check cell clear in same scan");
+			}
+			// fall through
 			case 7:
 			{
 				MainForm->SetProcessOperationStatus(11, "CELL INSERT COMPLETE CHECK",
@@ -2229,9 +2369,12 @@ void __fastcall Trobostar::AutoInsert()
 							commitOk = false;
 					}
 					if(commitOk){
-						MainForm->memoRobostarLineAdd("[INSERT] Z=0 / X0022 ON / gripper cell clear confirmed");
-						step.step = 8;
+						MainForm->memoRobostarLineAdd(
+							"[FAST INSERT COMPLETE] Z=0 / X0022 ON / next action ready");
 						step.timeout = 0;
+						MainForm->CompleteProcessStep(11,
+							"Cell insert saved / Z position 0 / cell clear confirmed");
+						InitSequence(seqAutoInsertComplete);
 					}else{
 						ErrorForm_insert->ShowError(msg + " Target tray state save failed.",
 							"Insert local state commit error", move.tool, 23);
@@ -2242,7 +2385,8 @@ void __fastcall Trobostar::AutoInsert()
 						ErrorForm_insert->ShowError(msg + " still detects a cell after Z UP.",
 							"Insert cell remains on gripper at Z=0", move.tool, 23);
 					}
-					MainForm->memoRobostarLineAdd("[INSERT] Z=0 / waiting X0022 ON / gripper cell clear");
+					MainForm->memoRobostarLineAdd(
+						"[INSERT] Z=0 / waiting X0022 ON / gripper cell clear");
 				}
 				break;
 			}

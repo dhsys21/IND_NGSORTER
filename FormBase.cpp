@@ -15,6 +15,8 @@ __fastcall TBaseForm::TBaseForm(TComponent* Owner)
 {
 	DeleteDay = 180;
 	DeleteIndex = 0;
+	config.optimizeSequenceDelay = false;
+	config.skipGripStabilization = false;
 	config.bcrIp[0] = "192.168.100.238";
 	config.bcrIp[1] = "192.168.100.239";
 	config.bcrPort[0] = 9004;

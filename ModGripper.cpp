@@ -24,10 +24,11 @@ void __fastcall Tgripper::ResetTransferResult()
 	transferResult.active = false;
 	transferResult.phase = transferPhaseNone;
 	transferResult.phaseStartTick = 0;
-	transferResult.moveMs = 0;
+	transferResult.moveSourceChMs = 0;
 	transferResult.ejectMs = 0;
+	transferResult.moveTargetChMs = 0;
 	transferResult.insertMs = 0;
-	transferResult.waitMs = 0;
+	transferResult.moveWaitingMs = 0;
 	transferResult.sourceChannel = 0;
 	transferResult.targetChannel = 0;
 	transferResult.sourceTrayId = "";
@@ -62,11 +63,11 @@ void __fastcall Tgripper::StartTransferPhase(TRANSFER_PHASE phase)
 	DWORD elapsed = transferResult.phaseStartTick == 0 ? 0 :
 		(DWORD)(nowTick - transferResult.phaseStartTick);
 	switch(transferResult.phase){
-		case transferPhaseMoveSource:
-		case transferPhaseMoveTarget: transferResult.moveMs += elapsed; break;
+		case transferPhaseMoveSource: transferResult.moveSourceChMs += elapsed; break;
 		case transferPhaseEject: transferResult.ejectMs += elapsed; break;
+		case transferPhaseMoveTarget: transferResult.moveTargetChMs += elapsed; break;
 		case transferPhaseInsert: transferResult.insertMs += elapsed; break;
-		case transferPhaseWait: transferResult.waitMs += elapsed; break;
+		case transferPhaseMoveWaiting: transferResult.moveWaitingMs += elapsed; break;
 		default: break;
 	}
 	transferResult.phase = phase;
@@ -113,12 +114,13 @@ void __fastcall Tgripper::SaveTransferResult(bool waitBypassed)
 
 	UpdateTransferResult();
 	StartTransferPhase(transferPhaseNone);
-	if(waitBypassed) transferResult.waitMs = 0;
+	if(waitBypassed) transferResult.moveWaitingMs = 0;
 	MainForm->SaveCellTransferResult(
 		transferResult.sourceTrayId, transferResult.sourceChannel,
 		transferResult.targetTrayId, transferResult.targetChannel,
-		transferResult.ejectMs, transferResult.moveMs,
-		transferResult.insertMs, transferResult.waitMs,
+		transferResult.moveSourceChMs, transferResult.ejectMs,
+		transferResult.moveTargetChMs, transferResult.insertMs,
+		transferResult.moveWaitingMs,
 		transferResult.peakLoad[0], transferResult.peakLoad[1],
 		transferResult.peakLoad[2], waitBypassed ? "BYPASS" : "WAIT_POSITION");
 	ResetTransferResult();
@@ -351,7 +353,12 @@ void __fastcall Tgripper::Initialize()
 				MainForm->memoGripperLineAdd("[Init step 0] " + BaseForm->GetLangStr("MSG_AUTOSTOPMODE"));
 			}
 			waitTimer->Enabled = false;
-			break;
+			if(step.step != 1 || BaseForm == NULL ||
+				!BaseForm->config.optimizeSequenceDelay)
+				break;
+			MainForm->memoGripperLineAdd(
+				"[FAST OPTION] Equipment ready / initialize NG selection in same scan");
+			// fall through
 		case 1:
 			MainForm->BeginProcessStep(7, "Select Source NG and reserve Target channel");
         	// 1. 선별 트레이 채널 할당
@@ -432,12 +439,22 @@ void __fastcall Tgripper::Initialize()
 					step.chCnt++;
 			}
 			step.step += 1;
-			break;
+			if(BaseForm == NULL || !BaseForm->config.optimizeSequenceDelay)
+				break;
+			MainForm->memoGripperLineAdd(
+				"[FAST OPTION] NG reservation complete / request Source move in same scan");
+			// fall through
 		default:
 			if(step.badCnt > 0){
 				if(step.ejectCnt > 0){
 					MainForm->CompleteProcessStep(7, "NG channel and Target reservation selected");
 					InitSequence(step.reserve);	// 선별시작
+					if(BaseForm != NULL && BaseForm->config.optimizeSequenceDelay &&
+						seq == seqSorting){
+						MainForm->memoGripperLineAdd(
+							"[FAST OPTION] Source move requested without initialization timer delay");
+						Sorting();
+					}
 					MainForm->memoGripperLineAdd("[Init step 2] " + BaseForm->GetLangStr("MSG_EJECT_START"));
 				}else{
 					MainForm->memoGripperLineAdd("[Init step 2] " + BaseForm->GetLangStr("MSG_CANNOT_EJECT") + " : " + BaseForm->GetLangStr("MSG_CHECK_GRIPPERUSAGE"));
@@ -461,6 +478,7 @@ void __fastcall Tgripper::Initialize()
 					" Selected=" + IntToStr(step.badCnt));
 				MainForm->memoGripperLineAdd("[Init step 2] Sorting has ended.");
 				MainForm->memoGripperLineAdd("[CYCLE] NO NEXT NG -> SOURCE TRAY OUT");
+				MainForm->MarkSourceSortEnd();
 				InitSequence(seqIdle);						// 시퀀스 종료
 				MainForm->NotifyIdMatching_source();		// 소스 트레이 작업완료 보고하고
 				MainForm->NotifyIdMatching_target("1");		// 대상 트레이 작업완료 보고하고
@@ -541,7 +559,10 @@ void __fastcall Tgripper::Sorting()
 						" TargetCh=" + tool[toolIndex].target_ch +
 						" CellId=" + MainForm->tray_source.SLOT_ID[tool[toolIndex].source_ch.ToInt()-1]);
 				}
-				step.step += 1;
+				MainForm->memoGripperLineAdd(
+					"[FAST TRANSITION] Eject complete / request Target move in same gripper scan");
+				InitSequence(seqInserting);
+				Inserting();
 			}else{
 				MainForm->memoGripperLineAdd("[Eject step 2] " + BaseForm->GetLangStr("MSG_EJECTING"));
 			}
@@ -554,6 +575,43 @@ void __fastcall Tgripper::Sorting()
 			MainForm->memoGripperLineAdd("[Eject complete] " + BaseForm->GetLangStr("MSG_PREPARE_INSERT"));
 			InitSequence(seqInserting);
 			break;
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall Tgripper::StartNextCycleOrWait()
+{
+	bool hasNextNg = false;
+	for(int i = 0; i < MainForm->tray_source.SLOT_COUNT && i < 96; ++i){
+		if(MainForm->tray_source.CELL_EXIST[i] &&
+			MainForm->tray_source.RANK[i].Trim().UpperCase() == "NG" &&
+			MainForm->tray_source.PICK[i] == "Y"){
+			hasNextNg = true;
+			break;
+		}
+	}
+	bool directNextNg = hasNextNg && MainForm->tray_target.remainCnt > 0;
+
+	MainForm->BeginProcessStep(13, directNextNg ?
+		"NEXT NG found / direct move to next Source channel" :
+		(hasNextNg ? "TARGET FULL / move to WAIT POSITION" :
+		"NO NEXT NG / move to WAIT POSITION"));
+	if(directNextNg)
+		MainForm->memoGripperLineAdd("[CYCLE] NEXT NG FOUND -> BYPASS WAIT POSITION");
+	MainForm->NotifyIdMatching_target("1");
+	if(directNextNg){
+		SaveTransferResult(true);
+		MainForm->CompleteProcessStep(13,
+			"NEXT NG found / Next Step=07 / WAIT POSITION bypassed");
+		// Keep Z at zero and let AutoEject move X/Y directly from the
+		// Target tray to the next Source NG channel.
+		InitSequence(seqInit, seqSorting);
+		if(BaseForm != NULL && BaseForm->config.optimizeSequenceDelay)
+			Initialize();
+	}else{
+		MainForm->memoGripperLineAdd("[Insert complete] WAIT POSITION MOVE START");
+		StartTransferPhase(transferPhaseMoveWaiting);
+		robostar->req_WaitPosition();
+		step.step = 6;
 	}
 }
 //---------------------------------------------------------------------------
@@ -586,6 +644,18 @@ void __fastcall Tgripper::Inserting()
 				}
 			}
 			if(insert.pos > 0){	// 삽입 시작
+				// Never start the horizontal Target move unless the pickup is still
+				// physically confirmed after the Source Z-axis has returned to zero.
+				if(robostar == NULL || !robostar->getCellDetectStatus()){
+					MainForm->memoGripperLineAdd(
+						"[INSERT MOVE INTERLOCK] Blocked: no picked cell detected at Z=0. X0022=" +
+						IntToStr(robostar != NULL && robostar->input.GRIPPER1_CELL_DETECT ? 1 : 0));
+					ErrorForm_eject->ShowError(
+						"Gripper #" + IntToStr(insert.gripper) +
+						" cannot detect the picked cell.",
+						"Target move blocked after eject", insert.gripper, 20);
+					return;
+				}
 				MainForm->BeginProcessStep(10, "Target Ch=" + IntToStr(insert.pos) + " / Z UP then X/Y move");
 				MainForm->memoGripperLineAdd("[Insert step 0] Gripper #" + IntToStr(insert.gripper) + " / Channel #" + IntToStr(insert.pos) + " / Continuous insert #" + IntToStr(insert.conCnt));
 				//* 불량트레이 관리
@@ -626,7 +696,9 @@ void __fastcall Tgripper::Inserting()
 					MainForm->ReportCellTrackOut(sourceIndex + 1, targetIndex + 1,
 						MainForm->tray_target.SLOT_ID[targetIndex]);
 				}
-				step.step += 1;
+				MainForm->memoGripperLineAdd(
+					"[FAST TRANSITION] Insert complete / decide next move in same gripper scan");
+				StartNextCycleOrWait();
 			}else{
 				MainForm->memoGripperLineAdd("[Insert step 2] " + BaseForm->GetLangStr("MSG_INSERTING"));
 			}
@@ -636,45 +708,16 @@ void __fastcall Tgripper::Inserting()
 			InitSequence(seqInserting);
 			break;
 		default:
-			if(step.step == 5){
-				bool hasNextNg = false;
-				for(int i = 0; i < MainForm->tray_source.SLOT_COUNT && i < 96; ++i){
-					if(MainForm->tray_source.CELL_EXIST[i] &&
-						MainForm->tray_source.RANK[i].Trim().UpperCase() == "NG" &&
-						MainForm->tray_source.PICK[i] == "Y"){
-						hasNextNg = true;
-						break;
-					}
-				}
-				bool directNextNg = hasNextNg && MainForm->tray_target.remainCnt > 0;
-
-				MainForm->BeginProcessStep(13, directNextNg ?
-					"NEXT NG found / direct move to next Source channel" :
-					(hasNextNg ? "TARGET FULL / move to WAIT POSITION" :
-					"NO NEXT NG / move to WAIT POSITION"));
-				if(directNextNg)
-					MainForm->memoGripperLineAdd("[CYCLE] NEXT NG FOUND -> BYPASS WAIT POSITION");
-				MainForm->NotifyIdMatching_target("1");	// 삽입 완료시마다 보고
-				if(directNextNg){
-					SaveTransferResult(true);
-					MainForm->CompleteProcessStep(13,
-						"NEXT NG found / Next Step=07 / WAIT POSITION bypassed");
-					// Keep Z at zero and let AutoEject move X/Y directly from the
-					// Target tray to the next Source NG channel.
-					InitSequence(seqInit, seqSorting);
-				}else{
-					MainForm->memoGripperLineAdd("[Insert complete] WAIT POSITION MOVE START");
-					StartTransferPhase(transferPhaseWait);
-					robostar->req_WaitPosition();
-					step.step = 6;
-				}
-			}
+			if(step.step == 5)
+				StartNextCycleOrWait();
 			else if(step.step == 6 && robostar->seq == seqIdle){
 				SaveTransferResult(false);
 				MainForm->memoGripperLineAdd("[Insert complete] WAIT POSITION MOVE COMPLETE");
 				MainForm->CompleteProcessStep(13, "WAIT POSITION complete / Next Step=07");
 				MainForm->memoGripperLineAdd("[CYCLE] NO NEXT NG OR TARGET FULL -> FINAL CHECK");
 				InitSequence(seqInit, seqSorting);
+				if(BaseForm != NULL && BaseForm->config.optimizeSequenceDelay)
+					Initialize();
 			}
 			break;
 	}

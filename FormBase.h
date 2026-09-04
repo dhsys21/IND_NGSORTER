@@ -51,6 +51,8 @@ typedef struct{
 	int ims_port;
 	AnsiString fmsIp;
 	int gatewayPort;
+	bool optimizeSequenceDelay;
+	bool skipGripStabilization;
 	AnsiString line;
 	AnsiString pc;
 	int ocv_retest;

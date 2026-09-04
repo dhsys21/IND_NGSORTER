@@ -31,6 +31,7 @@ void __fastcall TMainForm::DisplayTrayInfo()
 		pKIND->Caption = tray->KIND + " " + tray->STOPPERTYPE;
 		pBYPASS->Caption = tray->PASS;
 		tray->startTime = Now();
+		BeginSourceTrayResult(pTrayid_source2->Caption);
 
 		tray->remainCnt = 0;	// 대상 트레이 취출가능 수량 확인
 		tray->empTray = true;
@@ -139,8 +140,10 @@ void __fastcall TMainForm::DisplayTranserIn(AnsiString trayid)
 
 		if(pwork2->Color == clLime)
 		{
-			if(gripper->seq == seqIdle && robostar->seq == seqIdle)
+			if(gripper->seq == seqIdle && robostar->seq == seqIdle){
 				gripper->req_Init();
+				if((int)gripper->seq == 1) MarkSourceSortStart();
+			}
 		}
 	}
 	else if(trayid == pTrayid_target->Caption){
@@ -148,8 +151,10 @@ void __fastcall TMainForm::DisplayTranserIn(AnsiString trayid)
 
 		if(pwork1->Color == clLime)
 		{
-			if(gripper->seq == seqIdle && robostar->seq == seqIdle)
+			if(gripper->seq == seqIdle && robostar->seq == seqIdle){
 				gripper->req_Init();
+				if((int)gripper->seq == 1) MarkSourceSortStart();
+			}
 		}
 	}
 }
@@ -166,6 +171,7 @@ void __fastcall TMainForm::DisplayOpcTrayLoad(bool sourceTray)
 
 	if (sourceTray)
 	{
+		BeginSourceTrayResult(pTrayid_source->Caption);
 		ProcessStepLog(2, "Location1.TrayLoadResponse=1 / Source tray data displayed");
 		memoMainLineAdd("[FMS OPC UA] Source TrayLoadResponse=1; tray data displayed. Waiting Response=0.");
 		pBYPASS->Caption = loadedTray->PASS;

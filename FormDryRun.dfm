@@ -61,9 +61,35 @@ object DryRunForm: TDryRunForm
   object lblSpeed: TLabel
     Left = 18
     Top = 103
-    Width = 136
+    Width = 38
     Height = 16
-    Caption = 'Speed (Acc/Dec=300)'
+    Caption = 'Speed'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object lblAcceleration: TLabel
+    Left = 140
+    Top = 103
+    Width = 34
+    Height = 16
+    Caption = 'Accel'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object lblDeceleration: TLabel
+    Left = 250
+    Top = 103
+    Width = 34
+    Height = 16
+    Caption = 'Decel'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -13
@@ -141,7 +167,7 @@ object DryRunForm: TDryRunForm
     Text = '96'
   end
   object editSpeed: TEdit
-    Left = 164
+    Left = 68
     Top = 99
     Width = 61
     Height = 24
@@ -152,7 +178,35 @@ object DryRunForm: TDryRunForm
     Font.Style = [fsBold]
     ParentFont = False
     TabOrder = 2
-    Text = '1000'
+    Text = '600'
+  end
+  object editAcceleration: TEdit
+    Left = 180
+    Top = 99
+    Width = 59
+    Height = 24
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 3
+    Text = '300'
+  end
+  object editDeceleration: TEdit
+    Left = 290
+    Top = 99
+    Width = 59
+    Height = 24
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 4
+    Text = '300'
   end
   object btnStart: TButton
     Left = 365
@@ -166,7 +220,7 @@ object DryRunForm: TDryRunForm
     Font.Name = 'Tahoma'
     Font.Style = [fsBold]
     ParentFont = False
-    TabOrder = 3
+    TabOrder = 5
     OnClick = btnStartClick
   end
   object btnStop: TButton
@@ -182,7 +236,7 @@ object DryRunForm: TDryRunForm
     Font.Name = 'Tahoma'
     Font.Style = [fsBold]
     ParentFont = False
-    TabOrder = 4
+    TabOrder = 6
     OnClick = btnStopClick
   end
   object btnClose: TButton
@@ -197,7 +251,7 @@ object DryRunForm: TDryRunForm
     Font.Name = 'Tahoma'
     Font.Style = [fsBold]
     ParentFont = False
-    TabOrder = 5
+    TabOrder = 7
     OnClick = btnCloseClick
   end
   object btnWaitPosition: TButton
@@ -212,7 +266,7 @@ object DryRunForm: TDryRunForm
     Font.Name = 'Tahoma'
     Font.Style = [fsBold]
     ParentFont = False
-    TabOrder = 6
+    TabOrder = 8
     OnClick = btnWaitPositionClick
   end
   object pnlRunState: TPanel
@@ -230,7 +284,7 @@ object DryRunForm: TDryRunForm
     Font.Style = [fsBold]
     ParentBackground = False
     ParentFont = False
-    TabOrder = 7
+    TabOrder = 9
   end
   object memoDryRun: TMemo
     Left = 16
@@ -245,7 +299,7 @@ object DryRunForm: TDryRunForm
     ParentFont = False
     ReadOnly = True
     ScrollBars = ssVertical
-    TabOrder = 8
+    TabOrder = 10
     WordWrap = False
   end
   object dryRunTimer: TTimer

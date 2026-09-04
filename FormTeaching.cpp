@@ -10,6 +10,22 @@
 #pragma resource "*.dfm"
 TteachForm *teachForm;
 //---------------------------------------------------------------------------
+static const int TEACHING_SPEED_MIN = 300;
+static const int TEACHING_SPEED_MAX = 2700;
+static const int TEACHING_SPEED_DANGER = 2000;
+
+static int TeachingRampTimeForSpeed(int speed)
+{
+	return speed <= 600 ? 300 : speed / 2;
+}
+//---------------------------------------------------------------------------
+static void ShowTeachingSpeedDanger(HWND owner, int speed)
+{
+	if(speed >= TEACHING_SPEED_DANGER)
+		MessageBox(owner, BaseForm->GetLangStr("MSG_HIGHSPEED_DANGER").c_str(),
+			L"Warning", MB_OK|MB_ICONWARNING);
+}
+//---------------------------------------------------------------------------
 static UnicodeString TeachingChannelKey(int channel, const UnicodeString &axis)
 {
 	UnicodeString channelText = IntToStr(channel);
@@ -56,9 +72,9 @@ void __fastcall TteachForm::FormShow(TObject *Sender)
 
     robostar->io_Init();
 
-	// Apply the values loaded from TrayTeaching96.ini to every servo axis.
-	robostar->req_Speed(speedEdit->Text.ToIntDef(1000),
-		acclSpeedEdit->Text.ToIntDef(1000), dcclSpeedEdit->Text.ToIntDef(1000));
+	// Apply the saved teaching values to every servo axis.
+	robostar->req_Speed(speedEdit->Text.ToIntDef(600),
+		acclSpeedEdit->Text.ToIntDef(300), dcclSpeedEdit->Text.ToIntDef(300));
 }
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::TitleMouseDown(TObject *Sender, TMouseButton Button,
@@ -513,16 +529,17 @@ void __fastcall TteachForm::speedEditKeyDown(TObject *Sender, WORD &Key,
 		return;
 
 	int speed = speedEdit->Text.ToIntDef(0);
-	if(speed < 200 || speed > 1200){
+	if(speed < TEACHING_SPEED_MIN || speed > TEACHING_SPEED_MAX){
 		ShowMessage(BaseForm->GetLangStr("MSG_SETSPEED_ALARM"));
 		return;
 	}
 
 	TEdit *edit = (TEdit*)Sender;
 	if(edit == speedEdit){
-		// Keep the acceleration/deceleration setting in sync with Speed.
-		acclSpeedEdit->Text = IntToStr(speed);
-		dcclSpeedEdit->Text = IntToStr(speed);
+		ShowTeachingSpeedDanger(Handle, speed);
+		int rampTime = TeachingRampTimeForSpeed(speed);
+		acclSpeedEdit->Text = IntToStr(rampTime);
+		dcclSpeedEdit->Text = IntToStr(rampTime);
 	}
 
 	int acclSpeed = acclSpeedEdit->Text.ToIntDef(0);
@@ -899,8 +916,9 @@ void __fastcall TteachForm::ApplyTeaching()
 		int speed = speedEdit->Text.ToIntDef(0);
 		int acceleration = acclSpeedEdit->Text.ToIntDef(0);
 		int deceleration = dcclSpeedEdit->Text.ToIntDef(0);
-		if(speed < 200 || speed > 1200){
-			MessageBox(Handle, L"Servo speed must be between 200 and 1200.", L"Warning", MB_OK|MB_ICONWARNING);
+		if(speed < TEACHING_SPEED_MIN || speed > TEACHING_SPEED_MAX){
+			MessageBox(Handle, BaseForm->GetLangStr("MSG_SETSPEED_ALARM").c_str(),
+				L"Warning", MB_OK|MB_ICONWARNING);
 			speedEdit->SetFocus();
 			return;
 		}
@@ -908,6 +926,7 @@ void __fastcall TteachForm::ApplyTeaching()
 			MessageBox(Handle, L"Acceleration/Deceleration time must be between 1 and 32767.", L"Warning", MB_OK|MB_ICONWARNING);
 			return;
 		}
+		ShowTeachingSpeedDanger(Handle, speed);
 		if(MessageBox(Handle, BaseForm->GetLangStr("MSG_APPLY").c_str(), L"SAVE", MB_YESNO|MB_ICONWARNING) == ID_YES){
 			if(SaveTeaching(teachingFilePath)){
 				// Reload the saved values into live controls, then refresh the motion data.
@@ -1003,8 +1022,8 @@ bool __fastcall TteachForm::LoadTeaching(const UnicodeString &filePath)
 		int acceleration = ReadRequiredTeachingInt(ini.get(), "Motion", "AccelerationTime");
 		int deceleration = ReadRequiredTeachingInt(ini.get(), "Motion", "DecelerationTime");
 
-		if(speed < 200 || speed > 1200)
-			throw Exception("[Motion] Speed must be between 200 and 1200.");
+		if(speed < TEACHING_SPEED_MIN || speed > TEACHING_SPEED_MAX)
+			throw Exception("[Motion] Speed must be between 300 and 2700.");
 		if(acceleration < 1 || acceleration > 32767 || deceleration < 1 || deceleration > 32767)
 			throw Exception("[Motion] Acceleration/Deceleration time must be between 1 and 32767.");
 

@@ -19,6 +19,8 @@ __fastcall TConfigForm::TConfigForm(TComponent* Owner)
 void __fastcall TConfigForm::ApplyConfig()
 {
 	UpdateCommunicationConfigFromEdits();
+	BaseForm->config.optimizeSequenceDelay = chkOptimizeSequenceDelay != NULL && chkOptimizeSequenceDelay->Checked;
+	BaseForm->config.skipGripStabilization = chkSkipGripStabilization != NULL && chkSkipGripStabilization->Checked;
 	if(editFmsIp != NULL)
 		BaseForm->config.fmsIp = editFmsIp->Text;
 	BaseForm->config.gatewayPort = PortEdit->Text.ToIntDef(18080);
@@ -197,6 +199,10 @@ void __fastcall TConfigForm::WriteSystemInfo(AnsiString type)
 		ini->WriteString("ZAXIS", "UP", "1");
 	else
 		ini->WriteString("ZAXIS", "UP", "0");
+	ini->WriteString("SEQUENCE_TEST", "OPTIMIZE_SAFE_TRANSITIONS",
+		chkOptimizeSequenceDelay->Checked ? "1" : "0");
+	ini->WriteString("SEQUENCE_TEST", "SKIP_GRIP_STABILIZATION",
+		chkSkipGripStabilization->Checked ? "1" : "0");
 
 	delete ini;
 
@@ -219,6 +225,10 @@ bool __fastcall TConfigForm::ReadSystemInfo()
 		chkZAxisUp->Checked = true;
 	else
         chkZAxisUp->Checked = false;
+	chkOptimizeSequenceDelay->Checked =
+		ini->ReadString("SEQUENCE_TEST", "OPTIMIZE_SAFE_TRANSITIONS", "0") == "1";
+	chkSkipGripStabilization->Checked =
+		ini->ReadString("SEQUENCE_TEST", "SKIP_GRIP_STABILIZATION", "0") == "1";
 
     // Stage Info
 	pcEdit->Text = ini->ReadString("INFO", "PC", "H1DIF01A");
@@ -252,10 +262,10 @@ bool __fastcall TConfigForm::ReadSystemInfo()
 
 	//* TrayTeaching96.ini가 없거나 잘못된 경우에만 기존 Servo 속도 설정을 사용한다.
 	if(!teachForm->teachingFileLoaded){
-		teachForm->speedEdit->Text = ini->ReadString("SPEED", "SPEED", "500");
-		teachForm->Panel_speedEdit->Caption = ini->ReadString("SPEED", "SPEED", "500");
-		teachForm->acclSpeedEdit->Text = ini->ReadString("SPEED", "ACCL_SPEED", "1000");
-		teachForm->dcclSpeedEdit->Text = ini->ReadString("SPEED", "DCCL_SPEED", "1000");
+		teachForm->speedEdit->Text = ini->ReadString("SPEED", "SPEED", "600");
+		teachForm->Panel_speedEdit->Caption = ini->ReadString("SPEED", "SPEED", "600");
+		teachForm->acclSpeedEdit->Text = ini->ReadString("SPEED", "ACCL_SPEED", "300");
+		teachForm->dcclSpeedEdit->Text = ini->ReadString("SPEED", "DCCL_SPEED", "300");
 	}
 
 	LoadCommunicationEdits();

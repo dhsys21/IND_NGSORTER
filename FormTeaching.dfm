@@ -1081,7 +1081,7 @@ object teachForm: TteachForm
           ImeName = 'Microsoft IME 2010'
           ParentFont = False
           TabOrder = 2
-          Text = '1000'
+          Text = '600'
           OnKeyDown = speedEditKeyDown
         end
         object pnlSpeed: TPanel
@@ -1397,7 +1397,7 @@ object teachForm: TteachForm
           Height = 17
           BevelKind = bkFlat
           BevelOuter = bvNone
-          Caption = '1000'
+          Caption = '600'
           Color = clWhite
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clBlack
@@ -1538,7 +1538,7 @@ object teachForm: TteachForm
           ImeName = 'Microsoft IME 2010'
           ParentFont = False
           TabOrder = 22
-          Text = '1000'
+          Text = '300'
           OnKeyDown = speedEditKeyDown
         end
         object dcclSpeedEdit: TEdit
@@ -1555,7 +1555,7 @@ object teachForm: TteachForm
           ImeName = 'Microsoft IME 2010'
           ParentFont = False
           TabOrder = 23
-          Text = '1000'
+          Text = '300'
           OnKeyDown = speedEditKeyDown
         end
       end

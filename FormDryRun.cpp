@@ -55,10 +55,13 @@ void __fastcall TDryRunForm::FormShow(TObject *Sender)
 		btnStart->Enabled = true;
 		btnStop->Enabled = false;
 		btnWaitPosition->Enabled = true;
-		//* DRY RUN : Start with the commissioned speed; the operator may override
-		//* it in this form without changing the saved teaching value.
-		if(teachForm != NULL)
+		//* DRY RUN : Start with the commissioned motion values; the operator may
+		//* override them in this form without changing the saved teaching values.
+		if(teachForm != NULL){
 			editSpeed->Text = teachForm->speedEdit->Text;
+			editAcceleration->Text = teachForm->acclSpeedEdit->Text;
+			editDeceleration->Text = teachForm->dcclSpeedEdit->Text;
+		}
 	}
 	dryRunTimer->Enabled = true;
 	UpdateDryRunStatus();
@@ -267,31 +270,33 @@ bool __fastcall TDryRunForm::ValidateWaitPositionStart(AnsiString &reason)
 bool __fastcall TDryRunForm::ApplyDryRunSpeed(AnsiString &reason)
 {
 	int speed = editSpeed->Text.ToIntDef(0);
-	if(speed < 200 || speed > 3000){
-		reason = "Dry Run speed must be between 200 and 3000.";
+	if(speed < 300 || speed > 2700){
+		reason = "Dry Run speed must be between 300 and 2700.";
+		return false;
+	}
+	int acceleration = editAcceleration->Text.ToIntDef(0);
+	int deceleration = editDeceleration->Text.ToIntDef(0);
+	if(acceleration < 1 || acceleration > 32767 ||
+		deceleration < 1 || deceleration > 32767){
+		reason = "Dry Run acceleration/deceleration time must be between 1 and 32767 ms.";
 		return false;
 	}
 
 	//* DRY RUN : Warn once when entering the high-speed range. Keeping the same
 	//* value for repeated cycles does not interrupt inspection with more popups.
-	if(speed <= 2500){
+	if(speed < 2000){
 		highSpeedWarningShown = false;
 	}else if(!highSpeedWarningShown){
 		highSpeedWarningShown = true;
 		WriteDryRunLog("WARNING - High speed selected: " + IntToStr(speed) +
-			" (over 2500)");
+			" (2000 or higher)");
 		MessageBox(Handle,
-			L"Dry Run speed is over 2500.\r\nCheck the motion area before continuing.",
+			L"Dry Run speed is 2000 or higher.\r\nCheck the motion area before continuing.",
 			L"DRY RUN HIGH SPEED", MB_OK|MB_ICONWARNING);
 	}
-	//* DRY RUN : Keep acceleration/deceleration at the commissioned test value.
-	//* Increasing these time constants together with speed made short channel
-	//* moves look slow because the axis could not reach its command speed.
-	const int DryRunAccelerationMs = 300;
-	const int DryRunDecelerationMs = 300;
-	robostar->req_Speed(speed, DryRunAccelerationMs, DryRunDecelerationMs);
+	robostar->req_Speed(speed, acceleration, deceleration);
 	WriteDryRunLog("SPEED/APPLIED speed/acc/dec=" + IntToStr(speed) + "/" +
-		IntToStr(DryRunAccelerationMs) + "/" + IntToStr(DryRunDecelerationMs));
+		IntToStr(acceleration) + "/" + IntToStr(deceleration));
 	return true;
 }
 //---------------------------------------------------------------------------
