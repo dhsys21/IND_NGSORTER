@@ -18,6 +18,10 @@ __fastcall Tloadfactor_AlarmForm::Tloadfactor_AlarmForm(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall Tloadfactor_AlarmForm::ShowError(AnsiString str1, AnsiString str2)
 {
+	// Every alarm popup freezes both automatic state machines. Closing the form
+	// does not release Pause; the operator resumes after correcting the cause.
+	MainForm->pause_stopBtnClick(this);
+
 	if(this->Visible == false){
 		MainForm->WriteErrorLog(str1, str2);
 		MainForm->BuzzerOn(true);

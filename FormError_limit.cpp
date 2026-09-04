@@ -19,6 +19,9 @@ __fastcall TErrorForm_limit::TErrorForm_limit(TComponent* Owner)
 void __fastcall TErrorForm_limit::ShowError()
 {
 
+	// Freeze robot and gripper before presenting the NG limit recovery choices.
+	MainForm->pause_stopBtnClick(this);
+
 	MainForm->NotifyAlarm(true, 24);
 	errMsg1->Caption = BaseForm->GetLangStr("MSG_NG_LIMIT_EXCEEDED");
 	errMsg2->Caption = BaseForm->GetLangStr("MSG_CONTINUE_SORTING");

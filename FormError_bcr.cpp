@@ -25,6 +25,12 @@ void __fastcall TErrorForm_bcr::ShowError(AnsiString str,  bool bsuccess)
 		ignoreBtn->Caption = BaseForm->GetLangStr("CAP_NORMAL_PROGRESS");
 	}
 	else{
+		// A barcode failure must freeze both automatic state machines at their
+		// current steps. After a successful rescan, the operator resumes with START.
+		bool pauseRequested = !gripper->pauseStatus || !robostar->pauseStatus;
+		MainForm->pause_stopBtnClick(this);
+		if(pauseRequested)
+			MainForm->memoMainLineAdd("[BARCODE ERROR] Automatic sequence changed to PAUSE.");
 		MainForm->BuzzerOn(true);
 		MainForm->LampModeChange(LampAlarm);
 		errMsg1->Caption = str;

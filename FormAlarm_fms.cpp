@@ -19,6 +19,10 @@ void __fastcall TAlarmForm_fms::ShowFmsError(const AnsiString &Title,
 	const AnsiString &Detail, const AnsiString &RequestName,
 	int ResponseValue)
 {
+	// Keep the popup safe even when a future caller bypasses ShowFmsAlarm().
+	if(MainForm != NULL)
+		MainForm->pause_stopBtnClick(this);
+
 	lblTitle->Caption = Title;
 	memoDetail->Lines->Text = Detail;
 	lblRequest->Caption = RequestName;

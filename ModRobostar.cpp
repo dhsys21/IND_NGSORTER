@@ -1077,16 +1077,41 @@ void __fastcall Trobostar::AutoMove()
 	}
 
 	switch(step.step){
-		case 0: // Always raise Z before any X/Y positioning move.
-			zUpCount = 0;
-			bSetPoint = setPoint(Axis_zUp, 0);
-			MainForm->memoRobostarLineAdd("[MOVE ORDER] Z UP before X/Y");
+		case 0: // Always confirm that Z is raised before any X/Y positioning move.
+		{
 			teachForm->pnlMovingAlarm->Visible = true;
 			teachForm->pnlMovingAlarm->BringToFront();
 			teachForm->pnlMovingAlarm2->Visible = true;
 			teachForm->pnlMovingAlarm2->BringToFront();
+
+			// EJECT/INSERT completion has already raised Z and confirmed position 0.
+			// Refresh it once here and, when the fast option is enabled, start X/Y
+			// immediately instead of issuing another no-op Z UP and waiting one scan.
+			if(BaseForm != NULL && BaseForm->config.optimizeSequenceDelay && sscOpened){
+				long currentZ = mr2.pos[Axis_z];
+				if(sscGetCurrentCmdPositionFast(board_id, channel_id, Axis_z, &currentZ) == SSC_OK)
+					mr2.pos[Axis_z] = currentZ;
+			}
+			if(BaseForm != NULL && BaseForm->config.optimizeSequenceDelay &&
+				mr2.pos[Axis_z] == 0){
+				setPoint(Axis_x, activeTarget[Axis_x]);
+				setPoint(Axis_y, activeTarget[Axis_y]);
+				step.step = 11;
+				MainForm->memoRobostarLineAdd(
+					"[FAST OPTION] Z already at 0 / start X/Y without redundant Z UP");
+				MainForm->memoRobostarLineAdd("[MOVE] X/Y pallet=" + IntToStr(activeMove.pallet) +
+					", channel=" + IntToStr(activeMove.channel) + ", target=" +
+					IntToStr((__int64)activeTarget[Axis_x]) + "/" +
+					IntToStr((__int64)activeTarget[Axis_y]));
+				break;
+			}
+
+			zUpCount = 0;
+			bSetPoint = setPoint(Axis_zUp, 0);
+			MainForm->memoRobostarLineAdd("[MOVE ORDER] Z UP before X/Y");
 			step.step = 1;
 			break;
+		}
 		case 1:
 			if(BaseForm != NULL && BaseForm->config.optimizeSequenceDelay && sscOpened){
 				long currentZ = mr2.pos[Axis_z];
@@ -2476,6 +2501,12 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 	MainForm->Caption = step.step;
 
 	this->io_Read();
+
+	// While the door recovery form is open, guide the operator to the physical
+	// X0025 reset key whenever either safety-ready circuit is not established.
+	// X0025 is the switch input; Y0035 is its OP box lamp output.
+	gripper.OPBOX_RESET_LAMP = doorForm != NULL && doorForm->Visible
+		&& (!input.SAFETY_EMG_READY || !input.SAFETY_DOOR_READY);
 
 	// Y003C is normally OFF and mechanically locks the BYPASS key in ON position.
 	// A KEYLOCK release/door opening always forces it OFF. A new hardware BYPASS-ON
