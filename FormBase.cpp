@@ -15,8 +15,14 @@ __fastcall TBaseForm::TBaseForm(TComponent* Owner)
 {
 	DeleteDay = 180;
 	DeleteIndex = 0;
+	// FAT options default OFF. A missing or old INI therefore starts with
+	// the normal production sequence and the physical barcode readers.
+	config.maximumSpeedMode = false;
 	config.optimizeSequenceDelay = false;
 	config.skipGripStabilization = false;
+	config.useFatTestBarcodes = false;
+	config.fatTestSourceBarcode = "TR-20260818-src";
+	config.fatTestTargetBarcode = "TR-20260818-trg";
 	config.bcrIp[0] = "192.168.100.238";
 	config.bcrIp[1] = "192.168.100.239";
 	config.bcrPort[0] = 9004;

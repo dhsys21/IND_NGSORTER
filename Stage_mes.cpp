@@ -462,20 +462,21 @@ void __fastcall TMainForm::NotifyTransferIn(AnsiString strTray)
 	TryStartOpcProcess();
 }//---------------------------------------------------------------------------
 
-void __fastcall TMainForm::ReportCellTrackOut(int sourceChannel, int targetChannel, AnsiString cellId)
+bool __fastcall TMainForm::ReportCellTrackOut(int sourceChannel, int targetChannel, AnsiString cellId)
 {
+	opcCellTrackOutMoveReleased = false;
 	if(!CheckAutomaticFmsMode("CellTrackOut"))
-		return;
+		return false;
 	// 셀 삽입 완료 직후 전체 TrackOut 맵과 단일 CellTrackOut 이벤트를 함께 보고한다.
 	mesTimer->Enabled = false;
 	if(MesOpc == NULL || Mod_Fms == NULL || !Mod_Fms->IsGatewayConnected()){
 		WriteOpcUaLog("ERROR", "CellTrackOut write skipped: Gateway disconnected", true);
-		return;
+		return false;
 	}
 	if(sourceChannel < 1 || sourceChannel > tray_source.SLOT_COUNT ||
 		targetChannel < 1 || targetChannel > tray_target.SLOT_COUNT){
 		WriteOpcUaLog("ERROR", "CellTrackOut write skipped: invalid source/target channel", true);
-		return;
+		return false;
 	}
 
 	AnsiString TrackInCellId;
@@ -486,7 +487,7 @@ void __fastcall TMainForm::ReportCellTrackOut(int sourceChannel, int targetChann
 		TrackInLotId, TrackInNGCode, TrackInGrade)){
 		WriteOpcUaLog("ERROR", "CellTrackOut write skipped: Location1 TrackIn cell not found" +
 			AnsiString(" CellNoFrom=") + IntToStr(sourceChannel), true);
-		return;
+		return false;
 	}
 
 	if(!cellId.IsEmpty() && cellId != TrackInCellId){
@@ -520,6 +521,16 @@ void __fastcall TMainForm::ReportCellTrackOut(int sourceChannel, int targetChann
 	opcCellTrackOutStartTick = GetTickCount();
 	opcMesTimer->Enabled = true;
 	SetProcessWaitStatus(12, "CellUnloadComplete=ON", "CellUnloadCompleteResponse", 0);
+	return true;
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMainForm::ConsumeCellTrackOutMoveRelease()
+{
+	if(!opcCellTrackOutMoveReleased)
+		return false;
+
+	opcCellTrackOutMoveReleased = false;
+	return true;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::NotifyTransferOut(AnsiString strTray)

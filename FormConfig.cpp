@@ -13,14 +13,23 @@ __fastcall TConfigForm::TConfigForm(TComponent* Owner)
 	: TForm(Owner)
 {
 	this->Width = 920;
-	this->Height = 430;
+	this->Height = 550;
 }
 //---------------------------------------------------------------------------
 void __fastcall TConfigForm::ApplyConfig()
 {
 	UpdateCommunicationConfigFromEdits();
+	// FAT controls are intentionally independent from MainForm::cbCycle.
+	// cbCycle controls only the FMS freshness/reset handshake bypass; these FAT
+	// controls select motion-transition, dwell, and barcode behavior separately.
+	BaseForm->config.maximumSpeedMode = chkMaximumSpeedMode != NULL && chkMaximumSpeedMode->Checked;
 	BaseForm->config.optimizeSequenceDelay = chkOptimizeSequenceDelay != NULL && chkOptimizeSequenceDelay->Checked;
 	BaseForm->config.skipGripStabilization = chkSkipGripStabilization != NULL && chkSkipGripStabilization->Checked;
+	BaseForm->config.useFatTestBarcodes = chkUseFatTestBarcodes != NULL && chkUseFatTestBarcodes->Checked;
+	if(editFatSourceBcr != NULL)
+		BaseForm->config.fatTestSourceBarcode = editFatSourceBcr->Text.Trim();
+	if(editFatTargetBcr != NULL)
+		BaseForm->config.fatTestTargetBarcode = editFatTargetBcr->Text.Trim();
 	if(editFmsIp != NULL)
 		BaseForm->config.fmsIp = editFmsIp->Text;
 	BaseForm->config.gatewayPort = PortEdit->Text.ToIntDef(18080);
@@ -199,10 +208,20 @@ void __fastcall TConfigForm::WriteSystemInfo(AnsiString type)
 		ini->WriteString("ZAXIS", "UP", "1");
 	else
 		ini->WriteString("ZAXIS", "UP", "0");
+	// Persist each FAT acceleration switch separately so its cycle-time effect
+	// can be measured without implicitly enabling another optimization.
+	ini->WriteString("FAT_TEST", "MAXIMUM_SPEED_MODE",
+		chkMaximumSpeedMode->Checked ? "1" : "0");
 	ini->WriteString("SEQUENCE_TEST", "OPTIMIZE_SAFE_TRANSITIONS",
 		chkOptimizeSequenceDelay->Checked ? "1" : "0");
 	ini->WriteString("SEQUENCE_TEST", "SKIP_GRIP_STABILIZATION",
 		chkSkipGripStabilization->Checked ? "1" : "0");
+	ini->WriteString("FAT_TEST", "USE_TEST_BARCODES",
+		chkUseFatTestBarcodes->Checked ? "1" : "0");
+	ini->WriteString("FAT_TEST", "SOURCE_BCR",
+		editFatSourceBcr->Text.Trim());
+	ini->WriteString("FAT_TEST", "TARGET_BCR",
+		editFatTargetBcr->Text.Trim());
 
 	delete ini;
 
@@ -225,10 +244,20 @@ bool __fastcall TConfigForm::ReadSystemInfo()
 		chkZAxisUp->Checked = true;
 	else
         chkZAxisUp->Checked = false;
+	// Defaults are deliberately OFF. Opening an older INI can never silently
+	// enable a faster FAT sequence or replace a real field barcode.
+	chkMaximumSpeedMode->Checked =
+		ini->ReadString("FAT_TEST", "MAXIMUM_SPEED_MODE", "0") == "1";
 	chkOptimizeSequenceDelay->Checked =
 		ini->ReadString("SEQUENCE_TEST", "OPTIMIZE_SAFE_TRANSITIONS", "0") == "1";
 	chkSkipGripStabilization->Checked =
 		ini->ReadString("SEQUENCE_TEST", "SKIP_GRIP_STABILIZATION", "0") == "1";
+	chkUseFatTestBarcodes->Checked =
+		ini->ReadString("FAT_TEST", "USE_TEST_BARCODES", "0") == "1";
+	editFatSourceBcr->Text = ini->ReadString("FAT_TEST", "SOURCE_BCR",
+		"TR-20260818-src");
+	editFatTargetBcr->Text = ini->ReadString("FAT_TEST", "TARGET_BCR",
+		"TR-20260818-trg");
 
     // Stage Info
 	pcEdit->Text = ini->ReadString("INFO", "PC", "H1DIF01A");

@@ -446,6 +446,7 @@ private:	// User declarations
 	bool opcCellTrackOutWaitResponseOff;
 	bool opcCellTrackOutResponseOffError;
 	int opcCellTrackOutResponseResult;
+	bool opcCellTrackOutMoveReleased; // True only after response success and reset completion.
 	DWORD opcCellTrackOutStartTick;
 	AnsiString opcFinalTrackOutTrayId; // Deferred until the last CellTrackOut handshake completes.
 	bool opcTargetUnloadPending;
@@ -557,7 +558,8 @@ public:		// User declarations
 	void __fastcall NotifyTrayInfo(AnsiString strTray, bool bsrc);
 	void __fastcall NotifyTransferIn(AnsiString strTray);
 	void __fastcall NotifyTransferOut(AnsiString strTray);
-	void __fastcall ReportCellTrackOut(int sourceChannel, int targetChannel, AnsiString cellId);
+	bool __fastcall ReportCellTrackOut(int sourceChannel, int targetChannel, AnsiString cellId);
+	bool __fastcall ConsumeCellTrackOutMoveRelease();
 	void __fastcall NotifyIdMatching_source();
 	void __fastcall NotifyIdMatching_target(AnsiString matchingStep);
 	void __fastcall NotifyEquipStatus(AnsiString process);

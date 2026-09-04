@@ -178,6 +178,7 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	opcCellTrackOutWaitResponseOff = false;
 	opcCellTrackOutResponseOffError = false;
 	opcCellTrackOutResponseResult = 0;
+	opcCellTrackOutMoveReleased = false;
 	opcCellTrackOutStartTick = 0;
 	opcFinalTrackOutTrayId = "";
 	opcTargetUnloadPending = false;
@@ -241,6 +242,7 @@ void __fastcall TMainForm::EndThread()
 	opcCellTrackOutWaitResponseOff = false;
 	opcCellTrackOutResponseOffError = false;
 	opcCellTrackOutResponseResult = 0;
+	opcCellTrackOutMoveReleased = false;
 	opcFinalTrackOutTrayId = "";
 	opcTargetUnloadPending = false;
 	opcTargetUnloadWaitResponseOff = false;
@@ -659,18 +661,22 @@ void __fastcall TMainForm::btnScanSourceTrayClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::ReadSourceTrayBarcode()
 {
-	// Cycle test uses a fixed Source tray ID without triggering the reader.
-	if(cbCycle != NULL && cbCycle->Checked){
-		// Cycle-test payload initialization is part of the AUTO process only.
+	// Barcode simulation is deliberately independent from cbCycle.  The bench
+	// trays have no labels, while field trays do; therefore cbCycle may exercise
+	// the shortened FMS handshake without silently bypassing a real reader.
+	bool useFatBarcode = BaseForm != NULL && BaseForm->config.useFatTestBarcodes;
+	if(useFatBarcode){
+		// Starting a simulated Source tray also clears the previous FAT payload.
+		// This changes only PC-owned test data and never fabricates an FMS response.
 		if(equipMode == modeAuto && MesOpc != NULL){
 			MesOpc->CLEAR_CELL_TRACK_OUT_DATA();
 			MesOpc->CLEAR_TRACK_OUT_CELL_INFORMATION();
 			sourceTrackOutResetArmed = false;
 		}
-		// Cycle-test tray IDs share one base but use different role suffixes so
-		// CellTrackOut TrayIdFrom/TrayIdTo and local files cannot be confused.
-		memoMainLineAdd("[CYCLE TEST] Source tray barcode reader bypass: TR-20260818-src");
-		setBarcode(0, "TR-20260818-src");
+		AnsiString fatTrayId = "";
+		if(BaseForm != NULL) fatTrayId = BaseForm->config.fatTestSourceBarcode.Trim();
+		memoMainLineAdd("[CYCLE TEST] Source tray barcode reader bypass: " + fatTrayId);
+		setBarcode(0, fatTrayId);
 		return;
 	}
 
@@ -680,10 +686,14 @@ void __fastcall TMainForm::ReadSourceTrayBarcode()
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::ReadTargetTrayBarcode()
 {
-	// Cycle test bypasses the unconfigured Target/NG tray barcode reader.
-	if(cbCycle != NULL && cbCycle->Checked){
-		memoMainLineAdd("[CYCLE TEST] Target tray barcode reader bypass: TR-20260818-trg");
-		setBarcode(1, "TR-20260818-trg");
+	// Use the physical Target reader unless the dedicated FAT barcode option is
+	// selected. cbCycle controls only FMS response freshness/reset bypassing.
+	bool useFatBarcode = BaseForm != NULL && BaseForm->config.useFatTestBarcodes;
+	if(useFatBarcode){
+		AnsiString fatTrayId = "";
+		if(BaseForm != NULL) fatTrayId = BaseForm->config.fatTestTargetBarcode.Trim();
+		memoMainLineAdd("[CYCLE TEST] Target tray barcode reader bypass: " + fatTrayId);
+		setBarcode(1, fatTrayId);
 		return;
 	}
 
@@ -847,6 +857,7 @@ void __fastcall TMainForm::CancelFmsAlarmRequest()
 		case fmsAlarmCellTrackOut:
 			MesOpc->CELL_TRACK_OUT_CANCEL();
 			opcCellTrackOutPending = false;
+			opcCellTrackOutMoveReleased = false;
 			opcCellTrackOutWaitResponseOff = false;
 			opcCellTrackOutResponseOffError = false;
 			opcCellTrackOutResponseResult = 0;
@@ -926,7 +937,11 @@ bool __fastcall TMainForm::ProcessFmsAlarmRecovery()
 		return true;
 
 	int response = GetFmsAlarmResponse();
-	if(response == 0 || (cbCycle != NULL && cbCycle->Checked)){
+	// Production retry waits for the previous response to reset to 0. Cycle Test
+	// deliberately skips that handshake so an unattended FAT demo cannot stop on
+	// a cached FMS response.
+	bool cycleResponseBypass = cbCycle != NULL && cbCycle->Checked;
+	if(response == 0 || cycleResponseBypass){
 		ReissueFmsAlarmRequest();
 		return fmsAlarmTransaction != fmsAlarmNone;
 	}
@@ -1083,6 +1098,9 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		return;
 	}
 	DWORD nowTick = GetTickCount();
+	// Cycle Test uses the response value already present in the gateway cache and
+	// bypasses both stale-response validation (inside TMesOpc) and the final
+	// Response=0 reset wait. Unchecked mode performs the full FMS handshake.
 	bool cycleResponseBypass = cbCycle != NULL && cbCycle->Checked;
 
 	// ----------------------------------------------------------------------
@@ -1193,7 +1211,15 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		int response = MesOpc != NULL ? MesOpc->TRAY_LOAD_RESPONSE(sourceTray) : -1;
 		SetProcessWaitStatus(stepNo, locationName + ".TrayLoad Request=ON",
 			locationName + ".TrayLoadResponse ON", rawResponse);
-		if (response == 1)
+		if(response == FMS_POLL_REQUEST_STARTED)
+		{
+			// Production mode only: stale response returned to zero, and the real
+			// TrayLoad request has just been switched ON.
+			opcTrayLoadStartTick[i] = nowTick;
+			ProcessStepLog(stepNo, "Stale " + locationName +
+				".TrayLoadResponse cleared / actual Request=ON");
+		}
+		else if (response == 1)
 		{
 			// Success: TRAY_LOAD_RESPONSE() already switched Request OFF.
 			// Display the tray now, but do not advance until Response=0.
@@ -1561,8 +1587,11 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 					if(MesOpc != NULL)
 						MesOpc->CLEAR_CELL_TRACK_OUT_DATA();
 					if(result == 1){
+						opcCellTrackOutMoveReleased = true;
 						CompleteProcessStep(12, cycleResponseBypass ? "Cycle test: CellUnloadCompleteResponse reset bypassed" : "CellUnloadCompleteResponse returned OFF");
-						memoMainLineAdd("[FMS OPC UA] CellTrackOut four-phase handshake complete.");
+						memoMainLineAdd(cycleResponseBypass ?
+							"[FMS OPC UA] CellTrackOut response accepted; Response=0 wait bypassed by Cycle Test." :
+							"[FMS OPC UA] CellTrackOut four-phase handshake complete.");
 						if(!opcFinalTrackOutTrayId.IsEmpty()){
 							AnsiString deferredTrayId = opcFinalTrackOutTrayId;
 							opcFinalTrackOutTrayId = "";
@@ -1614,11 +1643,13 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 					"FMS returned CellUnloadCompleteResponse=2.", response);
 			}else if(response < 0){
 				opcCellTrackOutPending = false;
+				opcCellTrackOutMoveReleased = false;
 				ProcessStepLog(12, "ERROR - invalid CellUnloadCompleteResponse=" + IntToStr(response));
 				ShowFmsAlarm(fmsAlarmCellTrackOut, "CellTrackOut failed",
 					"Invalid or missing CellUnloadCompleteResponse.", response);
 			}else if((DWORD)(GetTickCount() - opcCellTrackOutStartTick) >= RESPONSE_TIMEOUT_MS){
 				opcCellTrackOutPending = false;
+				opcCellTrackOutMoveReleased = false;
 				ProcessStepLog(12, "ERROR - CellUnloadCompleteResponse ON timeout");
 				if(MesOpc != NULL){
 					MesOpc->LogCellTrackOutTimeout();
@@ -1771,7 +1802,9 @@ bool __fastcall TMainForm::CheckServoAutoReady(bool showError)
 void __fastcall TMainForm::autoBtnClick(TObject *Sender)
 {
 	// AUTO entry always validates the real servo/CC-Link/gripper interlocks.
-	// cbMES and cbCycle simulate process data only and never bypass safety/readiness.
+	// cbCycle bypasses FMS response freshness/reset handshakes for unattended FAT
+	// demonstration. Motion/barcode options remain independent, and no setting
+	// bypasses the physical AUTO readiness interlocks.
 	if(!CheckServoAutoReady(true))
 	{
 		autoBtn->Down = false;
@@ -2888,6 +2921,9 @@ void __fastcall TMainForm::AddStatusLog(AnsiString source, AnsiString msg)
 {
 	AnsiString logMsg = "[" + source + "] " + msg;
 
+	// Maximum-speed transitions collect messages while the nested sequence issues
+	// the next motion command.  Returning here avoids both synchronous disk I/O
+	// and the expensive 1,000-line memo update in that critical section.
 	if(statusLogDisplaySuppressed){
 		deferredStatusLogs.push_back(logMsg);
 		return;
@@ -2927,6 +2963,9 @@ void __fastcall TMainForm::SetStatusLogDisplaySuppressed(bool suppressed)
 
 	statusLogDisplaySuppressed = false;
 	if(!deferredStatusLogs.empty()){
+		// Preserve every deferred message in the program log as one batch after
+		// motion starts.  Do not replay old lines into memoLog; that would restore
+		// the UI delay this mechanism is intended to remove.
 		WriteProgLogBatch(deferredStatusLogs);
 		deferredStatusLogs.clear();
 	}

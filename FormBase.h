@@ -51,8 +51,18 @@ typedef struct{
 	int ims_port;
 	AnsiString fmsIp;
 	int gatewayPort;
+	// FAT maximum-speed mode changes only the timing of non-critical work:
+	// start the next motion first, then write logs/results and report CellTrackOut.
+	bool maximumSpeedMode;
+	// These two switches remain independent so each cycle-time reduction can be
+	// measured separately from the maximum-speed I/O/report reordering.
 	bool optimizeSequenceDelay;
 	bool skipGripStabilization;
+	// Bench trays currently have no labels. Keep barcode simulation separate
+	// from cbCycle so field operation can use real readers with either handshake mode.
+	bool useFatTestBarcodes;
+	AnsiString fatTestSourceBarcode;
+	AnsiString fatTestTargetBarcode;
 	AnsiString line;
 	AnsiString pc;
 	int ocv_retest;

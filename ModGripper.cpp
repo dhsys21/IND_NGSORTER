@@ -9,6 +9,20 @@
 #pragma resource "*.dfm"
 Tgripper *gripper;
 //---------------------------------------------------------------------------
+static bool UseFatMaximumSpeedMode()
+{
+	// Maximum-speed mode owns only the move-first ordering of logs, files,
+	// and CellTrackOut. It is intentionally independent from cbCycle.
+	return BaseForm != NULL && BaseForm->config.maximumSpeedMode;
+}
+//---------------------------------------------------------------------------
+static bool UseFatOptimizeSequenceDelay()
+{
+	// This option removes intermediate timer scans but never bypasses a
+	// position, cell-detect, gripper, or tray-centering interlock.
+	return BaseForm != NULL && BaseForm->config.optimizeSequenceDelay;
+}
+//---------------------------------------------------------------------------
 __fastcall Tgripper::Tgripper(TComponent* Owner)
 	: TDataModule(Owner)
 {
@@ -18,6 +32,10 @@ __fastcall Tgripper::Tgripper(TComponent* Owner)
 	pauseStatus = false;
 	pendingTransferResultValid = false;
 	deferTargetReservationSave = false;
+	cellTrackOutRequestStarted = false;
+	pendingCellTrackOutSourceChannel = 0;
+	pendingCellTrackOutTargetChannel = 0;
+	pendingCellTrackOutCellId = "";
 	ResetTransferResult();
 }
 //---------------------------------------------------------------------------
@@ -370,8 +388,7 @@ void __fastcall Tgripper::Initialize()
 				MainForm->memoGripperLineAdd("[Init step 0] " + BaseForm->GetLangStr("MSG_AUTOSTOPMODE"));
 			}
 			waitTimer->Enabled = false;
-			if(step.step != 1 || BaseForm == NULL ||
-				!BaseForm->config.optimizeSequenceDelay)
+			if(step.step != 1 || !UseFatOptimizeSequenceDelay())
 				break;
 			MainForm->memoGripperLineAdd(
 				"[FAST OPTION] Equipment ready / initialize NG selection in same scan");
@@ -457,7 +474,7 @@ void __fastcall Tgripper::Initialize()
 					step.chCnt++;
 			}
 			step.step += 1;
-			if(BaseForm == NULL || !BaseForm->config.optimizeSequenceDelay)
+			if(!UseFatOptimizeSequenceDelay())
 				break;
 			MainForm->memoGripperLineAdd(
 				"[FAST OPTION] NG reservation complete / request Source move in same scan");
@@ -467,7 +484,7 @@ void __fastcall Tgripper::Initialize()
 				if(step.ejectCnt > 0){
 					MainForm->CompleteProcessStep(7, "NG channel and Target reservation selected");
 					InitSequence(step.reserve);	// 선별시작
-					if(BaseForm != NULL && BaseForm->config.optimizeSequenceDelay &&
+					if(UseFatOptimizeSequenceDelay() &&
 						seq == seqSorting){
 						MainForm->memoGripperLineAdd(
 							"[FAST OPTION] Source move requested without initialization timer delay");
@@ -577,10 +594,12 @@ void __fastcall Tgripper::Sorting()
 						" TargetCh=" + tool[toolIndex].target_ch +
 						" CellId=" + MainForm->tray_source.SLOT_ID[tool[toolIndex].source_ch.ToInt()-1]);
 				}
-				MainForm->memoGripperLineAdd(
-					"[FAST TRANSITION] Eject complete / request Target move in same gripper scan");
 				InitSequence(seqInserting);
-				Inserting();
+				if(UseFatOptimizeSequenceDelay()){
+					MainForm->memoGripperLineAdd(
+						"[FAST TRANSITION] Eject complete / request Target move in same gripper scan");
+					Inserting();
+				}
 			}else{
 				MainForm->memoGripperLineAdd("[Eject step 2] " + BaseForm->GetLangStr("MSG_EJECTING"));
 			}
@@ -594,6 +613,18 @@ void __fastcall Tgripper::Sorting()
 			InitSequence(seqInserting);
 			break;
 	}
+}
+//---------------------------------------------------------------------------
+bool __fastcall Tgripper::StartPendingCellTrackOutReport()
+{
+	if(MainForm == NULL || pendingCellTrackOutSourceChannel <= 0 ||
+		pendingCellTrackOutTargetChannel <= 0)
+		return false;
+
+	cellTrackOutRequestStarted = MainForm->ReportCellTrackOut(
+		pendingCellTrackOutSourceChannel, pendingCellTrackOutTargetChannel,
+		pendingCellTrackOutCellId);
+	return cellTrackOutRequestStarted;
 }
 //---------------------------------------------------------------------------
 void __fastcall Tgripper::StartNextCycleOrWait()
@@ -629,9 +660,11 @@ void __fastcall Tgripper::StartNextCycleOrWait()
 		// Keep Z at zero and let AutoEject move X/Y directly from the
 		// Target tray to the next Source NG channel. The reservation snapshot is
 		// persisted immediately after the motion command.
-		deferTargetReservationSave = true;
+		// Reservation-file deferral belongs to Maximum speed mode. Without it,
+		// normal operation persists PICK=R before the next Source motion starts.
+		deferTargetReservationSave = UseFatMaximumSpeedMode();
 		InitSequence(seqInit, seqSorting);
-		if(BaseForm != NULL && BaseForm->config.optimizeSequenceDelay)
+		if(UseFatOptimizeSequenceDelay())
 			Initialize();
 		deferTargetReservationSave = false;
 	}else{
@@ -737,8 +770,38 @@ void __fastcall Tgripper::Inserting()
 					}
 				}
 
-				// Start the next safe motion first. Suppress only the expensive 1,000-line
-				// on-screen log insertion during this critical path; file logs remain.
+				// Maximum speed OFF: report at Z=0 and block the next motion until
+				// a response is accepted. cbCycle may accept a cached response and skip
+				// the reset handshake; normal mode requires the full FMS handshake.
+				// Maximum speed ON uses the fast path below: move first, then perform
+				// non-critical result/file writes and CellTrackOut asynchronously.
+				if(!UseFatMaximumSpeedMode()){
+					MainForm->NotifyIdMatching_target("1");
+					step.step = 4;
+					cellTrackOutRequestStarted = false;
+					pendingCellTrackOutSourceChannel = 0;
+					pendingCellTrackOutTargetChannel = 0;
+					pendingCellTrackOutCellId = "";
+					if(reportCount != 1){
+						ShowCommonError("CellTrackOut request failed",
+							"Completed insert data is unavailable. Next move remains blocked.");
+						break;
+					}
+
+					pendingCellTrackOutSourceChannel = reportSourceChannel[0];
+					pendingCellTrackOutTargetChannel = reportTargetChannel[0];
+					pendingCellTrackOutCellId = reportCellId[0];
+					MainForm->memoGripperLineAdd(
+						"[NORMAL TRACK OUT] Z UP complete / report before next move");
+					if(!StartPendingCellTrackOutReport())
+						ShowCommonError("CellTrackOut request failed",
+							"Check AUTO mode, FMS Gateway, and Location1 TrackIn data. Next move remains blocked.");
+					break;
+				}
+
+				// Maximum-speed ordering: let the nested sequence issue the next motion
+				// first. Status messages generated inside that call are kept in memory;
+				// their file batch is flushed only after the motion command returns.
 				MainForm->memoGripperLineAdd(
 					"[FAST TRANSITION] Insert complete / start next move before FMS report");
 				MainForm->SetStatusLogDisplaySuppressed(true);
@@ -774,6 +837,27 @@ void __fastcall Tgripper::Inserting()
 			MainForm->memoGripperLineAdd("[Insert step 3] " + BaseForm->GetLangStr("MSG_INSERT_CHECK"));
 			InitSequence(seqInserting);
 			break;
+		case 4:
+			// Production remains here until the CellTrackOut response reset completes.
+			if(!cellTrackOutRequestStarted){
+				if(!StartPendingCellTrackOutReport())
+					ShowCommonError("CellTrackOut request failed",
+						"Check AUTO mode, FMS Gateway, and Location1 TrackIn data. Next move remains blocked.");
+				break;
+			}
+			if(!MainForm->ConsumeCellTrackOutMoveRelease())
+				break;
+
+			MainForm->memoGripperLineAdd(
+				"[NORMAL TRACK OUT] Response=1 / Request=OFF / Response=0 complete -> next move");
+			cellTrackOutRequestStarted = false;
+			pendingCellTrackOutSourceChannel = 0;
+			pendingCellTrackOutTargetChannel = 0;
+			pendingCellTrackOutCellId = "";
+			StartNextCycleOrWait();
+			// Direct-next motion snapshots the completed result in StartNextCycleOrWait.
+			SavePendingTransferResult(true);
+			break;
 		default:
 			if(step.step == 5)
 				StartNextCycleOrWait();
@@ -783,7 +867,7 @@ void __fastcall Tgripper::Inserting()
 				MainForm->CompleteProcessStep(13, "WAIT POSITION complete / Next Step=07");
 				MainForm->memoGripperLineAdd("[CYCLE] NO NEXT NG OR TARGET FULL -> FINAL CHECK");
 				InitSequence(seqInit, seqSorting);
-				if(BaseForm != NULL && BaseForm->config.optimizeSequenceDelay)
+				if(UseFatOptimizeSequenceDelay())
 					Initialize();
 			}
 			break;

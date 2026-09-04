@@ -83,6 +83,9 @@ static UnicodeString CellTag(const UnicodeString &Root, int Index, const Unicode
 //---------------------------------------------------------------------------
 static bool IsCycleResponseBypass(void)
 {
+	// Cycle Test is used for an unattended FAT demonstration without a live FMS.
+	// It may reuse the response value already present in the gateway cache.  All
+	// stale-response/reset handshakes remain enabled when Cycle Test is unchecked.
 	return MainForm != NULL && MainForm->cbCycle != NULL && MainForm->cbCycle->Checked;
 }
 //---------------------------------------------------------------------------
@@ -1060,9 +1063,9 @@ void __fastcall TMesOpc::TRAY_LOAD_REQUEST(bool SourceTray)
 	if (TrayIdPanel != NULL)
 		TrayId = TrayIdPanel->Caption;
 
-	// TrayLoad uses the current response value directly. The previous transaction
-	// is already guaranteed to have completed Response=0 before advancing.
-	// Rejecting an unchanged Revision hid a visible Location2 Response=1.
+	// Normal mode establishes an idle baseline before issuing a new request, so
+	// a previous Response=1/2 cannot be reused.  Cycle Test intentionally skips
+	// that handshake and accepts the response value already held by the gateway.
 	int LocationIndex = SourceTray ? 0 : 1;
 	SetTrayLoadValidationError(SourceTray, "");
 	UnicodeString RequestKey = TrayProcessTag(Location, L"TrayLoad");
@@ -1070,15 +1073,18 @@ void __fastcall TMesOpc::TRAY_LOAD_REQUEST(bool SourceTray)
 	int InitialResponse = GetFmsInt(ResponseKey);
 	FTrayLoadResponseRevision[LocationIndex] = Mod_Fms != NULL ?
 		Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
-	FTrayLoadWaitResponseIdle[LocationIndex] = false;
+	FTrayLoadWaitResponseIdle[LocationIndex] =
+		!IsCycleResponseBypass() && (InitialResponse != 0);
 	SetPcBool(TrayInfoTag(Location, L"TrayExist"), true);
 	SetPcString(TrayInfoTag(Location, L"TrayId"), TrayId);
-	SetPcBool(RequestKey, true);
+	SetPcBool(RequestKey, !FTrayLoadWaitResponseIdle[LocationIndex]);
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 	LogOpcEvent("TRAY_LOAD_REQUEST " + AnsiString(Location) + " TrayId=" + AnsiString(TrayId) +
 		" InitialResponse=" + IntToStr(InitialResponse) +
 		" Revision=" + IntToStr((__int64)FTrayLoadResponseRevision[LocationIndex]) +
-		" / Request=ON / current Response value is accepted", true);
+		(FTrayLoadWaitResponseIdle[LocationIndex] ?
+			AnsiString(" / hold Request=OFF until stale Response=0") :
+			AnsiString(" / Request=ON")), true);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::TRAY_LOAD_CANCEL(bool SourceTray)
@@ -1108,9 +1114,26 @@ int __fastcall TMesOpc::TRAY_LOAD_RESPONSE(bool SourceTray)
 	unsigned __int64 CurrentRevision = Mod_Fms != NULL ? Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
 
 	int Response = GetFmsInt(ResponseKey);
-	// Read the current response directly. Revision remains diagnostic only.
+	if(FTrayLoadWaitResponseIdle[LocationIndex])
+	{
+		// Production handshake only: wait for the previous response to reset,
+		// then issue this transaction's Request=ON.
+		if(Response != 0)
+			return 0;
+		FTrayLoadWaitResponseIdle[LocationIndex] = false;
+		FTrayLoadResponseRevision[LocationIndex] = CurrentRevision;
+		SetPcBool(TrayProcessTag(Location, L"TrayLoad"), true);
+		if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
+		LogOpcEvent("TRAY_LOAD_RESPONSE IDLE confirmed " + AnsiString(Location) +
+			" / Request=ON / BaselineRevision=" +
+			IntToStr((__int64)FTrayLoadResponseRevision[LocationIndex]), true);
+		return FMS_POLL_REQUEST_STARTED;
+	}
 	if (Response == 0)
 		return 0;
+	// Revision is retained for logging only. Normal mode already guarantees a
+	// clean 0 -> 1/2 transition through its four-phase handshake, so rejecting a
+	// visible response by revision can only create a false wait.
 	if (Response != 1 && Response != 2)
 	{
 		LogOpcEvent("VALIDATION FAIL TrayLoadResponse=" + IntToStr(Response), true);
@@ -1299,7 +1322,10 @@ void __fastcall TMesOpc::PROCESS_START_REQUEST()
 	const UnicodeString ResponseKey = TrayProcessTag(TAG_SOURCE, L"ProcessStartResponse");
 	int InitialResponse = GetFmsInt(ResponseKey);
 	FProcessStartResponseRevision = Mod_Fms != NULL ? Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
-	FProcessStartWaitResponseIdle = !IsCycleResponseBypass() && (InitialResponse != 0);
+	// Only production mode waits for an old response to reset before Request=ON.
+	// Cycle Test deliberately reuses the cached result for an unattended demo.
+	FProcessStartWaitResponseIdle =
+		!IsCycleResponseBypass() && (InitialResponse != 0);
 	SetPcBool(RequestKey, !FProcessStartWaitResponseIdle);
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 	LogOpcEvent("PROCESS_START_REQUEST InitialResponse=" + IntToStr(InitialResponse) +
@@ -1343,8 +1369,8 @@ int __fastcall TMesOpc::PROCESS_START_RESPONSE_RESULT()
 	}
 	if(Response == 0)
 		return 0;
-	if(!IsCycleResponseBypass() && CurrentRevision <= FProcessStartResponseRevision)
-		return 0;
+	// Accept the visible 1/2 value. Revision is diagnostic only; the normal-mode
+	// pre-request and post-request Response=0 waits prevent stale reuse.
 
 	// Clear the PC request after either ACK result. Completion is handled only
 	// after the FMS response also returns to zero.
@@ -1555,7 +1581,10 @@ void __fastcall TMesOpc::CELL_TRACK_OUT_REQUEST(int SourceChannel, int TargetCha
 	const UnicodeString ResponseKey = CellTrackOutTag(L"CellUnloadCompleteResponse");
 	int InitialResponse = GetFmsInt(ResponseKey);
 	FCellTrackOutResponseRevision = Mod_Fms->GetFmsTagRevision(ResponseKey);
-	FCellTrackOutWaitResponseIdle = !IsCycleResponseBypass() && (InitialResponse != 0);
+	// Production mode establishes a clean pre-request baseline. Cycle Test does
+	// not wait for the previous cell report response to reset.
+	FCellTrackOutWaitResponseIdle =
+		!IsCycleResponseBypass() && (InitialResponse != 0);
 
 	SetPcInt(CellTrackOutTag(L"CellNoFrom"), SourceChannel);
 	SetPcString(CellTrackOutTag(L"TrayIdFrom"), SourceTrayId);
@@ -1598,8 +1627,8 @@ int __fastcall TMesOpc::CELL_TRACK_OUT_RESPONSE_RESULT()
 	}
 	if(Response == 0)
 		return 0;
-	if(!IsCycleResponseBypass() && CurrentRevision <= FCellTrackOutResponseRevision)
-		return 0;
+	// Do not reject a visible response because its gateway revision is unchanged.
+	// Normal mode's Response=0 handshake is the stale-response interlock.
 
 	SetPcBool(RequestKey, false);
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
@@ -1712,7 +1741,9 @@ void __fastcall TMesOpc::TRAY_UNLOAD_REQUEST()
 	const UnicodeString ResponseKey = TrayProcessTag(TAG_TARGET, L"TrayUnloadResponse");
 	int InitialResponse = GetFmsInt(ResponseKey);
 	FTrayUnloadResponseRevision = Mod_Fms != NULL ? Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
-	FTrayUnloadWaitResponseIdle = !IsCycleResponseBypass() && (InitialResponse != 0);
+	// Do not make an unattended Cycle Test wait for a previous response reset.
+	FTrayUnloadWaitResponseIdle =
+		!IsCycleResponseBypass() && (InitialResponse != 0);
 	SetPcBool(RequestKey, !FTrayUnloadWaitResponseIdle);
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 	LogOpcEvent("TRAY_UNLOAD_REQUEST Location2 InitialResponse=" + IntToStr(InitialResponse) +
@@ -1741,7 +1772,7 @@ int __fastcall TMesOpc::TRAY_UNLOAD_RESPONSE_RESULT()
 		return FMS_POLL_REQUEST_STARTED;
 	}
 	if(Response == 0) return 0;
-	if(!IsCycleResponseBypass() && CurrentRevision <= FTrayUnloadResponseRevision) return 0;
+	// Revision remains a log value only; handshake state decides freshness.
 
 	SetPcBool(RequestKey, false);
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
@@ -1805,7 +1836,9 @@ void __fastcall TMesOpc::PROCESS_END_REQUEST()
 	const UnicodeString ResponseKey = TrayProcessTag(TAG_SOURCE, L"ProcessEndResponse");
 	int InitialResponse = GetFmsInt(ResponseKey);
 	FProcessEndResponseRevision = Mod_Fms != NULL ? Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
-	FProcessEndWaitResponseIdle = !IsCycleResponseBypass() && (InitialResponse != 0);
+	// Previous-response reset is part of the production handshake only.
+	FProcessEndWaitResponseIdle =
+		!IsCycleResponseBypass() && (InitialResponse != 0);
 	SetPcBool(RequestKey, !FProcessEndWaitResponseIdle);
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 	LogOpcEvent("PROCESS_END_REQUEST InitialResponse=" + IntToStr(InitialResponse) +
@@ -1840,8 +1873,7 @@ int __fastcall TMesOpc::PROCESS_END_RESPONSE_RESULT()
 	}
 	if(Response == 0)
 		return 0;
-	if(!IsCycleResponseBypass() && CurrentRevision <= FProcessEndResponseRevision)
-		return 0;
+	// Revision remains a log value only; handshake state decides freshness.
 
 	SetPcBool(RequestKey, false);
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);

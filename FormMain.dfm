@@ -2556,9 +2556,10 @@ object MainForm: TMainForm
       Font.Height = -17
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
+      Hint = 'Use the current cached FMS response and skip response freshness/reset waits'
       ParentFont = False
       ParentShowHint = False
-      ShowHint = False
+      ShowHint = True
       TabOrder = 14
       Visible = False
     end

@@ -36,8 +36,15 @@ __published:	// IDE-managed Components
 	TPanel *Panel6;
 	TGroupBox *GroupBox2;
 	TCheckBox *chkZAxisUp;
+	TCheckBox *chkMaximumSpeedMode;
 	TCheckBox *chkOptimizeSequenceDelay;
 	TCheckBox *chkSkipGripStabilization;
+	TCheckBox *chkUseFatTestBarcodes;
+	TGroupBox *GroupBoxFatTest;
+	TEdit *editFatSourceBcr;
+	TEdit *editFatTargetBcr;
+	TPanel *pnlFatSourceBcr;
+	TPanel *pnlFatTargetBcr;
 	TGroupBox *GroupBox4;
 	TEdit *editPlcPort1;
 	TAdvSmoothButton *btnConPLC;

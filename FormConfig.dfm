@@ -4,7 +4,7 @@ object ConfigForm: TConfigForm
   BorderIcons = []
   BorderStyle = bsSingle
   Caption = 'CONFIGURATION'
-  ClientHeight = 396
+  ClientHeight = 516
   ClientWidth = 900
   Color = clWhite
   Font.Charset = DEFAULT_CHARSET
@@ -434,9 +434,40 @@ object ConfigForm: TConfigForm
       ShowHint = False
       TabOrder = 1
     end
+  end
+  object GroupBoxFatTest: TGroupBox
+    Left = 8
+    Top = 365
+    Width = 470
+    Height = 118
+    Caption = 'FAT TEST'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 7
+    object chkMaximumSpeedMode: TCheckBox
+      Left = 10
+      Top = 25
+      Width = 210
+      Height = 17
+      Caption = 'Maximum speed mode'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clRed
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      Hint = 'Start the next motion before non-critical logs, result files, and CellTrackOut reporting'
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 0
+    end
     object chkOptimizeSequenceDelay: TCheckBox
-      Left = 250
-      Top = 24
+      Left = 10
+      Top = 51
       Width = 210
       Height = 17
       Caption = 'Optimize safe transitions'
@@ -445,15 +476,15 @@ object ConfigForm: TConfigForm
       Font.Height = -11
       Font.Name = 'Tahoma'
       Font.Style = []
-      Hint = 'Expected Result TotalMs: approximately 14.4-14.8s'
+      Hint = 'Bypass intermediate timer scans while retaining position and sensor checks'
       ParentFont = False
       ParentShowHint = False
       ShowHint = True
-      TabOrder = 2
+      TabOrder = 1
     end
     object chkSkipGripStabilization: TCheckBox
-      Left = 250
-      Top = 48
+      Left = 10
+      Top = 77
       Width = 210
       Height = 17
       Caption = 'Skip 0.2s stabilization (TEST)'
@@ -462,11 +493,92 @@ object ConfigForm: TConfigForm
       Font.Height = -11
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
-      Hint = 'TEST ONLY: expected Result TotalMs approximately 14.0-14.4s'
+      Hint = 'Skip only the 0.2 second CHUCK/UNCHUCK stabilization dwell'
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 2
+    end
+    object chkUseFatTestBarcodes: TCheckBox
+      Left = 230
+      Top = 25
+      Width = 220
+      Height = 17
+      Caption = 'Use FAT barcodes'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clTeal
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      Hint = 'Use the SRC/TRG values below instead of triggering the physical barcode readers'
       ParentFont = False
       ParentShowHint = False
       ShowHint = True
       TabOrder = 3
+    end
+    object editFatSourceBcr: TEdit
+      Left = 310
+      Top = 47
+      Width = 150
+      Height = 25
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 4
+      Text = 'TR-20260818-src'
+    end
+    object editFatTargetBcr: TEdit
+      Left = 310
+      Top = 79
+      Width = 150
+      Height = 25
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 5
+      Text = 'TR-20260818-trg'
+    end
+    object pnlFatSourceBcr: TPanel
+      Left = 230
+      Top = 47
+      Width = 80
+      Height = 25
+      BevelKind = bkFlat
+      BevelOuter = bvNone
+      Caption = 'SRC BCR'
+      Color = 15656921
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 6
+    end
+    object pnlFatTargetBcr: TPanel
+      Left = 230
+      Top = 79
+      Width = 80
+      Height = 25
+      BevelKind = bkFlat
+      BevelOuter = bvNone
+      Caption = 'TRG BCR'
+      Color = 15656921
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 7
     end
   end
   object AdvSmoothButton2: TAdvSmoothButton

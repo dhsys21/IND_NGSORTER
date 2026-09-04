@@ -88,6 +88,11 @@ private:	// User declarations
 	TRANSFER_RESULT pendingTransferResult;
 	bool pendingTransferResultValid;
 	bool deferTargetReservationSave;
+	bool cellTrackOutRequestStarted;
+	int pendingCellTrackOutSourceChannel;
+	int pendingCellTrackOutTargetChannel;
+	AnsiString pendingCellTrackOutCellId;
+	bool __fastcall StartPendingCellTrackOutReport();
 	void __fastcall ResetTransferResult();
 	void __fastcall BeginTransferResult(int toolIndex);
 	void __fastcall StartTransferPhase(TRANSFER_PHASE phase);
