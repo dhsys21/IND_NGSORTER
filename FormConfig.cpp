@@ -19,6 +19,7 @@ __fastcall TConfigForm::TConfigForm(TComponent* Owner)
 void __fastcall TConfigForm::ApplyConfig()
 {
 	UpdateCommunicationConfigFromEdits();
+	//* max speed mode - need remove
 	// FAT controls are intentionally independent from MainForm::cbCycle.
 	// cbCycle controls only the FMS freshness/reset handshake bypass; these FAT
 	// controls select motion-transition, dwell, and barcode behavior separately.
@@ -208,6 +209,7 @@ void __fastcall TConfigForm::WriteSystemInfo(AnsiString type)
 		ini->WriteString("ZAXIS", "UP", "1");
 	else
 		ini->WriteString("ZAXIS", "UP", "0");
+	//* max speed mode - need remove
 	// Persist each FAT acceleration switch separately so its cycle-time effect
 	// can be measured without implicitly enabling another optimization.
 	ini->WriteString("FAT_TEST", "MAXIMUM_SPEED_MODE",
@@ -244,6 +246,7 @@ bool __fastcall TConfigForm::ReadSystemInfo()
 		chkZAxisUp->Checked = true;
 	else
         chkZAxisUp->Checked = false;
+	//* max speed mode - need remove
 	// Defaults are deliberately OFF. Opening an older INI can never silently
 	// enable a faster FAT sequence or replace a real field barcode.
 	chkMaximumSpeedMode->Checked =

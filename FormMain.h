@@ -17,6 +17,7 @@
 #include <Grids.hpp>
 #include <System.Win.ScktComp.hpp>
 #include <System.Classes.hpp>
+//* max speed mode - need remove
 #include <deque>
 #include "AdvSmoothButton.hpp"
 #include "AdvSmoothPanel.hpp"
@@ -461,6 +462,7 @@ private:	// User declarations
 	int currentProcessStep;
 	AnsiString currentProcessDetail;
 	AnsiString lastProcessWaitStatus[16]; // One wait-log cache per process step.
+	//* max speed mode - need remove
 	bool statusLogDisplaySuppressed;
 	std::deque<AnsiString> deferredStatusLogs; // Flushed once after the motion command.
 	void __fastcall UpdateProcessFlowPanel();
@@ -571,6 +573,7 @@ public:		// User declarations
 
 	void __fastcall CmdTrayOut(int pos);
 	void __fastcall WriteProgLog(AnsiString msg);
+	//* max speed mode - need remove
 	void __fastcall WriteProgLogBatch(const std::deque<AnsiString> &messages);
 	void __fastcall WriteOpcUaLog(AnsiString Type, AnsiString Msg, bool bDisplay = true);
 	void __fastcall WriteErrorLog(AnsiString str1, AnsiString str2);
@@ -578,6 +581,7 @@ public:		// User declarations
 	void __fastcall NotifyAlarm(bool alarm, AnsiString code = -1,  bool warning = true);
 
 	void __fastcall AddStatusLog(AnsiString source, AnsiString msg);
+	//* max speed mode - need remove
 	void __fastcall SetStatusLogDisplaySuppressed(bool suppressed);
 	void __fastcall memoMainLineAdd(AnsiString msg);
 	void __fastcall memoGripperLineAdd(AnsiString msg);

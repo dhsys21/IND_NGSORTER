@@ -36,6 +36,7 @@ __published:	// IDE-managed Components
 	TPanel *Panel6;
 	TGroupBox *GroupBox2;
 	TCheckBox *chkZAxisUp;
+	//* max speed mode - need remove
 	TCheckBox *chkMaximumSpeedMode;
 	TCheckBox *chkOptimizeSequenceDelay;
 	TCheckBox *chkSkipGripStabilization;

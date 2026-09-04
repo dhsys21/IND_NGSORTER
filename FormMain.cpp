@@ -57,6 +57,7 @@ static AnsiString RobotSequenceText(int value)
 __fastcall TMainForm::TMainForm(TComponent* Owner)
 	: TForm(Owner)
 {
+	//* max speed mode - need remove
 	statusLogDisplaySuppressed = false;
 	this->Parent = BaseForm;
 	this->Visible = true;
@@ -2921,6 +2922,7 @@ void __fastcall TMainForm::AddStatusLog(AnsiString source, AnsiString msg)
 {
 	AnsiString logMsg = "[" + source + "] " + msg;
 
+	//* max speed mode - need remove
 	// Maximum-speed transitions collect messages while the nested sequence issues
 	// the next motion command.  Returning here avoids both synchronous disk I/O
 	// and the expensive 1,000-line memo update in that critical section.
@@ -2951,6 +2953,7 @@ void __fastcall TMainForm::AddStatusLog(AnsiString source, AnsiString msg)
 	memoLog->Perform(EM_SCROLLCARET, 0, 0);
 }
 //---------------------------------------------------------------------------
+//* max speed mode - need remove
 void __fastcall TMainForm::SetStatusLogDisplaySuppressed(bool suppressed)
 {
 	if(statusLogDisplaySuppressed == suppressed) return;

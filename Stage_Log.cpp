@@ -23,6 +23,7 @@ void __fastcall TMainForm::WriteProgLog(AnsiString msg)
 	FileClose(file_handle);
 }
 //---------------------------------------------------------------------------
+//* max speed mode - need remove
 void __fastcall TMainForm::WriteProgLogBatch(const std::deque<AnsiString> &messages)
 {
 	if(messages.empty()) return;

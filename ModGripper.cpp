@@ -9,6 +9,7 @@
 #pragma resource "*.dfm"
 Tgripper *gripper;
 //---------------------------------------------------------------------------
+//* max speed mode - need remove
 static bool UseFatMaximumSpeedMode()
 {
 	// Maximum-speed mode owns only the move-first ordering of logs, files,
@@ -16,6 +17,7 @@ static bool UseFatMaximumSpeedMode()
 	return BaseForm != NULL && BaseForm->config.maximumSpeedMode;
 }
 //---------------------------------------------------------------------------
+//* max speed mode - need remove
 static bool UseFatOptimizeSequenceDelay()
 {
 	// This option removes intermediate timer scans but never bypasses a
@@ -30,6 +32,7 @@ __fastcall Tgripper::Tgripper(TComponent* Owner)
 	ccLinkNotReadyReported = false;
 	tool[gripCnt].disable = false;	// 7번 그리퍼는 항상 false로 마지막 지점 체크로 사용한다.
 	pauseStatus = false;
+	//* max speed mode - need remove
 	pendingTransferResultValid = false;
 	deferTargetReservationSave = false;
 	cellTrackOutRequestStarted = false;
@@ -128,6 +131,7 @@ void __fastcall Tgripper::UpdateTransferResult()
 	}
 }
 //---------------------------------------------------------------------------
+//* max speed mode - need remove
 void __fastcall Tgripper::SaveTransferResultRecord(const TRANSFER_RESULT &result,
 	bool waitBypassed)
 {
@@ -143,10 +147,12 @@ void __fastcall Tgripper::SaveTransferResultRecord(const TRANSFER_RESULT &result
 		waitBypassed ? "BYPASS" : "WAIT_POSITION");
 }
 //---------------------------------------------------------------------------
+//* max speed mode - need remove
 void __fastcall Tgripper::SavePendingTransferResult(bool waitBypassed)
 {
 	if(!pendingTransferResultValid) return;
 	SaveTransferResultRecord(pendingTransferResult, waitBypassed);
+	//* max speed mode - need remove
 	pendingTransferResultValid = false;
 }
 //---------------------------------------------------------------------------
@@ -388,6 +394,7 @@ void __fastcall Tgripper::Initialize()
 				MainForm->memoGripperLineAdd("[Init step 0] " + BaseForm->GetLangStr("MSG_AUTOSTOPMODE"));
 			}
 			waitTimer->Enabled = false;
+			//* max speed mode - need remove
 			if(step.step != 1 || !UseFatOptimizeSequenceDelay())
 				break;
 			MainForm->memoGripperLineAdd(
@@ -452,6 +459,7 @@ void __fastcall Tgripper::Initialize()
                                         MainForm->DisplayTargetCell(step.chCnt, tch);	// 화면 show
                                         MainForm->DisplayTargetCellInfo(step.chCnt, tch);
                                         //* 불량트레이 관리
+                                        //* max speed mode - need remove
                                         if(!deferTargetReservationSave)
                                             MainForm->setTrayInfo(1); // Persist PICK=R until insert completion.
                                         MainForm->memoGripperLineAdd(
@@ -474,6 +482,7 @@ void __fastcall Tgripper::Initialize()
 					step.chCnt++;
 			}
 			step.step += 1;
+			//* max speed mode - need remove
 			if(!UseFatOptimizeSequenceDelay())
 				break;
 			MainForm->memoGripperLineAdd(
@@ -484,6 +493,7 @@ void __fastcall Tgripper::Initialize()
 				if(step.ejectCnt > 0){
 					MainForm->CompleteProcessStep(7, "NG channel and Target reservation selected");
 					InitSequence(step.reserve);	// 선별시작
+					//* max speed mode - need remove
 					if(UseFatOptimizeSequenceDelay() &&
 						seq == seqSorting){
 						MainForm->memoGripperLineAdd(
@@ -595,6 +605,7 @@ void __fastcall Tgripper::Sorting()
 						" CellId=" + MainForm->tray_source.SLOT_ID[tool[toolIndex].source_ch.ToInt()-1]);
 				}
 				InitSequence(seqInserting);
+				//* max speed mode - need remove
 				if(UseFatOptimizeSequenceDelay()){
 					MainForm->memoGripperLineAdd(
 						"[FAST TRANSITION] Eject complete / request Target move in same gripper scan");
@@ -647,6 +658,7 @@ void __fastcall Tgripper::StartNextCycleOrWait()
 	if(directNextNg)
 		MainForm->memoGripperLineAdd("[CYCLE] NEXT NG FOUND -> BYPASS WAIT POSITION");
 	if(directNextNg){
+		//* max speed mode - need remove
 		// Snapshot the completed timing row in memory. Disk output is deferred until
 		// after the next X/Y command so result saving cannot hold up motion.
 		UpdateTransferResult();
@@ -662,8 +674,10 @@ void __fastcall Tgripper::StartNextCycleOrWait()
 		// persisted immediately after the motion command.
 		// Reservation-file deferral belongs to Maximum speed mode. Without it,
 		// normal operation persists PICK=R before the next Source motion starts.
+		//* max speed mode - need remove
 		deferTargetReservationSave = UseFatMaximumSpeedMode();
 		InitSequence(seqInit, seqSorting);
+		//* max speed mode - need remove
 		if(UseFatOptimizeSequenceDelay())
 			Initialize();
 		deferTargetReservationSave = false;
@@ -775,6 +789,7 @@ void __fastcall Tgripper::Inserting()
 				// the reset handshake; normal mode requires the full FMS handshake.
 				// Maximum speed ON uses the fast path below: move first, then perform
 				// non-critical result/file writes and CellTrackOut asynchronously.
+				//* max speed mode - need remove
 				if(!UseFatMaximumSpeedMode()){
 					MainForm->NotifyIdMatching_target("1");
 					step.step = 4;
@@ -867,6 +882,7 @@ void __fastcall Tgripper::Inserting()
 				MainForm->CompleteProcessStep(13, "WAIT POSITION complete / Next Step=07");
 				MainForm->memoGripperLineAdd("[CYCLE] NO NEXT NG OR TARGET FULL -> FINAL CHECK");
 				InitSequence(seqInit, seqSorting);
+				//* max speed mode - need remove
 				if(UseFatOptimizeSequenceDelay())
 					Initialize();
 			}

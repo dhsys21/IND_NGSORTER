@@ -85,6 +85,7 @@ private:	// User declarations
 		int peakLoad[3];
 	} TRANSFER_RESULT;
 	TRANSFER_RESULT transferResult;
+	//* max speed mode - need remove
 	TRANSFER_RESULT pendingTransferResult;
 	bool pendingTransferResultValid;
 	bool deferTargetReservationSave;

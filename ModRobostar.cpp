@@ -14,6 +14,7 @@ Trobostar *robostar;
 // KEYLOCK outputs are sequenced without Sleep so the UI and I/O scan keep running.
 static const DWORD KEYLOCK_OUTPUT_DELAY_MS = 500;
 //---------------------------------------------------------------------------
+//* max speed mode - need remove
 static bool UseFatOptimizeSequenceDelay()
 {
 	// This FAT option removes only intermediate timer scans. Every physical
@@ -21,6 +22,7 @@ static bool UseFatOptimizeSequenceDelay()
 	return BaseForm != NULL && BaseForm->config.optimizeSequenceDelay;
 }
 //---------------------------------------------------------------------------
+//* max speed mode - need remove
 static bool UseFatSkipGripStabilization()
 {
 	// This independent FAT option removes only the 0.2 second dwell after
@@ -1101,11 +1103,13 @@ void __fastcall Trobostar::AutoMove()
 			// EJECT/INSERT completion has already raised Z and confirmed position 0.
 			// Refresh it once here and, when the fast option is enabled, start X/Y
 			// immediately instead of issuing another no-op Z UP and waiting one scan.
+			//* max speed mode - need remove
 			if(UseFatOptimizeSequenceDelay() && sscOpened){
 				long currentZ = mr2.pos[Axis_z];
 				if(sscGetCurrentCmdPositionFast(board_id, channel_id, Axis_z, &currentZ) == SSC_OK)
 					mr2.pos[Axis_z] = currentZ;
 			}
+			//* max speed mode - need remove
 			if(UseFatOptimizeSequenceDelay() &&
 				mr2.pos[Axis_z] == 0){
 				setPoint(Axis_x, activeTarget[Axis_x]);
@@ -1127,6 +1131,7 @@ void __fastcall Trobostar::AutoMove()
 			break;
 		}
 		case 1:
+			//* max speed mode - need remove
 			if(UseFatOptimizeSequenceDelay() && sscOpened){
 				long currentZ = mr2.pos[Axis_z];
 				if(sscGetCurrentCmdPositionFast(board_id, channel_id, Axis_z, &currentZ) == SSC_OK)
@@ -1157,6 +1162,7 @@ void __fastcall Trobostar::AutoMove()
 			if(!rangeCheck(Axis_zUp))
 				break;
 			step.step = 10;
+			//* max speed mode - need remove
 			if(!UseFatOptimizeSequenceDelay())
 				break;
 			MainForm->memoRobostarLineAdd(
@@ -1175,6 +1181,7 @@ void __fastcall Trobostar::AutoMove()
 			break;
 		case 11:
 		{
+			//* max speed mode - need remove
 			if(UseFatOptimizeSequenceDelay() && sscOpened){
 				long currentX = mr2.pos[Axis_x];
 				long currentY = mr2.pos[Axis_y];
@@ -1188,6 +1195,7 @@ void __fastcall Trobostar::AutoMove()
 					"Servo X position", IntToStr((__int64)activeTarget[Axis_x]),
 					IntToStr((__int64)mr2.pos[Axis_x]));
 			if(!rangeCheck(Axis_x) ||
+				//* max speed mode - need remove
 				!UseFatOptimizeSequenceDelay())
 				break;
 			MainForm->memoRobostarLineAdd(
@@ -1196,6 +1204,7 @@ void __fastcall Trobostar::AutoMove()
 		// fall through
 		case 12:
 		{
+			//* max speed mode - need remove
 			if(UseFatOptimizeSequenceDelay() && sscOpened){
 				long currentY = mr2.pos[Axis_y];
 				if(sscGetCurrentCmdPositionFast(board_id, channel_id, Axis_y, &currentY) == SSC_OK)
@@ -1211,6 +1220,7 @@ void __fastcall Trobostar::AutoMove()
 				step.step = 15; // Teaching channel move ends after X/Y.
 				break;
 			}
+			//* max speed mode - need remove
 			if(!UseFatOptimizeSequenceDelay())
 				break;
 			MainForm->memoRobostarLineAdd(
@@ -1264,6 +1274,7 @@ void __fastcall Trobostar::AutoMove()
 
 			// Refresh Z on every 100 ms motion scan while waiting for DOWN completion.
 			// The general monitor refreshes each axis less frequently, which added latency.
+			//* max speed mode - need remove
 			if(UseFatOptimizeSequenceDelay() && sscOpened){
 				long currentZ = mr2.pos[Axis_z];
 				if(sscGetCurrentCmdPositionFast(board_id, channel_id, Axis_z, &currentZ) == SSC_OK)
@@ -1280,6 +1291,7 @@ void __fastcall Trobostar::AutoMove()
 				teachForm->pnlMovingAlarm2->Visible = false;
 				InitSequence(completedReserve);
 
+				//* max speed mode - need remove
 				if(UseFatOptimizeSequenceDelay()){
 					MainForm->memoRobostarLineAdd("[FAST TRANSITION] Z DOWN complete / start gripper action immediately");
 					// Run the first safe gripper step in this same scan instead of waiting
@@ -1784,6 +1796,7 @@ void __fastcall Trobostar::req_AutoEject(int pallet, int tool, int channel, int 
 		", X/Y/Z=" + IntToStr((__int64)activeTarget[Axis_x]) + "/" +
 		IntToStr((__int64)activeTarget[Axis_y]) + "/" + IntToStr((__int64)activeTarget[Axis_z]));
 	InitSequence(seqAutoMove, seqAutoEject);
+	//* max speed mode - need remove
 	if(UseFatOptimizeSequenceDelay() &&
 		CheckTrayCenteringMotionInterlock()){
 		MainForm->memoRobostarLineAdd(
@@ -1817,6 +1830,7 @@ void __fastcall Trobostar::req_AutoInsert(int pallet, int tool, int channel, int
 		", X/Y/Z=" + IntToStr((__int64)activeTarget[Axis_x]) + "/" +
 		IntToStr((__int64)activeTarget[Axis_y]) + "/" + IntToStr((__int64)activeTarget[Axis_z]));
 	InitSequence(seqAutoMove, seqAutoInsert);
+	//* max speed mode - need remove
 	if(UseFatOptimizeSequenceDelay() &&
 		CheckTrayCenteringMotionInterlock()){
 		MainForm->memoRobostarLineAdd(
@@ -2120,6 +2134,7 @@ void __fastcall Trobostar::AutoEject()
 				}
 				step.timeout = 0;
 				step.step = 1;
+				//* max speed mode - need remove
 				if(!UseFatOptimizeSequenceDelay()){
 					MainForm->memoRobostarLineAdd("[NORMAL EJECT] Source cell confirmed / next scan checks OPEN");
 					break;
@@ -2138,6 +2153,7 @@ void __fastcall Trobostar::AutoEject()
 				if(nresult != move.cnt){
 					// Fast mode transmits the OPEN selection immediately. Normal mode
 					// leaves transmission to the next periodic I/O scan.
+					//* max speed mode - need remove
 					if(UseFatOptimizeSequenceDelay())
 						io_WriteGripper();
 					step.timeout += 1;
@@ -2149,6 +2165,7 @@ void __fastcall Trobostar::AutoEject()
 				}
 				step.timeout = 0;
 				step.step = 2;
+				//* max speed mode - need remove
 				if(!UseFatOptimizeSequenceDelay())
 					break;
 				MainForm->memoRobostarLineAdd("[FAST OPTION] OPEN confirmed / check Source centering in same scan");
@@ -2167,6 +2184,7 @@ void __fastcall Trobostar::AutoEject()
 
 				step.timeout = 0;
 				step.step = 3;
+				//* max speed mode - need remove
 				if(UseFatOptimizeSequenceDelay()){
 					// All prerequisites passed in the current scan. Send CHUCK now;
 					// case 3 still waits for the physical X0020 confirmation.
@@ -2186,6 +2204,7 @@ void __fastcall Trobostar::AutoEject()
 				if(nresult != move.cnt)
 					break;
 				step.step = 4;
+				//* max speed mode - need remove
 				if(!UseFatSkipGripStabilization())
 					break;
 				// TEST option: physical CHUCK is confirmed; continue without stabilization.
@@ -2193,16 +2212,19 @@ void __fastcall Trobostar::AutoEject()
 			case 4:
 				MainForm->SetProcessOperationStatus(9, "CELL EJECT",
 					"Gripper CHUCK stabilization", "200 ms after sensor confirmation", IntToStr(step.delay));
+				//* max speed mode - need remove
 				if(!UseFatSkipGripStabilization() && step.delay < 1){
 					step.delay += 1;
 					MainForm->memoRobostarLineAdd("[C_Maint] 취출4. 척 안정화 대기");
 					break;
 				}
+				//* max speed mode - need remove
 				if(UseFatSkipGripStabilization())
 					MainForm->memoRobostarLineAdd(
 						"[TEST OPTION] CHUCK stabilization 0.2 s skipped");
 				step.delay = 0;
 				step.step = 6;
+				//* max speed mode - need remove
 				if(!UseFatOptimizeSequenceDelay())
 					break;
 				// The 0.2 s stabilization has completed; perform the cell check now.
@@ -2237,6 +2259,7 @@ void __fastcall Trobostar::AutoEject()
 				}
 				if(step.step != 7) break;
 			}
+			//* max speed mode - need remove
 			if(!UseFatOptimizeSequenceDelay())
 				break;
 			// Cell confirmation passed; issue Z UP in this same scan.
@@ -2260,6 +2283,7 @@ void __fastcall Trobostar::AutoEject()
 
 				// Refresh Z every 100 ms while waiting for UP completion. Once Z=0 is
 				// confirmed, continue directly to the final cell check in this scan.
+				//* max speed mode - need remove
 				if(UseFatOptimizeSequenceDelay() && sscOpened){
 					long currentZ = mr2.pos[Axis_z];
 					if(sscGetCurrentCmdPositionFast(board_id, channel_id, Axis_z, &currentZ) == SSC_OK)
@@ -2276,6 +2300,7 @@ void __fastcall Trobostar::AutoEject()
 				zUpCount = 0;
 				step.timeout = 0;
 				step.step = 9;
+				//* max speed mode - need remove
 				if(!UseFatOptimizeSequenceDelay())
 					break;
 				MainForm->memoRobostarLineAdd(
@@ -2347,6 +2372,7 @@ void __fastcall Trobostar::AutoInsert()
 				}
 				step.timeout = 0;
 				step.step = 1;
+				//* max speed mode - need remove
 				if(!UseFatOptimizeSequenceDelay())
 					break;
 				MainForm->memoRobostarLineAdd("[FAST OPTION] Held cell confirmed / check Target centering in same scan");
@@ -2365,6 +2391,7 @@ void __fastcall Trobostar::AutoInsert()
 
 				step.timeout = 0;
 				step.step = 2;
+				//* max speed mode - need remove
 				if(UseFatOptimizeSequenceDelay()){
 					// Send OPEN immediately after all checks pass. The following state
 					// still requires the physical X0021 feedback before proceeding.
@@ -2390,6 +2417,7 @@ void __fastcall Trobostar::AutoInsert()
 				}
 				step.step = 4;
 				step.timeout = 0;
+				//* max speed mode - need remove
 				if(!UseFatSkipGripStabilization())
 					break;
 				// TEST option: physical OPEN is confirmed; continue without stabilization.
@@ -2397,16 +2425,19 @@ void __fastcall Trobostar::AutoInsert()
 			case 4:
 				MainForm->SetProcessOperationStatus(11, "CELL INSERT",
 					"Gripper OPEN stabilization", "200 ms after sensor confirmation", IntToStr(step.delay));
+				//* max speed mode - need remove
 				if(!UseFatSkipGripStabilization() && step.delay < 1){
 					step.delay += 1;
 					MainForm->memoRobostarLineAdd("[INSERT] Gripper OPEN stabilization wait");
 					break;
 				}
+				//* max speed mode - need remove
 				if(UseFatSkipGripStabilization())
 					MainForm->memoRobostarLineAdd(
 						"[TEST OPTION] UNCHUCK stabilization 0.2 s skipped");
 				step.delay = 0;
 				step.step = 5;
+				//* max speed mode - need remove
 				if(!UseFatOptimizeSequenceDelay())
 					break;
 				// The 0.2 s stabilization has completed; issue Z UP in this same scan.
@@ -2432,6 +2463,7 @@ void __fastcall Trobostar::AutoInsert()
 
 				// Refresh Z every 100 ms while waiting for UP completion. Once Z=0 is
 				// confirmed, continue directly to the cell-clear check in this scan.
+				//* max speed mode - need remove
 				if(UseFatOptimizeSequenceDelay() && sscOpened){
 					long currentZ = mr2.pos[Axis_z];
 					if(sscGetCurrentCmdPositionFast(board_id, channel_id, Axis_z, &currentZ) == SSC_OK)
@@ -2448,6 +2480,7 @@ void __fastcall Trobostar::AutoInsert()
 				zUpCount = 0;
 				step.timeout = 0;
 				step.step = 7;
+				//* max speed mode - need remove
 				if(!UseFatOptimizeSequenceDelay())
 					break;
 				MainForm->memoRobostarLineAdd(
