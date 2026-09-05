@@ -2527,12 +2527,12 @@ object MainForm: TMainForm
       OnClick = pause_startBtnClick
       TMSStyle = 0
     end
-    object cbMES: TCheckBox
+    object chkDoorPlcAuto: TCheckBox
       Left = 116
       Top = 3
       Width = 93
       Height = 20
-      Caption = 'MES test'
+      Caption = 'Door/Auto'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clTeal
       Font.Height = -17
@@ -2540,9 +2540,10 @@ object MainForm: TMainForm
       Font.Style = [fsBold]
       ParentFont = False
       ParentShowHint = False
-      ShowHint = False
+      ShowHint = True
       TabOrder = 13
       Visible = False
+      Hint = 'Hide Door alarm popup / Allow tray start without PLC AUTO only when actual Tray In and Centering are ON. Motion interlocks remain active.'
       OnClick = chkBypassClick
     end
     object cbCycle: TCheckBox

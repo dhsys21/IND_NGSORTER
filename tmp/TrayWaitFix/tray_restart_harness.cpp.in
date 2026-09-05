@@ -45,7 +45,7 @@ public:
     bool opcProcessStarted, opcSortingStartPending, opcSortingStartWaitError;
     bool opcProcessStartPending, opcProcessStartWaitResponseOff, opcProcessStartResponseOffError;
     int opcProcessStartResponseResult;
-    bool targetTrayInfoPromptActive, centered;
+    bool targetTrayInfoPromptActive, centered, sourceCenteringCompleted;
     AnsiString opcDeferredTrayId[2], targetTrayInfoActiveId;
     Panel panel[5], *pTrayid_source, *pTrayid_target, *pTrayid_target2, *pbad_sum, *pwork1, *pwork2;
     Tray tray_source, tray_target, *tray;
@@ -61,7 +61,7 @@ public:
         }
         opcProcessStarted=opcSortingStartPending=opcSortingStartWaitError=false;
         opcProcessStartPending=opcProcessStartWaitResponseOff=opcProcessStartResponseOffError=false;
-        targetTrayInfoPromptActive=false; centered=true;
+        targetTrayInfoPromptActive=false; centered=true; sourceCenteringCompleted=true;
         targetTrayInfoActiveId="TR-20260818-trg";
         pTrayid_source=&panel[0]; pTrayid_target=&panel[1]; pTrayid_target2=&panel[2];
         pbad_sum=&panel[3]; pwork1=&panel[3]; pwork2=&panel[4];
@@ -82,6 +82,8 @@ public:
     void ShowCommonError(const AnsiString&,const AnsiString&) { ++errors; }
     bool IsTargetCenteringSignal() { return centered; }
     bool IsSourceCenteringSignal() { return true; }
+    bool IsTargetTrayInSignal() { return true; }
+    bool IsSourceTrayCycleReady() const { return true; } // Admission gate tested separately.
     void TryStartOpcProcess() { ++starts; }
     int RestoreTargetTrayInfo(const AnsiString&,bool) { ++restores; return 0; }
     void ReadTargetTrayBarcode() { ++scans; NotifyTrayInfo("TR-20260818-trg",false); }
@@ -100,10 +102,10 @@ int main() {
         grip.pauseStatus=false; grip.seq=grip.seq_save; robot.pauseStatus=false;
         f.ResumeDeferredTrayLoads();
         assert(f.opcTrayLoaded[0] && !f.opcTrayAdvanceDeferred[0]);
-        assert(f.scans==1 && plc.requests==1 && opc.loads==1 && f.opcTrayLoadPending[1]);
+        assert(f.step[0].step==2 && f.scans==0 && plc.requests==0 && opc.loads==0);
         f.ResumeDeferredTrayLoads();
-        assert(f.scans==1 && opc.loads==1);
-        puts("PASS: paused Source completion sends nothing; Restart sends Target load exactly once");
+        assert(f.scans==0 && opc.loads==0);
+        puts("PASS: paused Source completion sends nothing; Restart enters STEP 03, no premature Target load or centering write");
     }
     {
         TMainForm f; grip.pauseStatus=true; grip.seq=Tgripper::seqPause;

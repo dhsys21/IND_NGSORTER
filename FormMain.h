@@ -292,7 +292,7 @@ __published:	// IDE-managed Components
 	TAdvSmoothPanel *pTargetBase;
 	TPanel *Panel31;
 	TPanel *pflow4;
-	TCheckBox *cbMES;
+	TCheckBox *chkDoorPlcAuto;
 	TCheckBox *cbCycle;
 	TPanel *pRun;
 	TAdvSmoothPanel *pnlSourceTrayHeader;
@@ -482,6 +482,22 @@ private:	// User declarations
 	AnsiString targetTrayInfoActiveId;
 	bool sourceTrackOutResetArmed;
 	bool sourceTrayOutPending; // D10154 is held OFF while the delayed D10155 request is pending.
+	// ========================================================================
+	//* DOOR/PLC AUTO INTERLOCK : admission belongs to one physical Source tray.
+	// PLC AUTO is required only BEFORE centering/admission (unless Door/Auto).
+	// NEVER use the checkbox to simulate inputs or bypass motion safety checks.
+	// ========================================================================
+	bool sourceTrayCycleAdmitted;
+	bool sourceCenteringCompleted; // STEP 03 latch, separate from STEP 01 admission.
+	AnsiString lastWorkTraySignalStatus[2]; // Separate from motion/FMS wait-message caches.
+	bool workStartTrayAlarmActive; // Only operator Restart releases this alarm latch.
+	int workStartTrayAlarmStep;
+	bool __fastcall RetryWorkStartTrayAlarm();
+	bool __fastcall UpdateSourceTrayAdmission();
+	bool __fastcall IsSourceTrayCycleReady() const;
+	bool __fastcall CanRequestAutoSourceCentering() const;
+	bool __fastcall CompleteSourceCenteringStep();
+	bool __fastcall CheckWorkTraySignals(int stepNo, AnsiString &detail);
 	//* SOURCE TRAY RESULT SUMMARY : Lines written above the transfer CSV title.
 	bool sourceTrayResultActive;
 	AnsiString sourceTrayResultId;

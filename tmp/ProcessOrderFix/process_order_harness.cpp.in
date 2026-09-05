@@ -1,0 +1,118 @@
+#include <string>
+#include <cstdio>
+#include <cassert>
+typedef std::string AnsiString;
+typedef std::string UnicodeString;
+typedef unsigned long DWORD;
+DWORD GetTickCount(){return 100;}
+AnsiString IntToStr(int n){char s[32];sprintf(s,"%d",n);return s;}
+const int modeAuto=1,modeManual=0,fmsAlarmNone=0;
+struct Motion {bool pauseStatus;void req_Pause(bool v){pauseStatus=v;}} g,r,*gripper=&g,*robostar=&r;
+struct Label{AnsiString Caption;};
+struct Alarm{
+    Label title,*errMsg1;int shows;bool Visible;
+    Alarm():errMsg1(&title),shows(0),Visible(false){}
+    void ShowError(AnsiString a,UnicodeString){++shows;Visible=true;title.Caption="S_Maint_"+a;}
+    void Hide(){Visible=false;}
+} alarm,*AlarmForm=&alarm;
+struct Check{bool Checked;}; struct Step{int step;}; struct Timer{bool Enabled;};
+struct PLC{
+    bool fresh,autoMode,tray,center,targetTray,targetCenter,out,request;
+    bool IsPlcStatusFresh(int){return fresh;} bool IsPlcAutoMode(){return autoMode;}
+    bool IsSourceTrayIn(){return tray;} bool IsSourceCentering(){return center;}
+    bool IsTargetTrayIn(){return targetTray;} bool IsTargetCentering(){return targetCenter;}
+    bool IsSourceTrayOutOn(){return out;} bool IsSourceCenteringRequestOn(){return request;}
+    void CmdSourceCenteringRequest(bool v){request=v;}
+} plc,*PlcBin=&plc;
+struct Opc {int requests; void PROCESS_START_REQUEST(){++requests;}} opc,*MesOpc=&opc;
+struct Gateway{bool IsGatewayConnected(){return true;}} gateway,*Mod_Fms=&gateway;
+struct TMainForm{
+    int equipMode,fmsAlarmTransaction,logs,currentProcessStep,opcProcessStartResponseResult;
+    bool sourceTrayCycleAdmitted,sourceCenteringCompleted,sourceTrayOutPending;
+    bool workStartTrayAlarmActive;int workStartTrayAlarmStep;
+    bool opcTrayDisplayed[2],opcTrayLoaded[2],opcProcessStarted,opcProcessStartPending,opcProcessEndPending;
+    bool opcProcessStartWaitResponseOff,opcProcessStartResponseOffError;
+    DWORD opcProcessStartTick;
+    Timer timer,*opcMesTimer;
+    Check door,bypass,*chkDoorPlcAuto,*chkBypass;
+    Step step[2];
+    AnsiString lastProcessWaitStatus[16],lastWorkTraySignalStatus[2],currentProcessDetail;
+    TMainForm():equipMode(modeAuto),fmsAlarmTransaction(0),logs(0),sourceTrayCycleAdmitted(false),
+        sourceCenteringCompleted(false),sourceTrayOutPending(false),opcProcessStarted(false),opcProcessStartPending(false),
+        opcProcessEndPending(false),opcMesTimer(&timer),chkDoorPlcAuto(&door),chkBypass(&bypass){
+        door.Checked=bypass.Checked=false;step[0].step=step[1].step=0;
+        workStartTrayAlarmActive=false;workStartTrayAlarmStep=6;alarm.shows=0;alarm.Visible=false;
+        opcTrayDisplayed[0]=opcTrayDisplayed[1]=opcTrayLoaded[0]=opcTrayLoaded[1]=false;
+        g.pauseStatus=r.pauseStatus=false;opc.requests=0;
+        plc.fresh=true;plc.autoMode=true;plc.tray=true;plc.center=false;
+        plc.targetTray=plc.targetCenter=plc.out=plc.request=false;
+    }
+    void ReportIdleWaitStatus(){} void UpdateProcessFlowPanel(){}
+    void ProcessStepLog(int,AnsiString){++logs;}
+    void CompleteProcessStep(int n,AnsiString){currentProcessStep=n;}
+    void BeginProcessStep(int n,AnsiString){currentProcessStep=n;}
+    void memoMainLineAdd(AnsiString){}
+    void PauseFmsAlarm(){g.pauseStatus=r.pauseStatus=true;}
+    bool CheckAutomaticFmsMode(AnsiString){return equipMode==modeAuto;}
+    void SetProcessOperationStatus(int n,AnsiString,AnsiString,AnsiString,AnsiString){currentProcessStep=n;}
+    bool __fastcall IsSourceTrayInSignal() const;
+    bool __fastcall IsSourceCenteringSignal() const;
+    bool __fastcall IsTargetTrayInSignal() const;
+    bool __fastcall IsTargetCenteringSignal() const;
+    bool __fastcall CanRequestAutoSourceCentering() const;
+    bool __fastcall IsSourceTrayCycleReady() const;
+    bool __fastcall UpdateSourceTrayAdmission();
+    bool __fastcall CompleteSourceCenteringStep();
+    bool __fastcall CheckWorkTraySignals(int,AnsiString&);
+    bool __fastcall RetryWorkStartTrayAlarm();
+    void __fastcall TryStartOpcProcess();
+};
+/* PRODUCTION_FUNCTIONS */
+int main(){
+    {
+        TMainForm f;
+        assert(f.UpdateSourceTrayAdmission() && f.IsSourceTrayCycleReady());
+        assert(!f.CanRequestAutoSourceCentering() && !f.CompleteSourceCenteringStep());
+        f.step[0].step=2;f.opcTrayDisplayed[0]=true;
+        assert(!f.CanRequestAutoSourceCentering()); // Response=1 display alone is insufficient.
+        f.opcTrayLoaded[0]=true;assert(f.CanRequestAutoSourceCentering());
+        plc.autoMode=false;assert(!f.CanRequestAutoSourceCentering());
+        plc.center=true;assert(!f.CompleteSourceCenteringStep());
+        plc.autoMode=true;assert(f.CompleteSourceCenteringStep() && f.currentProcessStep==4);
+        plc.autoMode=false;assert(f.CompleteSourceCenteringStep() && f.IsSourceTrayCycleReady());
+        plc.center=false;assert(!f.CompleteSourceCenteringStep() && !f.CanRequestAutoSourceCentering());
+        plc.center=true;plc.tray=false;assert(!f.UpdateSourceTrayAdmission() && !f.sourceCenteringCompleted);
+    }
+    puts("PASS: STEP01 admission -> STEP02 display AND reset -> STEP03 centering; PLC MANUAL only permitted after centering completion");
+    for(int bits=0;bits<32;++bits){
+        TMainForm f;f.sourceTrayCycleAdmitted=f.sourceCenteringCompleted=true;
+        f.opcTrayDisplayed[0]=f.opcTrayDisplayed[1]=f.opcTrayLoaded[0]=f.opcTrayLoaded[1]=true;
+        f.door.Checked=true;plc.autoMode=false;
+        plc.tray=(bits&1)!=0;plc.center=(bits&2)!=0;
+        plc.targetTray=(bits&4)!=0;plc.targetCenter=(bits&8)!=0;plc.fresh=(bits&16)!=0;
+        f.TryStartOpcProcess();assert(opc.requests==(bits==31?1:0));
+        if(bits!=31){int count=f.logs;f.TryStartOpcProcess();assert(f.logs==count && alarm.shows==1 && g.pauseStatus && r.pauseStatus);}
+    }
+    puts("PASS: 32 live-input combinations; only 4 ON + fresh sends ProcessStart, even with Door/Auto enabled");
+    {
+        TMainForm f;AnsiString detail;plc.center=plc.targetTray=plc.targetCenter=true;
+        assert(f.CheckWorkTraySignals(6,detail));int count=f.logs;
+        assert(f.CheckWorkTraySignals(6,detail) && f.logs==count);
+        plc.targetTray=false;assert(!f.CheckWorkTraySignals(6,detail) && f.logs==count+1);
+        assert(detail.find("D10105 Target In")!=AnsiString::npos);
+        assert(!f.CheckWorkTraySignals(6,detail) && f.logs==count+1);
+        alarm.Hide();plc.targetTray=true;
+        assert(!f.CheckWorkTraySignals(6,detail) && f.logs==count+1 && alarm.shows==1);
+        assert(f.RetryWorkStartTrayAlarm() && !f.workStartTrayAlarmActive && f.logs==count+2);
+        plc.targetCenter=false;assert(!f.CheckWorkTraySignals(7,detail));
+        assert(!f.RetryWorkStartTrayAlarm() && f.workStartTrayAlarmActive && alarm.Visible);
+    }
+    puts("PASS: failed check shows FormAlarm and pauses once; Close/input recovery cannot resume; Restart rechecks and re-alarms if invalid");
+    {
+        TMainForm f;plc.autoMode=false;f.door.Checked=true;
+        assert(!f.UpdateSourceTrayAdmission());plc.center=true;assert(f.UpdateSourceTrayAdmission());
+        f.opcTrayDisplayed[0]=f.opcTrayLoaded[0]=true;f.step[0].step=2;
+        assert(!f.CanRequestAutoSourceCentering() && f.CompleteSourceCenteringStep());
+    }
+    puts("PASS: Door/Auto uses actual centered tray, never requests centering in PLC MANUAL");
+}

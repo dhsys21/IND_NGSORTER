@@ -45,7 +45,7 @@ public:
     bool opcProcessStarted, opcSortingStartPending, opcSortingStartWaitError;
     bool opcProcessStartPending, opcProcessStartWaitResponseOff, opcProcessStartResponseOffError;
     int opcProcessStartResponseResult;
-    bool targetTrayInfoPromptActive, centered;
+    bool targetTrayInfoPromptActive, centered, sourceCenteringCompleted;
     AnsiString opcDeferredTrayId[2], targetTrayInfoActiveId;
     Panel panel[5], *pTrayid_source, *pTrayid_target, *pTrayid_target2, *pbad_sum, *pwork1, *pwork2;
     Tray tray_source, tray_target, *tray;
@@ -61,7 +61,7 @@ public:
         }
         opcProcessStarted=opcSortingStartPending=opcSortingStartWaitError=false;
         opcProcessStartPending=opcProcessStartWaitResponseOff=opcProcessStartResponseOffError=false;
-        targetTrayInfoPromptActive=false; centered=true;
+        targetTrayInfoPromptActive=false; centered=true; sourceCenteringCompleted=true;
         targetTrayInfoActiveId="TR-20260818-trg";
         pTrayid_source=&panel[0]; pTrayid_target=&panel[1]; pTrayid_target2=&panel[2];
         pbad_sum=&panel[3]; pwork1=&panel[3]; pwork2=&panel[4];
@@ -82,6 +82,8 @@ public:
     void ShowCommonError(const AnsiString&,const AnsiString&) { ++errors; }
     bool IsTargetCenteringSignal() { return centered; }
     bool IsSourceCenteringSignal() { return true; }
+    bool IsTargetTrayInSignal() { return true; }
+    bool IsSourceTrayCycleReady() const { return true; } // Admission gate tested separately.
     void TryStartOpcProcess() { ++starts; }
     int RestoreTargetTrayInfo(const AnsiString&,bool) { ++restores; return 0; }
     void ReadTargetTrayBarcode() { ++scans; NotifyTrayInfo("TR-20260818-trg",false); }
@@ -104,9 +106,9 @@ void __fastcall TMainForm::AdvanceOpcTrayLoad(bool sourceTray)
 	// equipment paused. Remember completion, but issue no NEXT-stage requests
 	// (centering, Target barcode or ProcessStart) until operator Restart.
 	if(equipMode != modeAuto || gripper == NULL || robostar == NULL ||
-		gripper->pauseStatus || robostar->pauseStatus){
+		gripper->pauseStatus || robostar->pauseStatus || !IsSourceTrayCycleReady()){
 		if(!opcTrayAdvanceDeferred[index])
-			ProcessStepLog(stepNo, "HANDSHAKE COMPLETE / next stage deferred / WAIT operator Restart / "
+			ProcessStepLog(stepNo, "HANDSHAKE COMPLETE / next stage deferred / WAIT admitted tray, real centering and Pause release / "
 				"Request=OFF / response accepted / no next-stage request sent");
 		opcTrayAdvanceDeferred[index] = true;
 		ReportIdleWaitStatus();
@@ -132,36 +134,14 @@ void __fastcall TMainForm::AdvanceOpcTrayLoad(bool sourceTray)
 	{
 		if(pbad_sum->Caption.ToIntDef(0) <= stage.limitCnt)
 		{
-			// Source TrayLoad is complete. Request Source centering, but continue
-			// directly to Target Tray loading; ProcessStart checks D10104 again.
-			BeginProcessStep(3, "D10154 Centering Request=ON / wait D10104");
-			SetProcessWaitStatus(3, "D10154 Source Centering Request=ON",
-				"D10104 Source Centering", IsSourceCenteringSignal() ? 1 : 0);
-			memoMainLineAdd("[FMS OPC UA] Source tray displayed; moving to Target tray process.");
-			if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(true);
-
-			// Skip the old serial wait at step[0]=1. Target Tray load can run while
-			// Source centering is completing.
+			// ================================================================
+			//* DOOR/PLC AUTO INTERLOCK / 16-STEP ORDER
+			// STEP 02 response reset finished. Enter STEP 03 now, NOT STEP 04.
+			// The PLC timer owns D10154; the AUTO timer checks centering complete.
+			// No FMS callback may assert centering or scan Target out of order.
+			// ================================================================
 			step[0].step = 2;
-			if(opcTrayLoadPending[1] || opcTrayLoaded[1])
-			{
-				// Preserve an already active Target transaction; never scan twice.
-				step[0].step = 3;
-			}
-			else if(IsTargetCenteringSignal())
-			{
-				BeginProcessStep(4, "D10106 Target Centering=ON / waiting barcode");
-				pTrayid_target->Caption = "";
-				pTrayid_target2->Caption = "";
-				ReadTargetTrayBarcode();
-				step[0].step = 3;
-				step[1].step = 1;
-			}
-			else
-			{
-				SetProcessWaitStatus(4, "Source TrayLoad complete",
-					"D10106 Target Centering", 0);
-			}
+			BeginProcessStep(3, "Source TrayLoad complete / wait Source Centering; D10154 requires actual PLC AUTO");
 		}
 		else
 		{
@@ -182,6 +162,8 @@ void __fastcall TMainForm::ResumeDeferredTrayLoads()
 		gripper->pauseStatus || robostar->pauseStatus ||
 		fmsAlarmTransaction != fmsAlarmNone)
 		return;
+	//* DOOR/PLC AUTO INTERLOCK: resume only this admitted, physically ready tray.
+	if(!IsSourceTrayCycleReady()) return;
 	for(int i = 0; i < 2; ++i){
 		if(gripper->pauseStatus || robostar->pauseStatus) return;
 		if(opcTrayAdvanceDeferred[i])
@@ -216,9 +198,11 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 	}
 	// A barcode callback can also arrive during Pause. Retain the ID instead
 	// of losing the request or replacing tray/reservation data behind the alarm.
-	if(gripper == NULL || robostar == NULL || gripper->pauseStatus || robostar->pauseStatus){
+	if(gripper == NULL || robostar == NULL || gripper->pauseStatus || robostar->pauseStatus ||
+		!IsSourceTrayCycleReady() || (!bsrc && (!sourceCenteringCompleted ||
+		!IsTargetTrayInSignal() || !IsTargetCenteringSignal()))){
 		if(opcDeferredTrayId[index] != strTray)
-			ProcessStepLog(bsrc ? 2 : 5, "TrayLoad NOT SENT / barcode retained / WAIT operator Restart / TrayId=" + strTray);
+			ProcessStepLog(bsrc ? 2 : 5, "TrayLoad NOT SENT / barcode retained / WAIT admitted tray, real centering and Pause release / TrayId=" + strTray);
 		opcDeferredTrayId[index] = strTray;
 		ReportIdleWaitStatus();
 		return;
@@ -309,10 +293,10 @@ int main() {
         grip.pauseStatus=false; grip.seq=grip.seq_save; robot.pauseStatus=false;
         f.ResumeDeferredTrayLoads();
         assert(f.opcTrayLoaded[0] && !f.opcTrayAdvanceDeferred[0]);
-        assert(f.scans==1 && plc.requests==1 && opc.loads==1 && f.opcTrayLoadPending[1]);
+        assert(f.step[0].step==2 && f.scans==0 && plc.requests==0 && opc.loads==0);
         f.ResumeDeferredTrayLoads();
-        assert(f.scans==1 && opc.loads==1);
-        puts("PASS: paused Source completion sends nothing; Restart sends Target load exactly once");
+        assert(f.scans==0 && opc.loads==0);
+        puts("PASS: paused Source completion sends nothing; Restart enters STEP 03, no premature Target load or centering write");
     }
     {
         TMainForm f; grip.pauseStatus=true; grip.seq=Tgripper::seqPause;

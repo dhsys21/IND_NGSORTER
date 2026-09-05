@@ -976,6 +976,11 @@ bool __fastcall Trobostar::CheckTrayCenteringMotionInterlock()
 			PlcBin->IsTargetTrayIn() || PlcBin->IsTargetCentering();
 	}
 
+	// ========================================================================
+	//* DOOR/PLC AUTO INTERLOCK: ALWAYS use real, fresh PLC centering below.
+	// chkDoorPlcAuto only affects initial tray admission; it cannot bypass this
+	// motion stop. PLC AUTO itself is deliberately not a running-motion gate.
+	// ========================================================================
 	bool sourceCentered = plcFresh && PlcBin->IsSourceCentering();
 	bool targetCentered = plcFresh && PlcBin->IsTargetCentering();
 	bool sourceOkay = !centeringRequireSource || sourceCentered;

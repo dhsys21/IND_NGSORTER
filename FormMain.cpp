@@ -141,6 +141,10 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	fmsAlarmAcceptedResult = 0;
 	fmsAlarmRetryStartTick = 0;
 	sourceTrackOutResetArmed = false;
+	sourceTrayCycleAdmitted = false;
+	sourceCenteringCompleted = false;
+	workStartTrayAlarmActive = false;
+	workStartTrayAlarmStep = 6;
 	sourceTrayOutPending = false;
 	sourceTrayResultActive = false;
 	sourceTrayResultId = "";
@@ -273,6 +277,7 @@ AnsiString __fastcall TMainForm::GetProcessStepName(int stepNo) const
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::ResetProcessFlow()
 {
+	lastWorkTraySignalStatus[0] = lastWorkTraySignalStatus[1] = "";
 	for(int i = 0; i < 16; ++i){
 		processStepComplete[i] = false;
 		lastProcessWaitStatus[i] = "";
@@ -414,7 +419,7 @@ void __fastcall TMainForm::ReportIdleWaitStatus(bool force)
 	bool tgtCentered = IsTargetCenteringSignal();
 	bool gateway = Mod_Fms != NULL && Mod_Fms->IsGatewayConnected();
 	bool plcFresh = PlcBin != NULL && PlcBin->IsPlcStatusFresh(1000);
-	bool simulated = cbMES != NULL && cbMES->Checked;
+	bool doorAutoTest = chkDoorPlcAuto != NULL && chkDoorPlcAuto->Checked;
 	int loadIndex = -1;
 	if(opcTrayLoadPending[0]) loadIndex = 0;
 	else if(opcTrayLoadPending[1]) loadIndex = 1;
@@ -473,13 +478,30 @@ void __fastcall TMainForm::ReportIdleWaitStatus(bool force)
 	}else if(!srcIn){
 		waitStep = 1; reason = "WAIT D10103 Source Tray In";
 		detail = "EXPECTED=1 / CURRENT=0";
+	}else if(!sourceTrayCycleAdmitted){
+		waitStep = 1;
+		bool plcAuto = plcFresh && PlcBin->IsPlcAutoMode();
+		reason = !plcFresh ? "WAIT fresh PLC status" :
+			(!plcAuto && !doorAutoTest ? "WAIT D10101 PLC AUTO" : "WAIT D10104 Source Centering");
+		detail = "Source admission=0 / D10101=" + IntToStr(plcAuto ? 1 : 0) +
+			" / D10104=" + IntToStr(srcCentered ? 1 : 0) +
+			" / EXPECTED D10101=1 (unless Door/Auto), D10104=1" +
+			" / D10154=" + IntToStr(PlcBin != NULL && PlcBin->IsSourceCenteringRequestOn() ? 1 : 0) +
+			" / Door/Auto=" + IntToStr(doorAutoTest ? 1 : 0) +
+			" / Barcode and FMS TrayLoad NOT STARTED";
 	}else if(!opcTrayDisplayed[0] || !opcTrayLoaded[0]){
 		waitStep = 2; reason = "WAIT Source tray barcode/load completion";
 		detail = "No active TrayLoad request / Response timeout NOT RUNNING / Source PLC step=" + IntToStr(step[0].step);
+	}else if(!sourceCenteringCompleted || !srcCentered){
+		waitStep = 3; reason = "WAIT Source Centering step completion";
+		detail = "D10104 EXPECTED=1 CURRENT=" + IntToStr(srcCentered ? 1 : 0) +
+			" / D10101=" + IntToStr(plcFresh && PlcBin->IsPlcAutoMode() ? 1 : 0) +
+			" / STEP03_COMPLETE=" + IntToStr(sourceCenteringCompleted ? 1 : 0);
 	}else if(!opcTrayDisplayed[1] || !opcTrayLoaded[1]){
-		waitStep = tgtCentered ? 5 : 4;
-		reason = tgtCentered ? "WAIT Target tray load dispatch" : "WAIT D10106 Target Centering";
-		detail = "D10106 EXPECTED=1 CURRENT=" + IntToStr(tgtCentered ? 1 : 0) +
+		bool targetReady = tgtCentered && IsTargetTrayInSignal();
+		waitStep = targetReady ? 5 : 4;
+		reason = targetReady ? "WAIT Target tray load dispatch" : "WAIT D10105/D10106 Target In/Centering";
+		detail = "D10105/D10106 EXPECTED=1/1 CURRENT=" + IntToStr(IsTargetTrayInSignal() ? 1 : 0) + "/" + IntToStr(tgtCentered ? 1 : 0) +
 			" / Target Request NOT SENT / Response timeout NOT RUNNING / Source PLC step=" + IntToStr(step[0].step);
 		if(tgtCentered && step[0].step >= 3)
 			detail += " / BLOCKED: target load missing; Pause then Restart re-arms pre-sort load";
@@ -506,7 +528,7 @@ void __fastcall TMainForm::ReportIdleWaitStatus(bool force)
 		" / Target(Display/Loaded)=" + IntToStr(opcTrayDisplayed[1] ? 1 : 0) + "/" + IntToStr(opcTrayLoaded[1] ? 1 : 0) +
 		" / Pause(G/R)=" + IntToStr(gripper->pauseStatus ? 1 : 0) + "/" + IntToStr(robostar->pauseStatus ? 1 : 0) +
 		" / Robot=" + RobotSequenceText((int)robostar->seq) +
-		" / PLC fresh=" + IntToStr(plcFresh ? 1 : 0) + " MES test=" + IntToStr(simulated ? 1 : 0) +
+		" / PLC fresh=" + IntToStr(plcFresh ? 1 : 0) + " Door/Auto=" + IntToStr(doorAutoTest ? 1 : 0) +
 		" / Gateway=" + IntToStr(gateway ? 1 : 0);
 	AnsiString header = Format("[STEP %2.2d %s] ", ARRAYOFCONST((waitStep, GetProcessStepName(waitStep))));
 	pgripperMsg->Caption = "[Waiting] " + reason;
@@ -704,6 +726,8 @@ void __fastcall TMainForm::pause_startBtnClick(TObject *Sender)
 	{
 		if(gripper->pauseStatus && robostar->pauseStatus)
 		{
+			//* WORK START TRAY INTERLOCK: verify BEFORE releasing either Pause.
+			if(!RetryWorkStartTrayAlarm()) return;
 			// FMS ALARM PAUSE/CLOSE: Main Restart and popup Retry share this path;
 			// preserve the accepted reset-wait phase even after the popup is closed.
 			if(fmsAlarmTransaction != fmsAlarmNone)
@@ -1105,11 +1129,14 @@ void __fastcall TMainForm::ReissueFmsAlarmRequest()
 			opcTrayLoadPending[1] = true;
 			opcTrayLoadStartTick[1] = nowTick;
 			break;
-		case fmsAlarmProcessStart:
+		case fmsAlarmProcessStart:{
+			AnsiString traySignalState;
+			if(!CheckWorkTraySignals(6, traySignalState)) return;
 			MesOpc->PROCESS_START_REQUEST();
 			opcProcessStartPending = true;
 			opcProcessStartTick = nowTick;
 			break;
+		}
 		case fmsAlarmCellTrackOut:
 			if(!MesOpc->CELL_TRACK_OUT_RETRY()){
 				if(AlarmForm_fms != NULL)
@@ -1279,7 +1306,11 @@ void __fastcall TMainForm::ResumeAutomaticFmsSequence()
 			opcProcessStartResponseOffError = false;
 			opcProcessStartResponseResult = 0;
 			opcProcessStartTick = nowTick;
-			MesOpc->PROCESS_START_REQUEST();
+			AnsiString traySignalState;
+			if(CheckWorkTraySignals(6, traySignalState))
+				MesOpc->PROCESS_START_REQUEST();
+			else
+				opcProcessStartPending = false; // STEP 06 retries dispatch when live inputs recover.
 		}
 		if(opcCellTrackOutPending){
 			opcCellTrackOutWaitResponseOff = false;
@@ -1632,6 +1663,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 	if(opcSortingStartPending)
 	{
 		AnsiString currentState;
+		AnsiString traySignalState;
 		if(gripper == NULL || robostar == NULL)
 		{
 			currentState = "Gripper/Robot module is NULL";
@@ -1654,6 +1686,12 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 			{
 				SetProcessOperationStatus(7, "START SORTING SEQUENCE",
 					"Pause state", "RUNNING (Pause=0)", currentState);
+			}
+			else if(!CheckWorkTraySignals(7, traySignalState))
+			{
+				// FMS response may take seconds: no local start on a stale earlier PASS.
+				currentState += " / " + traySignalState;
+				opcSortingStartWaitError = true; // FormAlarm owns this error; no second timeout popup.
 			}
 			else if(gripper->seq != seqIdle || robostar->seq != seqIdle)
 			{
@@ -2053,7 +2091,8 @@ void __fastcall TMainForm::manualBtnClick(TObject *Sender)
 	if(autoBtn->Down == true){
 		if(robostar->IsSafetyDoorOpen(1) || robostar->IsSafetyDoorOpen(2) || robostar->IsEmergencyStopActive())
 		{
-			if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(IsSourceCenteringSignal());
+			// DOOR/PLC AUTO INTERLOCK: changing PC to MANUAL must never assert D10154.
+			if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(false);
 
 			equipMode = modeManual;
 			nowLampMode = LampManual;
@@ -2068,7 +2107,7 @@ void __fastcall TMainForm::manualBtnClick(TObject *Sender)
 				gripper->req_Pause(true);
 				robostar->req_Pause(true);
 
-				if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(IsSourceCenteringSignal());
+				if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(false);
 
 				equipMode = modeManual;
                 nowLampMode = LampManual;
@@ -2193,16 +2232,14 @@ void __fastcall TMainForm::trayout_targetBtnClick(TObject *Sender)
 
 bool __fastcall TMainForm::IsSourceTrayInSignal() const
 {
-	// MES TEST simulates D10103 even when the PLC socket is disconnected.
-	return (cbMES != NULL && cbMES->Checked)
-		|| (PlcBin != NULL && PlcBin->IsSourceTrayIn());
+	//* DOOR/PLC AUTO INTERLOCK: actual PLC input only; no simulated Tray In.
+	return PlcBin != NULL && PlcBin->IsSourceTrayIn();
 }
 //---------------------------------------------------------------------------
 bool __fastcall TMainForm::IsSourceCenteringSignal() const
 {
-	// MES TEST simulates D10104.
-	return (cbMES != NULL && cbMES->Checked)
-		|| (PlcBin != NULL && PlcBin->IsSourceCentering());
+	//* DOOR/PLC AUTO INTERLOCK: checkbox NEVER forces centering ON.
+	return PlcBin != NULL && PlcBin->IsSourceCentering();
 }
 //---------------------------------------------------------------------------
 bool __fastcall TMainForm::IsTargetTrayInSignal() const
@@ -2212,9 +2249,176 @@ bool __fastcall TMainForm::IsTargetTrayInSignal() const
 //---------------------------------------------------------------------------
 bool __fastcall TMainForm::IsTargetCenteringSignal() const
 {
-	// MES TEST simulates D10106 (bad/target tray centering).
-	return (cbMES != NULL && cbMES->Checked)
-		|| (PlcBin != NULL && PlcBin->IsTargetCentering());
+	//* DOOR/PLC AUTO INTERLOCK: actual Target centering remains mandatory.
+	return PlcBin != NULL && PlcBin->IsTargetCentering();
+}
+//---------------------------------------------------------------------------
+// ============================================================================
+//* DOOR/PLC AUTO INTERLOCK : INITIAL SOURCE TRAY ADMISSION
+// Normal: STEP 01 PC AUTO + PLC AUTO + Tray In -> STEP 02 Source TrayLoad
+// -> STEP 03 Source centering -> STEP 04 Target In/Centering -> STEP 05 load.
+// Door/Auto: only the INITIAL PLC AUTO check may be skipped; REAL Tray In and
+// centering must already be ON. It does NOT authorize centering in PLC MANUAL.
+// Only AFTER STEP 03, PLC AUTO may turn OFF without stopping the accepted cycle.
+// Real centering loss / stale PLC motion stops and operator Restart remain intact.
+// ============================================================================
+bool __fastcall TMainForm::CanRequestAutoSourceCentering() const
+{
+	return equipMode == modeAuto && gripper != NULL && robostar != NULL &&
+		!gripper->pauseStatus && !robostar->pauseStatus &&
+		fmsAlarmTransaction == fmsAlarmNone && sourceTrayCycleAdmitted &&
+		opcTrayDisplayed[0] && opcTrayLoaded[0] && !sourceCenteringCompleted &&
+		!sourceTrayOutPending && step[0].step == 2 &&
+		PlcBin != NULL && PlcBin->IsPlcStatusFresh(1000) &&
+		PlcBin->IsPlcAutoMode() && PlcBin->IsSourceTrayIn() &&
+		!PlcBin->IsSourceCentering() && !PlcBin->IsSourceTrayOutOn() &&
+		!chkBypass->Checked;
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMainForm::IsSourceTrayCycleReady() const
+{
+	// STEP 01 admission permits Source information loading BEFORE centering.
+	// STEP 03 completion and four live inputs separately gate ProcessStart.
+	return sourceTrayCycleAdmitted && PlcBin != NULL &&
+		PlcBin->IsPlcStatusFresh(1000) && PlcBin->IsSourceTrayIn() &&
+		!sourceTrayOutPending &&
+		!PlcBin->IsSourceTrayOutOn() && step[0].step < 100;
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMainForm::UpdateSourceTrayAdmission()
+{
+	if(PlcBin == NULL || !PlcBin->IsPlcStatusFresh(1000)){
+		ReportIdleWaitStatus();
+		return false; // Stale cached ON is not an admission or departure signal.
+	}
+	if(!PlcBin->IsSourceTrayIn()){
+		sourceTrayCycleAdmitted = false;
+		sourceCenteringCompleted = false;
+		return false;
+	}
+	if(equipMode != modeAuto || gripper == NULL || robostar == NULL ||
+		gripper->pauseStatus || robostar->pauseStatus ||
+		fmsAlarmTransaction != fmsAlarmNone || sourceTrayOutPending ||
+		PlcBin->IsSourceTrayOutOn() || step[0].step >= 100) return false;
+	if(sourceTrayCycleAdmitted)
+		return IsSourceTrayCycleReady();
+	bool plcAuto = PlcBin->IsPlcAutoMode();
+	bool test = chkDoorPlcAuto != NULL && chkDoorPlcAuto->Checked;
+	// Preserve the existing normal BYPASS flow: do not center a tray to eject it.
+	// Even BYPASS cannot dispatch a reverse-loaded tray in PLC MANUAL unless
+	// Door/Auto is explicitly selected AND the actual tray is already centered.
+	if(plcAuto || (test && PlcBin->IsSourceCentering())){
+		sourceTrayCycleAdmitted = true;
+		PlcBin->CmdSourceCenteringRequest(false);
+		ProcessStepLog(1, "[DOOR/PLC AUTO INTERLOCK] ADMITTED / D10101=" + IntToStr(plcAuto ? 1 : 0) +
+			" / D10103=1 / D10104=" + IntToStr(PlcBin->IsSourceCentering() ? 1 : 0) +
+			" / Door/Auto=" + IntToStr(test ? 1 : 0) +
+			" / STEP 01 admitted; Source TrayLoad precedes STEP 03 centering");
+		return true;
+	}
+	ReportIdleWaitStatus();
+	return false;
+}
+//---------------------------------------------------------------------------
+// ============================================================================
+//* DOOR/PLC AUTO INTERLOCK / 16-STEP ORDER : STEP 03 ONLY
+// Source information must finish its response reset BEFORE centering request.
+// A completed STEP 03 is latched: later PLC MANUAL does not stop the process,
+// and lost centering never causes an automatic re-centering request.
+// ============================================================================
+bool __fastcall TMainForm::CompleteSourceCenteringStep()
+{
+	if(!IsSourceTrayCycleReady() || !opcTrayDisplayed[0] || !opcTrayLoaded[0]) return false;
+	bool centered = PlcBin->IsSourceCentering();
+	if(sourceCenteringCompleted) return centered;
+	bool plcAuto = PlcBin->IsPlcAutoMode();
+	bool test = chkDoorPlcAuto != NULL && chkDoorPlcAuto->Checked;
+	if(!plcAuto && !test){
+		SetProcessOperationStatus(3, "SOURCE CENTERING", "D10101 PLC AUTO", "1 (ON)", "0 (OFF) / D10154=OFF");
+		return false;
+	}
+	if(!centered){
+		SetProcessOperationStatus(3, "SOURCE CENTERING", "D10104 Source Centering", "1 (ON)",
+			"0 (OFF) / D10101=" + IntToStr(plcAuto ? 1 : 0) +
+			" / D10154=" + IntToStr(PlcBin->IsSourceCenteringRequestOn() ? 1 : 0));
+		return false;
+	}
+	sourceCenteringCompleted = true;
+	PlcBin->CmdSourceCenteringRequest(false);
+	CompleteProcessStep(3, "D10104=1 / D10154=OFF / PLC AUTO no longer gates this tray; real motion interlocks remain active");
+	BeginProcessStep(4, "WAIT D10105 Target In + D10106 Target Centering");
+	return true;
+}
+//---------------------------------------------------------------------------
+// ============================================================================
+//* PROCESS START INTERLOCK : RECHECK FOUR LIVE PLC INPUTS, NOT PANEL COLORS.
+// No extra step, delay or PLC command. Door/Auto and Cycle Test NEVER bypass
+// this check. Repeat after the FMS handshake before local motion may start.
+// ============================================================================
+bool __fastcall TMainForm::CheckWorkTraySignals(int stepNo, AnsiString &detail)
+{
+	// ========================================================================
+	//* WORK START TRAY INTERLOCK : STEP 06/07 ONLY, NOT NORMAL STEP 01-05 WAIT.
+	// Closing FormAlarm or recovering an input never restarts the equipment.
+	// Keep one alarm latched until the operator explicitly presses Restart.
+	// ========================================================================
+	if(workStartTrayAlarmActive){
+		detail = "Work start tray interlock latched / PAUSED / operator Restart required";
+		return false;
+	}
+	bool fresh = PlcBin != NULL && PlcBin->IsPlcStatusFresh(1000);
+	bool srcIn = IsSourceTrayInSignal();
+	bool srcCenter = IsSourceCenteringSignal();
+	bool tgtIn = IsTargetTrayInSignal();
+	bool tgtCenter = IsTargetCenteringSignal();
+	bool ready = fresh && srcIn && srcCenter && tgtIn && tgtCenter;
+	AnsiString missing;
+	if(!fresh) missing += "PLC status stale/disconnected; ";
+	if(!srcIn) missing += "D10103 Source In; ";
+	if(!srcCenter) missing += "D10104 Source Centering; ";
+	if(!tgtIn) missing += "D10105 Target In; ";
+	if(!tgtCenter) missing += "D10106 Target Centering; ";
+	detail = "D10103=" + IntToStr(srcIn ? 1 : 0) + " / D10104=" + IntToStr(srcCenter ? 1 : 0) +
+		" / D10105=" + IntToStr(tgtIn ? 1 : 0) + " / D10106=" + IntToStr(tgtCenter ? 1 : 0) +
+		" / PLC_FRESH=" + IntToStr(fresh ? 1 : 0) + (ready ? AnsiString(" / PASS") : " / BLOCKED: " + missing);
+	// Log each changed signal combination (including WAIT -> PASS) once.
+	AnsiString status = "WORK START INTERLOCK / EXPECTED D10103/D10104/D10105/D10106=1, PLC_FRESH=1 / CURRENT " + detail;
+	currentProcessStep = stepNo;
+	currentProcessDetail = status;
+	UpdateProcessFlowPanel();
+	int checkIndex = stepNo == 6 ? 0 : 1;
+	if(lastWorkTraySignalStatus[checkIndex] != status){
+		lastWorkTraySignalStatus[checkIndex] = status;
+		ProcessStepLog(stepNo, status);
+	}
+	if(!ready){
+		workStartTrayAlarmActive = true; // Latch before any modeless UI can re-enter.
+		workStartTrayAlarmStep = stepNo;
+		if(gripper != NULL) gripper->req_Pause(true);
+		if(robostar != NULL) robostar->req_Pause(true);
+		// A ProcessStart FMS retry must also stop polling/reissuing until Restart.
+		if(fmsAlarmTransaction != fmsAlarmNone) PauseFmsAlarm();
+		if(AlarmForm != NULL)
+			AlarmForm->ShowError("Work start tray interlock",
+				UnicodeString("Work cannot start. All four tray signals must be ON.\r\n\r\n") +
+				UnicodeString(detail) +
+				UnicodeString("\r\n\r\nCorrect the signals, then press Main Restart. Closing this alarm does not resume work."));
+	}
+	return ready;
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMainForm::RetryWorkStartTrayAlarm()
+{
+	//* WORK START TRAY INTERLOCK: shared by Main Restart and FMS popup Retry.
+	if(!workStartTrayAlarmActive) return true;
+	int stepNo = workStartTrayAlarmStep;
+	workStartTrayAlarmActive = false;
+	lastWorkTraySignalStatus[stepNo == 6 ? 0 : 1] = "";
+	// Do not hide a different alarm which might have appeared in the meantime.
+	if(AlarmForm != NULL && AlarmForm->errMsg1->Caption == "S_Maint_Work start tray interlock")
+		AlarmForm->Hide();
+	AnsiString detail;
+	return CheckWorkTraySignals(stepNo, detail); // Failure re-latches and stays paused.
 }
 //---------------------------------------------------------------------------
 // ============================================================================
@@ -2246,21 +2450,16 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 
 	// Automatic-cycle FMS payload cleanup belongs to AUTO only. Previously this
 	// block ran before the mode check and wrote FMS tags while in MANUAL.
-	bool plcConnected = PlcBin != NULL && PlcBin->ClientSocket_PLC != NULL &&
-		PlcBin->ClientSocket_PLC->Active;
-	bool sourceTraySimulated = cbMES != NULL && cbMES->Checked;
-	if(plcConnected || sourceTraySimulated){
+	bool plcFresh = PlcBin != NULL && PlcBin->IsPlcStatusFresh(1000);
+	if(plcFresh){
 		bool sourceTrayIn = IsSourceTrayInSignal();
 		if(!sourceTrayIn)
 			sourceTrackOutResetArmed = true;
-		else if(sourceTrackOutResetArmed && MesOpc != NULL){
-			MesOpc->CLEAR_CELL_TRACK_OUT_DATA();
-			MesOpc->CLEAR_TRACK_OUT_CELL_INFORMATION();
-			sourceTrackOutResetArmed = false;
-		}
 	}
 
-	if(IsSourceTrayInSignal() == 0){
+	if(plcFresh && IsSourceTrayInSignal() == 0){
+		sourceTrayCycleAdmitted = false; // New physical tray must pass admission again.
+		sourceCenteringCompleted = false;
 		opcTrayAdvanceDeferred[0] = false;
 		opcDeferredTrayId[0] = "";
 		opcTrayDisplayed[0] = false;
@@ -2273,12 +2472,21 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 			ProcessStepLog(1, sourceWait);
 		}
 	}
-	if(IsTargetCenteringSignal() == 0){
+	if(plcFresh && IsTargetCenteringSignal() == 0){
 		opcTrayAdvanceDeferred[1] = false;
 		opcDeferredTrayId[1] = "";
 		InitStep(&step[1]);
 	}
 
+	// Gate barcode/FMS dispatch as well as D10154; checking only the output
+	// would still let a manually reverse-loaded tray start FMS processing.
+	if(!UpdateSourceTrayAdmission()) return;
+	// Cleanup occurs ONCE after admission and BEFORE the new barcode/FMS load.
+	if(sourceTrackOutResetArmed && MesOpc != NULL){
+		MesOpc->CLEAR_CELL_TRACK_OUT_DATA();
+		MesOpc->CLEAR_TRACK_OUT_CELL_INFORMATION();
+		sourceTrackOutResetArmed = false;
+	}
 	ResumeDeferredTrayLoads();
 
     if(!gripper->pauseStatus && !robostar->pauseStatus)
@@ -2318,6 +2526,8 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 				step[0].step = 2;
 				break;
 			case 2:
+				// STEP 03 must finish before STEP 04/05 Target handling.
+				if(!CompleteSourceCenteringStep()) break;
 				// An accepted response may be resumed before this timer runs.
 				// Do not start a second barcode/Target load for the same cycle.
 				if(opcTrayLoadPending[1] || opcTrayLoaded[1] || opcTrayAdvanceDeferred[1]){
@@ -2325,8 +2535,8 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 					step[1].step = 1;
 					break;
 				}
-				if(IsTargetCenteringSignal()){
-					BeginProcessStep(4, "D10106 Target Centering=ON / waiting barcode");
+				if(IsTargetTrayInSignal() && IsTargetCenteringSignal()){
+					BeginProcessStep(4, "D10105 Target In=ON / D10106 Target Centering=ON / waiting barcode");
 					memoMainLineAdd(BaseForm->GetLangStr("MSG_TARGETTRAY_CENTERING_COMPL"));
 					pTrayid_target->Caption = "";       // test
 					pTrayid_target2->Caption = "";      // test
@@ -2334,8 +2544,8 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 					step[0].step += 1;
 					step[1].step = 1;
 				}else{
-					SetProcessWaitStatus(4, "Source TrayLoad complete",
-						"D10106 Target Centering", 0);
+					SetProcessOperationStatus(4, "TARGET TRAY READY", "Target In/Centering", "D10105=1 / D10106=1",
+						"D10105=" + IntToStr(IsTargetTrayInSignal() ? 1 : 0) + " / D10106=" + IntToStr(IsTargetCenteringSignal() ? 1 : 0));
 				}
 				break;
 			default:
@@ -2349,7 +2559,7 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 
 		 switch(step[1].step){
 			case 0:
-				if(IsTargetCenteringSignal() && pwork1->Color == clLime){
+				if(sourceCenteringCompleted && IsTargetTrayInSignal() && IsTargetCenteringSignal() && pwork1->Color == clLime){
 					memoMainLineAdd("More target trays arrived.");
 					pTrayid_target->Caption = "";
 					pTrayid_target2->Caption = "";
@@ -2605,10 +2815,10 @@ void __fastcall TMainForm::btnDryRunClick(TObject *Sender)
 	if(DryRunForm == NULL)
 		DryRunForm = new TDryRunForm(Application);
 
-	//* DRY RUN : Test simulation modes must not be mixed with physical motion.
-	cbMES->Checked = false;
+	//* DRY RUN : Clear commissioning options when opening physical inspection.
+	chkDoorPlcAuto->Checked = false;
 	cbCycle->Checked = false;
-	memoMainLineAdd("[DRY RUN] Inspection form opened / MES Test=OFF / Cycle Test=OFF");
+	memoMainLineAdd("[DRY RUN] Inspection form opened / Door/Auto=OFF / Cycle Test=OFF");
 	DryRunForm->ShowModal();
 }
 //---------------------------------------------------------------------------
@@ -2902,20 +3112,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	pejectremainCnt->Caption = tray_source.remainCnt;
 	pinsertremainCnt->Caption = tray_target.remainCnt;
 
-	//* for mes test START
-	if(cbMES->Checked){
-		psrcArrive->Color = clLime;
-		psrcReady->Color = clLime;
-		ptargetReady->Color = clLime;
-
-		pTrayid_source2->Caption = pTrayid_source->Caption;
-		pTrayid_target2->Caption = pTrayid_target->Caption;
-	}
-	//* FOR MES TEST END
-
-	/*
-	* The code below remains disabled for the original test configuration.
-	*/
+	//* DOOR/PLC AUTO INTERLOCK: display actual PLC inputs in both modes.
 
 	// D10104 Source Centering complete resets D10154 through ModPLC_BIN.
 	if(IsSourceCenteringSignal() && PlcBin != NULL)
@@ -2962,7 +3159,6 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 			(doorForm != NULL && doorForm->Visible);
 		bool pcAutoMode = (equipMode == modeAuto);
 		bool sourceTrayIn = IsSourceTrayInSignal();
-		bool sourceCentering = IsSourceCenteringSignal();
 		bool targetTrayIn = IsTargetTrayInSignal();
 
 		// D10151 follows PC mode: AUTO=1, MANUAL/other=0.
@@ -2972,27 +3168,26 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		// D10153 follows only the physical servo-home/XYZ=0 condition.
 		PlcBin->CmdTrayInReady(m_ServoHome);
 
-		if(pcAutoMode){
-			bool sourceTrayOut = PlcBin->IsSourceTrayOutOn();
-			// During D10155 Tray Out, D10103 can remain ON until the tray has
-			// physically left. Never interpret that overlap as a new centering request.
-			if(sourceTrayOutPending || sourceTrayOut){
-				PlcBin->CmdSourceCenteringRequest(false);
-			}
-			else if(sourceTrayIn && chkBypass->Checked){
-				// Tray Out itself is issued by the automatic sequence.
-				PlcBin->CmdSourceCenteringRequest(false);
-			}
-			else if(sourceTrayIn && !sourceCentering){
-				PlcBin->CmdSourceCenteringRequest(true);
-			}
-			else if(sourceCentering){
-				PlcBin->CmdSourceCenteringRequest(false);
-			}
+		// ================================================================
+		//* DOOR/PLC AUTO INTERLOCK : D10154 AUTOMATIC REQUEST OWNER
+		// Real PLC AUTO is ALWAYS required, even with Door/Auto checked.
+		// Once STEP 03 completes, never auto-recenter after a centering-loss stop.
+		// Manual Teaching Centering remains an explicit operator command.
+		// ================================================================
+		if(pcAutoMode || equipMode == modeAutoStop){
+			bool request = CanRequestAutoSourceCentering();
+			if(PlcBin->IsSourceCenteringRequestOn() != request)
+				memoMainLineAdd("[DOOR/PLC AUTO INTERLOCK] D10154=" + IntToStr(request ? 1 : 0) +
+					" / PLC AUTO=" + IntToStr(PlcBin->IsPlcAutoMode() ? 1 : 0) +
+					" / Source admitted=" + IntToStr(sourceTrayCycleAdmitted ? 1 : 0) +
+					" / centering requires STEP 02 complete and actual PLC AUTO; no re-centering after STEP 03");
+			PlcBin->CmdSourceCenteringRequest(request);
 		}
 
 		// D10103 OFF completes D10155.
-		if(!sourceTrayIn){
+		if(PlcBin->IsPlcStatusFresh(1000) && !sourceTrayIn){
+			sourceTrayCycleAdmitted = false;
+			sourceCenteringCompleted = false;
 			// A tray-absent confirmation cancels a not-yet-issued delayed request
 			// and releases the D10154 software interlock safely.
 			sourceTrayOutPending = false;
@@ -3000,7 +3195,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 			PlcBin->CmdSourceCenteringRequest(false);
 			PlcBin->CmdSourceTrayOut(false);
 		}
-		if(!targetTrayIn)
+		if(PlcBin->IsPlcStatusFresh(1000) && !targetTrayIn)
 			PlcBin->CmdTargetTrayOut(false);
 
 		PlcBin->CmdPcEmergency(robostar->IsEmergencyStopActive());
@@ -3298,6 +3493,9 @@ void __fastcall TMainForm::AdvSmoothToggleButton_InitWorkClick(TObject *Sender)
 
             if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(false);
 
+			//* DOOR/PLC AUTO INTERLOCK: Init Work starts a NEW admission check.
+			sourceTrayCycleAdmitted = false;
+			sourceCenteringCompleted = false;
 			InitStep(&step[0]);
 			InitStep(&step[1]);
 
@@ -3315,18 +3513,18 @@ void __fastcall TMainForm::pnlSource2Click(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::lblTitleClick(TObject *Sender)
 {
-	bool showTestOptions = !cbMES->Visible;
-	cbMES->Visible = showTestOptions;
+	bool showTestOptions = !chkDoorPlcAuto->Visible;
+	chkDoorPlcAuto->Visible = showTestOptions;
 	cbCycle->Visible = showTestOptions;
 
-	//* DRY RUN : Use the same hidden commissioning access as MES/Cycle Test.
+	//* DRY RUN : Use the same hidden commissioning access as Door/Auto and Cycle Test.
 	btnDryRun->Visible = showTestOptions;
 	if(showTestOptions){
 		btnDryRun->Enabled = true;
 		btnDryRun->BringToFront();
 	}
 	if(!showTestOptions){
-		cbMES->Checked = false;
+		chkDoorPlcAuto->Checked = false;
 		cbCycle->Checked = false;
 	}
 }

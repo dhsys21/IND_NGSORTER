@@ -108,8 +108,11 @@ void __fastcall TdoorForm::ShowError(AnsiString MainStr, AnsiString SubStr, int 
 		MainForm->NotifyEquipStatus("DOWN");
 	}
 
-	// MES test mode may intentionally keep the form hidden; the error latch still prevents re-logging.
-	if(this->Visible == false && MainForm->cbMES->Checked == false){
+	// ========================================================================
+	//* DOOR/PLC AUTO INTERLOCK: Door/Auto hides only this popup, NOT the alarm,
+	// Pause, logging, or physical door/centering safety interlocks above.
+	// ========================================================================
+	if(this->Visible == false && MainForm->chkDoorPlcAuto->Checked == false){
 		this->BringToFront();
 		this->Visible = true;
 	}else if(this->Visible && newError){
@@ -367,8 +370,8 @@ void __fastcall TdoorForm::cancelBtn2Click(TObject *Sender)
 void __fastcall TdoorForm::PasswordBtnClick(TObject *Sender)
 {
     if(PassEdit->Text == "9090"){
-        MainForm->cbMES->Visible = true;
-	    MainForm->cbMES->Checked = true;
+        MainForm->chkDoorPlcAuto->Visible = true;
+	    MainForm->chkDoorPlcAuto->Checked = true;
 		MainForm->cbCycle->Visible = true;
 		this->Visible = false;
 		//* DRY RUN : Password access exposes the inspection-only entry button.
@@ -383,8 +386,8 @@ void __fastcall TdoorForm::PassEditKeyUp(TObject *Sender, WORD &Key, TShiftState
     if(Key == VK_RETURN)
     {
         if(PassEdit->Text == "9090"){
-            MainForm->cbMES->Visible = true;
-            MainForm->cbMES->Checked = true;
+            MainForm->chkDoorPlcAuto->Visible = true;
+            MainForm->chkDoorPlcAuto->Checked = true;
 			MainForm->cbCycle->Visible = true;
 			//* DRY RUN : Password access exposes the inspection-only entry button.
 			MainForm->btnDryRun->Visible = true;

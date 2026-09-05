@@ -174,6 +174,8 @@ bool __fastcall TDryRunForm::ValidateDryRunStart(AnsiString &reason)
 		reason = "Gripper OPEN confirmation is not ON.";
 		return false;
 	}
+	//* DOOR/PLC AUTO INTERLOCK: Dry Run still requires REAL fresh centering.
+	// Door/Auto never simulates PLC inputs or bypasses this inspection interlock.
 	if(PlcBin == NULL || !PlcBin->IsPlcStatusFresh(1000)){
 		reason = "PLC status data is disconnected or stale. D10104 cannot be verified.";
 		return false;
