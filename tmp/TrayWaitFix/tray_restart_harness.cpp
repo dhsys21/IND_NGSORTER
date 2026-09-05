@@ -73,6 +73,7 @@ public:
     void __fastcall ResumeDeferredTrayLoads();
     void __fastcall NotifyTrayInfo(AnsiString,bool);
     void ReportIdleWaitStatus() {}
+    void SetTrayLoadBypassDisplay(bool,int) {} // Display-only binding tested separately.
     bool CheckAutomaticFmsMode(const AnsiString&) { return equipMode==modeAuto; }
     void ProcessStepLog(int,const AnsiString&) {}
     void CompleteProcessStep(int,const AnsiString&) {}
@@ -273,6 +274,8 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 		(bsrc ? AnsiString("Location1") : AnsiString("Location2")) +
 		".TrayLoadResponse=1");
 	MesOpc->TRAY_LOAD_REQUEST(bsrc);
+	// TRAY BYPASS DISPLAY: new accepted load, not a duplicate/paused callback.
+	SetTrayLoadBypassDisplay(bsrc, 0);
 	opcTrayLoadPending[index] = true;
 	opcTrayLoadWaitResponseOff[index] = false;
 	opcTrayLoadResponseOffError[index] = false;

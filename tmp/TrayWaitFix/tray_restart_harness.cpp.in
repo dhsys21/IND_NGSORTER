@@ -73,6 +73,7 @@ public:
     void __fastcall ResumeDeferredTrayLoads();
     void __fastcall NotifyTrayInfo(AnsiString,bool);
     void ReportIdleWaitStatus() {}
+    void SetTrayLoadBypassDisplay(bool,int) {} // Display-only binding tested separately.
     bool CheckAutomaticFmsMode(const AnsiString&) { return equipMode==modeAuto; }
     void ProcessStepLog(int,const AnsiString&) {}
     void CompleteProcessStep(int,const AnsiString&) {}

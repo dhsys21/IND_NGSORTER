@@ -1486,6 +1486,9 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		// the tray information received with TrayLoadResponse=1.
 		int rawResponse = MesOpc != NULL ? MesOpc->TRAY_LOAD_RESPONSE_VALUE(sourceTray) : -1;
 		int response = MesOpc != NULL ? MesOpc->TRAY_LOAD_RESPONSE(sourceTray) : -1;
+		// TRAY BYPASS DISPLAY: cache the ON-phase result separately from the
+		// handshake flags. Response reset to 0 must not erase a tray's Y result.
+		SetTrayLoadBypassDisplay(sourceTray, rawResponse);
 		SetProcessWaitStatus(stepNo, locationName + ".TrayLoad Request=ON",
 			locationName + ".TrayLoadResponse ON", rawResponse);
 		if (response == 1)
@@ -2234,6 +2237,14 @@ bool __fastcall TMainForm::IsSourceTrayInSignal() const
 {
 	//* DOOR/PLC AUTO INTERLOCK: actual PLC input only; no simulated Tray In.
 	return PlcBin != NULL && PlcBin->IsSourceTrayIn();
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::SetTrayLoadBypassDisplay(bool sourceTray, int response)
+{
+	// TRAY BYPASS DISPLAY: independent Source/Target result; no PLC/FMS writes.
+	// Keep this separate from old pBYPASS, which now displays Target Route ID.
+	TPanel *value = sourceTray ? pSourceTrayBypass : pTargetTrayBypass;
+	if(value != NULL) value->Caption = response == 2 ? "Y" : "N";
 }
 //---------------------------------------------------------------------------
 bool __fastcall TMainForm::IsSourceCenteringSignal() const
@@ -3186,6 +3197,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 
 		// D10103 OFF completes D10155.
 		if(PlcBin->IsPlcStatusFresh(1000) && !sourceTrayIn){
+			SetTrayLoadBypassDisplay(true, 0);
 			sourceTrayCycleAdmitted = false;
 			sourceCenteringCompleted = false;
 			// A tray-absent confirmation cancels a not-yet-issued delayed request
@@ -3195,8 +3207,10 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 			PlcBin->CmdSourceCenteringRequest(false);
 			PlcBin->CmdSourceTrayOut(false);
 		}
-		if(PlcBin->IsPlcStatusFresh(1000) && !targetTrayIn)
+		if(PlcBin->IsPlcStatusFresh(1000) && !targetTrayIn){
+			SetTrayLoadBypassDisplay(false, 0);
 			PlcBin->CmdTargetTrayOut(false);
+		}
 
 		PlcBin->CmdPcEmergency(robostar->IsEmergencyStopActive());
 		PlcBin->CmdPcDoorOpen(doorOpen);

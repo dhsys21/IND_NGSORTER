@@ -102,6 +102,10 @@ __published:	// IDE-managed Components
 	TPanel *pSLOT_COUNT;
 	TPanel *pnlSourceKind;
 	TPanel *pnlSourceSlotCount;
+	TPanel *pnlSourceTrayBypass;
+	TPanel *pSourceTrayBypass;
+	TPanel *pnlTargetTrayBypass;
+	TPanel *pTargetTrayBypass;
 	TAdvSmoothPanel *AdvSmoothPanel3;
 	TPanel *popen;
 	TAdvSmoothPanel *pnlLog;
@@ -574,6 +578,7 @@ public:		// User declarations
 	bool __fastcall IsProductionSequenceBusy() const;
 
 	void __fastcall InitTrayInfo(int pos);
+	void __fastcall SetTrayLoadBypassDisplay(bool sourceTray, int response);
 	void __fastcall DisplayTrayInfo();
 	void __fastcall DisplayTranserIn(AnsiString trayid);
 	void __fastcall DisplayRecipeInfo();

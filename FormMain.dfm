@@ -2047,10 +2047,10 @@ object MainForm: TMainForm
       TMSStyle = 8
     end
     object btnDryRun: TAdvSmoothButton
-      Left = 340
-      Top = 1
-      Width = 120
-      Height = 24
+      Left = 322
+      Top = 2
+      Width = 88
+      Height = 22
       Appearance.Font.Charset = DEFAULT_CHARSET
       Appearance.Font.Color = clWindowText
       Appearance.Font.Height = -11
@@ -2530,12 +2530,16 @@ object MainForm: TMainForm
     object chkDoorPlcAuto: TCheckBox
       Left = 116
       Top = 3
-      Width = 93
+      Width = 96
       Height = 20
+      Hint = 
+        'Hide Door alarm popup / Allow tray start without PLC AUTO only w' +
+        'hen actual Tray In and Centering are ON. Motion interlocks remai' +
+        'n active.'
       Caption = 'Door/Auto'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clTeal
-      Font.Height = -17
+      Font.Height = -13
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False
@@ -2543,21 +2547,22 @@ object MainForm: TMainForm
       ShowHint = True
       TabOrder = 13
       Visible = False
-      Hint = 'Hide Door alarm popup / Allow tray start without PLC AUTO only when actual Tray In and Centering are ON. Motion interlocks remain active.'
       OnClick = chkBypassClick
     end
     object cbCycle: TCheckBox
-      Left = 220
+      Left = 218
       Top = 3
-      Width = 110
+      Width = 96
       Height = 20
+      Hint = 
+        'Use the current cached FMS response and skip response freshness/' +
+        'reset waits'
       Caption = 'Cycle test'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clTeal
-      Font.Height = -17
+      Font.Height = -13
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
-      Hint = 'Use the current cached FMS response and skip response freshness/reset waits'
       ParentFont = False
       ParentShowHint = False
       ShowHint = True
@@ -2747,7 +2752,7 @@ object MainForm: TMainForm
       Height = 28
       BevelKind = bkFlat
       BevelOuter = bvNone
-      Caption = 'PRODUCT MODEL'
+      Caption = 'PROD. MODEL'
       Color = 15269887
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 13996080
@@ -2806,7 +2811,7 @@ object MainForm: TMainForm
       Height = 28
       BevelKind = bkFlat
       BevelOuter = bvNone
-      Caption = 'PRODUCT MODEL'
+      Caption = 'PROD. MODEL'
       Color = 15269887
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 13996080
@@ -3111,6 +3116,78 @@ object MainForm: TMainForm
       ParentShowHint = False
       ShowHint = False
       TabOrder = 24
+    end
+    object pnlSourceTrayBypass: TPanel
+      Left = 350
+      Top = 242
+      Width = 90
+      Height = 28
+      BevelKind = bkFlat
+      BevelOuter = bvNone
+      Caption = 'BYPASS'
+      Color = 15269887
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = 13996080
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 32
+    end
+    object pSourceTrayBypass: TPanel
+      Left = 441
+      Top = 242
+      Width = 150
+      Height = 28
+      BevelKind = bkFlat
+      BevelOuter = bvNone
+      Caption = 'N'
+      Color = clWhite
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 33
+    end
+    object pnlTargetTrayBypass: TPanel
+      Left = 10
+      Top = 242
+      Width = 90
+      Height = 28
+      BevelKind = bkFlat
+      BevelOuter = bvNone
+      Caption = 'BYPASS'
+      Color = 15269887
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = 13996080
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 34
+    end
+    object pTargetTrayBypass: TPanel
+      Left = 101
+      Top = 242
+      Width = 150
+      Height = 28
+      BevelKind = bkFlat
+      BevelOuter = bvNone
+      Caption = 'N'
+      Color = clWhite
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 35
     end
     object psrcReady: TPanel
       Left = 410

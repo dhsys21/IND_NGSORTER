@@ -3,6 +3,7 @@
 // 전지 정보 표시
 void __fastcall TMainForm::InitTrayInfo(int pos)
 {
+	SetTrayLoadBypassDisplay(pos == 0, 0);
 	if(pos == 0){
 		pPROCESS->Caption = "";
 		pOPER->Caption = "";
@@ -470,6 +471,8 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 		(bsrc ? AnsiString("Location1") : AnsiString("Location2")) +
 		".TrayLoadResponse=1");
 	MesOpc->TRAY_LOAD_REQUEST(bsrc);
+	// TRAY BYPASS DISPLAY: new accepted load, not a duplicate/paused callback.
+	SetTrayLoadBypassDisplay(bsrc, 0);
 	opcTrayLoadPending[index] = true;
 	opcTrayLoadWaitResponseOff[index] = false;
 	opcTrayLoadResponseOffError[index] = false;
