@@ -1,0 +1,141 @@
+#include <string>
+#include <cstdio>
+#include <cstdlib>
+#include <cassert>
+class AnsiString : public std::string {
+public:
+    AnsiString() {}
+    AnsiString(const char *s) : std::string(s) {}
+    AnsiString(const std::string &s) : std::string(s) {}
+    bool IsEmpty() const { return empty(); }
+    int ToIntDef(int fallback) const { return empty() ? fallback : std::atoi(c_str()); }
+};
+const int modeAuto=1, modeManual=0, fmsAlarmNone=0, clSilver=0;
+unsigned long GetTickCount() { return 100; }
+struct Panel { AnsiString Caption; int Color; };
+struct Timer { bool Enabled; };
+struct Tray {};
+struct Step { int step; };
+struct Stage { int limitCnt; };
+class Tgripper {
+public:
+    enum gripperSequence { seqIdle, seqInit, seqSorting, seqInserting, seqPause };
+    bool pauseStatus;
+    gripperSequence seq, seq_save;
+    Tgripper() : pauseStatus(false), seq(seqIdle), seq_save(seqIdle) {}
+    bool __fastcall IsSortingWorkActive() const;
+};
+struct Robot { bool pauseStatus; };
+struct PLC { int requests; void CmdSourceCenteringRequest(bool) { ++requests; } };
+struct Opc { int loads; void TRAY_LOAD_REQUEST(bool) { ++loads; } void PROCESS_START_CANCEL() {} };
+struct Gateway { bool IsGatewayConnected() { return true; } };
+struct ErrorWindow { void ShowError() { assert(false); } };
+Tgripper grip, *gripper=&grip;
+Robot robot, *robostar=&robot;
+PLC plc, *PlcBin=&plc;
+Opc opc, *MesOpc=&opc;
+Gateway gateway, *Mod_Fms=&gateway;
+ErrorWindow errorWindow, *ErrorForm_limit=&errorWindow;
+class TMainForm {
+public:
+    int equipMode, fmsAlarmTransaction;
+    bool opcTrayAdvanceDeferred[2], opcTrayDisplayed[2], opcTrayLoaded[2];
+    bool opcTrayLoadPending[2], opcTrayLoadRetryRequired[2], opcTrayLoadWaitResponseOff[2], opcTrayLoadResponseOffError[2];
+    unsigned long opcTrayLoadStartTick[2], opcProcessStartTick;
+    bool opcProcessStarted, opcSortingStartPending, opcSortingStartWaitError;
+    bool opcProcessStartPending, opcProcessStartWaitResponseOff, opcProcessStartResponseOffError;
+    int opcProcessStartResponseResult;
+    bool targetTrayInfoPromptActive, centered;
+    AnsiString opcDeferredTrayId[2], targetTrayInfoActiveId;
+    Panel panel[5], *pTrayid_source, *pTrayid_target, *pTrayid_target2, *pbad_sum, *pwork1, *pwork2;
+    Tray tray_source, tray_target, *tray;
+    Step step[2]; Stage stage; Timer timer, *opcMesTimer;
+    int scans, restores, starts, errors;
+    TMainForm() {
+        equipMode=modeAuto; fmsAlarmTransaction=fmsAlarmNone;
+        for(int i=0;i<2;++i) {
+            opcTrayAdvanceDeferred[i]=opcTrayDisplayed[i]=opcTrayLoaded[i]=false;
+            opcTrayLoadPending[i]=opcTrayLoadRetryRequired[i]=false;
+            opcTrayLoadWaitResponseOff[i]=opcTrayLoadResponseOffError[i]=false;
+            step[i].step=0;
+        }
+        opcProcessStarted=opcSortingStartPending=opcSortingStartWaitError=false;
+        opcProcessStartPending=opcProcessStartWaitResponseOff=opcProcessStartResponseOffError=false;
+        targetTrayInfoPromptActive=false; centered=true;
+        targetTrayInfoActiveId="TR-20260818-trg";
+        pTrayid_source=&panel[0]; pTrayid_target=&panel[1]; pTrayid_target2=&panel[2];
+        pbad_sum=&panel[3]; pwork1=&panel[3]; pwork2=&panel[4];
+        pbad_sum->Caption="1"; stage.limitCnt=96; opcMesTimer=&timer;
+        scans=restores=starts=errors=0;
+        grip=Tgripper(); robot.pauseStatus=false; plc.requests=0; opc.loads=0;
+    }
+    void __fastcall AdvanceOpcTrayLoad(bool);
+    void __fastcall ResumeDeferredTrayLoads();
+    void __fastcall NotifyTrayInfo(AnsiString,bool);
+    void ReportIdleWaitStatus() {}
+    bool CheckAutomaticFmsMode(const AnsiString&) { return equipMode==modeAuto; }
+    void ProcessStepLog(int,const AnsiString&) {}
+    void CompleteProcessStep(int,const AnsiString&) {}
+    void BeginProcessStep(int,const AnsiString&) {}
+    void SetProcessWaitStatus(int,const AnsiString&,const AnsiString&,int) {}
+    void memoMainLineAdd(const AnsiString&) {}
+    void ShowCommonError(const AnsiString&,const AnsiString&) { ++errors; }
+    bool IsTargetCenteringSignal() { return centered; }
+    bool IsSourceCenteringSignal() { return true; }
+    void TryStartOpcProcess() { ++starts; }
+    int RestoreTargetTrayInfo(const AnsiString&,bool) { ++restores; return 0; }
+    void ReadTargetTrayBarcode() { ++scans; NotifyTrayInfo("TR-20260818-trg",false); }
+};
+/* PRODUCTION_FUNCTIONS */
+int main() {
+    {
+        TMainForm f; f.opcTrayDisplayed[0]=true;
+        grip.pauseStatus=true; grip.seq=Tgripper::seqPause;
+        robot.pauseStatus=true;
+        f.AdvanceOpcTrayLoad(true);
+        assert(f.opcTrayAdvanceDeferred[0] && !f.opcTrayLoaded[0]);
+        assert(f.scans==0 && plc.requests==0 && opc.loads==0 && f.starts==0);
+        f.ResumeDeferredTrayLoads();
+        assert(f.scans==0);
+        grip.pauseStatus=false; grip.seq=grip.seq_save; robot.pauseStatus=false;
+        f.ResumeDeferredTrayLoads();
+        assert(f.opcTrayLoaded[0] && !f.opcTrayAdvanceDeferred[0]);
+        assert(f.scans==1 && plc.requests==1 && opc.loads==1 && f.opcTrayLoadPending[1]);
+        f.ResumeDeferredTrayLoads();
+        assert(f.scans==1 && opc.loads==1);
+        puts("PASS: paused Source completion sends nothing; Restart sends Target load exactly once");
+    }
+    {
+        TMainForm f; grip.pauseStatus=true; grip.seq=Tgripper::seqPause;
+        f.NotifyTrayInfo("TR-20260818-trg",false);
+        assert(!f.opcDeferredTrayId[1].IsEmpty() && opc.loads==0 && f.restores==0);
+        grip.pauseStatus=false; grip.seq=grip.seq_save;
+        f.ResumeDeferredTrayLoads();
+        assert(f.opcDeferredTrayId[1].IsEmpty() && opc.loads==1 && f.restores==1);
+        f.NotifyTrayInfo("TR-20260818-trg",false);
+        assert(opc.loads==1 && f.restores==1);
+        puts("PASS: paused IDLE barcode retained; duplicate pending load does not replace map");
+    }
+    {
+        TMainForm f; grip.pauseStatus=true; grip.seq=Tgripper::seqPause;
+        grip.seq_save=Tgripper::seqInserting;
+        assert(grip.IsSortingWorkActive());
+        f.NotifyTrayInfo("TR-20260818-trg",false);
+        assert(opc.loads==0 && f.restores==0 && f.opcDeferredTrayId[1].IsEmpty());
+        puts("PASS: paused actual INSERT retains reservation protection");
+    }
+    {
+        TMainForm f; f.opcTrayDisplayed[1]=true;
+        robot.pauseStatus=true;
+        f.AdvanceOpcTrayLoad(false);
+        assert(f.opcTrayAdvanceDeferred[1] && f.starts==0);
+        robot.pauseStatus=false; f.equipMode=modeManual;
+        f.ResumeDeferredTrayLoads(); assert(f.starts==0);
+        f.equipMode=modeAuto; f.fmsAlarmTransaction=1;
+        f.ResumeDeferredTrayLoads(); assert(f.starts==0);
+        f.fmsAlarmTransaction=fmsAlarmNone;
+        f.ResumeDeferredTrayLoads(); assert(f.opcTrayLoaded[1] && f.starts==1);
+        puts("PASS: robot-only Pause, MANUAL and active FMS alarm prevent next-stage dispatch");
+    }
+    return 0;
+}

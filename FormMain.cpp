@@ -12,10 +12,7 @@
 
 TMainForm *MainForm;
 
-// Internal result returned by the FMS response polling functions.
-// This is not a value received from FMS. It means a stale response was first
-// cleared to 0 and the PC request has just been switched ON.
-static const int FMS_POLL_REQUEST_STARTED = 3;
+// FMS CURRENT RESPONSE: no pre-request reset phase or revision comparison.
 
 static AnsiString GripperSequenceText(int value)
 {
@@ -140,6 +137,8 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	}
 	fmsAlarmTransaction = fmsAlarmNone;
 	fmsAlarmRetryRequested = false;
+	fmsAlarmAwaitingReset = false;
+	fmsAlarmAcceptedResult = 0;
 	fmsAlarmRetryStartTick = 0;
 	sourceTrackOutResetArmed = false;
 	sourceTrayOutPending = false;
@@ -152,6 +151,8 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	sourceTrayOutTimeSet = false;
 	for(int i = 0; i < 2; ++i) {
 		comBcr[i] = NULL;
+		opcTrayAdvanceDeferred[i] = false;
+		opcDeferredTrayId[i] = "";
 		opcTrayLoadPending[i] = false;
 		opcTrayLoadWaitResponseOff[i] = false;
 		opcTrayLoadResponseOffError[i] = false;
@@ -277,6 +278,7 @@ void __fastcall TMainForm::ResetProcessFlow()
 		lastProcessWaitStatus[i] = "";
 	}
 	currentProcessStep = 0;
+	lastIdleWaitStatus = "";
 	currentProcessDetail = "WAIT D10103 Source Tray In / EXPECTED=1 (ON) / CURRENT=0";
 	UpdateProcessFlowPanel();
 }
@@ -397,6 +399,130 @@ void __fastcall TMainForm::SetProcessOperationStatus(int stepNo, AnsiString oper
 		ProcessStepLog(stepNo, status);
 	}
 }//---------------------------------------------------------------------------
+void __fastcall TMainForm::ReportIdleWaitStatus(bool force)
+{
+	// WAIT DIAGNOSTICS: observation only. Never consume an FMS response or issue
+	// motion from this method. Separate cache prevents the handshake logger and
+	// gripper timer from invalidating each other's one-time wait messages.
+	if(gripper == NULL || robostar == NULL) return;
+	int waitStep = currentProcessStep > 0 ? currentProcessStep : 1;
+	AnsiString reason;
+	AnsiString detail;
+	bool paused = gripper->pauseStatus || robostar->pauseStatus;
+	bool srcIn = IsSourceTrayInSignal();
+	bool srcCentered = IsSourceCenteringSignal();
+	bool tgtCentered = IsTargetCenteringSignal();
+	bool gateway = Mod_Fms != NULL && Mod_Fms->IsGatewayConnected();
+	bool plcFresh = PlcBin != NULL && PlcBin->IsPlcStatusFresh(1000);
+	bool simulated = cbMES != NULL && cbMES->Checked;
+	int loadIndex = -1;
+	if(opcTrayLoadPending[0]) loadIndex = 0;
+	else if(opcTrayLoadPending[1]) loadIndex = 1;
+
+	if(fmsAlarmTransaction != fmsAlarmNone){
+		reason = "WAIT FMS alarm recovery / operator Retry";
+		detail = "AlarmTransaction=" + IntToStr((int)fmsAlarmTransaction) +
+			" / Response=" + IntToStr(GetFmsAlarmResponse());
+	}else if(loadIndex >= 0){
+		waitStep = loadIndex == 0 ? 2 : 5;
+		AnsiString location = loadIndex == 0 ? "Location1" : "Location2";
+		bool reset = opcTrayLoadWaitResponseOff[loadIndex];
+		int response = MesOpc != NULL ? MesOpc->TRAY_LOAD_RESPONSE_VALUE(loadIndex == 0) : -1;
+		reason = "WAIT " + location + ".TrayProcess.TrayLoadResponse " + (reset ? "RESET" : "RESULT / TrackIn validation");
+			detail = "Request tracking=ACTIVE / EXPECTED=" + AnsiString(reset ? "0 (RESET)" : "1 or 2 (RESULT)") +
+			" / CURRENT=" + IntToStr(response);
+	}else if(opcTrayAdvanceDeferred[0] || opcTrayAdvanceDeferred[1]){
+		waitStep = opcTrayAdvanceDeferred[0] ? 2 : 5;
+		reason = "WAIT next-stage dispatch after operator Restart";
+		detail = "TrayLoad handshake COMPLETE / next-stage request NOT SENT / completion retained";
+	}else if(!opcDeferredTrayId[0].IsEmpty() || !opcDeferredTrayId[1].IsEmpty()){
+		int index = !opcDeferredTrayId[0].IsEmpty() ? 0 : 1;
+		waitStep = index == 0 ? 2 : 5;
+		reason = "WAIT TrayLoad dispatch after operator Restart";
+		detail = "Request NOT SENT / saved barcode=" + opcDeferredTrayId[index];
+	}else if(opcProcessStartPending || opcProcessEndPending || opcCellTrackOutPending || opcTargetUnloadPending){
+		bool reset;
+		int response = -1;
+		AnsiString tag;
+		if(opcProcessStartPending){
+			waitStep = 6; tag = "Location1.TrayProcess.ProcessStartResponse";
+			reset = opcProcessStartWaitResponseOff;
+			if(MesOpc != NULL) response = MesOpc->PROCESS_START_RESPONSE_VALUE();
+		}else if(opcCellTrackOutPending){
+			waitStep = 12; tag = "Location2.CellTrackOut.CellUnloadCompleteResponse";
+			reset = opcCellTrackOutWaitResponseOff;
+			if(MesOpc != NULL) response = MesOpc->CELL_TRACK_OUT_RESPONSE_VALUE();
+		}else if(opcProcessEndPending){
+			waitStep = 14; tag = "Location1.TrayProcess.ProcessEndResponse";
+			reset = opcProcessEndWaitResponseOff;
+			if(MesOpc != NULL) response = MesOpc->PROCESS_END_RESPONSE_VALUE();
+		}else{
+			waitStep = 16; tag = "Location2.TrayProcess.TrayUnloadResponse";
+			reset = opcTargetUnloadWaitResponseOff;
+			if(MesOpc != NULL) response = MesOpc->TRAY_UNLOAD_RESPONSE_VALUE();
+		}
+		reason = "WAIT " + tag + (reset ? " RESET" : " RESULT");
+		detail = "Request tracking=ACTIVE / EXPECTED=" + AnsiString(reset ? "0 (RESET)" : "1 or 2 (RESULT)") +
+			" / CURRENT=" + IntToStr(response);
+	}else if(sourceTrayOutPending){
+		waitStep = 15; reason = "WAIT Source Tray Out safety delay";
+		detail = "D10154 must stay OFF / EXPECTED=3000ms then D10155 ON";
+	}else if(step[0].step >= 100 || (PlcBin != NULL && PlcBin->IsSourceTrayOutOn())){
+		waitStep = 15; reason = "WAIT D10103 Source Tray In OFF (tray departure)";
+		detail = "EXPECTED=0 / CURRENT=" + IntToStr(srcIn ? 1 : 0);
+	}else if(!srcIn){
+		waitStep = 1; reason = "WAIT D10103 Source Tray In";
+		detail = "EXPECTED=1 / CURRENT=0";
+	}else if(!opcTrayDisplayed[0] || !opcTrayLoaded[0]){
+		waitStep = 2; reason = "WAIT Source tray barcode/load completion";
+		detail = "No active TrayLoad request / Response timeout NOT RUNNING / Source PLC step=" + IntToStr(step[0].step);
+	}else if(!opcTrayDisplayed[1] || !opcTrayLoaded[1]){
+		waitStep = tgtCentered ? 5 : 4;
+		reason = tgtCentered ? "WAIT Target tray load dispatch" : "WAIT D10106 Target Centering";
+		detail = "D10106 EXPECTED=1 CURRENT=" + IntToStr(tgtCentered ? 1 : 0) +
+			" / Target Request NOT SENT / Response timeout NOT RUNNING / Source PLC step=" + IntToStr(step[0].step);
+		if(tgtCentered && step[0].step >= 3)
+			detail += " / BLOCKED: target load missing; Pause then Restart re-arms pre-sort load";
+	}else if(!srcCentered){
+		waitStep = 3; reason = "WAIT D10104 Source Centering";
+		detail = "EXPECTED=1 / CURRENT=0 / ProcessStart NOT SENT";
+	}else if(!gateway || MesOpc == NULL){
+		waitStep = 6; reason = "WAIT FMS Gateway connection";
+		detail = "EXPECTED=CONNECTED / CURRENT=DISCONNECTED / ProcessStart NOT SENT";
+	}else if(opcSortingStartPending){
+		waitStep = 7; reason = "WAIT local sorting initialization";
+		detail = "EXPECTED=AUTO, Pause=0, Gripper=IDLE, Robot=IDLE";
+	}else if(!opcProcessStarted){
+		waitStep = 6; reason = "WAIT ProcessStart dispatch";
+		detail = "Trays ready / ProcessStart request NOT SENT";
+	}else{
+		reason = "WAIT local sequence dispatch";
+		detail = "ProcessStarted=1 / Gripper=IDLE / no active FMS response wait";
+	}
+	if(paused) reason = "PAUSED - operator Restart required / " + reason;
+	if(equipMode != modeAuto) reason = "AUTO RUN required / " + reason;
+	AnsiString status = reason + " / " + detail +
+		" / Source(Display/Loaded)=" + IntToStr(opcTrayDisplayed[0] ? 1 : 0) + "/" + IntToStr(opcTrayLoaded[0] ? 1 : 0) +
+		" / Target(Display/Loaded)=" + IntToStr(opcTrayDisplayed[1] ? 1 : 0) + "/" + IntToStr(opcTrayLoaded[1] ? 1 : 0) +
+		" / Pause(G/R)=" + IntToStr(gripper->pauseStatus ? 1 : 0) + "/" + IntToStr(robostar->pauseStatus ? 1 : 0) +
+		" / Robot=" + RobotSequenceText((int)robostar->seq) +
+		" / PLC fresh=" + IntToStr(plcFresh ? 1 : 0) + " MES test=" + IntToStr(simulated ? 1 : 0) +
+		" / Gateway=" + IntToStr(gateway ? 1 : 0);
+	AnsiString header = Format("[STEP %2.2d %s] ", ARRAYOFCONST((waitStep, GetProcessStepName(waitStep))));
+	pgripperMsg->Caption = "[Waiting] " + reason;
+	pgripperMsg->Hint = header + status;
+	pgripperMsg->ShowHint = true;
+	if(lblCurrentProcess != NULL){
+		lblCurrentProcess->Caption = "CURRENT PROCESS : " + header + reason + " / " + detail;
+		lblCurrentProcess->Hint = header + status;
+		lblCurrentProcess->ShowHint = true;
+	}
+	if(force || lastIdleWaitStatus != status){
+		lastIdleWaitStatus = status;
+		ProcessStepLog(waitStep, "IDLE STATUS / " + status);
+	}
+}
+//---------------------------------------------------------------------------
 void __fastcall TMainForm::FormShow(TObject *Sender)
 
 {
@@ -578,10 +704,15 @@ void __fastcall TMainForm::pause_startBtnClick(TObject *Sender)
 	{
 		if(gripper->pauseStatus && robostar->pauseStatus)
 		{
+			// FMS ALARM PAUSE/CLOSE: Main Restart and popup Retry share this path;
+			// preserve the accepted reset-wait phase even after the popup is closed.
+			if(fmsAlarmTransaction != fmsAlarmNone)
+				ConfirmFmsAlarmRetry();
 			// TrayLoad ON-timeout cancels the old request and stops its timer.
 			// Restart restores that exact Source/Target transaction.
 			for(int i = 0; i < 2; ++i)
 			{
+				if(fmsAlarmTransaction != fmsAlarmNone) break;
 				if(!opcTrayLoadRetryRequired[i])
 					continue;
 
@@ -604,7 +735,7 @@ void __fastcall TMainForm::pause_startBtnClick(TObject *Sender)
 				if(currentResponse == 1 || currentResponse == 2)
 				{
 					// The operator/FMS corrected Response while the timer was stopped.
-					// Keep the original response revision baseline and consume it now.
+					// Consume the currently visible response value; no baseline comparison.
 					ProcessStepLog(stepNo, "RESTART RESUME / " + locationName +
 						".TrayLoadResponse CURRENT=" + IntToStr(currentResponse) +
 						" / EXPECTED=1 or 2 (RESULT)");
@@ -631,6 +762,25 @@ void __fastcall TMainForm::pause_startBtnClick(TObject *Sender)
 				ErrorForm->Visible = false;
 			gripper->req_Pause(false);
 			robostar->req_Pause(false);
+			// TRAY LOAD RESTART: recover the previously lost Target request only
+			// at pre-sort IDLE. Do not reinitialize a pickup/insert or retry an
+			// outstanding handshake; those paths retain their own state.
+			if(!gripper->pauseStatus && !robostar->pauseStatus &&
+				gripper->seq == seqIdle && robostar->seq == seqIdle &&
+				fmsAlarmTransaction == fmsAlarmNone && IsSourceTrayInSignal() &&
+				opcTrayDisplayed[0] && opcTrayLoaded[0] &&
+				!opcTrayLoaded[1] && !opcTrayLoadPending[1] &&
+				!opcTrayAdvanceDeferred[1] && opcDeferredTrayId[1].IsEmpty() &&
+				!opcTrayLoadRetryRequired[1] && !targetTrayInfoPromptActive &&
+				!opcProcessStarted && !opcProcessStartPending && !opcProcessEndPending &&
+				step[0].step >= 2 && step[0].step < 100){
+				step[0].step = 2;
+				step[1].step = 0;
+				ProcessStepLog(5, "RESTART RECOVERY / Target Loaded=0 Pending=0 / re-arm Target barcode and TrayLoad request");
+			}
+			lastIdleWaitStatus = "";
+			for(int i = 0; i < 16; ++i) lastProcessWaitStatus[i] = "";
+			ReportIdleWaitStatus(true);
 		}
 	}
 	else ShowMessage(BaseForm->GetLangStr("MSG_START_ALARM"));
@@ -640,6 +790,7 @@ void __fastcall TMainForm::pause_stopBtnClick(TObject *Sender)
 {
 	gripper->req_Pause(true);
 	robostar->req_Pause(true);
+	if(fmsAlarmTransaction != fmsAlarmNone) PauseFmsAlarm();
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::teachingBtnClick(TObject *Sender)
@@ -777,6 +928,33 @@ void __fastcall TMainForm::ShowFmsAlarm(TFmsAlarmTransaction Transaction,
 	fmsAlarmTransaction = Transaction;
 	fmsAlarmRetryRequested = false;
 	fmsAlarmRetryStartTick = 0;
+	// Preserve the acknowledged phase BEFORE Cancel clears its working flags.
+	// Retry of an ON/result timeout reads the current value immediately. Retry
+	// of an OFF/reset timeout must complete that same reset, without reporting
+	// the tray/cell twice or throwing away the already accepted result.
+	fmsAlarmAwaitingReset = false;
+	fmsAlarmAcceptedResult = 0;
+	switch(Transaction){
+		case fmsAlarmSourceTrayLoad:
+			fmsAlarmAwaitingReset = opcTrayLoadWaitResponseOff[0];
+			fmsAlarmAcceptedResult = opcTrayLoadResponseResult[0]; break;
+		case fmsAlarmTargetTrayLoad:
+			fmsAlarmAwaitingReset = opcTrayLoadWaitResponseOff[1];
+			fmsAlarmAcceptedResult = opcTrayLoadResponseResult[1]; break;
+		case fmsAlarmProcessStart:
+			fmsAlarmAwaitingReset = opcProcessStartWaitResponseOff;
+			fmsAlarmAcceptedResult = opcProcessStartResponseResult; break;
+		case fmsAlarmCellTrackOut:
+			fmsAlarmAwaitingReset = opcCellTrackOutWaitResponseOff;
+			fmsAlarmAcceptedResult = opcCellTrackOutResponseResult; break;
+		case fmsAlarmProcessEnd:
+			fmsAlarmAwaitingReset = opcProcessEndWaitResponseOff;
+			fmsAlarmAcceptedResult = opcProcessEndResponseResult; break;
+		case fmsAlarmTrayUnload:
+			fmsAlarmAwaitingReset = opcTargetUnloadWaitResponseOff;
+			fmsAlarmAcceptedResult = opcTargetUnloadResponseResult; break;
+		default: break;
+	}
 	CancelFmsAlarmRequest();
 
 	if(gripper != NULL) gripper->req_Pause(true);
@@ -798,6 +976,32 @@ void __fastcall TMainForm::ShowFmsAlarm(TFmsAlarmTransaction Transaction,
 		AlarmForm_fms->ShowFmsError(Title, Detail, RequestName, ResponseValue);
 }
 //---------------------------------------------------------------------------
+void __fastcall TMainForm::PauseFmsAlarm()
+{
+	// FMS ALARM PAUSE/CLOSE: no InitWork, no data clearing and no new request.
+	// Also stop an in-progress reset retry; only Main Restart may re-arm it.
+	if(gripper != NULL) gripper->req_Pause(true);
+	if(robostar != NULL) robostar->req_Pause(true);
+	if(fmsAlarmTransaction == fmsAlarmNone) return;
+	fmsAlarmRetryRequested = false;
+	if(AlarmForm_fms != NULL) AlarmForm_fms->SetOperatorPaused();
+	memoMainLineAdd("[FMS ALARM] PAUSED / transaction and accepted result retained / WAIT Main Restart.");
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::CheckFmsResetRetryTimeout(int ResponseValue)
+{
+	// FMS ALARM PAUSE/CLOSE: a hidden reset retry must not wait indefinitely.
+	if((DWORD)(GetTickCount() - fmsAlarmRetryStartTick) < 10000) return;
+	fmsAlarmRetryRequested = false;
+	if(gripper != NULL) gripper->req_Pause(true);
+	if(robostar != NULL) robostar->req_Pause(true);
+	AnsiString detail = "Final response reset retry timed out after 10 seconds / Request=OFF / EXPECTED=0 (RESET) / CURRENT=" + IntToStr(ResponseValue);
+	WriteOpcUaLog("ERROR", detail, true);
+	if(AlarmForm_fms != NULL)
+		AlarmForm_fms->ShowFmsError("FMS response reset retry timeout", detail,
+			AlarmForm_fms->lblRequest->Caption, ResponseValue);
+}
+//---------------------------------------------------------------------------
 void __fastcall TMainForm::ConfirmFmsAlarmRetry()
 {
 	if(!CheckAutomaticFmsMode("FMS alarm retry"))
@@ -810,7 +1014,11 @@ void __fastcall TMainForm::ConfirmFmsAlarmRetry()
 	CancelFmsAlarmRequest();
 	if(AlarmForm_fms != NULL)
 		AlarmForm_fms->SetRetryWaiting(
-			"Request is OFF. Waiting for Response=0 before retrying.");
+			fmsAlarmAwaitingReset ?
+			"Result already accepted. Request is OFF; waiting for final Response=0." :
+			"Retrying Request=ON; current Response=1/2 is accepted without a pre-request reset.");
+	// Keep MainForm accessible while retrying; any new failure shows the popup.
+	if(AlarmForm_fms != NULL) AlarmForm_fms->Hide();
 	opcMesTimer->Enabled = true;
 }
 //---------------------------------------------------------------------------
@@ -887,11 +1095,13 @@ void __fastcall TMainForm::ReissueFmsAlarmRequest()
 	switch(fmsAlarmTransaction){
 		case fmsAlarmSourceTrayLoad:
 			MesOpc->TRAY_LOAD_REQUEST(true);
+			opcTrayLoadRetryRequired[0] = false;
 			opcTrayLoadPending[0] = true;
 			opcTrayLoadStartTick[0] = nowTick;
 			break;
 		case fmsAlarmTargetTrayLoad:
 			MesOpc->TRAY_LOAD_REQUEST(false);
+			opcTrayLoadRetryRequired[1] = false;
 			opcTrayLoadPending[1] = true;
 			opcTrayLoadStartTick[1] = nowTick;
 			break;
@@ -922,7 +1132,7 @@ void __fastcall TMainForm::ReissueFmsAlarmRequest()
 		default: return;
 	}
 
-	ProcessStepLog(currentProcessStep, "FMS Retry / previous Response=0 / Request=ON");
+	ProcessStepLog(currentProcessStep, "FMS Retry / Request=ON / accept current Response=1 or 2 / no pre-request reset");
 	fmsAlarmTransaction = fmsAlarmNone;
 	fmsAlarmRetryRequested = false;
 	fmsAlarmRetryStartTick = 0;
@@ -934,25 +1144,62 @@ bool __fastcall TMainForm::ProcessFmsAlarmRecovery()
 {
 	if(fmsAlarmTransaction == fmsAlarmNone)
 		return false;
-	if(!fmsAlarmRetryRequested)
+	if(!fmsAlarmRetryRequested){
+		if(AlarmForm_fms != NULL) AlarmForm_fms->RefreshAlarmVisibility();
 		return true;
+	}
 
-	int response = GetFmsAlarmResponse();
-	// Production retry waits for the previous response to reset to 0. Cycle Test
-	// deliberately skips that handshake so an unattended FAT demo cannot stop on
-	// a cached FMS response.
-	bool cycleResponseBypass = cbCycle != NULL && cbCycle->Checked;
-	if(response == 0 || cycleResponseBypass){
+	if(!fmsAlarmAwaitingReset){
+		// FMS CURRENT RESPONSE: a result timeout retries immediately, even when
+		// Response is already 1/2. No old-response reset is required here.
 		ReissueFmsAlarmRequest();
 		return fmsAlarmTransaction != fmsAlarmNone;
 	}
-
-	if(AlarmForm_fms != NULL &&
-		(DWORD)(GetTickCount() - fmsAlarmRetryStartTick) >= 10000){
-		AlarmForm_fms->SetRetryWaiting("Response is still " + IntToStr(response) +
-			". FMS must reset it to 0 before retry.");
+	int response = GetFmsAlarmResponse();
+	bool cycleResponseBypass = cbCycle != NULL && cbCycle->Checked;
+	if(response != 0 && !cycleResponseBypass){
+		if(AlarmForm_fms != NULL)
+			AlarmForm_fms->SetRetryWaiting("Result already accepted / Request=OFF / EXPECTED=0 (RESET) / CURRENT=" + IntToStr(response));
+		CheckFmsResetRetryTimeout(response);
+		return true;
 	}
-	return true;
+	// Resume the already-accepted transaction at its final phase. The normal
+	// polling code performs completion once; no new Request=ON is sent.
+	switch(fmsAlarmTransaction){
+		case fmsAlarmSourceTrayLoad:
+		case fmsAlarmTargetTrayLoad:{
+			int i = fmsAlarmTransaction == fmsAlarmSourceTrayLoad ? 0 : 1;
+			opcTrayLoadPending[i] = true;
+			opcTrayLoadWaitResponseOff[i] = true;
+			opcTrayLoadResponseResult[i] = fmsAlarmAcceptedResult;
+			opcTrayLoadRetryRequired[i] = false;
+			opcTrayLoadStartTick[i] = GetTickCount(); break;
+		}
+		case fmsAlarmProcessStart:
+			opcProcessStartPending = opcProcessStartWaitResponseOff = true;
+			opcProcessStartResponseResult = fmsAlarmAcceptedResult;
+			opcProcessStartTick = GetTickCount(); break;
+		case fmsAlarmCellTrackOut:
+			opcCellTrackOutPending = opcCellTrackOutWaitResponseOff = true;
+			opcCellTrackOutResponseResult = fmsAlarmAcceptedResult;
+			opcCellTrackOutStartTick = GetTickCount(); break;
+		case fmsAlarmProcessEnd:
+			opcProcessEndPending = opcProcessEndWaitResponseOff = true;
+			opcProcessEndResponseResult = fmsAlarmAcceptedResult;
+			opcProcessEndTick = GetTickCount(); break;
+		case fmsAlarmTrayUnload:
+			opcTargetUnloadPending = opcTargetUnloadWaitResponseOff = true;
+			opcTargetUnloadResponseResult = fmsAlarmAcceptedResult;
+			opcTargetUnloadTick = GetTickCount(); break;
+		default: return true;
+	}
+	ProcessStepLog(currentProcessStep, "FMS Retry / final Response reset accepted / resume completion without resending request");
+	fmsAlarmTransaction = fmsAlarmNone;
+	fmsAlarmRetryRequested = false;
+	fmsAlarmAwaitingReset = false;
+	fmsAlarmAcceptedResult = 0;
+	if(AlarmForm_fms != NULL) AlarmForm_fms->Hide();
+	return false;
 }
 //---------------------------------------------------------------------------
 bool __fastcall TMainForm::CheckAutomaticFmsMode(const AnsiString &Operation)
@@ -1081,8 +1328,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 	//   0  : still waiting for a response, or Response is currently reset
 	//   1  : FMS success
 	//   2  : FMS fail (TrayLoad alone treats 2 as bypass)
-	//   3  : internal event; stale Response=0 confirmed and Request just turned ON
-	//  -1  : invalid/missing response or validation failure
+		//  -1  : invalid/missing response or validation failure
 	const DWORD RESPONSE_TIMEOUT_MS = 10000;
 
 	// FMS production requests/responses must never advance in MANUAL or AUTO STOP.
@@ -1099,9 +1345,8 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		return;
 	}
 	DWORD nowTick = GetTickCount();
-	// Cycle Test uses the response value already present in the gateway cache and
-	// bypasses both stale-response validation (inside TMesOpc) and the final
-	// Response=0 reset wait. Unchecked mode performs the full FMS handshake.
+	// Both modes judge the current response value. Only the post-result
+	// Response=0 reset wait is bypassed by Cycle Test.
 	bool cycleResponseBypass = cbCycle != NULL && cbCycle->Checked;
 
 	// ----------------------------------------------------------------------
@@ -1212,15 +1457,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		int response = MesOpc != NULL ? MesOpc->TRAY_LOAD_RESPONSE(sourceTray) : -1;
 		SetProcessWaitStatus(stepNo, locationName + ".TrayLoad Request=ON",
 			locationName + ".TrayLoadResponse ON", rawResponse);
-		if(response == FMS_POLL_REQUEST_STARTED)
-		{
-			// Production mode only: stale response returned to zero, and the real
-			// TrayLoad request has just been switched ON.
-			opcTrayLoadStartTick[i] = nowTick;
-			ProcessStepLog(stepNo, "Stale " + locationName +
-				".TrayLoadResponse cleared / actual Request=ON");
-		}
-		else if (response == 1)
+		if (response == 1)
 		{
 			// Success: TRAY_LOAD_RESPONSE() already switched Request OFF.
 			// Display the tray now, but do not advance until Response=0.
@@ -1361,12 +1598,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 			// PHASE 1-2: Request is ON; wait for success or failure.
 			int response = MesOpc != NULL ? MesOpc->PROCESS_START_RESPONSE_RESULT() : -1;
 			SetProcessWaitStatus(6, "ProcessStart Request=ON", "ProcessStartResponse ON", response);
-			if(response == FMS_POLL_REQUEST_STARTED){
-				// A previous response was still ON when retry began. It is now
-				// reset, so the polling function issued the real Request=ON.
-				opcProcessStartTick = nowTick;
-				ProcessStepLog(6, "Stale ProcessStartResponse cleared / actual Request=ON");
-			}else if(response == 1){
+			if(response == 1){
 				// Request is already OFF. Store success until final Response=0.
 				opcProcessStartWaitResponseOff = true;
 				opcProcessStartResponseOffError = false;
@@ -1525,11 +1757,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 			// PHASE 1-2: Request is ON; wait for success or failure.
 			int response = MesOpc != NULL ? MesOpc->PROCESS_END_RESPONSE_RESULT() : -1;
 			SetProcessWaitStatus(14, "ProcessEnd Request=ON", "ProcessEndResponse ON", response);
-			if(response == FMS_POLL_REQUEST_STARTED){
-				// Stale response cleared; the real ProcessEnd request just started.
-				opcProcessEndTick = nowTick;
-				ProcessStepLog(14, "Stale ProcessEndResponse cleared / actual Request=ON");
-			}else if(response == 1){
+			if(response == 1){
 				// Request is OFF. Preserve result=1 until Response resets to 0.
 				opcProcessEndWaitResponseOff = true;
 				opcProcessEndResponseOffError = false;
@@ -1626,11 +1854,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 			// PHASE 1-2: CellUnloadComplete is ON; wait for result 1 or 2.
 			int response = MesOpc != NULL ? MesOpc->CELL_TRACK_OUT_RESPONSE_RESULT() : -1;
 			SetProcessWaitStatus(12, "CellUnloadComplete=ON", "CellUnloadCompleteResponse ON", response);
-			if(response == FMS_POLL_REQUEST_STARTED){
-				// Stale response cleared; CellUnloadComplete was just switched ON.
-				opcCellTrackOutStartTick = nowTick;
-				ProcessStepLog(12, "Stale CellUnloadCompleteResponse cleared / actual Request=ON");
-			}else if(response == 1){
+			if(response == 1){
 				// Success. Request is OFF; wait for the final Response=0.
 				opcCellTrackOutWaitResponseOff = true;
 				opcCellTrackOutResponseOffError = false;
@@ -1714,11 +1938,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 			// PHASE 1-2: TrayUnloadRequest is ON; wait for result 1 or 2.
 			int response = MesOpc != NULL ? MesOpc->TRAY_UNLOAD_RESPONSE_RESULT() : -1;
 			SetProcessWaitStatus(16, "TrayUnloadRequest=ON", "TrayUnloadResponse ON", response);
-			if(response == FMS_POLL_REQUEST_STARTED){
-				// Stale response cleared; TrayUnloadRequest was just switched ON.
-				opcTargetUnloadTick = nowTick;
-				ProcessStepLog(16, "Stale TrayUnloadResponse cleared / actual Request=ON");
-			}else if(response == 1){
+			if(response == 1){
 				// Success. Request is OFF; wait for the final Response=0.
 				opcTargetUnloadWaitResponseOff = true;
 				opcTargetUnloadResponseOffError = false;
@@ -2041,6 +2261,8 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 	}
 
 	if(IsSourceTrayInSignal() == 0){
+		opcTrayAdvanceDeferred[0] = false;
+		opcDeferredTrayId[0] = "";
 		opcTrayDisplayed[0] = false;
 		opcTrayLoaded[0] = false;
 		InitStep(&step[0]);
@@ -2051,7 +2273,13 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 			ProcessStepLog(1, sourceWait);
 		}
 	}
-	if(IsTargetCenteringSignal() == 0)InitStep(&step[1]);
+	if(IsTargetCenteringSignal() == 0){
+		opcTrayAdvanceDeferred[1] = false;
+		opcDeferredTrayId[1] = "";
+		InitStep(&step[1]);
+	}
+
+	ResumeDeferredTrayLoads();
 
     if(!gripper->pauseStatus && !robostar->pauseStatus)
 	{
@@ -2090,6 +2318,13 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 				step[0].step = 2;
 				break;
 			case 2:
+				// An accepted response may be resumed before this timer runs.
+				// Do not start a second barcode/Target load for the same cycle.
+				if(opcTrayLoadPending[1] || opcTrayLoaded[1] || opcTrayAdvanceDeferred[1]){
+					step[0].step = 3;
+					step[1].step = 1;
+					break;
+				}
 				if(IsTargetCenteringSignal()){
 					BeginProcessStep(4, "D10106 Target Centering=ON / waiting barcode");
 					memoMainLineAdd(BaseForm->GetLangStr("MSG_TARGETTRAY_CENTERING_COMPL"));
@@ -3054,6 +3289,12 @@ void __fastcall TMainForm::AdvSmoothToggleButton_InitWorkClick(TObject *Sender)
 
             gripper->seq_save = seqIdle;
 			robostar->seq_save = seqIdle;
+			// INIT WORK discards queued next-stage actions from the old cycle.
+			for(int i = 0; i < 2; ++i){
+				opcTrayAdvanceDeferred[i] = false;
+				opcDeferredTrayId[i] = "";
+			}
+			lastIdleWaitStatus = "";
 
             if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(false);
 
@@ -3090,4 +3331,3 @@ void __fastcall TMainForm::lblTitleClick(TObject *Sender)
 	}
 }
 //---------------------------------------------------------------------------
-

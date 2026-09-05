@@ -17,9 +17,9 @@
 #pragma resource "*.dfm"
 TMesOpc *MesOpc;
 
-// Internal polling result. This value is never received from FMS.
-// It tells FormMain that an old Response was cleared and Request was just ON.
-static const int FMS_POLL_REQUEST_STARTED = 3;
+// FMS CURRENT RESPONSE: Request starts immediately. Judge the current response.
+// No prior revision or pre-request Response=0 check. FormMain retains the
+// post-result Response=0 handshake in normal mode.
 
 static const UnicodeString TAG_SOURCE = L"NGS.F1NGS01.Location1";
 static const UnicodeString TAG_TARGET = L"NGS.F1NGS01.Location2";
@@ -79,14 +79,6 @@ static UnicodeString CellRecordTag(const UnicodeString &Root, int Index)
 static UnicodeString CellTag(const UnicodeString &Root, int Index, const UnicodeString &Name)
 {
 	return CellRecordTag(Root, Index) + L"." + Name;
-}
-//---------------------------------------------------------------------------
-static bool IsCycleResponseBypass(void)
-{
-	// Cycle Test is used for an unattended FAT demonstration without a live FMS.
-	// It may reuse the response value already present in the gateway cache.  All
-	// stale-response/reset handshakes remain enabled when Cycle Test is unchecked.
-	return MainForm != NULL && MainForm->cbCycle != NULL && MainForm->cbCycle->Checked;
 }
 //---------------------------------------------------------------------------
 static bool IsTargetTrayActive(void)
@@ -503,9 +495,9 @@ static void ApplyTargetTrackInCells(TRAY_INFO *Tray)
 	}
 }
 //---------------------------------------------------------------------------
-//* 불량트레이 관리
-// Location2 TrackIn과 로컬 작업 파일의 핵심 셀 정보를 비교하고 사용할
-// 데이터를 작업자가 선택한다. PICK은 설비 내부 상태이므로 비교하지 않는다.
+//* 불량?�레??관�?
+// Location2 TrackIn�?로컬 ?�업 ?�일???�심 ?� ?�보�?비교?�고 ?�용??
+// ?�이?��? ?�업?��? ?�택?�다. PICK?� ?�비 ?��? ?�태?��?�?비교?��? ?�는??
 static AnsiString TargetCellSummary(int Channel, const AnsiString &CellId,
 	const AnsiString &LotId, bool CellExist, const AnsiString &NgCode,
 	const AnsiString &Grade, bool WorkFlag)
@@ -820,24 +812,12 @@ __fastcall TMesOpc::TMesOpc(TComponent* Owner)
 	  FLastEnvTempDanger(false),
 	  FLastEnvRunning(false)
 {
-	FTrayLoadResponseRevision[0] = 0;
-	FTrayLoadResponseRevision[1] = 0;
-	FTrayLoadWaitResponseIdle[0] = false;
-	FTrayLoadWaitResponseIdle[1] = false;
-	FProcessStartResponseRevision = 0;
-	FProcessStartWaitResponseIdle = false;
-	FProcessEndResponseRevision = 0;
-	FProcessEndWaitResponseIdle = false;
-	FCellTrackOutResponseRevision = 0;
-	FCellTrackOutWaitResponseIdle = false;
 	FLastCellTrackOutSourceChannel = 0;
 	FLastCellTrackOutTargetChannel = 0;
 	FLastCellTrackOutCellId = "";
 	FLastCellTrackOutSourceTrayId = L"";
 	FLastCellTrackOutTargetTrayId = L"";
 	FLastCellTrackOutValid = false;
-	FTrayUnloadResponseRevision = 0;
-	FTrayUnloadWaitResponseIdle = false;
 }
 //---------------------------------------------------------------------------
 AnsiString __fastcall TMesOpc::TRAY_LOAD_VALIDATION_ERROR(bool SourceTray) const
@@ -1063,35 +1043,25 @@ void __fastcall TMesOpc::TRAY_LOAD_REQUEST(bool SourceTray)
 	if (TrayIdPanel != NULL)
 		TrayId = TrayIdPanel->Caption;
 
-	// Normal mode establishes an idle baseline before issuing a new request, so
-	// a previous Response=1/2 cannot be reused.  Cycle Test intentionally skips
-	// that handshake and accepts the response value already held by the gateway.
-	int LocationIndex = SourceTray ? 0 : 1;
+	// FMS CURRENT RESPONSE: publish payload and Request=ON immediately.
+	// InitialResponse is diagnostic only, even if it is already 1 or 2.
 	SetTrayLoadValidationError(SourceTray, "");
 	UnicodeString RequestKey = TrayProcessTag(Location, L"TrayLoad");
 	UnicodeString ResponseKey = TrayProcessTag(Location, L"TrayLoadResponse");
 	int InitialResponse = GetFmsInt(ResponseKey);
-	FTrayLoadResponseRevision[LocationIndex] = Mod_Fms != NULL ?
-		Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
-	FTrayLoadWaitResponseIdle[LocationIndex] =
-		!IsCycleResponseBypass() && (InitialResponse != 0);
 	SetPcBool(TrayInfoTag(Location, L"TrayExist"), true);
 	SetPcString(TrayInfoTag(Location, L"TrayId"), TrayId);
-	SetPcBool(RequestKey, !FTrayLoadWaitResponseIdle[LocationIndex]);
+	SetPcBool(RequestKey, true);
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 	LogOpcEvent("TRAY_LOAD_REQUEST " + AnsiString(Location) + " TrayId=" + AnsiString(TrayId) +
-		" InitialResponse=" + IntToStr(InitialResponse) +
-		" Revision=" + IntToStr((__int64)FTrayLoadResponseRevision[LocationIndex]) +
-		(FTrayLoadWaitResponseIdle[LocationIndex] ?
-			AnsiString(" / hold Request=OFF until stale Response=0") :
-			AnsiString(" / Request=ON")), true);
+		" / Request=ON / CurrentResponse=" + IntToStr(InitialResponse) +
+		" / EXPECTED=1 or 2 / pre-request reset check DISABLED", true);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::TRAY_LOAD_CANCEL(bool SourceTray)
 {
 	UnicodeString Location = LocationFor(SourceTray);
 	SetPcBool(TrayProcessTag(Location, L"TrayLoad"), false);
-	FTrayLoadWaitResponseIdle[SourceTray ? 0 : 1] = false;
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 	LogOpcEvent("TRAY_LOAD_CANCEL " + AnsiString(Location));
 }
@@ -1110,36 +1080,17 @@ int __fastcall TMesOpc::TRAY_LOAD_RESPONSE(bool SourceTray)
 
 	UnicodeString Location = LocationFor(SourceTray);
 	UnicodeString ResponseKey = TrayProcessTag(Location, L"TrayLoadResponse");
-	int LocationIndex = SourceTray ? 0 : 1;
-	unsigned __int64 CurrentRevision = Mod_Fms != NULL ? Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
 
 	int Response = GetFmsInt(ResponseKey);
-	if(FTrayLoadWaitResponseIdle[LocationIndex])
-	{
-		// Production handshake only: wait for the previous response to reset,
-		// then issue this transaction's Request=ON.
-		if(Response != 0)
-			return 0;
-		FTrayLoadWaitResponseIdle[LocationIndex] = false;
-		FTrayLoadResponseRevision[LocationIndex] = CurrentRevision;
-		SetPcBool(TrayProcessTag(Location, L"TrayLoad"), true);
-		if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
-		LogOpcEvent("TRAY_LOAD_RESPONSE IDLE confirmed " + AnsiString(Location) +
-			" / Request=ON / BaselineRevision=" +
-			IntToStr((__int64)FTrayLoadResponseRevision[LocationIndex]), true);
-		return FMS_POLL_REQUEST_STARTED;
-	}
+	// FMS CURRENT RESPONSE: accept the visible value without a saved baseline.
 	if (Response == 0)
 		return 0;
-	// Revision is retained for logging only. Normal mode already guarantees a
-	// clean 0 -> 1/2 transition through its four-phase handshake, so rejecting a
-	// visible response by revision can only create a false wait.
+	// Current 1/2 is the result; FormMain owns the post-result reset wait.
 	if (Response != 1 && Response != 2)
 	{
 		LogOpcEvent("VALIDATION FAIL TrayLoadResponse=" + IntToStr(Response), true);
 		SetPcBool(TrayProcessTag(Location, L"TrayLoad"), false);
 		if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
-		FTrayLoadResponseRevision[LocationIndex] = CurrentRevision;
 		return -1;
 	}
 	if (Response == 2)
@@ -1147,7 +1098,6 @@ int __fastcall TMesOpc::TRAY_LOAD_RESPONSE(bool SourceTray)
 		LogOpcEvent("TRAY_LOAD_RESPONSE FAIL " + AnsiString(Location), true);
 		SetPcBool(TrayProcessTag(Location, L"TrayLoad"), false);
 		if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
-		FTrayLoadResponseRevision[LocationIndex] = CurrentRevision;
 		return 2;
 	}
 
@@ -1230,7 +1180,6 @@ int __fastcall TMesOpc::TRAY_LOAD_RESPONSE(bool SourceTray)
 
 	SetPcBool(TrayProcessTag(Location, L"TrayLoad"), false);
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
-	FTrayLoadResponseRevision[LocationIndex] = CurrentRevision;
 	LogOpcEvent("TRAY_LOAD_RESPONSE SUCCESS " + AnsiString(Location));
 	return 1;
 }
@@ -1253,14 +1202,10 @@ void __fastcall TMesOpc::LogTrayLoadTimeout(bool SourceTray)
 	UnicodeString ResponseJson;
 	bool HasResponse = Mod_Fms != NULL &&
 		Mod_Fms->GetFmsTagJson(TrayProcessTag(Location, L"TrayLoadResponse"), ResponseJson);
-	int LocationIndex = SourceTray ? 0 : 1;
-	unsigned __int64 CurrentRevision = Mod_Fms != NULL ?
-		Mod_Fms->GetFmsTagRevision(TrayProcessTag(Location, L"TrayLoadResponse")) : 0;
 	AnsiString Message = "TRAY_LOAD_TIMEOUT " + AnsiString(Location) +
-		" TrayLoadResponse=" + (HasResponse ? AnsiString(ResponseJson) : AnsiString("<missing>")) +
-		" Revision=" + IntToStr((__int64)CurrentRevision) +
-		" RequestRevision=" + IntToStr((__int64)FTrayLoadResponseRevision[LocationIndex]) +
-		" UpdatedAfterRequest=" + AnsiString(CurrentRevision > FTrayLoadResponseRevision[LocationIndex] ? "true" : "false");
+		" / PHASE=WAIT RESULT / EXPECTED=1 or 2 / CURRENT=" +
+		(HasResponse ? AnsiString(ResponseJson) : AnsiString("<missing>")) +
+		" / prior-value and pre-request reset checks DISABLED";
 	Message += " TrackInCellInformation.CellCount=" +
 		IntToStr(GetFmsInt(TrackInTag(Location, L"CellCount")));
 
@@ -1318,27 +1263,19 @@ bool __fastcall TMesOpc::RECIPE_RESPONSE()
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::PROCESS_START_REQUEST()
 {
+	// FMS CURRENT RESPONSE: no pre-request reset/revision validation.
 	const UnicodeString RequestKey = TrayProcessTag(TAG_SOURCE, L"ProcessStart");
 	const UnicodeString ResponseKey = TrayProcessTag(TAG_SOURCE, L"ProcessStartResponse");
-	int InitialResponse = GetFmsInt(ResponseKey);
-	FProcessStartResponseRevision = Mod_Fms != NULL ? Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
-	// Only production mode waits for an old response to reset before Request=ON.
-	// Cycle Test deliberately reuses the cached result for an unattended demo.
-	FProcessStartWaitResponseIdle =
-		!IsCycleResponseBypass() && (InitialResponse != 0);
-	SetPcBool(RequestKey, !FProcessStartWaitResponseIdle);
+	int Response = GetFmsInt(ResponseKey);
+	SetPcBool(RequestKey, true);
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
-	LogOpcEvent("PROCESS_START_REQUEST InitialResponse=" + IntToStr(InitialResponse) +
-		" BaselineRevision=" + IntToStr((__int64)FProcessStartResponseRevision) +
-		(FProcessStartWaitResponseIdle ?
-			AnsiString(" / hold Request=OFF until stale Response=0") :
-			AnsiString(" / Request=ON")));
+	LogOpcEvent("PROCESS_START_REQUEST / Request=ON / CurrentResponse=" + IntToStr(Response) +
+		" / EXPECTED=1 or 2 / pre-request reset check DISABLED");
 }
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::PROCESS_START_CANCEL()
 {
 	SetPcBool(TrayProcessTag(TAG_SOURCE, L"ProcessStart"), false);
-	FProcessStartWaitResponseIdle = false;
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 	LogOpcEvent("PROCESS_START_CANCEL Request=OFF");
 }
@@ -1353,24 +1290,10 @@ int __fastcall TMesOpc::PROCESS_START_RESPONSE_RESULT()
 	const UnicodeString RequestKey = TrayProcessTag(TAG_SOURCE, L"ProcessStart");
 	const UnicodeString ResponseKey = TrayProcessTag(TAG_SOURCE, L"ProcessStartResponse");
 	int Response = GetFmsInt(ResponseKey);
-	unsigned __int64 CurrentRevision = Mod_Fms != NULL ? Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
-	if(FProcessStartWaitResponseIdle)
-	{
-		// Retry guard: never reuse the previous transaction's Response=1/2.
-		// Keep Request OFF until FMS clears that stale response to 0.
-		if(Response != 0) return 0;
-		FProcessStartWaitResponseIdle = false;
-		FProcessStartResponseRevision = CurrentRevision;
-		SetPcBool(RequestKey, true);
-		if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
-		LogOpcEvent("PROCESS_START_RESPONSE IDLE confirmed / Request=ON / BaselineRevision=" +
-			IntToStr((__int64)FProcessStartResponseRevision));
-		return FMS_POLL_REQUEST_STARTED;
-	}
+	// FMS CURRENT RESPONSE: accept the visible value without a saved baseline.
 	if(Response == 0)
 		return 0;
-	// Accept the visible 1/2 value. Revision is diagnostic only; the normal-mode
-	// pre-request and post-request Response=0 waits prevent stale reuse.
+	// Current 1/2 is the result; FormMain owns the post-result reset wait.
 
 	// Clear the PC request after either ACK result. Completion is handled only
 	// after the FMS response also returns to zero.
@@ -1580,18 +1503,15 @@ void __fastcall TMesOpc::CELL_TRACK_OUT_REQUEST(int SourceChannel, int TargetCha
 
 	const UnicodeString ResponseKey = CellTrackOutTag(L"CellUnloadCompleteResponse");
 	int InitialResponse = GetFmsInt(ResponseKey);
-	FCellTrackOutResponseRevision = Mod_Fms->GetFmsTagRevision(ResponseKey);
-	// Production mode establishes a clean pre-request baseline. Cycle Test does
-	// not wait for the previous cell report response to reset.
-	FCellTrackOutWaitResponseIdle =
-		!IsCycleResponseBypass() && (InitialResponse != 0);
+	// FMS CURRENT RESPONSE: write this cell report and request immediately.
+	// InitialResponse is logged only; final reset remains owned by FormMain.
 
 	SetPcInt(CellTrackOutTag(L"CellNoFrom"), SourceChannel);
 	SetPcString(CellTrackOutTag(L"TrayIdFrom"), SourceTrayId);
 	SetPcInt(CellTrackOutTag(L"CellNoTo"), TargetChannel);
 	SetPcString(CellTrackOutTag(L"TrayIdTo"), TargetTrayId);
 	SetPcString(CellTrackOutTag(L"CellId"), UnicodeString(CellId));
-	SetPcBool(CellTrackOutTag(L"CellUnloadComplete"), !FCellTrackOutWaitResponseIdle);
+	SetPcBool(CellTrackOutTag(L"CellUnloadComplete"), true);
 	Mod_Fms->FlushPendingPcTags(false);
 
 	LogOpcEvent("CELL_TRACK_OUT REQUEST CellId=" + CellId +
@@ -1599,12 +1519,8 @@ void __fastcall TMesOpc::CELL_TRACK_OUT_REQUEST(int SourceChannel, int TargetCha
 		" To=" + AnsiString(TargetTrayId) + "/" + IntToStr(TargetChannel) +
 		" RequestTag=NGS.F1NGS01.Location2.CellTrackOut.CellUnloadComplete=true" +
 		" WaitingTag=NGS.F1NGS01.Location2.CellTrackOut.CellUnloadCompleteResponse" +
-		" InitialResponse=" + IntToStr(InitialResponse) +
-		" BaselineRevision=" + IntToStr((__int64)FCellTrackOutResponseRevision) +
-		(FCellTrackOutWaitResponseIdle ?
-			AnsiString(" / hold Request=OFF until stale Response=0") :
-			AnsiString(" / Request=ON")) +
-		" Expected=1(Success),2(Fail)", true);
+		" CurrentResponse=" + IntToStr(InitialResponse) +
+		" / Request=ON / pre-request reset check DISABLED / Expected=1(Success),2(Fail)", true);
 }
 //---------------------------------------------------------------------------
 int __fastcall TMesOpc::CELL_TRACK_OUT_RESPONSE_RESULT()
@@ -1612,23 +1528,10 @@ int __fastcall TMesOpc::CELL_TRACK_OUT_RESPONSE_RESULT()
 	const UnicodeString RequestKey = CellTrackOutTag(L"CellUnloadComplete");
 	const UnicodeString ResponseKey = CellTrackOutTag(L"CellUnloadCompleteResponse");
 	int Response = GetFmsInt(ResponseKey);
-	unsigned __int64 CurrentRevision = Mod_Fms != NULL ? Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
-	if(FCellTrackOutWaitResponseIdle)
-	{
-		// Retry guard: wait for the old CellUnloadCompleteResponse to reset.
-		if(Response != 0) return 0;
-		FCellTrackOutWaitResponseIdle = false;
-		FCellTrackOutResponseRevision = CurrentRevision;
-		SetPcBool(RequestKey, true);
-		if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
-		LogOpcEvent("CELL_TRACK_OUT RESPONSE IDLE confirmed / Request=ON / BaselineRevision=" +
-			IntToStr((__int64)FCellTrackOutResponseRevision), true);
-		return FMS_POLL_REQUEST_STARTED;
-	}
+	// FMS CURRENT RESPONSE: accept the visible value without a saved baseline.
 	if(Response == 0)
 		return 0;
-	// Do not reject a visible response because its gateway revision is unchanged.
-	// Normal mode's Response=0 handshake is the stale-response interlock.
+	// Current 1/2 is the result; FormMain owns the post-result reset wait.
 
 	SetPcBool(RequestKey, false);
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
@@ -1730,27 +1633,20 @@ bool __fastcall TMesOpc::CELL_TRACK_OUT_RETRY()
 void __fastcall TMesOpc::CELL_TRACK_OUT_CANCEL()
 {
 	SetPcBool(CellTrackOutTag(L"CellUnloadComplete"), false);
-	FCellTrackOutWaitResponseIdle = false;
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 	LogOpcEvent("CELL_TRACK_OUT CANCEL", true);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::TRAY_UNLOAD_REQUEST()
 {
+	// FMS CURRENT RESPONSE: no pre-request reset/revision validation.
 	const UnicodeString RequestKey = TrayProcessTag(TAG_TARGET, L"TrayUnloadRequest");
 	const UnicodeString ResponseKey = TrayProcessTag(TAG_TARGET, L"TrayUnloadResponse");
-	int InitialResponse = GetFmsInt(ResponseKey);
-	FTrayUnloadResponseRevision = Mod_Fms != NULL ? Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
-	// Do not make an unattended Cycle Test wait for a previous response reset.
-	FTrayUnloadWaitResponseIdle =
-		!IsCycleResponseBypass() && (InitialResponse != 0);
-	SetPcBool(RequestKey, !FTrayUnloadWaitResponseIdle);
+	int Response = GetFmsInt(ResponseKey);
+	SetPcBool(RequestKey, true);
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
-	LogOpcEvent("TRAY_UNLOAD_REQUEST Location2 InitialResponse=" + IntToStr(InitialResponse) +
-		" BaselineRevision=" + IntToStr((__int64)FTrayUnloadResponseRevision) +
-		(FTrayUnloadWaitResponseIdle ?
-			AnsiString(" / hold Request=OFF until stale Response=0") :
-			AnsiString(" / Request=ON")), false);
+	LogOpcEvent("TRAY_UNLOAD_REQUEST / Request=ON / CurrentResponse=" + IntToStr(Response) +
+		" / EXPECTED=1 or 2 / pre-request reset check DISABLED", false);
 }
 //---------------------------------------------------------------------------
 int __fastcall TMesOpc::TRAY_UNLOAD_RESPONSE_RESULT()
@@ -1758,21 +1654,9 @@ int __fastcall TMesOpc::TRAY_UNLOAD_RESPONSE_RESULT()
 	const UnicodeString RequestKey = TrayProcessTag(TAG_TARGET, L"TrayUnloadRequest");
 	const UnicodeString ResponseKey = TrayProcessTag(TAG_TARGET, L"TrayUnloadResponse");
 	int Response = GetFmsInt(ResponseKey);
-	unsigned __int64 CurrentRevision = Mod_Fms != NULL ? Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
-	if(FTrayUnloadWaitResponseIdle)
-	{
-		// Retry guard: do not turn Request ON while the old response remains.
-		if(Response != 0) return 0;
-		FTrayUnloadWaitResponseIdle = false;
-		FTrayUnloadResponseRevision = CurrentRevision;
-		SetPcBool(RequestKey, true);
-		if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
-		LogOpcEvent("TRAY_UNLOAD_RESPONSE IDLE confirmed / Request=ON / BaselineRevision=" +
-			IntToStr((__int64)FTrayUnloadResponseRevision), false);
-		return FMS_POLL_REQUEST_STARTED;
-	}
+	// FMS CURRENT RESPONSE: accept the visible value without a saved baseline.
 	if(Response == 0) return 0;
-	// Revision remains a log value only; handshake state decides freshness.
+	// Current response value only; no prior-value comparison.
 
 	SetPcBool(RequestKey, false);
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
@@ -1825,27 +1709,20 @@ void __fastcall TMesOpc::LogTrayUnloadResponseOffTimeout()
 void __fastcall TMesOpc::TRAY_UNLOAD_CANCEL()
 {
 	SetPcBool(TrayProcessTag(TAG_TARGET, L"TrayUnloadRequest"), false);
-	FTrayUnloadWaitResponseIdle = false;
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 	LogOpcEvent("TRAY_UNLOAD_CANCEL Request=OFF", false);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::PROCESS_END_REQUEST()
 {
+	// FMS CURRENT RESPONSE: no pre-request reset/revision validation.
 	const UnicodeString RequestKey = TrayProcessTag(TAG_SOURCE, L"ProcessEnd");
 	const UnicodeString ResponseKey = TrayProcessTag(TAG_SOURCE, L"ProcessEndResponse");
-	int InitialResponse = GetFmsInt(ResponseKey);
-	FProcessEndResponseRevision = Mod_Fms != NULL ? Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
-	// Previous-response reset is part of the production handshake only.
-	FProcessEndWaitResponseIdle =
-		!IsCycleResponseBypass() && (InitialResponse != 0);
-	SetPcBool(RequestKey, !FProcessEndWaitResponseIdle);
+	int Response = GetFmsInt(ResponseKey);
+	SetPcBool(RequestKey, true);
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
-	LogOpcEvent("PROCESS_END_REQUEST InitialResponse=" + IntToStr(InitialResponse) +
-		" BaselineRevision=" + IntToStr((__int64)FProcessEndResponseRevision) +
-		(FProcessEndWaitResponseIdle ?
-			AnsiString(" / hold Request=OFF until stale Response=0") :
-			AnsiString(" / Request=ON")), true);
+	LogOpcEvent("PROCESS_END_REQUEST / Request=ON / CurrentResponse=" + IntToStr(Response) +
+		" / EXPECTED=1 or 2 / pre-request reset check DISABLED", true);
 }
 //---------------------------------------------------------------------------
 bool __fastcall TMesOpc::PROCESS_END_RESPONSE()
@@ -1858,22 +1735,10 @@ int __fastcall TMesOpc::PROCESS_END_RESPONSE_RESULT()
 	const UnicodeString RequestKey = TrayProcessTag(TAG_SOURCE, L"ProcessEnd");
 	const UnicodeString ResponseKey = TrayProcessTag(TAG_SOURCE, L"ProcessEndResponse");
 	int Response = GetFmsInt(ResponseKey);
-	unsigned __int64 CurrentRevision = Mod_Fms != NULL ? Mod_Fms->GetFmsTagRevision(ResponseKey) : 0;
-	if(FProcessEndWaitResponseIdle)
-	{
-		// Retry guard: first complete the previous response reset sequence.
-		if(Response != 0) return 0;
-		FProcessEndWaitResponseIdle = false;
-		FProcessEndResponseRevision = CurrentRevision;
-		SetPcBool(RequestKey, true);
-		if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
-		LogOpcEvent("PROCESS_END_RESPONSE IDLE confirmed / Request=ON / BaselineRevision=" +
-			IntToStr((__int64)FProcessEndResponseRevision), true);
-		return FMS_POLL_REQUEST_STARTED;
-	}
+	// FMS CURRENT RESPONSE: accept the visible value without a saved baseline.
 	if(Response == 0)
 		return 0;
-	// Revision remains a log value only; handshake state decides freshness.
+	// Current response value only; no prior-value comparison.
 
 	SetPcBool(RequestKey, false);
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
@@ -1952,7 +1817,6 @@ void __fastcall TMesOpc::LogProcessEndResponseOffTimeout()
 void __fastcall TMesOpc::PROCESS_END_CANCEL()
 {
 	SetPcBool(TrayProcessTag(TAG_SOURCE, L"ProcessEnd"), false);
-	FProcessEndWaitResponseIdle = false;
 	if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
 	LogOpcEvent("PROCESS_END_CANCEL", true);
 }

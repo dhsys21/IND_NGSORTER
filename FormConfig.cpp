@@ -39,11 +39,56 @@ void __fastcall TConfigForm::ApplyConfig()
 		Mod_Fms->Configure(BaseForm->config.fmsIp, BaseForm->config.gatewayPort);
 
 	if(MainForm != NULL){
+		// Compare each device's applied settings, not the shared config: other
+		// connection buttons can update that config before SAVE is pressed.
+		// An unchanged SAVE must also preserve a manually disconnected device.
 		for(int i = 0; i < 2; ++i){
-			if(MainForm->comBcr[i] != NULL && MainForm->comBcr[i]->ClientSocketBcr->Active)
-				MainForm->comBcr[i]->Disconnect();
+			bool created = MainForm->comBcr[i] == NULL;
+			if(created){
+				MainForm->comBcr[i] = new TMod_Bcr(MainForm);
+				MainForm->comBcr[i]->Tag = i;
+			}
+			TMod_Bcr *reader = MainForm->comBcr[i];
+			AnsiString ip = BaseForm->config.bcrIp[i];
+			int port = BaseForm->config.bcrPort[i];
+			if(created || reader->ClientSocketBcr->Address != ip ||
+				reader->ClientSocketBcr->Port != port){
+				reader->Disconnect();
+				// Cancel a pending retry against the previous endpoint as well.
+				reader->Timer_AutoConnect->Enabled = false;
+				reader->ClientSocketBcr->Address = ip;
+				reader->ClientSocketBcr->Host = ip;
+				reader->ClientSocketBcr->Port = port;
+				if(!ip.IsEmpty() && port > 0)
+					reader->Connect(ip, port);
+			}
 		}
-		MainForm->InitBarcodeAndSmoke();
+		if(MainForm->comSmoke[0] == NULL)
+			MainForm->comSmoke[0] = new TSmokeDetector(MainForm);
+		TSmokeDetector *detector = MainForm->comSmoke[0];
+		if(!detector->HasCommunicationSettings(BaseForm->config.smokePort, 0,
+			BaseForm->config.smokeId, BaseForm->config.smokeMode,
+			BaseForm->config.smokeBaudRate))
+			detector->CommOpen(BaseForm->config.smokePort, 0,
+				BaseForm->config.smokeId, BaseForm->config.smokeMode,
+				BaseForm->config.smokeBaudRate);
+	}
+	// PLC is created after FormConfig at startup. Its normal FormShow connect
+	// handles that first connection; later saves reconnect only a changed PLC.
+	if(PlcBin != NULL &&
+		(PlcBin->ClientSocket_PLC->Address != BaseForm->config.plcIp ||
+		 PlcBin->ClientSocket_PC->Address != BaseForm->config.plcIp ||
+		 PlcBin->ClientSocket_PLC->Port != BaseForm->config.plcPortPlc ||
+		 PlcBin->ClientSocket_PC->Port != BaseForm->config.plcPortPc)){
+		PlcBin->DisConnect();
+		PlcBin->ClientSocket_PLC->Address = BaseForm->config.plcIp;
+		PlcBin->ClientSocket_PC->Address = BaseForm->config.plcIp;
+		PlcBin->ClientSocket_PLC->Port = BaseForm->config.plcPortPlc;
+		PlcBin->ClientSocket_PC->Port = BaseForm->config.plcPortPc;
+		if(!BaseForm->config.plcIp.IsEmpty() &&
+			BaseForm->config.plcPortPlc > 0 && BaseForm->config.plcPortPc > 0)
+			PlcBin->Connect(BaseForm->config.plcIp,
+				BaseForm->config.plcPortPlc, BaseForm->config.plcPortPc);
 	}
 }
 

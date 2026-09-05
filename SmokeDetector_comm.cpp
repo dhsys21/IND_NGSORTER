@@ -27,6 +27,7 @@ __fastcall TSmokeDetector::TSmokeDetector(TComponent* Owner)
 	m_tempWarning = false;
 	m_tempDanger = false;
 	m_running = false;
+	m_communicationSettingsApplied = false;
 }
 //---------------------------------------------------------------------------
 void __fastcall TSmokeDetector::UpdateFmsEnvStatus(double Temperature,
@@ -68,8 +69,31 @@ unsigned short __fastcall TSmokeDetector::get_crc16(unsigned char *pBuf, int nLe
 	return crc;
 }
 //---------------------------------------------------------------------------
+bool __fastcall TSmokeDetector::HasCommunicationSettings(AnsiString port, int sep,
+    int id, int mode, int baudRate) const
+{
+    if(baudRate <= 0) baudRate = (mode == 0) ? 115200 : 9600;
+    return m_communicationSettingsApplied && m_savedPort == port &&
+        m_savedSep == sep && m_savedId == id && m_savedMode == mode &&
+        m_savedBaudRate == baudRate;
+}
+//---------------------------------------------------------------------------
 void __fastcall TSmokeDetector::CommOpen(AnsiString port, int sep, int id, int mode, int baudRate)
 {
+	// Remember an attempted configuration even if the device is absent. SAVE
+	// must not retry it for unrelated edits; the explicit CONNECT button can.
+	if(baudRate <= 0) baudRate = (mode == 0) ? 115200 : 9600;
+	m_savedPort = port;
+	m_savedSep = sep;
+	m_savedId = id;
+	m_savedMode = mode;
+	m_savedBaudRate = baudRate;
+	m_communicationSettingsApplied = true;
+	// An empty port disables this device without reopening the previous port.
+	if(port.IsEmpty()){
+		CommClose();
+		return;
+	}
 	try{
 		if(Comm->Connected){
 			Comm->Close();

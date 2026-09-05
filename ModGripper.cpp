@@ -243,6 +243,14 @@ void __fastcall Tgripper::req_Pause(bool stop)
 	}
 }
 //---------------------------------------------------------------------------
+bool __fastcall Tgripper::IsSortingWorkActive() const
+{
+	// PAUSE alone is not evidence of an active cell operation. Preserve actual
+	// initialization/pickup/insert reservations by inspecting the saved sequence.
+	gripperSequence active = pauseStatus ? seq_save : seq;
+	return active == seqInit || active == seqSorting || active == seqInserting;
+}
+//---------------------------------------------------------------------------
 void __fastcall Tgripper::stepTimerTimer(TObject *Sender)
 {
 	UpdateTransferResult();
@@ -260,9 +268,9 @@ void __fastcall Tgripper::stepTimerTimer(TObject *Sender)
 		else if(seq == seqInserting)
 			Inserting();
 		else if(seq == seqIdle)
-			MainForm->memoGripperLineAdd(BaseForm->GetLangStr("MSG_WAITING"));
+			MainForm->ReportIdleWaitStatus();
 		else
-			MainForm->memoGripperLineAdd(BaseForm->GetLangStr("MSG_WAITING") + " " + BaseForm->GetLangStr("MSG_AUTOMODE"));
+			MainForm->ReportIdleWaitStatus();
 	}
 	else if(MainForm->equipMode == modeManual){
 		MainForm->memoGripperLineAdd(BaseForm->GetLangStr("MSG_WAITING") + " " + BaseForm->GetLangStr("MSG_MANUALMODE"));

@@ -16,22 +16,12 @@ private:	// User declarations
 	bool FLastEnvTempWarning;
 	bool FLastEnvTempDanger;
 	bool FLastEnvRunning;
-    unsigned __int64 FTrayLoadResponseRevision[2];
-    bool FTrayLoadWaitResponseIdle[2];
-    unsigned __int64 FProcessStartResponseRevision;
-    bool FProcessStartWaitResponseIdle;
-    unsigned __int64 FProcessEndResponseRevision;
-    bool FProcessEndWaitResponseIdle;
-    unsigned __int64 FCellTrackOutResponseRevision;
-    bool FCellTrackOutWaitResponseIdle;
     int FLastCellTrackOutSourceChannel;
     int FLastCellTrackOutTargetChannel;
     AnsiString FLastCellTrackOutCellId;
     UnicodeString FLastCellTrackOutSourceTrayId;
     UnicodeString FLastCellTrackOutTargetTrayId;
     bool FLastCellTrackOutValid;
-    unsigned __int64 FTrayUnloadResponseRevision;
-    bool FTrayUnloadWaitResponseIdle;
 public:		// User declarations
 	__fastcall TMesOpc(TComponent* Owner);
     void __fastcall Shutdown();

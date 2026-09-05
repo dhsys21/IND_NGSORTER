@@ -264,6 +264,19 @@ void __fastcall TMainForm::AdvanceOpcTrayLoad(bool sourceTray)
 	int stepNo = sourceTray ? 2 : 5;
 	AnsiString locationName = sourceTray ? "Location1" : "Location2";
 	AnsiString trayId = sourceTray ? pTrayid_source->Caption : pTrayid_target->Caption;
+	// TRAY LOAD RESTART: response handling may finish while an alarm has the
+	// equipment paused. Remember completion, but issue no NEXT-stage requests
+	// (centering, Target barcode or ProcessStart) until operator Restart.
+	if(equipMode != modeAuto || gripper == NULL || robostar == NULL ||
+		gripper->pauseStatus || robostar->pauseStatus){
+		if(!opcTrayAdvanceDeferred[index])
+			ProcessStepLog(stepNo, "HANDSHAKE COMPLETE / next stage deferred / WAIT operator Restart / "
+				"Request=OFF / response accepted / no next-stage request sent");
+		opcTrayAdvanceDeferred[index] = true;
+		ReportIdleWaitStatus();
+		return;
+	}
+	opcTrayAdvanceDeferred[index] = false;
 
 	if(!opcTrayDisplayed[index])
 	{
@@ -326,9 +339,34 @@ void __fastcall TMainForm::AdvanceOpcTrayLoad(bool sourceTray)
 	tray = &tray_target;
 }
 //---------------------------------------------------------------------------
+void __fastcall TMainForm::ResumeDeferredTrayLoads()
+{
+	// Called by the AUTO timer, never by an FMS polling callback while paused.
+	if(equipMode != modeAuto || gripper == NULL || robostar == NULL ||
+		gripper->pauseStatus || robostar->pauseStatus ||
+		fmsAlarmTransaction != fmsAlarmNone)
+		return;
+	for(int i = 0; i < 2; ++i){
+		if(gripper->pauseStatus || robostar->pauseStatus) return;
+		if(opcTrayAdvanceDeferred[i])
+			AdvanceOpcTrayLoad(i == 0);
+		if(gripper->pauseStatus || robostar->pauseStatus) return;
+		if(!opcDeferredTrayId[i].IsEmpty()){
+			AnsiString trayId = opcDeferredTrayId[i];
+			opcDeferredTrayId[i] = ""; // Clear before callbacks/modal dialogs can re-enter.
+			NotifyTrayInfo(trayId, i == 0);
+		}
+	}
+}
+//---------------------------------------------------------------------------
 void __fastcall TMainForm::TryStartOpcProcess()
 {
 	if(!CheckAutomaticFmsMode("ProcessStart"))
+		return;
+	// TRAY LOAD RESTART: an accepted response must not start a new process
+	// while either production sequence is paused or an FMS alarm owns recovery.
+	if(gripper == NULL || robostar == NULL || gripper->pauseStatus ||
+		robostar->pauseStatus || fmsAlarmTransaction != fmsAlarmNone)
 		return;
 	// A new process must not start while the previous ProcessEnd handshake is active.
 	if (opcProcessStarted || opcProcessStartPending || opcProcessEndPending)
@@ -360,13 +398,24 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 	tray = bsrc ? &tray_source : &tray_target;
 
 	//* 불량트레이 관리
-	// Ignore duplicate Location2 loads while the same centered tray is pending/loaded.
-	// They otherwise reset PICK=R reservations because Location2 has no cell payload.
+	// Ignore actual duplicate requests and protect active cell reservations.
+	// A paused IDLE sequence is NOT active sorting; the previous check treated
+	// seqPause as work and discarded the next Source cycle's Location2 request.
 	if(!bsrc && IsTargetCenteringSignal() &&
 		targetTrayInfoActiveId == strTray &&
-		(opcTrayLoadPending[1] || opcTrayLoaded[1] || (gripper != NULL && gripper->seq != seqIdle))){
+		(opcTrayLoadPending[1] || opcTrayLoaded[1] || opcTrayAdvanceDeferred[1] ||
+		 (gripper != NULL && gripper->IsSortingWorkActive()))){
 		memoMainLineAdd("[LOCAL TARGET] Duplicate Location2 load ignored; target map/reservation preserved. TrayId=" + strTray);
 		tray = &tray_target;
+		return;
+	}
+	// A barcode callback can also arrive during Pause. Retain the ID instead
+	// of losing the request or replacing tray/reservation data behind the alarm.
+	if(gripper == NULL || robostar == NULL || gripper->pauseStatus || robostar->pauseStatus){
+		if(opcDeferredTrayId[index] != strTray)
+			ProcessStepLog(bsrc ? 2 : 5, "TrayLoad NOT SENT / barcode retained / WAIT operator Restart / TrayId=" + strTray);
+		opcDeferredTrayId[index] = strTray;
+		ReportIdleWaitStatus();
 		return;
 	}
 	if(!bsrc){
@@ -400,6 +449,8 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 		ProcessStepLog(5, "READY - LOCAL Target tray information loaded / next=Location2 TrayLoad Request and FMS comparison");
 	}
 	opcTrayLoadRetryRequired[index] = false;
+	opcTrayAdvanceDeferred[index] = false;
+	opcDeferredTrayId[index] = "";
 	opcTrayDisplayed[index] = false;
 	opcTrayLoaded[index] = false;
 	if (bsrc)

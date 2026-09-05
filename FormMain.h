@@ -406,6 +406,11 @@ private:	// User declarations
 	void __fastcall DisplayOpcTrayLoad(bool sourceTray);
 	void __fastcall AdvanceOpcTrayLoad(bool sourceTray);
 	void __fastcall TryStartOpcProcess();
+	// TRAY LOAD RESTART: retain completed handshakes/barcodes while paused.
+	bool opcTrayAdvanceDeferred[2];
+	AnsiString opcDeferredTrayId[2];
+	void __fastcall ResumeDeferredTrayLoads();
+	AnsiString lastIdleWaitStatus;
 	//* 불량트레이 관리
 	AnsiString __fastcall GetSourceTrayInfoFile(AnsiString trayId) const;
 	AnsiString __fastcall GetTargetTrayInfoFile(AnsiString trayId) const;
@@ -419,6 +424,10 @@ private:	// User declarations
 	TTimer *opcMesTimer;
 	TFmsAlarmTransaction fmsAlarmTransaction;
 	bool fmsAlarmRetryRequested;
+	// FMS CURRENT RESPONSE: retain only THIS transaction's accepted result
+	// when recovering a post-result reset timeout, never a prior-value baseline.
+	bool fmsAlarmAwaitingReset;
+	int fmsAlarmAcceptedResult;
 	DWORD fmsAlarmRetryStartTick;
 	bool opcTrayLoadPending[2];
 	bool opcTrayLoadWaitResponseOff[2];
@@ -568,6 +577,8 @@ public:		// User declarations
 	// PLC_INPUT plcInput; // Legacy ASCII interface disabled; use ModPLC_BIN status APIs.
 	// PLC_OUTPUT plcOutput; // Legacy ASCII interface disabled; use ModPLC_BIN commands.
 	void __fastcall ConfirmFmsAlarmRetry();
+	void __fastcall PauseFmsAlarm(); // FMS ALARM PAUSE/CLOSE: retain failed phase until Restart.
+	void __fastcall CheckFmsResetRetryTimeout(int ResponseValue);
 	void __fastcall BuzzerOn(bool on);
 	void __fastcall LampModeChange(LampMode mode);
 
@@ -606,6 +617,7 @@ public:		// User declarations
 	void __fastcall SetProcessOperationStatus(int stepNo, AnsiString operation,
 		AnsiString checkName, AnsiString expectedValue, AnsiString currentValue);
 	void __fastcall ProcessStepLog(int stepNo, AnsiString msg);
+	void __fastcall ReportIdleWaitStatus(bool force = false);
 
 	//* 불량트레이 관리
 	void __fastcall setTrayInfo(int index);

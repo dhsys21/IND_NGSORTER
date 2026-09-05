@@ -386,6 +386,10 @@ void __fastcall TMod_Fms::Configure(const UnicodeString &BindIp, int BindPort)
 {
 	if (TcpServer == NULL)
 		return;
+	// SAVE also applies non-communication options. Keep the gateway session
+	// and any in-flight handshake intact when its endpoint has not changed.
+	if (FBindIp == BindIp && FBindPort == BindPort)
+		return;
 
 	bool WasActive = TcpServer->Active;
 	bool WasAutoStartEnabled = FAutoStartEnabled;

@@ -1,7 +1,7 @@
 object AlarmForm_fms: TAlarmForm_fms
   Left = 0
   Top = 0
-  BorderIcons = []
+  BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'FMS Alarm'
   ClientHeight = 360
@@ -15,9 +15,67 @@ object AlarmForm_fms: TAlarmForm_fms
   OldCreateOrder = False
   Position = poMainFormCenter
   Scaled = False
+  OnClose = FormClose
   OnHide = FormHide
   PixelsPerInch = 96
   TextHeight = 16
+  object lblRequestTitle: TLabel
+    Left = 20
+    Top = 218
+    Width = 59
+    Height = 16
+    Caption = 'Request:'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clBlack
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object lblRequest: TLabel
+    Left = 92
+    Top = 218
+    Width = 46
+    Height = 16
+    Caption = 'Request'
+  end
+  object lblResponseTitle: TLabel
+    Left = 520
+    Top = 218
+    Width = 68
+    Height = 16
+    Caption = 'Response:'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clBlack
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object lblResponse: TLabel
+    Left = 600
+    Top = 218
+    Width = 7
+    Height = 16
+    Caption = '0'
+  end
+  object lblStatus: TLabel
+    Left = 20
+    Top = 248
+    Width = 680
+    Height = 40
+    AutoSize = False
+    Caption = 
+      'Pause to hold the alarm. Close to hide. Use Retry or Main Restar' +
+      't after correcting FMS.'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = 4210816
+    Font.Height = -15
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+    WordWrap = True
+  end
   object pnlTitle: TPanel
     Left = 0
     Top = 0
@@ -31,7 +89,7 @@ object AlarmForm_fms: TAlarmForm_fms
     object lblTitle: TLabel
       Left = 20
       Top = 15
-      Width = 111
+      Width = 124
       Height = 25
       Caption = 'FMS ALARM'
       Font.Charset = DEFAULT_CHARSET
@@ -58,61 +116,6 @@ object AlarmForm_fms: TAlarmForm_fms
     ScrollBars = ssVertical
     TabOrder = 1
   end
-  object lblRequestTitle: TLabel
-    Left = 20
-    Top = 218
-    Width = 57
-    Height = 16
-    Caption = 'Request:'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clBlack
-    Font.Height = -13
-    Font.Name = 'Tahoma'
-    Font.Style = [fsBold]
-    ParentFont = False
-  end
-  object lblRequest: TLabel
-    Left = 92
-    Top = 218
-    Width = 53
-    Height = 16
-    Caption = 'Request'
-  end
-  object lblResponseTitle: TLabel
-    Left = 520
-    Top = 218
-    Width = 65
-    Height = 16
-    Caption = 'Response:'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clBlack
-    Font.Height = -13
-    Font.Name = 'Tahoma'
-    Font.Style = [fsBold]
-    ParentFont = False
-  end
-  object lblResponse: TLabel
-    Left = 600
-    Top = 218
-    Width = 7
-    Height = 16
-    Caption = '0'
-  end
-  object lblStatus: TLabel
-    Left = 20
-    Top = 248
-    Width = 680
-    Height = 40
-    AutoSize = False
-    Caption = 'Correct the FMS condition, then press Retry.'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = 4210816
-    Font.Height = -15
-    Font.Name = 'Tahoma'
-    Font.Style = [fsBold]
-    ParentFont = False
-    WordWrap = True
-  end
   object btnBuzzerStop: TButton
     Left = 20
     Top = 300
@@ -128,13 +131,12 @@ object AlarmForm_fms: TAlarmForm_fms
     TabOrder = 2
     OnClick = btnBuzzerStopClick
   end
-  object btnRetry: TButton
-    Left = 560
+  object btnPause: TButton
+    Left = 240
     Top = 300
     Width = 140
     Height = 44
-    Caption = 'Retry'
-    Default = True
+    Caption = 'Pause'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -15
@@ -142,6 +144,36 @@ object AlarmForm_fms: TAlarmForm_fms
     Font.Style = [fsBold]
     ParentFont = False
     TabOrder = 3
+    OnClick = btnPauseClick
+  end
+  object btnClose: TButton
+    Left = 560
+    Top = 300
+    Width = 140
+    Height = 44
+    Caption = 'Close'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -15
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 5
+    OnClick = btnCloseClick
+  end
+  object btnRetry: TButton
+    Left = 400
+    Top = 300
+    Width = 140
+    Height = 44
+    Caption = 'Retry'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -15
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 4
     OnClick = btnRetryClick
   end
 end

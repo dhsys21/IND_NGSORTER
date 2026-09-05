@@ -28,6 +28,8 @@ private:	// User declarations
     int m_savedSep;
     int m_savedId;
     int m_savedMode;
+    int m_savedBaudRate;
+    bool m_communicationSettingsApplied;
 
     // 통신 상태 체크용 플래그
     bool bWaitingResponse; // 현재 응답을 기다리는 중인지 여부
@@ -56,6 +58,8 @@ public:		// User declarations
     void __fastcall QueryTSD50(int slaveId);
     void __fastcall ParseTSD50Response(unsigned char *rcvBuf, int rcvLen);
     void __fastcall CommOpen(AnsiString port, int sep, int id, int mode, int baudRate = 0);
+    bool __fastcall HasCommunicationSettings(AnsiString port, int sep, int id,
+        int mode, int baudRate) const;
     void __fastcall CommClose();
     void __fastcall ClearAlarm();
     void __fastcall setTsdData(short regAddr, short writeValue);
