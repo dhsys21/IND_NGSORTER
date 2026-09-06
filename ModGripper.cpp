@@ -12,9 +12,9 @@ Tgripper *gripper;
 //* max speed mode - need remove
 static bool UseFatMaximumSpeedMode()
 {
-	// Maximum-speed mode owns only the move-first ordering of logs, files,
-	// and CellTrackOut. It is intentionally independent from cbCycle.
-	return BaseForm != NULL && BaseForm->config.maximumSpeedMode;
+	// One pending CellTrackOut slot cannot safely support pipelined cells.
+	// Keep the UI setting for compatibility, but never bypass report completion.
+	return false;
 }
 //---------------------------------------------------------------------------
 //* max speed mode - need remove
@@ -62,6 +62,7 @@ void __fastcall Tgripper::ResetTransferResult()
 //---------------------------------------------------------------------------
 void __fastcall Tgripper::BeginTransferResult(int toolIndex)
 {
+	if(MainForm != NULL) MainForm->cellRecoveryReportAccepted = false;
 	ResetTransferResult();
 	if(MainForm == NULL || robostar == NULL || toolIndex < 0 || toolIndex >= gripCnt)
 		return;
@@ -132,12 +133,13 @@ void __fastcall Tgripper::UpdateTransferResult()
 }
 //---------------------------------------------------------------------------
 //* max speed mode - need remove
-void __fastcall Tgripper::SaveTransferResultRecord(const TRANSFER_RESULT &result,
+bool __fastcall Tgripper::SaveTransferResultRecord(const TRANSFER_RESULT &result,
 	bool waitBypassed)
 {
-	if(!result.active || MainForm == NULL) return;
+	if(!result.active) return true;
+	if(MainForm == NULL) return false;
 
-	MainForm->SaveCellTransferResult(
+	return MainForm->SaveCellTransferResult(
 		result.sourceTrayId, result.sourceChannel,
 		result.targetTrayId, result.targetChannel,
 		result.moveSourceChMs, result.ejectMs,
@@ -148,23 +150,26 @@ void __fastcall Tgripper::SaveTransferResultRecord(const TRANSFER_RESULT &result
 }
 //---------------------------------------------------------------------------
 //* max speed mode - need remove
-void __fastcall Tgripper::SavePendingTransferResult(bool waitBypassed)
+bool __fastcall Tgripper::SavePendingTransferResult(bool waitBypassed)
 {
-	if(!pendingTransferResultValid) return;
-	SaveTransferResultRecord(pendingTransferResult, waitBypassed);
+	if(!pendingTransferResultValid) return true;
+	if(!SaveTransferResultRecord(pendingTransferResult, waitBypassed)) return false;
 	//* max speed mode - need remove
 	pendingTransferResultValid = false;
+	return true;
 }
 //---------------------------------------------------------------------------
-void __fastcall Tgripper::SaveTransferResult(bool waitBypassed)
+bool __fastcall Tgripper::SaveTransferResult(bool waitBypassed)
 {
-	if(!transferResult.active || MainForm == NULL) return;
+	if(!transferResult.active) return true;
+	if(MainForm == NULL) return false;
 
 	UpdateTransferResult();
 	StartTransferPhase(transferPhaseNone);
 	if(waitBypassed) transferResult.moveWaitingMs = 0;
-	SaveTransferResultRecord(transferResult, waitBypassed);
+	if(!SaveTransferResultRecord(transferResult, waitBypassed)) return false;
 	ResetTransferResult();
+	return true;
 }
 //---------------------------------------------------------------------------
 bool __fastcall Tgripper::CommitEjectTrayState(int toolNo)
@@ -179,7 +184,7 @@ bool __fastcall Tgripper::CommitEjectTrayState(int toolNo)
 	MainForm->tray_source.CELL_EXIST[sourceIndex] = false;
 	MainForm->tray_source.PICK[sourceIndex] = "N";
 	MainForm->DisplaySourceCell(-1, sourceIndex);
-	MainForm->setTrayInfo(0);
+	if(!MainForm->setTrayInfo(0)) return false;
 	MainForm->memoGripperLineAdd(
 		"[SOURCE CELL] EJECT COMMIT SourceCh=" + IntToStr(sourceIndex + 1) +
 		" CELL_EXIST=false PICK=N / local file saved before Z UP");
@@ -207,7 +212,7 @@ bool __fastcall Tgripper::CommitInsertTrayState(int toolNo)
 	MainForm->tray_target.WORK_FLAG[targetIndex] = MainForm->tray_source.WORK_FLAG[sourceIndex];
 	MainForm->DisplayTargetCell(-1, targetIndex);
 	MainForm->DisplayTargetCellInfo(-1, targetIndex);
-	MainForm->setTrayInfo(1);
+	if(!MainForm->setTrayInfo(1)) return false;
 	MainForm->memoGripperLineAdd(
 		"[TARGET CELL] INSERT COMMIT SourceCh=" + IntToStr(sourceIndex + 1) +
 		" TargetCh=" + IntToStr(targetIndex + 1) +
@@ -258,6 +263,28 @@ bool __fastcall Tgripper::IsTargetTrayExchangeBoundary() const
 //---------------------------------------------------------------------------
 void __fastcall Tgripper::stepTimerTimer(TObject *Sender)
 {
+	if(!pauseStatus && IsSortingWorkActive() &&
+		(!robostar->IsCcLinkReady() || robostar->input.GRIPPER1_BUFFER)){
+		robostar->req_Pause(true);
+		req_Pause(true);
+		ShowCommonError("Sorting stopped", "CC-Link unavailable or X0023 BUFFER ON. Correct the condition and use Restart.");
+		return;
+	}
+	// Reset on step/sequence changes or Pause; FMS wait has its own timeout.
+	static gripperSequence watchedSeq = seqIdle;
+	static int watchedStep = -1;
+	static DWORD waitStarted = 0;
+	bool waitActive = !pauseStatus && IsSortingWorkActive() &&
+		!(seq == seqInserting && (step.step == 4 || step.step == 7)) &&
+		!MainForm->IsTargetTrayExchangeActive();
+	if(!waitActive || watchedSeq != seq || watchedStep != step.step){
+		watchedSeq = seq; watchedStep = step.step; waitStarted = GetTickCount();
+	}else if(GetTickCount() - waitStarted > 120000){
+		robostar->req_Pause(true);
+		req_Pause(true);
+		ShowCommonError("Sorting sensor wait timeout", "No step progress for 120 seconds. Check gripper/sensors and use Restart.");
+		return;
+	}
 	UpdateTransferResult();
 
 	for(int i=0; i<gripCnt; ++i){
@@ -870,6 +897,18 @@ void __fastcall Tgripper::Inserting()
 			}
 			if(!MainForm->ConsumeCellTrackOutMoveRelease())
 				break;
+			// Move to a persistence-only step before consuming another physical cell.
+			step.step = 7;
+			break;
+		case 7:
+			// Checkpoint physical completion separately from the accepted FMS report.
+			if(!MainForm->setTrayInfo(1)) break;
+			if(!SaveTransferResult(true)){
+				robostar->req_Pause(true);
+				req_Pause(true);
+				ShowCommonError("Transfer result save failed", "Restore disk access and use Restart. Only the file save will be retried.");
+				break;
+			}
 
 			MainForm->memoGripperLineAdd(
 				"[NORMAL TRACK OUT] Response=1 / Request=OFF / Response=0 complete -> next move");

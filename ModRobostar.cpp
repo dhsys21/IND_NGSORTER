@@ -75,6 +75,8 @@ __fastcall Trobostar::Trobostar(TComponent* Owner)
 	keyLockSetPending = false;
 	keyLockReleasePending = false;
 	previousBypassSwitchOn = false;
+	motionFaultLatched = false;
+	for(int a = 0; a < AxisCnt; ++a) acceptedMove[a] = false;
 	keyLockSetSafetyBypassOffTick = 0;
 	keyLockReleaseOutputOffTick = 0;
 	jogSpeed = 100;
@@ -146,10 +148,12 @@ int __fastcall Trobostar::io_Read()
 	short size = sizeof(receivedInput);
 	int receiveResult = mdReceive(config.path, config.stno, DevX, 0x0000,
 		&size, &receivedInput);
-	if(receiveResult == 0)
+	if(receiveResult == 0 && size == (short)sizeof(receivedInput))
 		input = receivedInput;
-	else
+	else{
 		m_ccLinkRunning = false;
+		if(receiveResult == 0) receiveResult = -1;
+	}
 
 	return receiveResult;
 }
@@ -169,22 +173,84 @@ int __fastcall Trobostar::io_WriteGripper()
 
 void __fastcall Trobostar::req_Pause(bool stop)
 {
-	step.timeout = 0;
-	step.delay = 0;
-
 	if(stop != pauseStatus){
 		if(stop){
 			seq_save = seq;
+			step_save = step;
 			seq = seqPause;
-			step_save.step = step.step;
 			pauseStatus = true;
+			if(!StopAxes()) motionFaultLatched = true;
+			// A stopped homing/jog operation must be explicitly started again.
+			if(seq_save == seqHome || seq_save == seqAutoRun || seq_save == seqEmgAutoRun ||
+				(seq_save >= seqJOGx_Plus && seq_save <= seqJogStop)){
+				seq_save = seqIdle;
+				for(int a = 1; a <= servoCnt; ++a) acceptedMove[a] = false;
+			}
 			MainForm->memoRobostarLineAdd("[C_Maint] [로보트]일시정지 상태입니다.");
 		}else{
+			if(!CanResumeMotion()){
+				MainForm->memoRobostarLineAdd("[PAUSE] Restart blocked: check communication, safety, BUFFER and axis stop status.");
+				return;
+			}
+			motionFaultLatched = false;
+			// Re-submit the accepted absolute targets, never treat DriveStop as INP.
+			for(int a = 1; a <= servoCnt; ++a){
+				if(!acceptedMove[a]) continue;
+				PNT_DATA_EX original = point[a];
+				point[a] = acceptedPoint[a];
+				bool resumed = setPoint(a, acceptedPoint[a].position);
+				point[a] = original;
+				if(!resumed) return;
+			}
 			seq = seq_save;
-			step.step = step_save.step;
+			step = step_save;
 			pauseStatus = false;
 			MainForm->memoRobostarLineAdd("[C_Maint] [로보트]일시정지가 해제되었습니다.");
 		}
+	}
+}
+//---------------------------------------------------------------------------
+bool Trobostar::StopAxes()
+{
+	if(!sscOpened) return true;
+	bool okay = true;
+	for(int a = 1; a <= servoCnt; ++a)
+		if(!WriteLog(sscDriveStop(board_id, channel_id, a, 0), "Pause DriveStop")) okay = false;
+	return okay;
+}
+bool Trobostar::AreAxesStopped()
+{
+	if(!sscOpened) return false; // No cached status is sufficient for door release.
+	for(int a = 1; a <= servoCnt; ++a){
+		int moving = SSC_BIT_ON;
+		long speed = -1;
+		if(sscGetStatusBitSignalEx(board_id, channel_id, a, SSC_STSBIT_AX_OP, &moving) != SSC_OK ||
+			sscGetCmdSpeedFast(board_id, channel_id, a, &speed) != SSC_OK ||
+			moving != SSC_BIT_OFF || speed != 0) return false;
+	}
+	return true;
+}
+bool Trobostar::CanResumeMotion()
+{
+	if(!pauseStatus) return true;
+	// Check the retained collision interlock BEFORE reissuing paused targets.
+	if(centeringMotionMonitorActive &&
+		(PlcBin == NULL || !PlcBin->IsPlcStatusFresh(1000) ||
+		 (centeringRequireSource && !PlcBin->IsSourceCentering()) ||
+		 (centeringRequireTarget && !PlcBin->IsTargetCentering()))) return false;
+	return IsCcLinkReady() && !input.GRIPPER1_BUFFER && IsSafetyReady() &&
+		!IsEmergencyStopActive() && IsKeyLockActive() && AreAxesStopped();
+}
+void Trobostar::MotionFault(const AnsiString &reason)
+{
+	bool first = !motionFaultLatched;
+	req_Pause(true);
+	StopAxes();
+	motionFaultLatched = true;
+	if(::gripper != NULL) ::gripper->req_Pause(true);
+	if(first){
+		MainForm->memoRobostarLineAdd("[MOTION STOP] " + reason);
+		ShowCommonError("Motion stopped", reason + ". Correct the cause, then use Restart.");
 	}
 }
 //---------------------------------------------------------------------------
@@ -885,24 +951,27 @@ void __fastcall Trobostar::Reset()
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::setPoint(int axnum_id, unsigned long int pos)
 {
-	bool pointAccepted = false;
-	bool moveAccepted = false;
-	int sts = SSC_OK;
-
-	if(axnum_id == Axis_zUp){
-		sts = sscSetPointDataEx(board_id, channel_id, Axis_z, 0, &point[0]);
-		pointAccepted = WriteLog(sts, "[" + IntToStr(Axis_z) +  "] POINT");
-		sts = sscAutoStart(board_id, channel_id, Axis_z, 0, 0);
-		moveAccepted = WriteLog(sts, "[" + IntToStr(Axis_z) +  "] MOVE");
-	}else{
-		point[axnum_id].position = pos;
-		sts = sscSetPointDataEx(board_id, channel_id, axnum_id, 0, &point[axnum_id]);
-		pointAccepted = WriteLog(sts, "[" + IntToStr(axnum_id) +  "] POINT");
-		sts = sscAutoStart(board_id, channel_id, axnum_id, 0, 0);
-		moveAccepted = WriteLog(sts, "[" + IntToStr(axnum_id) +  "] MOVE");
+	int axis = axnum_id == Axis_zUp ? Axis_z : axnum_id;
+	if(axis < 1 || axis > servoCnt || motionFaultLatched) return false;
+	if(!IsCcLinkReady() || input.GRIPPER1_BUFFER || !IsSafetyReady()){
+		MotionFault("Move blocked by CC-Link / BUFFER / safety interlock");
+		return false;
 	}
-
-	return pointAccepted && moveAccepted;
+	PNT_DATA_EX candidate = axnum_id == Axis_zUp ? point[0] : point[axis];
+	candidate.position = axnum_id == Axis_zUp ? 0 : pos;
+	// Never start using a previous point after a failed parameter write.
+	if(!WriteLog(sscSetPointDataEx(board_id, channel_id, axis, 0, &candidate), "POINT")){
+		MotionFault("Axis " + IntToStr(axis) + " point write failed");
+		return false;
+	}
+	if(!WriteLog(sscAutoStart(board_id, channel_id, axis, 0, 0), "MOVE")){
+		MotionFault("Axis " + IntToStr(axis) + " start failed");
+		return false;
+	}
+	if(axnum_id != Axis_zUp) point[axis] = candidate;
+	acceptedPoint[axis] = candidate;
+	acceptedMove[axis] = true;
+	return true;
 }
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::rangeCheck(int axnum_id)
@@ -1117,8 +1186,8 @@ void __fastcall Trobostar::AutoMove()
 			//* max speed mode - need remove
 			if(UseFatOptimizeSequenceDelay() &&
 				mr2.pos[Axis_z] == 0){
-				setPoint(Axis_x, activeTarget[Axis_x]);
-				setPoint(Axis_y, activeTarget[Axis_y]);
+				if(!setPoint(Axis_x, activeTarget[Axis_x])) return;
+				if(!setPoint(Axis_y, activeTarget[Axis_y])) return;
 				step.step = 11;
 				MainForm->memoRobostarLineAdd(
 					"[FAST OPTION] Z already at 0 / start X/Y without redundant Z UP");
@@ -1131,6 +1200,7 @@ void __fastcall Trobostar::AutoMove()
 
 			zUpCount = 0;
 			bSetPoint = setPoint(Axis_zUp, 0);
+			if(!bSetPoint) return;
 			MainForm->memoRobostarLineAdd("[MOVE ORDER] Z UP before X/Y");
 			step.step = 1;
 			break;
@@ -1176,8 +1246,8 @@ void __fastcall Trobostar::AutoMove()
 
 		case 10:
 			bSetPoint = false;
-			setPoint(Axis_x, activeTarget[Axis_x]);
-			setPoint(Axis_y, activeTarget[Axis_y]);
+			if(!setPoint(Axis_x, activeTarget[Axis_x])) return;
+			if(!setPoint(Axis_y, activeTarget[Axis_y])) return;
 			step.step += 1;
 			MainForm->memoRobostarLineAdd("[MOVE] X/Y pallet=" + IntToStr(activeMove.pallet) +
 				", channel=" + IntToStr(activeMove.channel) + ", target=" +
@@ -1262,7 +1332,7 @@ void __fastcall Trobostar::AutoMove()
 				MainForm->CompleteProcessStep(10, "Target channel position complete");
 				MainForm->BeginProcessStep(11, "Cell insert / Z DOWN / Gripper UNCHUCK");
 			}
-			setPoint(Axis_z, activeTarget[Axis_z]);
+			if(!setPoint(Axis_z, activeTarget[Axis_z])) return;
 			MainForm->memoRobostarLineAdd("[Z DOWN APPROVED] pallet=" + IntToStr(activeMove.pallet) +
 				", channel=" + IntToStr(activeMove.channel) + ", X/Y/Z=" +
 				IntToStr((__int64)activeTarget[Axis_x]) + "/" +
@@ -1357,7 +1427,7 @@ void __fastcall Trobostar::WaitPosition()
 			teachForm->pnlMovingAlarm->BringToFront();
 			teachForm->pnlMovingAlarm2->Visible = true;
 			teachForm->pnlMovingAlarm2->BringToFront();
-			setPoint(Axis_zUp, 0);
+			if(!setPoint(Axis_zUp, 0)) return;
 			step.step += 1;
 			break;
 		case 1:
@@ -1376,8 +1446,8 @@ void __fastcall Trobostar::WaitPosition()
 			}
 			break;
 		case 2:
-			setPoint(Axis_x, Wait_xAxis);   // x 위치 이동
-			setPoint(Axis_y, Wait_yAxis);   // y 위치이동
+			if(!setPoint(Axis_x, Wait_xAxis)) return;
+			if(!setPoint(Axis_y, Wait_yAxis)) return;
 			step.step += 1;
 			MainForm->memoRobostarLineAdd("[MOVE] X and Y");
 			break;
@@ -1418,11 +1488,7 @@ void __fastcall Trobostar::DryRunWaitPosition()
 		case 0:
 			zUpCount = 0;
 			bSetPoint = setPoint(Axis_zUp, 0);
-			if(!bSetPoint){
-				MainForm->memoRobostarLineAdd("[DRY RUN] HOME return Z UP command failed");
-				req_Stop();
-				return;
-			}
+			if(!bSetPoint) return;
 			step.step = 1;
 			break;
 		case 1:
@@ -1439,12 +1505,9 @@ void __fastcall Trobostar::DryRunWaitPosition()
 		case 2:
 		{
 			bool xAccepted = setPoint(Axis_x, Wait_xAxis);
+			if(!xAccepted) return;
 			bool yAccepted = setPoint(Axis_y, Wait_yAxis);
-			if(!xAccepted || !yAccepted){
-				MainForm->memoRobostarLineAdd("[DRY RUN] HOME return X/Y command failed");
-				req_Stop();
-				return;
-			}
+			if(!yAccepted) return;
 			step.step = 3;
 			break;
 		}
@@ -1478,6 +1541,7 @@ void __fastcall Trobostar::zUp()
 		case 0: // Z축 상승
 			zUpCount = 0;
 			bSetPoint = setPoint(Axis_zUp, 0);
+			if(!bSetPoint) return;
 			teachForm->pnlMovingAlarm->Visible = true;
 			teachForm->pnlMovingAlarm->BringToFront();
 			teachForm->pnlMovingAlarm2->Visible = true;
@@ -1520,6 +1584,7 @@ void __fastcall Trobostar::zDown()
 			}
 			zUpCount = 0;
 			bSetPoint = setPoint(Axis_z, activeTarget[Axis_z]);
+			if(!bSetPoint) return;
 			teachForm->pnlMovingAlarm->Visible = true;
 			teachForm->pnlMovingAlarm->BringToFront();
 			teachForm->pnlMovingAlarm2->Visible = true;
@@ -1904,6 +1969,8 @@ void __fastcall Trobostar::req_Speed(int speed, int accl, int dccl)
 void __fastcall Trobostar::req_Stop()
 {
 	int sts = 0;
+	for(int a = 1; a <= servoCnt; ++a) acceptedMove[a] = false;
+	motionFaultLatched = false;
 	pauseStatus = false;
 	seq_save = seqIdle;
 	activeMoveValid = false;
@@ -2251,8 +2318,8 @@ void __fastcall Trobostar::AutoEject()
 						step.step = 7;
 						step.timeout = 0;
 					}else{
-						ErrorForm_eject->ShowError(msg + " Source tray state save failed.",
-							"Eject local state commit error", move.tool, 20);
+						// saveTrayInfo owns Pause. Retry only the commit at this step.
+						return;
 					}
 				}else{
 					step.timeout += 1;
@@ -2272,6 +2339,7 @@ void __fastcall Trobostar::AutoEject()
 			case 7:
 				zUpCount = 0;
 				bSetPoint = setPoint(Axis_zUp, 0);
+				if(!bSetPoint) return;
 				if(!bSetPoint){
 					ErrorForm_eject->ShowError(msg + " Z UP command failed.",
 						"Eject Z UP command error", move.tool, 17);
@@ -2452,6 +2520,7 @@ void __fastcall Trobostar::AutoInsert()
 				// Raise the gripper first; cell-clear confirmation is performed at Z=0.
 				zUpCount = 0;
 				bSetPoint = setPoint(Axis_zUp, 0);
+				if(!bSetPoint) return;
 				if(!bSetPoint){
 					ErrorForm_insert->ShowError(msg + " Z UP command failed.",
 						"Insert Z UP command error", move.tool, 21);
@@ -2514,8 +2583,8 @@ void __fastcall Trobostar::AutoInsert()
 							"Cell insert saved / Z position 0 / cell clear confirmed");
 						InitSequence(seqAutoInsertComplete);
 					}else{
-						ErrorForm_insert->ShowError(msg + " Target tray state save failed.",
-							"Insert local state commit error", move.tool, 23);
+						// Physical release is complete; never restart the insert on disk failure.
+						return;
 					}
 				}else{
 					step.timeout += 1;
@@ -2638,6 +2707,36 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 	MainForm->Caption = step.step;
 
 	this->io_Read();
+	bool productionActive = ::gripper != NULL && !::gripper->pauseStatus &&
+		MainForm->equipMode == modeAuto;
+	bool motionActive = seq != seqIdle && seq != seqPause && seq != seqInit &&
+		seq != seqReset && seq != seqServoOff && seq != seqServoOn;
+	if((motionActive || productionActive) && (!IsCcLinkReady() || input.GRIPPER1_BUFFER)){
+		MotionFault(!IsCcLinkReady() ? "CC-Link input data unavailable" : "X0023 BUFFER sensor ON");
+		return;
+	}
+	// Clear accepted move records only after fresh stopped/target confirmation.
+	if(sscOpened && !pauseStatus){
+		for(int a = 1; a <= servoCnt; ++a){
+			if(!acceptedMove[a]) continue;
+			int moving = SSC_BIT_ON;
+			long p = 0;
+			if(sscGetStatusBitSignalEx(board_id, channel_id, a, SSC_STSBIT_AX_OP, &moving) == SSC_OK &&
+				sscGetCurrentCmdPositionFast(board_id, channel_id, a, &p) == SSC_OK &&
+				moving == SSC_BIT_OFF && p == acceptedPoint[a].position) acceptedMove[a] = false;
+		}
+	}
+	// Set on sequence/step transition; Pause resets the wait watchdog.
+	static robotSequence watchedSeq = seqIdle;
+	static int watchedStep = -1;
+	static DWORD waitStarted = 0;
+	if(seq != watchedSeq || step.step != watchedStep || !motionActive){
+		watchedSeq = seq; watchedStep = step.step; waitStarted = GetTickCount();
+	}else if(GetTickCount() - waitStarted > 120000){
+		MotionFault("Motion/sensor wait timeout: sequence=" + IntToStr((int)seq) +
+			" step=" + IntToStr(step.step));
+		return;
+	}
 
 	// While the door recovery form is open, guide the operator to the physical
 	// X0025 reset key whenever either safety-ready circuit is not established.
@@ -2650,6 +2749,10 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 	// transition also resets it OFF; only the UI command after confirmed KEYLOCK set
 	// may turn it ON long enough to rotate the hardware key to OFF.
 	bool bypassSwitchOn = IsBypassActive();
+	// Single Y003D owner: a fresh BYPASS ON edge enables it; KEYLOCK set clears it.
+	// Holding the key ON must not undo the completed KEYLOCK set sequence.
+	if(IsCcLinkReady() && bypassSwitchOn && !previousBypassSwitchOn)
+		gripper.SAFETY_BYPASS_ON = true;
 	if(input.SAFETY_DOOR_1 || input.SAFETY_DOOR_2
 		|| keyLockReleasePending || !IsKeyLockActive()
 		|| !bypassSwitchOn || (bypassSwitchOn && !previousBypassSwitchOn))
@@ -2683,7 +2786,9 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 
 	// KEYLOCK release: Y003D ON first, then Y0033/Y0034 OFF after 500 ms.
 	if(keyLockReleasePending && keyLockReleaseOutputOffTick != 0
-		&& (LONG)(nowTick - keyLockReleaseOutputOffTick) >= 0){
+		&& (LONG)(nowTick - keyLockReleaseOutputOffTick) >= 0 &&
+		MainForm->equipMode == modeManual && IsBypassActive() &&
+		IsCcLinkReady() && AreAxesStopped()){
 		gripper.DOOR_LEFT_CLOSE = false;
 		gripper.DOOR_RIGHT_CLOSE = false;
 		keyLockReleaseOutputOffTick = 0;
@@ -2902,6 +3007,11 @@ void __fastcall Trobostar::DataModuleDestroy(TObject *Sender)
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::KeyLock(bool on)
 {
+	if(!IsCcLinkReady()) return false;
+	if(!on && !AreAxesStopped()){
+		MainForm->memoRobostarLineAdd("[KEYLOCK] Release blocked: all-axis stop is not confirmed.");
+		return false;
+	}
 	if(!on){
 		// KEYLOCK release interlocks:
 		// 1) automatic operation must never release the key lock;

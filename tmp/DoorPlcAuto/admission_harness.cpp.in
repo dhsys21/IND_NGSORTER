@@ -21,11 +21,14 @@ struct PLC {
 struct TMainForm {
     int equipMode,fmsAlarmTransaction,logs,waits;
     bool sourceTrayCycleAdmitted,sourceTrayOutPending;
+    bool opcTrayDisplayed[2],opcTrayLoaded[2],sourceCenteringCompleted;
     Check door,bypass,*chkDoorPlcAuto,*chkBypass;
     Step step[2];
     TMainForm():equipMode(modeAuto),fmsAlarmTransaction(0),logs(0),waits(0),
         sourceTrayCycleAdmitted(false),sourceTrayOutPending(false),chkDoorPlcAuto(&door),chkBypass(&bypass){
         door.Checked=bypass.Checked=false;step[0].step=step[1].step=0;
+        opcTrayDisplayed[0]=opcTrayDisplayed[1]=opcTrayLoaded[0]=opcTrayLoaded[1]=true;
+        sourceCenteringCompleted=false;
         g.pauseStatus=r.pauseStatus=false;
         plc.fresh=true;plc.autoMode=false;plc.tray=true;plc.center=false;
         plc.targetTray=plc.targetCenter=plc.out=plc.request=false;
@@ -48,23 +51,27 @@ int main(){
         plc.tray=(flags&4)!=0;plc.center=(flags&8)!=0;
         f.door.Checked=(flags&16)!=0;f.bypass.Checked=(flags&32)!=0;
         g.pauseStatus=(flags&64)!=0;
-        bool request=plc.fresh && plc.autoMode && plc.tray && !plc.center && !f.bypass.Checked && !g.pauseStatus;
-        assert(f.CanRequestAutoSourceCentering()==request);
-        bool admitted=plc.fresh && plc.tray && !g.pauseStatus && (plc.autoMode || f.door.Checked) &&
-            (plc.center || (plc.autoMode && f.bypass.Checked));
+        assert(!f.CanRequestAutoSourceCentering()); // No centering before source TrayLoad.
+        bool admitted=plc.fresh && plc.tray && !g.pauseStatus &&
+            (plc.autoMode || (f.door.Checked && plc.center));
         assert(f.UpdateSourceTrayAdmission()==admitted);
         assert(f.sourceTrayCycleAdmitted==admitted);
+        f.step[0].step=2;
+        bool request=admitted && plc.autoMode && !plc.center && !f.bypass.Checked;
+        assert(f.CanRequestAutoSourceCentering()==request);
     }
     puts("PASS: 128 initial combinations: actual PLC AUTO requests centering; Door/Auto only admits real centered tray");
     {
         TMainForm f;plc.autoMode=true;
-        assert(f.CanRequestAutoSourceCentering() && !f.UpdateSourceTrayAdmission());
+        assert(!f.CanRequestAutoSourceCentering() && f.UpdateSourceTrayAdmission());
+        f.step[0].step=2;assert(f.CanRequestAutoSourceCentering());
         plc.autoMode=false;assert(!f.CanRequestAutoSourceCentering());
-        plc.center=true;assert(!f.UpdateSourceTrayAdmission());
+        plc.center=true;assert(f.UpdateSourceTrayAdmission());
         plc.autoMode=true;assert(f.UpdateSourceTrayAdmission());
         plc.autoMode=false;assert(f.UpdateSourceTrayAdmission() && f.IsSourceTrayCycleReady());
         assert(f.logs==1 && !f.CanRequestAutoSourceCentering());
-        plc.center=false;assert(!f.IsSourceTrayCycleReady() && !f.CanRequestAutoSourceCentering());
+        plc.center=false;assert(f.IsSourceTrayCycleReady() && !f.CanRequestAutoSourceCentering());
+        f.sourceCenteringCompleted=true;
         plc.autoMode=true;assert(!f.CanRequestAutoSourceCentering());
         g.pauseStatus=true;plc.center=true;assert(!f.UpdateSourceTrayAdmission());
         g.pauseStatus=false;assert(f.UpdateSourceTrayAdmission());
@@ -86,6 +93,6 @@ int main(){
         f.equipMode=modeAuto;f.fmsAlarmTransaction=1;assert(!f.UpdateSourceTrayAdmission());
     }
     puts("PASS: no simulated input; toggle does not revoke admitted tray; TrayOut, PC MANUAL, FMS alarm remain blocked");
-    puts("PASS: FMS callback gates and unchanged actual motion-stop logic verified by runner");
+    puts("PASS: FMS callback gates and live motion centering gate verified by runner");
     return 0;
 }

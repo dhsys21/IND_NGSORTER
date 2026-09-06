@@ -12,6 +12,7 @@
 #include "Define.h"
 
 #include <deque>
+#include <string>
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
@@ -130,6 +131,7 @@ __published:	// IDE-managed Components
 
 
 private:	// User declarations
+	std::string plcRxBytes, pcRxBytes;
     bool bClose;
     PLC_DATA plc_Data;
     PC_DATA pc_Data;

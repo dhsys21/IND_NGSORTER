@@ -5,6 +5,7 @@
 #pragma hdrstop
 
 #include "FormBase.h"
+#include "ProductionProtocol.h"
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma classgroup "Vcl.Controls.TControl"
@@ -115,6 +116,7 @@ void __fastcall TPlcBin::Timer_PLC_AutoConnectTimer(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TPlcBin::PLC_Initialization()
 {
+	plcRxBytes.clear();
 	plc_Read = "";
 	plc_ReadCount = 0;
 	plc_ReadFlag = true;
@@ -149,36 +151,26 @@ void __fastcall TPlcBin::ClientSocket_PLCError(TObject *Sender, TCustomWinSocket
 void __fastcall TPlcBin::ClientSocket_PLCRead(TObject *Sender, TCustomWinSocket *Socket)
 
 {
-    int length = Socket->ReceiveLength();
-	plc_Read_Temp = Socket->ReceiveText();
-
-	for(int i = 0; i < length; i++)
-		plc_Read += IntToHex((unsigned char)plc_Read_Temp[i + 1], 2);
-   //	TotalForm->Memo1->Lines->Add(plc_Read);
-	while(!plc_Read.IsEmpty() && (plc_Read.Length() >= 54) && (plc_Read.Pos("D000")))
-	{
-		int index = plc_Read.Pos("D000");
-
-		if(index != 1) plc_Read.Delete(1, index - 1);		//	헤더 위치 인지 확인
-
-		if(plc_Read.SubString(19, 4) == "0000")		// 종료 코드 확인(에러)
-		{
-			int length = 18 + StrToInt("0x" + plc_Read.SubString(15, 2))
-						+ (StrToInt("0x" + plc_Read.SubString(17, 2)) * 256);		//	데이터 길이 확인
-
-			if(plc_Read.Length() >= length)
-			{
-				if(plc_index == PLC_INDEX_INTERFACE) PLC_Recv_Interface();
-				else plc_index = PLC_INDEX_INTERFACE;
-			}
-			else break;
+	char bytes[4096];
+	int count = Socket->ReceiveBuf(bytes, sizeof(bytes));
+	if(count <= 0) return;
+	plcRxBytes.append(bytes, count);
+	std::string frame;
+	int result;
+	while((result = TakeMcResponse(plcRxBytes, frame)) == 1){
+		if(frame[9] != 0 || frame[10] != 0 || frame.size() != 11 + PLC_D_INTERFACE_LEN * 2){
+			lastPlcStatusTick = 0;
+			Socket->Close();
+			return;
 		}
 		plc_Read = "";
-		break;
+		for(unsigned i = 0; i < frame.size(); ++i)
+			plc_Read += IntToHex((unsigned char)frame[i], 2);
+		if(plc_index == PLC_INDEX_INTERFACE) PLC_Recv_Interface();
+		plc_ReadCount = 0;
+		plc_ReadFlag = true;
 	}
-
-	plc_ReadCount = 0;
-	plc_ReadFlag = true;
+	if(result < 0){ lastPlcStatusTick = 0; Socket->Close(); }
 }
 //---------------------------------------------------------------------------
 
@@ -188,6 +180,7 @@ void __fastcall TPlcBin::ClientSocket_PLCRead(TObject *Sender, TCustomWinSocket 
 //---------------------------------------------------------------------------
 void __fastcall TPlcBin::PC_Initialization()
 {
+	pcRxBytes.clear();
 	pc_Read = "";
 	pc_ReadFlag = true;
 	pc_ReadCount = 0;
@@ -222,28 +215,20 @@ void __fastcall TPlcBin::ClientSocket_PCError(TObject *Sender, TCustomWinSocket 
 void __fastcall TPlcBin::ClientSocket_PCRead(TObject *Sender, TCustomWinSocket *Socket)
 
 {
-    int length = Socket->ReceiveLength();
-	pc_Read_Temp = Socket->ReceiveText();
-
-	for(int i = 0; i < length; i++)
-		pc_Read += IntToHex((unsigned char)pc_Read_Temp[i + 1], 2);
-
-	while(!pc_Read.IsEmpty() && (pc_Read.Length() >= 22) && (pc_Read.Pos("D000")))
-	{
-		int index = pc_Read.Pos("D000");
-
-		if(index == 1)
-		{
-			if(pc_Read.SubString(19, 4) == "0000")	//	무조껀 읽어야 함, 그래서 생략
-			{
-				pc_ReadFlag = true;
-				pc_ReadCount = 0;
-			}
-			pc_Read = "";
-			break;
+	char bytes[4096];
+	int count = Socket->ReceiveBuf(bytes, sizeof(bytes));
+	if(count <= 0) return;
+	pcRxBytes.append(bytes, count);
+	std::string frame;
+	int result;
+	while((result = TakeMcResponse(pcRxBytes, frame)) == 1){
+		if(frame.size() != 11 || frame[9] != 0 || frame[10] != 0){
+			Socket->Close(); return;
 		}
-		else pc_Read.Delete(1, index - 1);
+		pc_ReadFlag = true;
+		pc_ReadCount = 0;
 	}
+	if(result < 0) Socket->Close();
 }
 //---------------------------------------------------------------------------
 

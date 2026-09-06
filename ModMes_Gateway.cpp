@@ -239,6 +239,7 @@ __fastcall TMod_Fms::TMod_Fms(TComponent* Owner)
 {
 	FLock = new TCriticalSection();
 	FSendLock = new TCriticalSection();
+	FActiveContext = NULL;
 	FLogLock = new TCriticalSection();
 
 	Timer_Alive->Enabled = false;
@@ -309,6 +310,15 @@ void __fastcall TMod_Fms::Start(void)
 //---------------------------------------------------------------------------
 void __fastcall TMod_Fms::Stop(void)
 {
+	// Shutdown-only bounded drain lets the final FMS EnvStatus Running=false leave
+	// the worker queue. Normal UI timers never wait for network I/O.
+	DWORD drainStarted = GetTickCount();
+	while(IsGatewayConnected() && GetTickCount() - drainStarted < 500){
+		bool empty;
+		{ TLockGuard Guard(FLock); empty = FPendingPcTags.empty(); }
+		if(empty) break;
+		Sleep(10);
+	}
 	// Shutdown order: stop producers first, mark the worker callbacks as stopping,
 	// disconnect live contexts, and only then deactivate the Indy server.
 	FStopping = true;
@@ -440,11 +450,22 @@ void __fastcall TMod_Fms::TcpServerConnect(TIdContext *AContext)
 		AContext->Connection->IOHandler != NULL)
 	{
 		AContext->Connection->IOHandler->DefStringEncoding = Idglobal::IndyTextEncoding_UTF8();
+		// Indy 10.1 has no IOHandler WriteTimeout. Bound the Windows socket send.
+		AContext->Binding->SetSockOpt(Idstackconsts::Id_SOL_SOCKET, Idstackconsts::Id_SO_SNDTIMEO, 2000);
 	}
 
 	{
 		TLockGuard Guard(FLock);
+		if(FGatewayConnected){
+			AContext->Connection->Disconnect(false);
+			return;
+		}
 		FGatewayConnected = true;
+		FActiveContext = AContext;
+		FInFlightPcTags.clear(); // Failed writes remain pending, never acknowledged by an error reply.
+		FSnapshotReceived = false;
+		for(TTagMap::iterator it = FLocalPcTags.begin(); it != FLocalPcTags.end(); ++it)
+			FPendingPcTags[it->first] = it->second;
 	}
 	LogOpcUa(L"CONNECT", L"Gateway connected");
 }
@@ -453,6 +474,8 @@ void __fastcall TMod_Fms::TcpServerDisconnect(TIdContext *AContext)
 {
 	{
 		TLockGuard Guard(FLock);
+		if(FActiveContext != AContext) return;
+		FActiveContext = NULL;
 		FGatewayConnected = false;
 	}
 	if (!FStopping)
@@ -468,7 +491,23 @@ void __fastcall TMod_Fms::TcpServerExecute(TIdContext *AContext)
 	try
 	{
 		UnicodeString Line = AContext->Connection->IOHandler->ReadLn(
-			L"\n", -1, FMS_MAX_JSON_LINE_LENGTH, Idglobal::IndyTextEncoding_UTF8());
+			L"\n", 100, FMS_MAX_JSON_LINE_LENGTH, Idglobal::IndyTextEncoding_UTF8());
+		if(AContext->Connection->IOHandler->ReadLnTimedout){
+			// The Indy worker sends PC updates even while the peer sends nothing.
+			// ReadLn retains an incomplete line for the next invocation.
+			bool sendPending = false;
+			{
+				TLockGuard Guard(FLock);
+				sendPending = FSnapshotReceived && !FPendingPcTags.empty();
+			}
+			if(!sendPending || FStopping) return;
+			TLockGuard SendGuard(FSendLock);
+			UnicodeString response = BuildSuccessResponse();
+			AContext->Connection->IOHandler->Write(response + L"\n", Idglobal::IndyTextEncoding_UTF8());
+			AcknowledgePcTags();
+			LogOpcUa(L"TX_DETAIL", response, false);
+			return;
+		}
 
 		if (Line.Length() > 0 && Line[Line.Length()] == L'\r')
 			Line = Line.SubString(1, Line.Length() - 1);
@@ -510,6 +549,7 @@ void __fastcall TMod_Fms::TcpServerExecute(TIdContext *AContext)
 				return;
 			AContext->Connection->IOHandler->Write(
 				Response + L"\n", Idglobal::IndyTextEncoding_UTF8());
+			AcknowledgePcTags();
 		}
 	}
 	catch (Exception &E)
@@ -882,11 +922,13 @@ void __fastcall TMod_Fms::ApplySnapshot(TJSONObject *Json)
 
 	FFmsTags.clear();
 	FFmsTagRevisions.clear();
-	FPcTags.clear();
 	if (FmsTags != NULL)
 		CopyTags(FmsTags, FFmsTags, ftdFmsOnly);
 	if (PcTags != NULL)
 		CopyTags(PcTags, FPcTags, ftdEqpOnly);
+	// The gateway snapshot can contain stale EQP values after reconnect.
+	for(TTagMap::iterator it = FLocalPcTags.begin(); it != FLocalPcTags.end(); ++it)
+		FPcTags[it->first] = it->second;
 
 	FSnapshotReceived = true;
 }
@@ -931,7 +973,7 @@ void __fastcall TMod_Fms::CopyTags(TJSONObject *Tags, TTagMap &Target, TFmsTagDi
 			UnicodeString Value = Pair->JsonValue->ToString();
 			if (&Target == &FFmsTags)
 				StoreFmsTag(NormalizedKey, Value);
-			else
+			else if(FLocalPcTags.find(NormalizedKey) == FLocalPcTags.end())
 				Target[NormalizedKey] = Value;
 		}
 	}
@@ -1027,7 +1069,7 @@ UnicodeString __fastcall TMod_Fms::BuildSuccessResponse(void)
 	{
 		TLockGuard Guard(FLock);
 		Pending = FPendingPcTags;
-		FPendingPcTags.clear();
+		FInFlightPcTags = Pending;
 	}
 
 	if (!Pending.empty())
@@ -1098,51 +1140,40 @@ void __fastcall TMod_Fms::SetPcTagJson(const UnicodeString &Key, const UnicodeSt
 	UnicodeString NormalizedKey = NormalizeTagKeyForDirection(Key, ftdEqpOnly);
 	TLockGuard Guard(FLock);
 	FPcTags[NormalizedKey] = JsonValue;
-	FPendingPcTags[NormalizedKey] = JsonValue;
+	FLocalPcTags[NormalizedKey] = JsonValue;
+	FStagedPcTags[NormalizedKey] = JsonValue;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMod_Fms::FlushPendingPcTags(bool LogTx)
 {
-	if (TcpServer == NULL || !TcpServer->Active)
-		return;
-	if (!IsGatewayConnected())
-		return;
-
-	UnicodeString Response = BuildSuccessResponse();
-	if (Response.Pos(L"\"tags\"") <= 0)
-		return;
-
-	TList *List = TcpServer->Contexts->LockList();
-	try
-	{
-		TLockGuard SendGuard(FSendLock);
-		for (int i = 0; i < List->Count; ++i)
-		{
-			TIdContext *Context = static_cast<TIdContext*>(List->Items[i]);
-			if (!FStopping && Context != NULL && Context->Connection != NULL &&
-				Context->Connection->IOHandler != NULL &&
-				Context->Connection->Connected())
-			{
-				try
-				{
-					Context->Connection->IOHandler->Write(
-						Response + L"\n", Idglobal::IndyTextEncoding_UTF8());
-				}
-				catch (Exception &E)
-				{
-					if (!FStopping)
-						LogOpcUa(L"ERROR", L"TCP flush: " + E.Message);
-				}
-			}
-		}
+	// Producers only publish memory state. OnExecute drains it within 100 ms;
+	// no socket, context-list or send lock may be waited on by the VCL thread.
+	TLockGuard Guard(FLock);
+	for(TTagMap::iterator it = FStagedPcTags.begin(); it != FStagedPcTags.end(); ++it)
+		FPendingPcTags[it->first] = it->second;
+	FStagedPcTags.clear();
+}
+void TMod_Fms::AcknowledgePcTags()
+{
+	TLockGuard Guard(FLock);
+	for(TTagMap::iterator it = FInFlightPcTags.begin(); it != FInFlightPcTags.end(); ++it){
+		TTagMap::iterator pending = FPendingPcTags.find(it->first);
+		// A producer may have updated this key while the socket write was blocked.
+		if(pending != FPendingPcTags.end() && pending->second == it->second)
+			FPendingPcTags.erase(pending);
 	}
-	__finally
-	{
-		TcpServer->Contexts->UnlockList();
-	}
-
-	if (LogTx)
-		LogOpcUa(L"TX", Response);
+	FInFlightPcTags.clear();
+}
+void TMod_Fms::SetPcEnvStatus(const UnicodeString &Prefix, double Temperature,
+	bool Smoke, bool Warning, bool Danger, bool Running)
+{
+	// FMS EnvStatus: one lock covers all five fields and the pending snapshot.
+	TLockGuard Guard(FLock);
+	SetPcTag(Prefix + L".Temperature", Temperature);
+	SetPcTag(Prefix + L".SmokeDetected", Smoke);
+	SetPcTag(Prefix + L".TempWarning", Warning);
+	SetPcTag(Prefix + L".TempDanger", Danger);
+	SetPcTag(Prefix + L".Running", Running);
 }
 //---------------------------------------------------------------------------
 bool __fastcall TMod_Fms::GetPcTagJson(const UnicodeString &Key, UnicodeString &JsonValue)

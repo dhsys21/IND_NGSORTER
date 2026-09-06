@@ -105,6 +105,7 @@ void __fastcall TMod_Bcr::TriggerOff()
 //---------------------------------------------------------------------------
 void __fastcall TMod_Bcr::GetBarcode()
 {
+	if(bReading) return; // One outstanding trigger per TCP session.
 	if(!ClientSocketBcr->Active) {
 		ErrorForm_bcr->Tag = Tag;
 		ErrorForm_bcr->ShowError(ReaderName() + " is disconnected.", false);
@@ -126,6 +127,9 @@ void __fastcall TMod_Bcr::ReadTimeoutTimer(TObject *Sender)
 
 	bReading = false;
 	TriggerOff();
+	rxBuffer = "";
+	// The protocol has no request ID. A new TCP session isolates late results.
+	ClientSocketBcr->Close();
 	ErrorForm_bcr->Tag = Tag;
 	if(Tag == 0)
 		ErrorForm_bcr->ShowError("Source Tray barcode can not be scanned.", false);
@@ -140,6 +144,9 @@ void __fastcall TMod_Bcr::ClientSocketBcrConnect(TObject *Sender, TCustomWinSock
 //---------------------------------------------------------------------------
 void __fastcall TMod_Bcr::ClientSocketBcrDisconnect(TObject *Sender, TCustomWinSocket *Socket)
 {
+	bReading = false;
+	rxBuffer = "";
+	Timer1->Enabled = false;
 	if(bClose) bClose = false;
 	else Timer_AutoConnect->Enabled = true;
 }
@@ -165,11 +172,14 @@ void __fastcall TMod_Bcr::ClientSocketBcrRead(TObject *Sender, TCustomWinSocket 
 	int len = ClientSocketBcr->Socket->ReceiveBuf(buf, sizeof(buf) - 1);
 
 	if(len <= 0) return;
+	if(!bReading){ rxBuffer = ""; return; }
 	buf[len] = 0;
 	rxBuffer += AnsiString(buf);
+	if(rxBuffer.Length() > 4096){ ReadTimeoutTimer(Sender); return; }
 
 	int pos = rxBuffer.Pos("\r");
-	if(pos <= 0) pos = rxBuffer.Pos("\n");
+	int lf = rxBuffer.Pos("\n");
+	if(pos <= 0 || (lf > 0 && lf < pos)) pos = lf;
 
 	while(pos > 0) {
 		AnsiString line = rxBuffer.SubString(1, pos - 1);
@@ -178,15 +188,16 @@ void __fastcall TMod_Bcr::ClientSocketBcrRead(TObject *Sender, TCustomWinSocket 
 		ProcessResult(line);
 
 		pos = rxBuffer.Pos("\r");
-		if(pos <= 0) pos = rxBuffer.Pos("\n");
+		lf = rxBuffer.Pos("\n");
+		if(pos <= 0 || (lf > 0 && lf < pos)) pos = lf;
 	}
 
-	if(!rxBuffer.Trim().IsEmpty())
-		ProcessResult(rxBuffer);
+	// Keep the unterminated tail for the next TCP packet.
 }
 //---------------------------------------------------------------------------
 void __fastcall TMod_Bcr::ProcessResult(AnsiString data)
 {
+	if(!bReading) return;
 	AnsiString result = data.Trim();
 	if(result.IsEmpty()) return;
 

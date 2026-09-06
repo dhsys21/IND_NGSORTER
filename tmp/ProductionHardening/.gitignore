@@ -1,0 +1,11 @@
+/edit/
+/edit_sources.ps1
+/*.log
+/*_harness.cpp
+/*.obj
+/*.exe
+/*.tds
+/*.ilc
+/*.ild
+/*.ilf
+/*.ils

@@ -346,6 +346,12 @@ private:	// User declarations
 	DWORD keyLockReleaseOutputOffTick;     // Non-blocking KEYLOCK-release delay deadline.
 	DWORD safetyResetPulseUntilTick;
 	PNT_DATA_EX point[AxisCnt];
+	// Accepted targets are set by setPoint(), cleared on completion/req_Stop().
+	PNT_DATA_EX acceptedPoint[AxisCnt];
+	bool acceptedMove[AxisCnt];
+	bool motionFaultLatched;
+	bool StopAxes();
+	void MotionFault(const AnsiString &reason);
 	// Immutable snapshot of the accepted tray move. Z DOWN must match this snapshot.
 	MOVE activeMove;
 	long activeTarget[AxisCnt];
@@ -428,6 +434,8 @@ public:		// User declarations
 	robotSequence seq_save;
 	bool pauseStatus;
 	void __fastcall req_Pause(bool stop);
+	bool AreAxesStopped();
+	bool CanResumeMotion();
 	void __fastcall setTx();
 	bool __fastcall CheckEjectCell_before(int pos);
 	bool __fastcall KeyLock(bool on);

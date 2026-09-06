@@ -98,9 +98,9 @@ private:	// User declarations
 	void __fastcall BeginTransferResult(int toolIndex);
 	void __fastcall StartTransferPhase(TRANSFER_PHASE phase);
 	void __fastcall UpdateTransferResult();
-	void __fastcall SaveTransferResultRecord(const TRANSFER_RESULT &result, bool waitBypassed);
-	void __fastcall SavePendingTransferResult(bool waitBypassed);
-	void __fastcall SaveTransferResult(bool waitBypassed);
+	bool __fastcall SaveTransferResultRecord(const TRANSFER_RESULT &result, bool waitBypassed);
+	bool __fastcall SavePendingTransferResult(bool waitBypassed);
+	bool __fastcall SaveTransferResult(bool waitBypassed);
 	void __fastcall Initialize();
 	void __fastcall Sorting();
 	void __fastcall Inserting();

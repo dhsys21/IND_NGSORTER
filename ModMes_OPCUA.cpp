@@ -206,6 +206,7 @@ static bool ReadRequiredString(const UnicodeString &Key, UnicodeString &Value, c
 //---------------------------------------------------------------------------
 static bool ValidateSourceTrackInCells(bool LogFailure)
 {
+	bool seenCellNo[97] = {false};
 	SetTrayLoadValidationError(true, "");
 	if (!HasFmsTag(TrackInTag(L"CellCount")))
 	{
@@ -270,6 +271,11 @@ static bool ValidateSourceTrackInCells(bool LogFailure)
 			return false;
 		}
 
+		if(seenCellNo[CellNo]){
+			SetTrayLoadValidationError(true, "Duplicate Source CellNo=" + IntToStr(CellNo));
+			return false;
+		}
+		seenCellNo[CellNo] = true;
 		if (CellExist && CellId.IsEmpty())
 		{
 			SetTrayLoadValidationError(true,
@@ -285,6 +291,7 @@ static bool ValidateSourceTrackInCells(bool LogFailure)
 //---------------------------------------------------------------------------
 static bool ValidateTargetTrackInCells(bool LogFailure)
 {
+	bool seenCellNo[97] = {false};
 	SetTrayLoadValidationError(false, "");
 	UnicodeString Root = TAG_TARGET + L".TrackInCellInformation";
 	UnicodeString CountKey = TrackInTag(TAG_TARGET, L"CellCount");
@@ -330,6 +337,13 @@ static bool ValidateTargetTrackInCells(bool LogFailure)
 		}
 
 		int CellNo = GetFmsInt(CellTag(Root, Record, L"CellNo"));
+		if(CellNo >= 1 && CellNo <= 96){
+			if(seenCellNo[CellNo]){
+				SetTrayLoadValidationError(false, "Duplicate Target CellNo=" + IntToStr(CellNo));
+				return false;
+			}
+			seenCellNo[CellNo] = true;
+		}
 		bool CellExist = GetFmsBool(CellTag(Root, Record, L"CellExist"));
 		UnicodeString CellId = GetFmsString(CellTag(Root, Record, L"CellId")).Trim();
 		if (!CellExist && CellNo == 0 && CellId.IsEmpty())
@@ -862,13 +876,10 @@ void __fastcall TMesOpc::PublishEnvStatus(double Temperature,
 	if(!Changed)
 		return;
 
-	SetPcDouble(TAG_ENV_TEMPERATURE, Temperature);
-	SetPcBool(TAG_ENV_SMOKE_DETECTED, SmokeDetected);
-	SetPcBool(TAG_ENV_TEMP_WARNING, TempWarning);
-	SetPcBool(TAG_ENV_TEMP_DANGER, TempDanger);
-	SetPcBool(TAG_ENV_RUNNING, Running);
-	if(Mod_Fms != NULL)
-		Mod_Fms->FlushPendingPcTags(false);
+	if(Mod_Fms == NULL) return;
+	Mod_Fms->SetPcEnvStatus(L"NGS.F1NGS01.EnvStatus", Temperature,
+		SmokeDetected, TempWarning, TempDanger, Running);
+	Mod_Fms->FlushPendingPcTags(false);
 
 	FEnvStatusInitialized = true;
 	FLastEnvTemperature = Temperature;
@@ -938,6 +949,7 @@ bool __fastcall TMesOpc::DISPLAY_TRACK_IN_TRAYS()
 	int SourceExistCount = CountExistingTrayCells(Source);
 	ApplyTrayDisplay(Source, SourceTrayId, ProductModel, RouteId,
 		ProcessId, LotId, SourceExistCount);
+	CaptureApprovedSource(SourceTrayId);
 
 	MainForm->pbad_sum->Caption = "0";
 	MainForm->badList->Clear();
@@ -1176,6 +1188,7 @@ int __fastcall TMesOpc::TRAY_LOAD_RESPONSE(bool SourceTray)
 		Tray->TRAY_GUBUN = IntToStr(Tray->SLOT_COUNT);
 		ApplyTrayDisplay(Tray, TrayId, ProductModel, RouteId,
 			ProcessId, LotId, DisplayCellCount);
+		if(SourceTray) CaptureApprovedSource(TrayId);
 	}
 
 	SetPcBool(TrayProcessTag(Location, L"TrayLoad"), false);
@@ -1381,6 +1394,8 @@ bool __fastcall TMesOpc::READ_TRACK_IN_CELL(int SourceCellNo, AnsiString &CellId
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::CLEAR_TRACK_OUT_CELL_INFORMATION()
 {
+	// New source admission invalidates only the prior approved source snapshot.
+	FApprovedSourceTrayId = L"";
     UnicodeString Root = TAG_TARGET + L".TrackOutCellInformation";
     for (int i = 0; i < 96; ++i)
     {
@@ -1395,6 +1410,31 @@ void __fastcall TMesOpc::CLEAR_TRACK_OUT_CELL_INFORMATION()
     SetPcInt(TrackOutTag(L"CellCount"), 0);
     if(Mod_Fms != NULL) Mod_Fms->FlushPendingPcTags(false);
     LogOpcEvent("TRACK_OUT_CELL_INFORMATION CLEARED FOR NEW SOURCE TRAY PROCESS", true);
+}
+//---------------------------------------------------------------------------
+void TMesOpc::CaptureApprovedSource(const UnicodeString &TrayId)
+{
+	// Capture before Request OFF allows FMS to delete its TrackIn data.
+	FApprovedSourceTrayId = TrayId;
+	for(int i = 0; i < 96; ++i){
+		FApprovedSource[i].CellId = MainForm->tray_source.SLOT_ID[i];
+		FApprovedSource[i].LotId = MainForm->tray_source.CELL_LOT_ID[i];
+		FApprovedSource[i].NGCode = MainForm->tray_source.LOSS_CD[i];
+		FApprovedSource[i].Grade = MainForm->tray_source.RANK[i];
+		FApprovedSource[i].Exists = MainForm->tray_source.CELL_EXIST[i];
+		FApprovedSource[i].WorkFlag = MainForm->tray_source.WORK_FLAG[i];
+	}
+}
+bool TMesOpc::ReadApprovedSource(int CellNo, AnsiString &CellId, AnsiString &LotId,
+	AnsiString &NGCode, AnsiString &Grade, bool &WorkFlag)
+{
+	if(MainForm == NULL || CellNo < 1 || CellNo > 96 || FApprovedSourceTrayId.IsEmpty() ||
+		FApprovedSourceTrayId != MainForm->pTrayid_source->Caption.Trim()) return false;
+	const TApprovedCell &cell = FApprovedSource[CellNo - 1];
+	if(!cell.Exists || cell.CellId.IsEmpty()) return false;
+	CellId = cell.CellId; LotId = cell.LotId; NGCode = cell.NGCode;
+	Grade = cell.Grade; WorkFlag = cell.WorkFlag;
+	return true;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::PROCESS_DATA_WRITE()

@@ -667,8 +667,11 @@ public:		// User declarations
 	void __fastcall ReportIdleWaitStatus(bool force = false);
 
 	//* 불량트레이 관리
-	void __fastcall setTrayInfo(int index);
-	void __fastcall saveTrayInfo(int index);
+	bool __fastcall setTrayInfo(int index);
+	bool __fastcall saveTrayInfo(int index);
+	bool traySavePending[2]; // Set by failed save; cleared only by successful retry.
+	bool cellRecoveryReportAccepted; // Cleared at transfer start; set on FMS success.
+	bool RetryPendingTraySaves();
 	void __fastcall loadTrayInfo(int index);
 	bool __fastcall checkTrayInfo(int index);
 	SAVE_TRAY_INFO m_saveTrayInfo[2];

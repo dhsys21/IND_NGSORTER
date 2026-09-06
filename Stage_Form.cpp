@@ -398,7 +398,7 @@ void __fastcall TMainForm::AddList(AnsiString strType)
 }
 //---------------------------------------------------------------------------
 //* 불량트레이 관리
-void __fastcall TMainForm::setTrayInfo(int index)
+bool __fastcall TMainForm::setTrayInfo(int index)
 {
 	if(index == 0)
 	{
@@ -435,18 +435,21 @@ void __fastcall TMainForm::setTrayInfo(int index)
 		}
 	}
 
-	saveTrayInfo(index);
+	return saveTrayInfo(index);
 }
 //---------------------------------------------------------------------------
-void __fastcall TMainForm::saveTrayInfo(int index)
+bool __fastcall TMainForm::saveTrayInfo(int index)
 {
-	if(index < 0 || index > 1 || m_saveTrayInfo[index].LOT_ID.IsEmpty()) return;
+	if(index < 0 || index > 1 || m_saveTrayInfo[index].LOT_ID.IsEmpty()) return false;
 	AnsiString file = index == 1 ?
 		GetTargetTrayInfoFile(m_saveTrayInfo[index].LOT_ID) :
 		GetSourceTrayInfoFile(m_saveTrayInfo[index].LOT_ID);
 
 	DWORD saveStartTick = GetTickCount();
-	TMemIniFile *trayIni = new TMemIniFile(file);
+	AnsiString tempFile = file + ".pending";
+	TMemIniFile *trayIni = NULL;
+	try{
+	trayIni = new TMemIniFile(tempFile);
 	// Local tray schema follows TrackInCellInformation. Pick is the only
 	// equipment-only field and is required to restore reservation/work state.
 	try {
@@ -457,6 +460,17 @@ void __fastcall TMainForm::saveTrayInfo(int index)
 		trayIni->WriteInteger("TRAY", "CellCount", m_saveTrayInfo[index].SLOT_COUNT);
 		trayIni->WriteString("TRAY", "LastUpdated", FormatDateTime("yyyy-mm-dd hh:nn:ss", Now()));
 		trayIni->WriteString("TRAY", "State", "ACTIVE");
+		// One in-flight cell only. Preserve physical and FMS milestones separately
+		// in the current file, .pending (failed replacement) and .bak (prior state).
+		if(gripper != NULL){
+			trayIni->WriteString("TRANSFER_RECOVERY", "SourceTrayId", pTrayid_source->Caption);
+			trayIni->WriteString("TRANSFER_RECOVERY", "TargetTrayId", pTrayid_target->Caption);
+			trayIni->WriteString("TRANSFER_RECOVERY", "SourceCellNo", gripper->tool[0].source_ch);
+			trayIni->WriteString("TRANSFER_RECOVERY", "TargetCellNo", gripper->tool[0].target_ch);
+			trayIni->WriteBool("TRANSFER_RECOVERY", "PickupComplete", gripper->tool[0].eject_end);
+			trayIni->WriteBool("TRANSFER_RECOVERY", "InsertComplete", gripper->tool[0].insert_end);
+			trayIni->WriteBool("TRANSFER_RECOVERY", "FmsResponseAccepted", cellRecoveryReportAccepted);
+		}
 
 		for(int i = 0; i < 96; ++i)
 		{
@@ -478,12 +492,53 @@ void __fastcall TMainForm::saveTrayInfo(int index)
 	}
 	__finally {
 		delete trayIni;
+		trayIni = NULL;
+	}
+	// Validate the replacement before preserving the old file as .bak.
+	TMemIniFile *verify = new TMemIniFile(tempFile);
+	bool valid = false;
+	try{
+		valid = verify->ReadString("TRAY", "TrayId", "") == m_saveTrayInfo[index].LOT_ID &&
+			verify->ReadInteger("TRAY", "CellCount", -1) == m_saveTrayInfo[index].SLOT_COUNT;
+		for(int i = 0; valid && i < m_saveTrayInfo[index].SLOT_COUNT; ++i){
+			AnsiString section = "CELL_" + IntToStr(i + 1);
+			valid = verify->ReadString(section, "CellId", "?") == m_saveTrayInfo[index].SLOT_ID[i] &&
+				verify->ReadString(section, "Pick", "?") == m_saveTrayInfo[index].PICK[i];
+		}
+	}__finally{ delete verify; }
+	if(!valid) throw Exception("Tray file verification failed");
+	HANDLE h = CreateFileW(UnicodeString(tempFile).c_str(), GENERIC_WRITE, FILE_SHARE_READ,
+		NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if(h == INVALID_HANDLE_VALUE) RaiseLastOSError();
+	bool flushed = FlushFileBuffers(h) != 0;
+	CloseHandle(h);
+	if(!flushed) throw Exception("Tray file flush failed");
+	BOOL replaced = FileExists(file) ?
+		ReplaceFileW(UnicodeString(file).c_str(), UnicodeString(tempFile).c_str(),
+			UnicodeString(file + ".bak").c_str(), 0, NULL, NULL) :
+		MoveFileExW(UnicodeString(tempFile).c_str(), UnicodeString(file).c_str(), MOVEFILE_WRITE_THROUGH);
+	if(!replaced) RaiseLastOSError();
+	traySavePending[index] = false;
+	}catch(Exception &e){
+		traySavePending[index] = true;
+		if(robostar != NULL) robostar->req_Pause(true);
+		if(gripper != NULL) gripper->req_Pause(true);
+		memoMainLineAdd("[LOCAL TRAY] SAVE FAILED: " + file + " / " + AnsiString(e.Message));
+		ShowCommonError("Tray data save failed", "Physical cell state is retained. Restore disk access and use Restart; do not repeat pickup/insert.");
+		return false;
 	}
 
 	DWORD saveElapsed = GetTickCount() - saveStartTick;
 	if(saveElapsed >= 200)
 		AddStatusLog("LOCAL TRAY", "SAVE SLOW Tray=" + m_saveTrayInfo[index].LOT_ID +
 			" ElapsedMs=" + IntToStr((int)saveElapsed));
+	return true;
+}
+bool TMainForm::RetryPendingTraySaves()
+{
+	for(int i = 0; i < 2; ++i)
+		if(traySavePending[i] && !saveTrayInfo(i)) return false;
+	return true;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::loadTrayInfo(int index)
@@ -790,15 +845,27 @@ bool __fastcall TMainForm::SaveCellTransferResult(AnsiString sourceTrayId,
 
 	TFileStream *stream = NULL;
 	try{
-		stream = new TFileStream(fileName,
-			FileExists(fileName) ? (fmOpenReadWrite | fmShareDenyWrite) : fmCreate);
-		stream->Seek(0, soFromEnd);
-		if(stream->Size == 0 && header.Length() > 0)
-			stream->WriteBuffer(header.c_str(), header.Length());
-		if(row.Length() > 0)
-			stream->WriteBuffer(row.c_str(), row.Length());
+		// Replace a complete file instead of leaving a partial appended CSV row.
+		AnsiString content = header;
+		if(FileExists(fileName)){
+			stream = new TFileStream(fileName, fmOpenRead | fmShareDenyWrite);
+			content.SetLength((int)stream->Size);
+			if(content.Length()) stream->ReadBuffer(&content[1], content.Length());
+			delete stream; stream = NULL;
+		}
+		content += row;
+		AnsiString temporaryPath = fileName + ".pending";
+		stream = new TFileStream(temporaryPath, fmCreate);
+		stream->WriteBuffer(content.c_str(), content.Length());
+		if(stream->Size != content.Length() || !FlushFileBuffers((HANDLE)stream->Handle))
+			throw Exception("Transfer result flush failed");
 		delete stream;
 		stream = NULL;
+		BOOL replaced = FileExists(fileName) ?
+			ReplaceFileW(UnicodeString(fileName).c_str(), UnicodeString(temporaryPath).c_str(),
+				UnicodeString(fileName + ".bak").c_str(), 0, NULL, NULL) :
+			MoveFileExW(UnicodeString(temporaryPath).c_str(), UnicodeString(fileName).c_str(), MOVEFILE_WRITE_THROUGH);
+		if(!replaced) RaiseLastOSError();
 	}catch(Exception &e){
 		if(stream != NULL) delete stream;
 		memoMainLineAdd("[TRANSFER RESULT] ERROR - " + AnsiString(e.Message));

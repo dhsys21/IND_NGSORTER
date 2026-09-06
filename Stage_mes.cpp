@@ -519,6 +519,8 @@ void __fastcall TMainForm::NotifyTransferIn(AnsiString strTray)
 
 bool __fastcall TMainForm::ReportCellTrackOut(int sourceChannel, int targetChannel, AnsiString cellId)
 {
+	// A second physical cell must never overwrite the in-flight report.
+	if(opcCellTrackOutPending) return false;
 	opcCellTrackOutMoveReleased = false;
 	if(!CheckAutomaticFmsMode("CellTrackOut"))
 		return false;
@@ -538,16 +540,18 @@ bool __fastcall TMainForm::ReportCellTrackOut(int sourceChannel, int targetChann
 	AnsiString TrackInLotId;
 	AnsiString TrackInNGCode;
 	AnsiString TrackInGrade;
-	if(!MesOpc->READ_TRACK_IN_CELL(sourceChannel, TrackInCellId,
-		TrackInLotId, TrackInNGCode, TrackInGrade)){
+	bool TrackInWorkFlag = false;
+	if(!MesOpc->ReadApprovedSource(sourceChannel, TrackInCellId,
+		TrackInLotId, TrackInNGCode, TrackInGrade, TrackInWorkFlag)){
 		WriteOpcUaLog("ERROR", "CellTrackOut write skipped: Location1 TrackIn cell not found" +
 			AnsiString(" CellNoFrom=") + IntToStr(sourceChannel), true);
 		return false;
 	}
 
 	if(!cellId.IsEmpty() && cellId != TrackInCellId){
-		WriteOpcUaLog("WARN", "CellTrackOut CellId corrected from target memory=" + cellId +
-			" to TrackIn=" + TrackInCellId + " CellNoFrom=" + IntToStr(sourceChannel), true);
+		WriteOpcUaLog("ERROR", "CellTrackOut identity mismatch: target=" + cellId +
+			" approved=" + TrackInCellId + " CellNoFrom=" + IntToStr(sourceChannel), true);
+		return false;
 	}
 
 	// Merge the just-inserted cell from Location1 TrackInCellInformation into
@@ -558,7 +562,7 @@ bool __fastcall TMainForm::ReportCellTrackOut(int sourceChannel, int targetChann
 	tray_target.LOSS_CD[targetIndex] = TrackInNGCode;
 	tray_target.RANK[targetIndex] = TrackInGrade;
 	tray_target.CELL_EXIST[targetIndex] = true;
-	tray_target.WORK_FLAG[targetIndex] = tray_source.WORK_FLAG[sourceChannel - 1];
+	tray_target.WORK_FLAG[targetIndex] = TrackInWorkFlag;
 	tray_target.PICK[targetIndex] = "Y";
 
 	BeginProcessStep(12, "CellTrackOut request / wait CellUnloadCompleteResponse");
@@ -568,7 +572,9 @@ bool __fastcall TMainForm::ReportCellTrackOut(int sourceChannel, int targetChann
 		" Grade=" + TrackInGrade +
 		" NGCode=" + TrackInNGCode +
 		" WorkFlag=" + IntToStr(tray_target.WORK_FLAG[targetIndex] ? 1 : 0), false);
-	MesOpc->CELL_TRACK_OUT_REQUEST(sourceChannel, targetChannel, TrackInCellId);
+	if(pTrayid_source->Caption.Trim().IsEmpty() || pTrayid_target->Caption.Trim().IsEmpty()) return false;
+	MesOpc->CELL_TRACK_OUT_REQUEST(sourceChannel, targetChannel, TrackInCellId,
+		pTrayid_source->Caption.Trim(), pTrayid_target->Caption.Trim());
 	opcCellTrackOutPending = true;
 	opcCellTrackOutWaitResponseOff = false;
 	opcCellTrackOutResponseOffError = false;

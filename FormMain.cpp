@@ -54,6 +54,8 @@ static AnsiString RobotSequenceText(int value)
 __fastcall TMainForm::TMainForm(TComponent* Owner)
 	: TForm(Owner)
 {
+	traySavePending[0] = traySavePending[1] = false;
+	cellRecoveryReportAccepted = false;
 	//* max speed mode - need remove
 	statusLogDisplaySuppressed = false;
 	this->Parent = BaseForm;
@@ -931,6 +933,11 @@ void __fastcall TMainForm::pause_startBtnClick(TObject *Sender)
 	{
 		if(gripper->pauseStatus && robostar->pauseStatus)
 		{
+			if(!robostar->CanResumeMotion()){
+				ShowCommonError("Restart interlock", "Check CC-Link, BUFFER, safety, keylock, tray centering and all-axis stop status.");
+				return;
+			}
+			if(!RetryPendingTraySaves()) return;
 			//* WORK START TRAY INTERLOCK: verify BEFORE releasing either Pause.
 			if(!RetryWorkStartTrayAlarm()) return;
 			// FMS ALARM PAUSE/CLOSE: Main Restart and popup Retry share this path;
@@ -989,8 +996,9 @@ void __fastcall TMainForm::pause_startBtnClick(TObject *Sender)
 			opcMesTimer->Enabled = true;
 			if(ErrorForm != NULL)
 				ErrorForm->Visible = false;
-			gripper->req_Pause(false);
 			robostar->req_Pause(false);
+			if(robostar->pauseStatus) return;
+			gripper->req_Pause(false);
 			// TRAY LOAD RESTART: recover the previously lost Target request only
 			// at pre-sort IDLE. Do not reinitialize a pickup/insert or retry an
 			// outstanding handshake; those paths retain their own state.
@@ -1506,6 +1514,8 @@ void __fastcall TMainForm::ResumeAutomaticFmsSequence()
 	if(MesOpc != NULL){
 		for(int i = 0; i < 2; ++i){
 			if(!opcTrayLoadPending[i]) continue;
+			opcTrayLoadStartTick[i] = nowTick;
+			if(opcTrayLoadWaitResponseOff[i]) continue; // Accepted: only finish Response=0.
 			opcTrayLoadWaitResponseOff[i] = false;
 			opcTrayLoadResponseOffError[i] = false;
 			opcTrayLoadResponseResult[i] = 0;
@@ -1513,40 +1523,44 @@ void __fastcall TMainForm::ResumeAutomaticFmsSequence()
 			MesOpc->TRAY_LOAD_REQUEST(i == 0);
 		}
 		if(opcProcessStartPending){
-			opcProcessStartWaitResponseOff = false;
-			opcProcessStartResponseOffError = false;
-			opcProcessStartResponseResult = 0;
 			opcProcessStartTick = nowTick;
-			AnsiString traySignalState;
-			if(CheckWorkTraySignals(6, traySignalState))
-				MesOpc->PROCESS_START_REQUEST();
-			else
-				opcProcessStartPending = false; // STEP 06 retries dispatch when live inputs recover.
+			if(!opcProcessStartWaitResponseOff){
+				opcProcessStartResponseOffError = false;
+				opcProcessStartResponseResult = 0;
+				AnsiString traySignalState;
+				if(CheckWorkTraySignals(6, traySignalState))
+					MesOpc->PROCESS_START_REQUEST();
+				else
+					opcProcessStartPending = false; // STEP 06 retries after live inputs recover.
+			}
 		}
 		if(opcCellTrackOutPending){
-			opcCellTrackOutWaitResponseOff = false;
-			opcCellTrackOutResponseOffError = false;
-			opcCellTrackOutResponseResult = 0;
 			opcCellTrackOutStartTick = nowTick;
-			if(!MesOpc->CELL_TRACK_OUT_RETRY()){
-				opcCellTrackOutPending = false;
-				ShowCommonError("CellTrackOut resume failed",
-					"Saved CellTrackOut data is unavailable. Check the current tray data.");
+			if(!opcCellTrackOutWaitResponseOff){
+				opcCellTrackOutResponseOffError = false;
+				opcCellTrackOutResponseResult = 0;
+				if(!MesOpc->CELL_TRACK_OUT_RETRY()){
+					opcCellTrackOutPending = false;
+					ShowCommonError("CellTrackOut resume failed",
+						"Saved CellTrackOut data is unavailable. Check the current tray data.");
+				}
 			}
 		}
 		if(opcProcessEndPending){
-			opcProcessEndWaitResponseOff = false;
-			opcProcessEndResponseOffError = false;
-			opcProcessEndResponseResult = 0;
 			opcProcessEndTick = nowTick;
-			MesOpc->PROCESS_END_REQUEST();
+			if(!opcProcessEndWaitResponseOff){
+				opcProcessEndResponseOffError = false;
+				opcProcessEndResponseResult = 0;
+				MesOpc->PROCESS_END_REQUEST();
+			}
 		}
 		if(opcTargetUnloadPending){
-			opcTargetUnloadWaitResponseOff = false;
-			opcTargetUnloadResponseOffError = false;
-			opcTargetUnloadResponseResult = 0;
 			opcTargetUnloadTick = nowTick;
-			MesOpc->TRAY_UNLOAD_REQUEST();
+			if(!opcTargetUnloadWaitResponseOff){
+				opcTargetUnloadResponseOffError = false;
+				opcTargetUnloadResponseResult = 0;
+				MesOpc->TRAY_UNLOAD_REQUEST();
+			}
 		}
 	}
 
@@ -2108,6 +2122,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 			SetProcessWaitStatus(12, "CellUnloadComplete=ON", "CellUnloadCompleteResponse ON", response);
 			if(response == 1){
 				// Success. Request is OFF; wait for the final Response=0.
+				cellRecoveryReportAccepted = true;
 				opcCellTrackOutWaitResponseOff = true;
 				opcCellTrackOutResponseOffError = false;
 				opcCellTrackOutResponseResult = response;
@@ -3101,10 +3116,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	setLamp();
 
 	UpdateIoMonitoringPanel();
-	// Y003D follows a valid pair of BYPASS contacts; do not write CC-Link repeatedly.
-	bool safetyBypassOn = robostar->IsBypassActive();
-	if(robostar->gripper.SAFETY_BYPASS_ON != safetyBypassOn)
-		robostar->Y003D(safetyBypassOn);
+	// Y003D belongs to the robot KEYLOCK state machine, not this display timer.
 
 	// 2026-08-07: Display OPEN from the SSC system RUNNING state.
 	if(robostar->IsSscOpened() && robostar->mr2.system_status == SSC_STS_CODE_RUNNING)

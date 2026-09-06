@@ -1,0 +1,106 @@
+#include <string>
+#include <map>
+#include <cassert>
+#include <cstdio>
+#include "../../ProductionProtocol.h"
+typedef std::string AnsiString;
+AnsiString IntToStr(int n){char b[32];sprintf(b,"%d",n);return b;}
+enum {SSC_OK=0,SSC_BIT_OFF=0,SSC_BIT_ON=1,SSC_STSBIT_AX_OP=1,AxisCnt=4,Axis_x=1,Axis_y=2,Axis_z=3,Axis_zUp=4};
+enum Sequence{seqIdle,seqAutoMove,seqPause,seqHome,seqAutoRun,seqEmgAutoRun,seqJOGx_Plus,seqJogStop};
+struct PNT_DATA_EX{unsigned long position;int speed;};
+int pointResult=0,startResult=0,readResult=0,stopResult=0,startCalls=0,stopCalls=0;
+bool moving[4]={false,false,false,false};
+int sscSetPointDataEx(int,int,int,int,PNT_DATA_EX*){return pointResult;}
+int sscAutoStart(int,int,int a,int,int){++startCalls;moving[a]=startResult==0;return startResult;}
+int sscDriveStop(int,int,int a,int){++stopCalls;if(!stopResult)moving[a]=false;return stopResult;}
+int sscGetStatusBitSignalEx(int,int,int a,int,int *p){*p=moving[a];return readResult;}
+int sscGetCmdSpeedFast(int,int,int a,long *p){*p=moving[a]?100:0;return readResult;}
+struct FakeMain{void memoRobostarLineAdd(AnsiString){}} mainForm,*MainForm=&mainForm;
+struct FakePlc{
+    bool fresh,source,target;
+    bool IsPlcStatusFresh(int){return fresh;}
+    bool IsSourceCentering(){return source;}bool IsTargetCentering(){return target;}
+} plc,*PlcBin=&plc;
+int alarms=0;
+void ShowCommonError(AnsiString,AnsiString){++alarms;}
+struct Tgripper{
+    bool paused,pendingTransferResultValid,saveOkay;
+    int pendingTransferResult;
+    void req_Pause(bool p){paused=p;}
+    bool SaveTransferResultRecord(int,bool){return saveOkay;}
+    bool __fastcall SavePendingTransferResult(bool);
+} grip,*gripper=&grip;
+class Trobostar{
+public:
+    struct STEP{int step,delay,timeout,reserve;}step,step_save;
+    Sequence seq,seq_save;
+    int board_id,channel_id,servoCnt;
+    bool pauseStatus,sscOpened,motionFaultLatched,ccReady,safe,emergency,locked;
+    bool centeringMotionMonitorActive,centeringRequireSource,centeringRequireTarget;
+    struct Input{bool GRIPPER1_BUFFER;}input;
+    PNT_DATA_EX point[4],acceptedPoint[4];bool acceptedMove[4];
+    Trobostar():seq(seqAutoMove),seq_save(seqIdle),board_id(0),channel_id(1),servoCnt(3),
+      pauseStatus(false),sscOpened(true),motionFaultLatched(false),ccReady(true),safe(true),emergency(false),locked(true){
+        input.GRIPPER1_BUFFER=false;step.step=11;step.delay=7;step.timeout=3;step.reserve=5;
+        centeringMotionMonitorActive=centeringRequireSource=centeringRequireTarget=false;
+        plc.fresh=plc.source=plc.target=true;
+        for(int i=0;i<4;++i){acceptedMove[i]=false;point[i].position=0;point[i].speed=50;moving[i]=false;}
+    }
+    bool IsCcLinkReady(){return ccReady;}bool IsSafetyReady(){return safe;}
+    bool IsEmergencyStopActive(){return emergency;}bool IsKeyLockActive(){return locked;}
+    bool WriteLog(int r,AnsiString){return r==SSC_OK;}
+    bool __fastcall setPoint(int,unsigned long);
+    void __fastcall req_Pause(bool);
+    bool StopAxes();bool AreAxesStopped();bool CanResumeMotion();void MotionFault(const AnsiString&);
+};
+struct Lock{};
+struct TLockGuard{TLockGuard(Lock*){}};
+struct TMod_Fms{
+    typedef std::map<std::string,std::string> TTagMap;
+    TTagMap FPendingPcTags,FInFlightPcTags;
+    Lock lock;Lock *FLock;
+    TMod_Fms():FLock(&lock){}
+    void AcknowledgePcTags();
+};
+/* MOTION */
+/* ACK */
+/* SAVE */
+int main(){
+    for(int axis=1;axis<=4;++axis){
+        Trobostar r;pointResult=1;startCalls=stopCalls=0;
+        assert(!r.setPoint(axis,1000));assert(startCalls==0 && stopCalls>=3 && r.pauseStatus);
+    }
+    pointResult=0;
+    {Trobostar r;assert(r.setPoint(1,1000));pointResult=1;
+     assert(!r.setPoint(2,2000));assert(!moving[1] && !moving[2] && r.pauseStatus);pointResult=0;}
+    {Trobostar r;assert(r.setPoint(1,1000));assert(r.setPoint(2,2000));
+     r.req_Pause(true);assert(!moving[1]&&!moving[2]&&r.pauseStatus);
+     r.ccReady=false;r.req_Pause(false);assert(r.pauseStatus);
+     r.ccReady=true;r.input.GRIPPER1_BUFFER=true;r.req_Pause(false);assert(r.pauseStatus);
+     r.input.GRIPPER1_BUFFER=false;readResult=1;r.req_Pause(false);assert(r.pauseStatus);
+     readResult=0;r.req_Pause(false);assert(!r.pauseStatus&&moving[1]&&moving[2]);
+     assert(r.step.step==11&&r.step.delay==7&&r.point[1].position==1000&&r.point[2].position==2000);}
+    {Trobostar r;r.setPoint(1,1000);r.req_Pause(true);r.centeringMotionMonitorActive=r.centeringRequireSource=true;
+     plc.source=false;int n=startCalls;r.req_Pause(false);assert(r.pauseStatus&&startCalls==n);}
+    {Trobostar r;r.point[3].speed=75;r.point[0].speed=25;assert(r.setPoint(Axis_zUp,0));assert(r.point[3].speed==75);}
+    {Trobostar r;r.seq=seqHome;r.req_Pause(true);assert(r.seq_save==seqIdle);}
+    puts("PASS: point failure never AutoStarts; partial XY stopped; Pause stops/resumes targets, preserves step; invalid stop data blocks Restart; HOME requires explicit retry");
+    const unsigned char raw[]={0xd0,0,0,0xff,0xff,3,0,16,0,0,0,1,0,2,0,3,0,4,0,5,0,6,0,7,0};
+    std::string full((const char*)raw,sizeof(raw)),frame;
+    for(unsigned split=0;split<full.size();++split){
+        std::string rx=full.substr(0,split);assert(TakeMcResponse(rx,frame)==0);
+        rx+=full.substr(split);assert(TakeMcResponse(rx,frame)==1&&frame==full&&rx.empty());
+    }
+    std::string rx=full+full;assert(TakeMcResponse(rx,frame)==1&&rx==full);assert(TakeMcResponse(rx,frame)==1&&rx.empty());
+    rx=full;rx[7]=1;assert(TakeMcResponse(rx,frame)==-1);
+    rx.assign(8193,'x');assert(TakeMcResponse(rx,frame)==-1);
+    puts("PASS: MC seven-word (25-byte) frame at all split boundaries; coalesced frames retained; bad length/overflow rejected");
+    TMod_Fms f;f.FPendingPcTags["A"]="1";f.FInFlightPcTags=f.FPendingPcTags;
+    // A failed write never calls Acknowledge; retry retains the frame.
+    assert(f.FPendingPcTags["A"]=="1");f.FPendingPcTags["A"]="2";f.AcknowledgePcTags();assert(f.FPendingPcTags["A"]=="2");
+    f.FInFlightPcTags=f.FPendingPcTags;f.AcknowledgePcTags();assert(f.FPendingPcTags.empty());
+    grip.pendingTransferResultValid=true;grip.saveOkay=false;assert(!grip.SavePendingTransferResult(true)&&grip.pendingTransferResultValid);
+    grip.saveOkay=true;assert(grip.SavePendingTransferResult(true)&&!grip.pendingTransferResultValid);
+    puts("PASS: failed send retains pending state; concurrent update survives ACK; failed disk save retains result for retry");
+    return 0;
+}

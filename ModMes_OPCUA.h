@@ -9,6 +9,13 @@ class TMesOpc : public TDataModule
 {
 __published:	// IDE-managed Components
 private:	// User declarations
+	struct TApprovedCell {
+		AnsiString CellId, LotId, NGCode, Grade;
+		bool Exists, WorkFlag;
+	};
+	TApprovedCell FApprovedSource[96];
+	UnicodeString FApprovedSourceTrayId;
+	void CaptureApprovedSource(const UnicodeString &TrayId);
     bool FShutdown;
 	bool FEnvStatusInitialized;
 	double FLastEnvTemperature;
@@ -23,6 +30,8 @@ private:	// User declarations
     UnicodeString FLastCellTrackOutTargetTrayId;
     bool FLastCellTrackOutValid;
 public:		// User declarations
+	bool ReadApprovedSource(int CellNo, AnsiString &CellId, AnsiString &LotId,
+		AnsiString &NGCode, AnsiString &Grade, bool &WorkFlag);
 	__fastcall TMesOpc(TComponent* Owner);
     void __fastcall Shutdown();
 	// Publishes one coherent TSD-V50 state through F1NGS01.EnvStatus EQP-only tags.
