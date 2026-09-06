@@ -34,26 +34,8 @@ TMod_Fms *Mod_Fms;
 
 static UnicodeString ResolveFmsTagConfigFile()
 {
-	UnicodeString ExeDir = ExtractFilePath(Application->ExeName);
-	UnicodeString Candidates[] =
-	{
-		// Use the deployed OPC UA Gateway NodeSet first.
-		L"D:\\Program\\DHS.Equipment.OpcUaGateway\\DHS.Equipment.OpcUaGateway\\Config\\NGSORTER.Config.xml",
-		ExeDir + L"Config\\NGSORTER.Config.xml",
-		ExeDir + L"NGSORTER.Config.xml",
-		L"D:\\NGSORTER_IND\\Config\\NGSORTER.Config.xml",
-		L"D:\\Project\\2026\\03.Jeng(India)\\02.Program\\05.OpcFoundation\\"
-			L"DHS.Equipment.OpcUaGateway\\DHS.Equipment.OpcUaGateway\\Config\\"
-			L"NGSORTER.Config.xml"
-	};
-
-	for (unsigned int i = 0; i < sizeof(Candidates) / sizeof(Candidates[0]); ++i)
-	{
-		if (FileExists(Candidates[i]))
-			return Candidates[i];
-	}
-
-	return Candidates[0];
+	// Use the shared deployed NodeSet; an older local copy must not override it.
+	return L"D:\\OpcUaGateway_IND\\CONFIG\\NGSORTER.Config.xml";
 }
 
 static bool IsNumericText(const UnicodeString &Text)
@@ -600,7 +582,8 @@ void __fastcall TMod_Fms::LoadTagConfig(const UnicodeString &FileName)
 		{
 			TLockGuard Guard(FLock);
 			FTagConfigLoaded = !FTagDefinitions.empty();
-			LogOpcUa(L"CONFIG", L"Loaded tag definitions: " + IntToStr((int)FTagDefinitions.size()));
+			LogOpcUa(L"CONFIG", L"Loaded tag definitions: " + IntToStr((int)FTagDefinitions.size()) +
+				L", File: " + FileName);
 		}
 	}
 	catch (Exception &E)
