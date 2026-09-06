@@ -17,6 +17,9 @@
 #include <Grids.hpp>
 #include <System.Win.ScktComp.hpp>
 #include <System.Classes.hpp>
+#include "AdvSmoothButton.hpp"
+#include "AdvSmoothPanel.hpp"
+#include "AdvSmoothToggleButton.hpp"
 //* max speed mode - need remove
 #include <deque>
 #include "AdvSmoothButton.hpp"

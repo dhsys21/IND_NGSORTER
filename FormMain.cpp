@@ -1,3 +1,6 @@
+#pragma link "AdvSmoothButton"
+#pragma link "AdvSmoothPanel"
+#pragma link "AdvSmoothToggleButton"
 //---------------------------------------------------------------------------
 
 #include <vcl.h>
