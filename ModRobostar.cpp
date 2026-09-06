@@ -13,6 +13,11 @@
 Trobostar *robostar;
 // KEYLOCK outputs are sequenced without Sleep so the UI and I/O scan keep running.
 static const DWORD KEYLOCK_OUTPUT_DELAY_MS = 500;
+// Temporary FAT option: start the next Source command before report/file work.
+static bool UseFatMaximumSpeedMode()
+{
+	return BaseForm != NULL && BaseForm->config.maximumSpeedMode;
+}
 //---------------------------------------------------------------------------
 //* max speed mode - need remove
 static bool UseFatOptimizeSequenceDelay()
@@ -1178,13 +1183,17 @@ void __fastcall Trobostar::AutoMove()
 			// Refresh it once here and, when the fast option is enabled, start X/Y
 			// immediately instead of issuing another no-op Z UP and waiting one scan.
 			//* max speed mode - need remove
-			if(UseFatOptimizeSequenceDelay() && sscOpened){
+			bool immediateMove = UseFatOptimizeSequenceDelay() || UseFatMaximumSpeedMode();
+			bool freshZ = false;
+			if(immediateMove && sscOpened){
 				long currentZ = mr2.pos[Axis_z];
-				if(sscGetCurrentCmdPositionFast(board_id, channel_id, Axis_z, &currentZ) == SSC_OK)
+				if(sscGetCurrentCmdPositionFast(board_id, channel_id, Axis_z, &currentZ) == SSC_OK){
 					mr2.pos[Axis_z] = currentZ;
+					freshZ = true;
+				}
 			}
 			//* max speed mode - need remove
-			if(UseFatOptimizeSequenceDelay() &&
+			if(immediateMove && freshZ &&
 				mr2.pos[Axis_z] == 0){
 				if(!setPoint(Axis_x, activeTarget[Axis_x])) return;
 				if(!setPoint(Axis_y, activeTarget[Axis_y])) return;
@@ -1867,7 +1876,7 @@ void __fastcall Trobostar::req_AutoEject(int pallet, int tool, int channel, int 
 		IntToStr((__int64)activeTarget[Axis_y]) + "/" + IntToStr((__int64)activeTarget[Axis_z]));
 	InitSequence(seqAutoMove, seqAutoEject);
 	//* max speed mode - need remove
-	if(UseFatOptimizeSequenceDelay() &&
+	if((UseFatOptimizeSequenceDelay() || UseFatMaximumSpeedMode()) &&
 		CheckTrayCenteringMotionInterlock()){
 		MainForm->memoRobostarLineAdd(
 			"[FAST OPTION] Start Source move immediately in request call");

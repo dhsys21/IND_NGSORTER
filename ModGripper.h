@@ -90,6 +90,10 @@ private:	// User declarations
 	bool pendingTransferResultValid;
 	bool deferTargetReservationSave;
 	bool cellTrackOutRequestStarted;
+	// Temporary FAT overlap: set in Inserting, cleared by CompleteFatPostMove.
+	bool fastPostMovePending;
+	bool fastPostMoveSaved;
+	bool __fastcall CompleteFatPostMove();
 	int pendingCellTrackOutSourceChannel;
 	int pendingCellTrackOutTargetChannel;
 	AnsiString pendingCellTrackOutCellId;

@@ -1,0 +1,75 @@
+#include <cassert>
+#include <cstdio>
+#include <string>
+typedef std::string AnsiString;
+struct Base {struct Config {bool maximumSpeedMode;} config;} base,*BaseForm=&base;
+/* OPTION */
+int errors=0;
+void ShowCommonError(const char*,const char*){++errors;}
+struct Robot {bool paused; void req_Pause(bool p){paused=p;}} robot,*robostar=&robot;
+struct Main {
+    bool opcCellTrackOutPending,saveOkay,released;
+    int saves;
+    bool setTrayInfo(int){++saves;return saveOkay;}
+    bool ConsumeCellTrackOutMoveRelease(){bool r=released;released=false;return r;}
+} mainForm,*MainForm=&mainForm;
+struct Tgripper {
+    bool fastPostMovePending,fastPostMoveSaved,pauseStatus,cellTrackOutRequestStarted;
+    bool csvOkay,reportOkay;
+    int pendingCellTrackOutSourceChannel,pendingCellTrackOutTargetChannel;
+    int csvCalls,reportCalls;
+    AnsiString pendingCellTrackOutCellId;
+    Tgripper():fastPostMovePending(true),fastPostMoveSaved(false),pauseStatus(false),
+      cellTrackOutRequestStarted(false),csvOkay(true),reportOkay(true),
+      pendingCellTrackOutSourceChannel(3),pendingCellTrackOutTargetChannel(7),
+      csvCalls(0),reportCalls(0),pendingCellTrackOutCellId("CELL-3"){
+        mainForm.opcCellTrackOutPending=false; mainForm.saveOkay=true;
+        mainForm.released=false;mainForm.saves=0;robot.paused=false;
+    }
+    void req_Pause(bool p){pauseStatus=p;}
+    bool SavePendingTransferResult(bool){++csvCalls;return csvOkay;}
+    bool StartPendingCellTrackOutReport(){
+        ++reportCalls;
+        assert(pendingCellTrackOutSourceChannel==3 && pendingCellTrackOutTargetChannel==7);
+        assert(pendingCellTrackOutCellId=="CELL-3");
+        cellTrackOutRequestStarted=reportOkay && !mainForm.opcCellTrackOutPending;
+        if(cellTrackOutRequestStarted)mainForm.opcCellTrackOutPending=true;
+        return cellTrackOutRequestStarted;
+    }
+    bool __fastcall CompleteFatPostMove();
+};
+/* POST MOVE */
+void acceptReport(){mainForm.opcCellTrackOutPending=false;mainForm.released=true;}
+int main(){
+    BaseForm=NULL;assert(!UseFatMaximumSpeedMode());BaseForm=&base;
+    base.config.maximumSpeedMode=false;assert(!UseFatMaximumSpeedMode());
+    base.config.maximumSpeedMode=true;assert(UseFatMaximumSpeedMode());
+    {Tgripper g;assert(!g.CompleteFatPostMove());
+     assert(g.reportCalls==1&&g.csvCalls==1&&mainForm.saves==1);
+     for(int n=0;n<100;++n)assert(!g.CompleteFatPostMove());
+     assert(g.reportCalls==1&&g.csvCalls==1&&g.fastPostMovePending);
+     base.config.maximumSpeedMode=false;acceptReport();assert(g.CompleteFatPostMove());
+     assert(!g.fastPostMovePending&&g.pendingCellTrackOutCellId.empty());
+     assert(g.CompleteFatPostMove()&&g.reportCalls==1);}
+    {Tgripper g;mainForm.saveOkay=false;assert(!g.CompleteFatPostMove());
+     assert(g.pauseStatus&&robot.paused&&g.fastPostMovePending&&!g.fastPostMoveSaved&&g.reportCalls==0);
+     assert(!g.CompleteFatPostMove()&&mainForm.saves==1);
+     mainForm.saveOkay=true;g.pauseStatus=false;assert(!g.CompleteFatPostMove());
+     assert(g.reportCalls==1);acceptReport();assert(g.CompleteFatPostMove());}
+    {Tgripper g;g.csvOkay=false;assert(!g.CompleteFatPostMove());
+     assert(g.pauseStatus&&g.reportCalls==0&&!g.fastPostMoveSaved);
+     g.csvOkay=true;g.pauseStatus=false;assert(!g.CompleteFatPostMove());
+     acceptReport();assert(g.CompleteFatPostMove());}
+    {Tgripper g;g.reportOkay=false;assert(!g.CompleteFatPostMove());
+     assert(g.pauseStatus&&g.fastPostMovePending&&g.fastPostMoveSaved&&g.reportCalls==1);
+     assert(g.pendingCellTrackOutCellId=="CELL-3");
+     g.reportOkay=true;g.pauseStatus=false;assert(!g.CompleteFatPostMove());
+     assert(g.csvCalls==1&&mainForm.saves==1&&g.reportCalls==2);
+     acceptReport();assert(g.CompleteFatPostMove());}
+    {Tgripper g;mainForm.opcCellTrackOutPending=true;assert(!g.CompleteFatPostMove());
+     assert(g.reportCalls==1&&g.fastPostMovePending&&g.pauseStatus&&mainForm.opcCellTrackOutPending);
+     mainForm.opcCellTrackOutPending=false;g.pauseStatus=false;assert(!g.CompleteFatPostMove());
+     assert(g.reportCalls==2);acceptReport();assert(g.CompleteFatPostMove());}
+    puts("PASS: option gating, delayed FMS without duplicate send/save, option change drains pending, INI/CSV/request failures retained across Pause/Restart, occupied slot not overwritten");
+    return 0;
+}

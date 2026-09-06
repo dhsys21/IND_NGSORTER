@@ -1,5 +1,7 @@
 # Production Hardening - 2026-09-06 004
 
+Latest update: `2026-09-06 005`, temporary FAT move-first overlap restored.
+
 Branch: `codex-improve` only. Base: `13c20dd9f3eff85651e8ca71d3d90b03e40284b3`.
 `main` is not changed. Original findings remain in `REVIEW_20260906.md`.
 
@@ -11,7 +13,7 @@ Branch: `codex-improve` only. Base: `13c20dd9f3eff85651e8ca71d3d90b03e40284b3`.
 4. CC-Link board/link/read/received-size failures invalidate the input snapshot and stop active work. Signal recovery alone cannot resume work.
 5. Robot timer owns Y003D. A fresh BYPASS ON edge enables it; completing the existing KEYLOCK set sequence clears it. Main's display timer no longer reasserts it. Unlock requires fresh all-axis stop confirmation, including the delayed door-output change. X0026/27 polarity is unchanged.
 6. Approved Source TrackIn is copied before TrayLoad Request OFF. CellTrackOut uses this immutable TrayId/CellNo snapshot, including WorkFlag, after FMS deletes its tags. Identity mismatches stop reporting rather than silently rewriting CellId.
-7. Maximum-speed pipelining is disabled despite retaining the saved/UI option. Every physical cell waits for its CellTrackOut handshake and local result save before another pickup. A pending report cannot be replaced.
+7. Normal mode waits for CellTrackOut and local result save before the next pickup. Revision 005 restores the temporary FAT Maximum speed option: next Source move is requested first, then the completed cell is saved/reported while that pickup runs. The gripper waits for the previous report before advancing to the next insert or tray exchange, so the single report slot cannot be replaced. Failed save/request retains the completed assignment and pauses for explicit recovery. This option does not disable physical interlocks.
 8. Flush publishes staged PC tags atomically into pending memory. Pending values are removed only after successful socket write and only if no newer value replaced them. Failed writes retain the pending state. Reconnect resends locally authored EQP values.
 9. Only Indy OnExecute writes TCP. It polls at 100 ms; Windows SO_SNDTIMEO is 2000 ms. No IOHandler WriteTimeout is used. Shutdown has a bounded 500 ms final-state drain. Existing worker-to-main log dispatch is retained.
 10. Manual-to-Auto preserves accepted Response=0-wait phases. Only requests without an accepted result are retried; timeout clocks restart on mode return.
@@ -28,8 +30,9 @@ Branch: `codex-improve` only. Base: `13c20dd9f3eff85651e8ca71d3d90b03e40284b3`.
 - Existing FMS current-response, alarm recovery, process-order, deferred-tray and target-exchange regressions.
 - Door/PLC admission harness updated for the current TrayLoad-before-centering contract.
 - `tmp/ProductionHardening/test_hardening.ps1`: actual production function bodies with fake SSC calls; split/coalesced MC frames; send-ACK preservation; failed-save retention; static wiring checks.
-- All seven regression runners above passed. The original motion-reproduction runner now delegates to the corrected regression.
+- All seven regression runners above plus `tmp/ProductionHardening/test_maximum_speed.ps1` passed (eight total). The original motion-reproduction runner now delegates to the corrected regression.
 - CP949 source files remain CP949. English additions are ASCII.
+- Revision 005: Maximum speed also starts the Source request in the same scan when Optimize sequence delay is OFF. Immediate X/Y requires a freshly read Z=0. Added a fake-FMS/disk regression for post-move report retention and mode-change recovery.
 
 ## Required Commissioning
 
@@ -42,3 +45,4 @@ These are software changes, not validation of the safety circuit. Do not bypass 
 - Test disk-full/access-denied and process interruption at pickup, insert and FMS acceptance. Inspect `.pending`, `.bak` and `TRANSFER_RECOVERY` against physical tray contents before restarting production. These files aid reconciliation; they do not prove physical state after an uncontrolled power loss or provide automatic crash recovery.
 - Check the conservative 120-second watchdog against the longest legitimate HOME/travel operation. Adjust only after measuring the machine's worst-case time.
 - Windows socket write success is transport delivery, not FMS acceptance. Application four-phase responses remain mandatory; there is no exactly-once guarantee from TCP alone.
+- FAT Maximum speed intentionally allows pickup before the previous cell is durably saved or acknowledged. Remove this temporary option after acceptance; use normal mode for production. Measure overlap, delayed responses, disk failure and full/final-tray boundaries on the guarded machine before the speed demonstration.

@@ -46,10 +46,10 @@ struct Opc{
 class Tgripper{
 public:
     enum gripperSequence{seqIdle,seqInit,seqSorting,seqInserting,seqPause};
-    gripperSequence seq,seq_save;bool pauseStatus;
+    gripperSequence seq,seq_save;bool pauseStatus,fastPostMovePending;
     struct{int step;}step;
     Timer timer,*waitTimer;
-    Tgripper():seq(seqIdle),seq_save(seqIdle),pauseStatus(false),waitTimer(&timer){step.step=0;}
+    Tgripper():seq(seqIdle),seq_save(seqIdle),pauseStatus(false),fastPostMovePending(false),waitTimer(&timer){step.step=0;}
     bool __fastcall IsTargetTrayExchangeBoundary()const;
     bool __fastcall IsSortingWorkActive()const;
 } grip,*gripper=&grip;
@@ -206,6 +206,9 @@ int main(){
     }
     {
         TMainForm f;assert(robot.IsTargetTrayUnloadSafe());
+        assert(grip.IsTargetTrayExchangeBoundary());
+        grip.fastPostMovePending=true;assert(!grip.IsTargetTrayExchangeBoundary());
+        grip.fastPostMovePending=false;
         robot.ccReady=false;assert(!robot.IsTargetTrayUnloadSafe());robot.ccReady=true;
         robot.sscOpened=false;assert(!robot.IsTargetTrayUnloadSafe());robot.sscOpened=true;
         robot.cell=true;assert(!robot.IsTargetTrayUnloadSafe());robot.cell=false;

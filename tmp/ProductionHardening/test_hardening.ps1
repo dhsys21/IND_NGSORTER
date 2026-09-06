@@ -36,7 +36,8 @@ $g=Source 'ModMes_Gateway.cpp';$m=Source 'ModGripper.cpp';$b=Source 'Mod_SRX100W
 if((Body 'ModMes_Gateway.cpp' 'void __fastcall TMod_Fms::FlushPendingPcTags(').Contains('IOHandler')){throw 'UI thread socket write'}
 if((Body 'ModMes_Gateway.cpp' 'UnicodeString __fastcall TMod_Fms::BuildSuccessResponse(').Contains('FPendingPcTags.clear()')){throw 'Premature pending clear'}
 if(!$g.Contains('Id_SO_SNDTIMEO, 2000')){throw 'Unbounded socket send'}
-if(!(Body 'ModGripper.cpp' 'static bool UseFatMaximumSpeedMode(').Contains('return false;')){throw 'Single report overwrite path enabled'}
+if(!(Body 'ModGripper.cpp' 'static bool UseFatMaximumSpeedMode(').Contains('BaseForm->config.maximumSpeedMode')){throw 'FAT option is not connected'}
+if(!(Body 'Stage_mes.cpp' 'bool __fastcall TMainForm::ReportCellTrackOut(').Contains('if(opcCellTrackOutPending) return false;')){throw 'Single report overwrite guard missing'}
 if($b.Contains('ProcessResult(rxBuffer)') -or !(Body 'Mod_SRX100W.cpp' 'void __fastcall TMod_Bcr::ProcessResult(').Contains('if(!bReading) return;')){throw 'Partial/late barcode accepted'}
 $resume=Body 'FormMain.cpp' 'void __fastcall TMainForm::ResumeAutomaticFmsSequence('
 foreach($x in @('opcTrayLoadWaitResponseOff[i]','opcProcessStartWaitResponseOff','opcCellTrackOutWaitResponseOff','opcProcessEndWaitResponseOff','opcTargetUnloadWaitResponseOff')){

@@ -12,9 +12,8 @@ Tgripper *gripper;
 //* max speed mode - need remove
 static bool UseFatMaximumSpeedMode()
 {
-	// One pending CellTrackOut slot cannot safely support pipelined cells.
-	// Keep the UI setting for compatibility, but never bypass report completion.
-	return false;
+	// Temporary FAT option: issue the next move before saving/reporting.
+	return BaseForm != NULL && BaseForm->config.maximumSpeedMode;
 }
 //---------------------------------------------------------------------------
 //* max speed mode - need remove
@@ -36,6 +35,8 @@ __fastcall Tgripper::Tgripper(TComponent* Owner)
 	pendingTransferResultValid = false;
 	deferTargetReservationSave = false;
 	cellTrackOutRequestStarted = false;
+	fastPostMovePending = false;
+	fastPostMoveSaved = false;
 	pendingCellTrackOutSourceChannel = 0;
 	pendingCellTrackOutTargetChannel = 0;
 	pendingCellTrackOutCellId = "";
@@ -258,7 +259,8 @@ bool __fastcall Tgripper::IsSortingWorkActive() const
 //---------------------------------------------------------------------------
 bool __fastcall Tgripper::IsTargetTrayExchangeBoundary() const
 {
-	return !pauseStatus && (seq == seqIdle || (seq == seqInit && step.step == 0));
+	return !pauseStatus && !fastPostMovePending &&
+		(seq == seqIdle || (seq == seqInit && step.step == 0));
 }
 //---------------------------------------------------------------------------
 void __fastcall Tgripper::stepTimerTimer(TObject *Sender)
@@ -275,6 +277,7 @@ void __fastcall Tgripper::stepTimerTimer(TObject *Sender)
 	static int watchedStep = -1;
 	static DWORD waitStarted = 0;
 	bool waitActive = !pauseStatus && IsSortingWorkActive() &&
+		!fastPostMovePending &&
 		!(seq == seqInserting && (step.step == 4 || step.step == 7)) &&
 		!MainForm->IsTargetTrayExchangeActive();
 	if(!waitActive || watchedSeq != seq || watchedStep != step.step){
@@ -293,6 +296,9 @@ void __fastcall Tgripper::stepTimerTimer(TObject *Sender)
 
 	if(MainForm->equipMode == modeAuto)
 	{
+		// FAT motion is already running independently in the robot timer.
+		// Drain its predecessor's report before another insert or tray exchange.
+		if(!pauseStatus && !CompleteFatPostMove()) return;
 		if(seq == seqInit)
 			Initialize();
 		else if(seq == seqSorting)
@@ -429,7 +435,7 @@ void __fastcall Tgripper::Initialize()
 			}
 			waitTimer->Enabled = false;
 			//* max speed mode - need remove
-			if(step.step != 1 || !UseFatOptimizeSequenceDelay())
+			if(step.step != 1 || (!UseFatOptimizeSequenceDelay() && !deferTargetReservationSave))
 				break;
 			MainForm->memoGripperLineAdd(
 				"[FAST OPTION] Equipment ready / initialize NG selection in same scan");
@@ -517,7 +523,7 @@ void __fastcall Tgripper::Initialize()
 			}
 			step.step += 1;
 			//* max speed mode - need remove
-			if(!UseFatOptimizeSequenceDelay())
+			if(!UseFatOptimizeSequenceDelay() && !deferTargetReservationSave)
 				break;
 			MainForm->memoGripperLineAdd(
 				"[FAST OPTION] NG reservation complete / request Source move in same scan");
@@ -528,7 +534,7 @@ void __fastcall Tgripper::Initialize()
 					MainForm->CompleteProcessStep(7, "NG channel and Target reservation selected");
 					InitSequence(step.reserve);	// 선별시작
 					//* max speed mode - need remove
-					if(UseFatOptimizeSequenceDelay() &&
+					if((UseFatOptimizeSequenceDelay() || deferTargetReservationSave) &&
 						seq == seqSorting){
 						MainForm->memoGripperLineAdd(
 							"[FAST OPTION] Source move requested without initialization timer delay");
@@ -673,6 +679,43 @@ bool __fastcall Tgripper::StartPendingCellTrackOutReport()
 	return cellTrackOutRequestStarted;
 }
 //---------------------------------------------------------------------------
+bool __fastcall Tgripper::CompleteFatPostMove()
+{
+	// Set by Inserting AFTER snapshotting the completed cell, before next move.
+	// Cleared here only after durable save and the four-phase FMS handshake.
+	// Preserve this state across Pause and changes to the Maximum speed option.
+	if(!fastPostMovePending) return true;
+	if(pauseStatus) return false;
+	if(!fastPostMoveSaved){
+		if(!MainForm->setTrayInfo(1) || !SavePendingTransferResult(true)){
+			robostar->req_Pause(true);
+			req_Pause(true);
+			ShowCommonError("FAT result save failed",
+				"Restore disk access and use Restart. The completed cell is retained; do not repeat its insert.");
+			return false;
+		}
+		fastPostMoveSaved = true;
+	}
+	if(!cellTrackOutRequestStarted){
+		// ReportCellTrackOut rejects an occupied slot; retain our assignment on failure.
+		if(!StartPendingCellTrackOutReport()){
+			robostar->req_Pause(true);
+			req_Pause(true);
+			ShowCommonError("FAT CellTrackOut request failed",
+				"Check FMS Gateway and approved Source data, then use Restart. The report is retained.");
+		}
+		return false;
+	}
+	if(!MainForm->ConsumeCellTrackOutMoveRelease()) return false;
+	cellTrackOutRequestStarted = false;
+	pendingCellTrackOutSourceChannel = 0;
+	pendingCellTrackOutTargetChannel = 0;
+	pendingCellTrackOutCellId = "";
+	fastPostMovePending = false;
+	fastPostMoveSaved = false;
+	return true;
+}
+//---------------------------------------------------------------------------
 void __fastcall Tgripper::StartNextCycleOrWait()
 {
 	bool hasNextNg = false;
@@ -713,7 +756,7 @@ void __fastcall Tgripper::StartNextCycleOrWait()
 		deferTargetReservationSave = UseFatMaximumSpeedMode();
 		InitSequence(seqInit, seqSorting);
 		//* max speed mode - need remove
-		if(UseFatOptimizeSequenceDelay())
+		if(UseFatOptimizeSequenceDelay() || deferTargetReservationSave)
 			Initialize();
 		deferTargetReservationSave = false;
 	}else{
@@ -849,6 +892,20 @@ void __fastcall Tgripper::Inserting()
 					break;
 				}
 
+				if(reportCount != 1){
+					robostar->req_Pause(true);
+					req_Pause(true);
+					ShowCommonError("FAT CellTrackOut data invalid", "Exactly one completed cell is required. Next move remains blocked.");
+					break;
+				}
+				// Retain the old assignment before Initialize replaces tool[] for the next cell.
+				pendingCellTrackOutSourceChannel = reportSourceChannel[0];
+				pendingCellTrackOutTargetChannel = reportTargetChannel[0];
+				pendingCellTrackOutCellId = reportCellId[0];
+				cellTrackOutRequestStarted = false;
+				fastPostMovePending = true;
+				fastPostMoveSaved = false;
+
 				// Maximum-speed ordering: let the nested sequence issue the next motion
 				// first. Status messages generated inside that call are kept in memory;
 				// their file batch is flushed only after the motion command returns.
@@ -866,17 +923,11 @@ void __fastcall Tgripper::Inserting()
 					"[FAST TRANSITION] Next move command elapsed=" +
 					IntToStr((int)nextMoveCommandElapsed) + " ms");
 
-				// These disk/network operations now occur after X/Y has started.
-				SavePendingTransferResult(true);
-				MainForm->NotifyIdMatching_target("1");
-
-				// External FMS reporting remains after physical Z UP completion. Its
-				// CellUnloadCompleteResponse is still checked asynchronously.
-				for(int i = 0; i < reportCount; ++i)
-					MainForm->ReportCellTrackOut(reportSourceChannel[i],
-						reportTargetChannel[i], reportCellId[i]);
+				// Save/send only after the next motion request; retry failures without
+				// repeating the completed insert or losing its channel/CellId snapshot.
+				CompleteFatPostMove();
 				MainForm->memoGripperLineAdd(
-					"[POST INSERT] FMS report queued after motion start / total=" +
+					"[POST INSERT] Report/save serviced after motion request / total=" +
 					IntToStr((int)(GetTickCount() - transitionStartTick)) + " ms");
 			}else{
 				MainForm->memoGripperLineAdd("[Insert step 2] " + BaseForm->GetLangStr("MSG_INSERTING"));
@@ -924,7 +975,12 @@ void __fastcall Tgripper::Inserting()
 			if(step.step == 5)
 				StartNextCycleOrWait();
 			else if(step.step == 6 && robostar->seq == seqIdle){
-				SaveTransferResult(false);
+				if(!SaveTransferResult(false)){
+					robostar->req_Pause(true);
+					req_Pause(true);
+					ShowCommonError("Transfer result save failed", "Restore disk access and use Restart. Only the file save will be retried.");
+					break;
+				}
 				MainForm->memoGripperLineAdd("[Insert complete] WAIT POSITION MOVE COMPLETE");
 				MainForm->CompleteProcessStep(13, "WAIT POSITION complete / Next Step=07");
 				MainForm->memoGripperLineAdd("[CYCLE] NO NEXT NG OR TARGET FULL -> FINAL CHECK");
