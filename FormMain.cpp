@@ -198,6 +198,10 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	targetTrayInfoWasCentered = false;
 	targetTrayInfoPromptActive = false;
 	targetTrayInfoActiveId = "";
+	targetTrayExchangeState = ttxNone;
+	targetTrayExchangeByLimit = false;
+	targetTrayExchangeLimit = 0;
+	targetTrayExchangeTick = 0;
 	opcMesTimer = new TTimer(this);
 	opcMesTimer->Name = "opcMesTimer"; // Required while modal FMS/LOCAL selection pauses this runtime timer.
 	opcMesTimer->Enabled = false;
@@ -646,6 +650,201 @@ void __fastcall TMainForm::InitBarcodeAndSmoke()
 			BaseForm->config.smokeBaudRate);
 }
 //---------------------------------------------------------------------------
+bool __fastcall TMainForm::IsTargetTrayExchangeActive() const
+{
+	return targetTrayExchangeState != ttxNone;
+}
+//---------------------------------------------------------------------------
+int __fastcall TMainForm::GetTargetTrayOccupiedCount() const
+{
+	int count = 0;
+	for(int i = 0; i < tray_target.SLOT_COUNT && i < 96; ++i)
+		if(tray_target.CELL_EXIST[i] && tray_target.PICK[i] != "R") ++count;
+	return count; // Reservations are not completed inserts.
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::RequestTargetTrayExchange(bool byLimit)
+{
+	if(IsTargetTrayExchangeActive()) return;
+	targetTrayExchangeByLimit = byLimit;
+	targetTrayExchangeLimit = byLimit ? BaseForm->config.targetTrayUnloadCount : 0;
+	targetTrayExchangeState = ttxWaitSafe;
+	if(gripper != NULL) gripper->waitTimer->Enabled = false;
+	memoMainLineAdd("[TARGET EXCHANGE] " + AnsiString(byLimit ?
+		"Source sorting complete; operator unload required" : "Full tray; automatic exchange required") +
+		" / Cells=" + IntToStr(GetTargetTrayOccupiedCount()) +
+		" / Limit=" + IntToStr(targetTrayExchangeLimit));
+	UpdateTargetTrayExchangePanel();
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::CheckTargetTrayUnloadAtSourceEnd()
+{
+	// Called only by the NO NEXT NG completion branch, never after each insert.
+	int limit = BaseForm->config.targetTrayUnloadCount;
+	if(limit > 0 && GetTargetTrayOccupiedCount() >= limit)
+		RequestTargetTrayExchange(true);
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMainForm::CanUnloadTargetTray()
+{
+	if(equipMode != modeAuto || gripper == NULL || robostar == NULL ||
+		!gripper->IsTargetTrayExchangeBoundary() ||
+		fmsAlarmTransaction != fmsAlarmNone || opcCellTrackOutPending ||
+		opcProcessEndPending || opcProcessStartPending || opcTargetUnloadPending ||
+		opcTrayLoadPending[0] || opcTrayLoadPending[1] || !opcFinalTrackOutTrayId.IsEmpty() || sourceTrayOutPending ||
+		(targetTrayExchangeByLimit && opcProcessStarted) ||
+		PlcBin == NULL || !PlcBin->IsPlcStatusFresh(1000) ||
+		!IsTargetTrayInSignal() || !IsTargetCenteringSignal() ||
+		pTrayid_target->Caption.Trim().IsEmpty()) return false;
+	for(int i = 0; i < tray_target.SLOT_COUNT && i < 96; ++i)
+		if(tray_target.PICK[i] == "R") return false;
+	return robostar->IsTargetTrayUnloadSafe();
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::StartTargetTrayExchangeUnload()
+{
+	if((targetTrayExchangeState != ttxWaitSafe && targetTrayExchangeState != ttxWaitOperator) ||
+		!CanUnloadTargetTray() || MesOpc == NULL || Mod_Fms == NULL || !Mod_Fms->IsGatewayConnected()) return;
+	// Latch before FMS dispatch; repeated timer/button events cannot duplicate it.
+	targetTrayExchangeState = ttxFmsUnload;
+	NotifyIdMatching_target("2");
+	NotifyTargetTrayUnload();
+	if(!opcTargetUnloadPending) targetTrayExchangeState = ttxWaitSafe;
+	UpdateTargetTrayExchangePanel();
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::btnTargetTrayExchangeOutClick(TObject *Sender)
+{
+	if(targetTrayExchangeState != ttxWaitOperator || !CanUnloadTargetTray()){
+		memoMainLineAdd("[TARGET EXCHANGE] Unload blocked: wait for cell/FMS completion, stopped axes, Z up and live tray signals.");
+		return;
+	}
+	StartTargetTrayExchangeUnload();
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMainForm::IsReplacementTargetLoadAllowed() const
+{
+	return targetTrayExchangeState == ttxLoading && equipMode == modeAuto &&
+		gripper != NULL && robostar != NULL && !gripper->pauseStatus && !robostar->pauseStatus &&
+		fmsAlarmTransaction == fmsAlarmNone && PlcBin != NULL && PlcBin->IsPlcStatusFresh(1000) &&
+		IsTargetTrayInSignal() && IsTargetCenteringSignal();
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::CompleteTargetTrayExchange()
+{
+	if(!IsReplacementTargetLoadAllowed() || !opcTrayDisplayed[1] || !opcTrayLoaded[1]) return;
+	if(tray_target.remainCnt <= 0){
+		// A replacement that is already full is never released for insertion.
+		targetTrayExchangeByLimit = false;
+		targetTrayExchangeLimit = 0;
+		targetTrayExchangeState = ttxWaitSafe;
+		memoMainLineAdd("[TARGET EXCHANGE] Replacement has no free cells; exchange again.");
+		return;
+	}
+	// Clear only after the new barcode, map validation and four-phase TrayLoad.
+	// Keep Source reservations and ProcessStart when replacing a full target mid-cycle.
+	targetTrayExchangeState = ttxNone;
+	step[1].step = 1;
+	if(opcProcessStarted) pwork2->Color = clLime;
+	memoMainLineAdd("[TARGET EXCHANGE] Replacement verified / TrayId=" + pTrayid_target->Caption +
+		" / Free=" + IntToStr(tray_target.remainCnt) +
+		(opcProcessStarted ? " / continue current Source process" : " / next Source process enabled"));
+	UpdateTargetTrayExchangePanel();
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::ServiceTargetTrayExchange()
+{
+	if(!IsTargetTrayExchangeActive()) return;
+	// Retain state through Manual/Pause/FMS errors. No automatic mechanical command.
+	if(equipMode != modeAuto || gripper == NULL || robostar == NULL ||
+		gripper->pauseStatus || robostar->pauseStatus || fmsAlarmTransaction != fmsAlarmNone){
+		UpdateTargetTrayExchangePanel();
+		return;
+	}
+	switch(targetTrayExchangeState){
+		case ttxWaitSafe:
+			if(CanUnloadTargetTray()){
+				if(targetTrayExchangeByLimit) targetTrayExchangeState = ttxWaitOperator;
+				else StartTargetTrayExchangeUnload();
+			}
+			break;
+		case ttxOutDelay:
+			// FMS success only arms the delay; recheck real safety immediately before PLC output.
+			if((DWORD)(GetTickCount() - targetTrayExchangeTick) >= 3000 && CanUnloadTargetTray()){
+				targetTrayInfoDeletePending = true;
+				targetTrayInfoWasCentered = true;
+				if(targetTrayInfoActiveId.IsEmpty()) targetTrayInfoActiveId = pTrayid_target->Caption.Trim();
+				targetTrayExchangeState = ttxWaitOut;
+				pwork2->Color = clSilver;
+				PlcBin->CmdTargetTrayOut(true);
+				memoMainLineAdd("[TARGET EXCHANGE] PLC Target Tray Out=ON / wait actual departure.");
+			}
+			break;
+		case ttxWaitOut:
+			if(PlcBin != NULL && PlcBin->IsPlcStatusFresh(1000) &&
+				!IsTargetTrayInSignal() && !IsTargetCenteringSignal()){
+				// OFF must be observed before accepting ON as a replacement arrival.
+				if(targetTrayInfoDeletePending) ClearTargetTrayInfo();
+				targetTrayInfoDeletePending = false;
+				targetTrayInfoWasCentered = false;
+				opcTrayLoaded[1] = opcTrayDisplayed[1] = opcTrayAdvanceDeferred[1] = false;
+				opcDeferredTrayId[1] = "";
+				targetTrayInfoActiveId = "";
+				InitStep(&step[1]);
+				targetTrayExchangeState = ttxWaitIn;
+				memoMainLineAdd("[TARGET EXCHANGE] Target departed / load a replacement tray.");
+			}
+			break;
+		case ttxWaitIn:
+			if(PlcBin != NULL && PlcBin->IsPlcStatusFresh(1000) &&
+				IsTargetTrayInSignal() && IsTargetCenteringSignal()){
+				targetTrayExchangeState = ttxLoading;
+				step[1].step = 1;
+				pTrayid_target->Caption = "";
+				pTrayid_target2->Caption = "";
+				memoMainLineAdd("[TARGET EXCHANGE] Replacement centered / scan barcode and validate FMS data.");
+				ReadTargetTrayBarcode();
+			}
+			break;
+		case ttxLoading:
+			// Source may already be out. Only this explicit exchange may load Target independently.
+			if(IsReplacementTargetLoadAllowed()){
+				if(opcTrayAdvanceDeferred[1]) AdvanceOpcTrayLoad(false);
+				if(IsReplacementTargetLoadAllowed() && Mod_Fms != NULL && Mod_Fms->IsGatewayConnected() &&
+					!opcDeferredTrayId[1].IsEmpty()){
+					AnsiString id = opcDeferredTrayId[1];
+					opcDeferredTrayId[1] = "";
+					NotifyTrayInfo(id, false);
+				}
+			}
+			break;
+		default: break; // Operator button or the existing FMS timer owns these states.
+	}
+	UpdateTargetTrayExchangePanel();
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::UpdateTargetTrayExchangePanel()
+{
+	if(pnlTargetTrayExchange == NULL || BaseForm == NULL) return;
+	pnlTargetTrayExchange->Visible = IsTargetTrayExchangeActive();
+	btnTargetTrayExchangeOut->Caption = BaseForm->GetLangStr("CAP_TARGET_EXCHANGE_OUT");
+	btnTargetTrayExchangeOut->Enabled = targetTrayExchangeState == ttxWaitOperator &&
+		CanUnloadTargetTray() && Mod_Fms != NULL && Mod_Fms->IsGatewayConnected();
+	AnsiString key = "MSG_TARGET_EXCHANGE_SAFE";
+	switch(targetTrayExchangeState){
+		case ttxWaitOperator: key = "MSG_TARGET_EXCHANGE_LIMIT"; break;
+		case ttxFmsUnload: key = "MSG_TARGET_EXCHANGE_FMS"; break;
+		case ttxOutDelay: case ttxWaitOut: key = "MSG_TARGET_EXCHANGE_OUT"; break;
+		case ttxWaitIn: key = "MSG_TARGET_EXCHANGE_IN"; break;
+		case ttxLoading: key = "MSG_TARGET_EXCHANGE_LOAD"; break;
+		default: break;
+	}
+	lblTargetTrayExchange->Caption = BaseForm->GetLangStr(key) + "\r\n" +
+		BaseForm->GetLangStr("CAP_TARGET_EXCHANGE_COUNT") + " " + IntToStr(GetTargetTrayOccupiedCount());
+	if(targetTrayExchangeLimit > 0)
+		lblTargetTrayExchange->Caption = lblTargetTrayExchange->Caption + " / " + IntToStr(targetTrayExchangeLimit);
+}
+//---------------------------------------------------------------------------
 void __fastcall TMainForm::CmdTrayOut(int pos)
 {
 	if(pos == 0){
@@ -663,6 +862,12 @@ void __fastcall TMainForm::CmdTrayOut(int pos)
 		}
 		ProcessStepLog(15, "D10154 Centering Request=OFF / WAIT 3000ms before D10155 Tray Out=ON");
 	}else{
+		if(IsTargetTrayExchangeActive()){
+			targetTrayExchangeState = ttxOutDelay;
+			targetTrayExchangeTick = GetTickCount();
+			UpdateTargetTrayExchangePanel();
+			return;
+		}
 		// Keep the existing target tray delay; it has no D10154 conflict.
 		Sleep(3000);
 		// Target tray information deletion.
@@ -837,6 +1042,8 @@ void __fastcall TMainForm::btnScanSourceTrayClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::ReadSourceTrayBarcode()
 {
+	// Do not let a manual FAT rescan clear the previous reports during Target exchange.
+	if(IsTargetTrayExchangeActive()) return;
 	// Barcode simulation is deliberately independent from cbCycle.  The bench
 	// trays have no labels, while field trays do; therefore cbCycle may exercise
 	// the shortened FMS handshake without silently bypassing a real reader.
@@ -879,6 +1086,10 @@ void __fastcall TMainForm::ReadTargetTrayBarcode()
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::setBarcode(int pos, AnsiString strBcr)
 {
+	if(IsTargetTrayExchangeActive() && (pos != 1 || targetTrayExchangeState != ttxLoading)){
+		memoMainLineAdd("[TARGET EXCHANGE] Barcode ignored outside replacement loading / Reader=" + IntToStr(pos));
+		return;
+	}
 	strBcr = strBcr.Trim();
 	memoMainLineAdd(BaseForm->GetLangStr("MSG_COMPLETE_SCAN") + " : " + strBcr);
 	if(pos < 0 || pos > 1){
@@ -2218,6 +2429,10 @@ void __fastcall TMainForm::trayout_srcBtnClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::trayout_targetBtnClick(TObject *Sender)
 {
+	if(IsTargetTrayExchangeActive()){
+		btnTargetTrayExchangeOutClick(Sender);
+		return;
+	}
 	int reply;
 	if(IsTargetCenteringSignal()){
 		if(MessageBox(Handle, BaseForm->GetLangStr("MSG_EJECT_TARGETTRAY").c_str(), L"Tray Out", MB_YESNO|MB_ICONQUESTION) == ID_YES){
@@ -2437,7 +2652,7 @@ bool __fastcall TMainForm::RetryWorkStartTrayAlarm()
 // ============================================================================
 bool __fastcall TMainForm::IsProductionSequenceBusy() const
 {
-	return step[0].step != 0 || step[1].step != 0 ||
+	return IsTargetTrayExchangeActive() || step[0].step != 0 || step[1].step != 0 ||
 		opcTrayLoadPending[0] || opcTrayLoadPending[1] ||
 		opcProcessStartPending || opcSortingStartPending || opcProcessStarted ||
 		opcProcessEndPending || opcCellTrackOutPending || opcTargetUnloadPending ||
@@ -2489,6 +2704,8 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 		InitStep(&step[1]);
 	}
 
+	// Do not admit/clear the next Source payload while Target exchange owns FMS.
+	if(IsTargetTrayExchangeActive()) return;
 	// Gate barcode/FMS dispatch as well as D10154; checking only the output
 	// would still let a manually reverse-loaded tray start FMS processing.
 	if(!UpdateSourceTrayAdmission()) return;
@@ -2845,7 +3062,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	// D10106 is normally ON while centered. Its ON-to-OFF transition confirms
 	// centering release, after which the old target tray information is cleared.
 	bool targetCenteringNow = IsTargetCenteringSignal();
-	if(targetTrayInfoDeletePending){
+	if(targetTrayInfoDeletePending && PlcBin != NULL && PlcBin->IsPlcStatusFresh(1000)){
 		if(targetCenteringNow)
 			targetTrayInfoWasCentered = true;
 		else if(targetTrayInfoWasCentered){
@@ -3215,6 +3432,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		PlcBin->CmdPcEmergency(robostar->IsEmergencyStopActive());
 		PlcBin->CmdPcDoorOpen(doorOpen);
 	}
+	ServiceTargetTrayExchange();
 }
 //---------------------------------------------------------------------------
 
@@ -3447,6 +3665,11 @@ void __fastcall TMainForm::memoRobostarLineAdd(AnsiString msg)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::AdvSmoothToggleButton_InitWorkClick(TObject *Sender)
 {
+	if(IsTargetTrayExchangeActive()){
+		memoMainLineAdd("[TARGET EXCHANGE] Work reset blocked; finish the target exchange before clearing tray data.");
+		ShowMessage(BaseForm->GetLangStr("MSG_TARGET_EXCHANGE_RESET"));
+		return;
+	}
 	if(gripper->pauseStatus && robostar->pauseStatus)
 	{
 		if(MessageBox(Handle, BaseForm->GetLangStr("MSG_INIT_WORK").c_str(),

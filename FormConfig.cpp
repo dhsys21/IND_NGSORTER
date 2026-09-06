@@ -18,6 +18,9 @@ __fastcall TConfigForm::TConfigForm(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall TConfigForm::ApplyConfig()
 {
+	int unloadCount = editTargetUnloadCount->Text.ToIntDef(BaseForm->config.targetTrayUnloadCount);
+	if(unloadCount >= 0 && unloadCount <= 96)
+		BaseForm->config.targetTrayUnloadCount = unloadCount;
 	UpdateCommunicationConfigFromEdits();
 	//* max speed mode - need remove
 	// FAT controls are intentionally independent from MainForm::cbCycle.
@@ -269,6 +272,7 @@ void __fastcall TConfigForm::WriteSystemInfo(AnsiString type)
 		editFatSourceBcr->Text.Trim());
 	ini->WriteString("FAT_TEST", "TARGET_BCR",
 		editFatTargetBcr->Text.Trim());
+	ini->WriteInteger("TARGET_TRAY", "UNLOAD_CELL_COUNT", BaseForm->config.targetTrayUnloadCount);
 
 	delete ini;
 
@@ -306,6 +310,9 @@ bool __fastcall TConfigForm::ReadSystemInfo()
 		"TR-20260818-src");
 	editFatTargetBcr->Text = ini->ReadString("FAT_TEST", "TARGET_BCR",
 		"TR-20260818-trg");
+	int unloadCount = ini->ReadInteger("TARGET_TRAY", "UNLOAD_CELL_COUNT", 0);
+	if(unloadCount < 0 || unloadCount > 96) unloadCount = 0;
+	editTargetUnloadCount->Text = IntToStr(unloadCount);
 
     // Stage Info
 	pcEdit->Text = ini->ReadString("INFO", "PC", "H1DIF01A");
@@ -436,6 +443,12 @@ void __fastcall TConfigForm::btnSmokeDisconnClick(TObject *Sender)
 
 void __fastcall TConfigForm::AdvSmoothButton2Click(TObject *Sender)
 {
+	int unloadCount = -1;
+	if(!TryStrToInt(editTargetUnloadCount->Text.Trim(), unloadCount) || unloadCount < 0 || unloadCount > 96){
+		ShowMessage(BaseForm->GetLangStr("MSG_TARGET_UNLOAD_RANGE"));
+		editTargetUnloadCount->SetFocus();
+		return;
+	}
 	if(MessageBox(Handle, BaseForm->GetLangStr("MSG_APPLY").c_str(), L"APPLY", MB_YESNO|MB_ICONQUESTION) == ID_YES){
 		ApplyConfig();
 		this->WriteSystemInfo();

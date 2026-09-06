@@ -417,6 +417,7 @@ public:		// User declarations
 
 	bool __fastcall getGripperChuckStatus();
 	bool __fastcall getGripperOpenStatus();
+	bool __fastcall IsTargetTrayUnloadSafe();
 	bool __fastcall getCellDetectStatus();
 	bool __fastcall getCellDetectStatus(int pos);
 

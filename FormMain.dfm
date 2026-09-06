@@ -4722,6 +4722,51 @@ object MainForm: TMainForm
       ScrollBars = ssBoth
       TabOrder = 6
     end
+    object pnlTargetTrayExchange: TPanel
+      Left = 5
+      Top = 291
+      Width = 967
+      Height = 96
+      Align = alBottom
+      BevelOuter = bvNone
+      Color = 15198183
+      ParentBackground = False
+      TabOrder = 8
+      Visible = False
+      object lblTargetTrayExchange: TLabel
+        Left = 12
+        Top = 8
+        Width = 745
+        Height = 80
+        AutoSize = False
+        Caption = 'Target tray exchange'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -14
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
+        Layout = tlCenter
+        WordWrap = True
+      end
+      object btnTargetTrayExchangeOut: TButton
+        Left = 779
+        Top = 26
+        Width = 176
+        Height = 44
+        Caption = 'Unload Target Tray'
+        Enabled = False
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -14
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
+        TabOrder = 0
+        WordWrap = True
+        OnClick = btnTargetTrayExchangeOutClick
+      end
+    end
     object pnlLogTitle: TAdvSmoothPanel
       Left = 5
       Top = 5

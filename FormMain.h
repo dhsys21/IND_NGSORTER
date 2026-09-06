@@ -79,6 +79,12 @@ enum TFmsAlarmTransaction
 	fmsAlarmTrayUnload
 };
 //---------------------------------------------------------------------------
+enum TTargetTrayExchangeState
+{
+	ttxNone, ttxWaitSafe, ttxWaitOperator, ttxFmsUnload,
+	ttxOutDelay, ttxWaitOut, ttxWaitIn, ttxLoading
+};
+
 class TMainForm : public TForm
 {
 __published:	// IDE-managed Components
@@ -110,6 +116,9 @@ __published:	// IDE-managed Components
 	TPanel *popen;
 	TAdvSmoothPanel *pnlLog;
 	TAdvSmoothPanel *pnlTargetTray;
+	TPanel *pnlTargetTrayExchange;
+	TLabel *lblTargetTrayExchange;
+	TButton *btnTargetTrayExchangeOut;
 	TAdvSmoothPanel *pnlSourceTray;
 	TImage *imgTrayFlowArrow;
 	TPanel *pBase;
@@ -334,6 +343,7 @@ __published:	// IDE-managed Components
 	void __fastcall senTimerTimer(TObject *Sender);
 	void __fastcall mesTimerTimer(TObject *Sender);
 	void __fastcall sourceTrayOutTimerTimer(TObject *Sender);
+	void __fastcall btnTargetTrayExchangeOutClick(TObject *Sender);
 	void __fastcall autoBtnClick(TObject *Sender);
 	void __fastcall manualBtnClick(TObject *Sender);
 	void __fastcall playBtnClick(TObject *Sender);
@@ -484,6 +494,14 @@ private:	// User declarations
 	bool targetTrayInfoWasCentered;
 	bool targetTrayInfoPromptActive;
 	AnsiString targetTrayInfoActiveId;
+	// Set by RequestTargetTrayExchange; cleared only after replacement TrayLoad.
+	TTargetTrayExchangeState targetTrayExchangeState;
+	bool targetTrayExchangeByLimit;
+	int targetTrayExchangeLimit;
+	DWORD targetTrayExchangeTick;
+	bool __fastcall CanUnloadTargetTray();
+	void __fastcall StartTargetTrayExchangeUnload();
+	void __fastcall ServiceTargetTrayExchange();
 	bool sourceTrackOutResetArmed;
 	bool sourceTrayOutPending; // D10154 is held OFF while the delayed D10155 request is pending.
 	// ========================================================================
@@ -576,6 +594,13 @@ public:		// User declarations
 	bool __fastcall IsTargetCenteringSignal() const;
 	//* DRY RUN : True while any production PLC/FMS/local sequence is still active.
 	bool __fastcall IsProductionSequenceBusy() const;
+	bool __fastcall IsTargetTrayExchangeActive() const;
+	int __fastcall GetTargetTrayOccupiedCount() const;
+	void __fastcall RequestTargetTrayExchange(bool byLimit);
+	void __fastcall CheckTargetTrayUnloadAtSourceEnd();
+	bool __fastcall IsReplacementTargetLoadAllowed() const;
+	void __fastcall CompleteTargetTrayExchange();
+	void __fastcall UpdateTargetTrayExchangePanel();
 
 	void __fastcall InitTrayInfo(int pos);
 	void __fastcall SetTrayLoadBypassDisplay(bool sourceTray, int response);
@@ -604,6 +629,7 @@ public:		// User declarations
 	void __fastcall LampModeChange(LampMode mode);
 
 	void __fastcall CmdTrayOut(int pos);
+	void __fastcall NotifyTargetTrayUnload();
 	void __fastcall WriteProgLog(AnsiString msg);
 	//* max speed mode - need remove
 	void __fastcall WriteProgLogBatch(const std::deque<AnsiString> &messages);

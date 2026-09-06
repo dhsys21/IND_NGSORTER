@@ -19,6 +19,7 @@ __fastcall TBaseForm::TBaseForm(TComponent* Owner)
 	// FAT options default OFF. A missing or old INI therefore starts with
 	// the normal production sequence and the physical barcode readers.
 	config.maximumSpeedMode = false;
+	config.targetTrayUnloadCount = 0;
 	config.optimizeSequenceDelay = false;
 	config.skipGripStabilization = false;
 	config.useFatTestBarcodes = false;
@@ -546,6 +547,10 @@ void __fastcall TBaseForm::ChangeLanguage()
 	ConfigForm->Panel6->Caption = GetLangStr("CAP_MODEL_NO");
 	ConfigForm->GroupBox2->Caption = GetLangStr("CAP_Z_UP_ON_MOVE");
 	ConfigForm->chkZAxisUp->Caption = GetLangStr("CAP_Z_UP");
+	ConfigForm->GroupBoxTargetUnload->Caption = GetLangStr("CAP_TARGET_UNLOAD_SETTING");
+	ConfigForm->lblTargetUnloadCount->Caption = GetLangStr("CAP_TARGET_UNLOAD_COUNT");
+	ConfigForm->lblTargetUnloadDisabled->Caption = GetLangStr("CAP_TARGET_UNLOAD_DISABLED");
+	MainForm->UpdateTargetTrayExchangePanel();
 
     //* LoadFactor Form
 	loadfactorForm->Caption = GetLangStr("CAP_LOAD_FACTOR_INFO");

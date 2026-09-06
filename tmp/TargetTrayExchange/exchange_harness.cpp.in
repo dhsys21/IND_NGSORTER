@@ -1,0 +1,242 @@
+#include <string>
+#include <cstdio>
+#include <cstdlib>
+#include <cassert>
+class AnsiString : public std::string {
+public:
+    AnsiString() {} AnsiString(const char *s):std::string(s) {}
+    AnsiString(const std::string &s):std::string(s) {}
+    bool IsEmpty() const {return empty();}
+    AnsiString Trim() const {return *this;}
+    int ToIntDef(int n) const {return empty()?n:std::atoi(c_str());}
+};
+AnsiString IntToStr(int n) {char b[32];std::sprintf(b,"%d",n);return b;}
+typedef unsigned long DWORD;
+typedef void TObject;
+const int modeManual=0,modeAuto=1,fmsAlarmNone=0,clSilver=0,clLime=1;
+const int SSC_OK=0,SSC_BIT_OFF=0,SSC_BIT_ON=1,servoCnt=3,Axis_z=3;
+const int SSC_STSBIT_AX_OP=0,SSC_STSBIT_AX_RDY=1,SSC_STSBIT_AX_INP=2,SSC_STSBIT_AX_ZREQ=3;
+DWORD ticks=0; int blockingSleeps=0;
+DWORD GetTickCount(){return ticks;}
+void Sleep(int){++blockingSleeps;}
+int sscValues[4]={0,1,1,0},sscError=0; long currentZ=0;
+int sscGetStatusBitSignalEx(int,int,int,int bit,int *value){*value=sscValues[bit];return sscError;}
+int sscGetCurrentCmdPositionFast(int,int,int,long *value){*value=currentZ;return sscError;}
+struct Timer{bool Enabled; Timer():Enabled(false){}};
+struct Panel{AnsiString Caption;int Color;bool Visible,Enabled;Panel():Color(0),Visible(false),Enabled(false){}};
+struct Config{int targetTrayUnloadCount;};
+struct Base{Config config;AnsiString GetLangStr(const AnsiString &key){return key;}} base,*BaseForm=&base;
+struct PLC{
+    bool fresh,targetIn,center;int outWrites,sourceWrites;
+    PLC():fresh(true),targetIn(true),center(true),outWrites(0),sourceWrites(0){}
+    bool IsPlcStatusFresh(int)const{return fresh;}
+    void CmdTargetTrayOut(bool on){if(on)++outWrites;}
+    void PrepareSourceTrayOut(){++sourceWrites;}
+} plc,*PlcBin=&plc;
+struct Gateway{bool connected;Gateway():connected(true){} bool IsGatewayConnected(){return connected;}} gateway,*Mod_Fms=&gateway;
+struct Opc{
+    int loads,unloads,starts,writes;
+    Opc():loads(0),unloads(0),starts(0),writes(0){}
+    void PROCESS_DATA_WRITE(){++writes;}
+    void TRAY_UNLOAD_REQUEST(){++unloads;}
+    void TRAY_LOAD_REQUEST(bool){++loads;}
+    void PROCESS_START_REQUEST(){++starts;}
+    void PROCESS_START_CANCEL(){}
+} opc,*MesOpc=&opc;
+class Tgripper{
+public:
+    enum gripperSequence{seqIdle,seqInit,seqSorting,seqInserting,seqPause};
+    gripperSequence seq,seq_save;bool pauseStatus;
+    struct{int step;}step;
+    Timer timer,*waitTimer;
+    Tgripper():seq(seqIdle),seq_save(seqIdle),pauseStatus(false),waitTimer(&timer){step.step=0;}
+    bool __fastcall IsTargetTrayExchangeBoundary()const;
+    bool __fastcall IsSortingWorkActive()const;
+} grip,*gripper=&grip;
+class Trobostar{
+public:
+    enum{seqIdle,seqMoving};int seq,board_id,channel_id;
+    bool pauseStatus,ccReady,sscOpened,safety,emergency,homeRequiredAfterServoOff,cell,open;
+    struct{bool GRIPPER1_BUFFER;}input;
+    Trobostar():seq(seqIdle),board_id(0),channel_id(1),pauseStatus(false),ccReady(true),
+        sscOpened(true),safety(true),emergency(false),homeRequiredAfterServoOff(false),cell(false),open(true){input.GRIPPER1_BUFFER=false;}
+    bool IsCcLinkReady(){return ccReady;} bool IsSscOpened(){return sscOpened;}
+    bool IsSafetyReady(){return safety;} bool IsEmergencyStopActive(){return emergency;}
+    bool getCellDetectStatus(){return cell;} bool getGripperOpenStatus(){return open;}
+    bool __fastcall IsTargetTrayUnloadSafe();
+} robot,*robostar=&robot;
+struct ErrorWindow{void ShowError(){assert(false);}} errorWindow,*ErrorForm_limit=&errorWindow;
+struct Tray{int SLOT_COUNT,remainCnt;bool CELL_EXIST[96];AnsiString PICK[96];Tray():SLOT_COUNT(96),remainCnt(96){for(int i=0;i<96;++i)CELL_EXIST[i]=false;}};
+struct Step{int step;};
+enum TTargetTrayExchangeState{ttxNone,ttxWaitSafe,ttxWaitOperator,ttxFmsUnload,ttxOutDelay,ttxWaitOut,ttxWaitIn,ttxLoading};
+class TMainForm{
+public:
+    int equipMode,fmsAlarmTransaction;
+    TTargetTrayExchangeState targetTrayExchangeState;
+    bool targetTrayExchangeByLimit;int targetTrayExchangeLimit;DWORD targetTrayExchangeTick;
+    bool opcProcessStarted,opcProcessStartPending,opcProcessEndPending,opcCellTrackOutPending,opcTargetUnloadPending;
+    bool opcSortingStartPending,opcSortingStartWaitError,opcProcessStartWaitResponseOff,opcProcessStartResponseOffError;
+    int opcProcessStartResponseResult;DWORD opcProcessStartTick;
+    bool opcTargetUnloadWaitResponseOff,opcTargetUnloadResponseOffError;int opcTargetUnloadResponseResult;DWORD opcTargetUnloadTick;
+    bool sourceTrayOutPending,targetTrayInfoDeletePending,targetTrayInfoWasCentered,targetTrayInfoPromptActive;
+    bool sourceCenteringCompleted,sourceReady;
+    bool opcTrayDisplayed[2],opcTrayLoaded[2],opcTrayLoadPending[2],opcTrayAdvanceDeferred[2],opcTrayLoadRetryRequired[2];
+    bool opcTrayLoadWaitResponseOff[2],opcTrayLoadResponseOffError[2];DWORD opcTrayLoadStartTick[2];
+    AnsiString opcDeferredTrayId[2],targetTrayInfoActiveId,opcFinalTrackOutTrayId;
+    Tray tray_source,tray_target,*tray;Step step[2];struct{int limitCnt;}stage;
+    Panel panel[9],*pwork1,*pwork2,*pTrayid_source,*pTrayid_target,*pTrayid_target2,*pbad_sum;
+    Panel *pnlTargetTrayExchange,*lblTargetTrayExchange,*btnTargetTrayExchangeOut;
+    Timer timer,outTimer,*opcMesTimer,*sourceTrayOutTimer;int scans,clears,restores,errors;
+    TMainForm():equipMode(modeAuto),fmsAlarmTransaction(fmsAlarmNone),targetTrayExchangeState(ttxNone),
+      targetTrayExchangeByLimit(false),targetTrayExchangeLimit(0),targetTrayExchangeTick(0),
+      opcProcessStarted(false),opcProcessStartPending(false),opcProcessEndPending(false),opcCellTrackOutPending(false),opcTargetUnloadPending(false),
+      opcSortingStartPending(false),opcSortingStartWaitError(false),opcProcessStartWaitResponseOff(false),opcProcessStartResponseOffError(false),
+      opcProcessStartResponseResult(0),opcProcessStartTick(0),opcTargetUnloadWaitResponseOff(false),opcTargetUnloadResponseOffError(false),
+      opcTargetUnloadResponseResult(0),opcTargetUnloadTick(0),sourceTrayOutPending(false),targetTrayInfoDeletePending(false),
+      targetTrayInfoWasCentered(false),targetTrayInfoPromptActive(false),sourceCenteringCompleted(true),sourceReady(true),scans(0),clears(0),restores(0),errors(0){
+        for(int i=0;i<2;++i){opcTrayDisplayed[i]=opcTrayLoaded[i]=opcTrayLoadPending[i]=opcTrayAdvanceDeferred[i]=false;
+            opcTrayLoadRetryRequired[i]=opcTrayLoadWaitResponseOff[i]=opcTrayLoadResponseOffError[i]=false;step[i].step=0;}
+        pwork1=&panel[0];pwork2=&panel[1];pTrayid_source=&panel[2];pTrayid_target=&panel[3];pTrayid_target2=&panel[4];pbad_sum=&panel[5];
+        pnlTargetTrayExchange=&panel[6];lblTargetTrayExchange=&panel[7];btnTargetTrayExchangeOut=&panel[8];
+        pTrayid_source->Caption="SOURCE";pTrayid_target->Caption="OLD_TARGET";targetTrayInfoActiveId="OLD_TARGET";
+        pwork1->Color=pwork2->Color=clLime;pbad_sum->Caption="1";stage.limitCnt=96;tray=&tray_target;
+        opcMesTimer=&timer;sourceTrayOutTimer=&outTimer;
+        grip=Tgripper();grip.waitTimer=&grip.timer;robot=Trobostar();plc=PLC();opc=Opc();gateway=Gateway();
+        ticks=0;blockingSleeps=0;sscError=0;sscValues[0]=0;sscValues[1]=sscValues[2]=1;sscValues[3]=0;currentZ=0;
+        base.config.targetTrayUnloadCount=10;
+    }
+    bool __fastcall IsTargetTrayExchangeActive()const;
+    int __fastcall GetTargetTrayOccupiedCount()const;
+    void __fastcall RequestTargetTrayExchange(bool);
+    void __fastcall CheckTargetTrayUnloadAtSourceEnd();
+    bool __fastcall CanUnloadTargetTray();
+    void __fastcall StartTargetTrayExchangeUnload();
+    void __fastcall btnTargetTrayExchangeOutClick(TObject*);
+    bool __fastcall IsReplacementTargetLoadAllowed()const;
+    void __fastcall CompleteTargetTrayExchange();
+    void __fastcall ServiceTargetTrayExchange();
+    void __fastcall UpdateTargetTrayExchangePanel();
+    void __fastcall CmdTrayOut(int);
+    void __fastcall NotifyTargetTrayUnload();
+    void __fastcall AdvanceOpcTrayLoad(bool);
+    void __fastcall NotifyTrayInfo(AnsiString,bool);
+    void __fastcall TryStartOpcProcess();
+    bool IsTargetTrayInSignal()const{return plc.targetIn;}
+    bool IsTargetCenteringSignal()const{return plc.center;}
+    bool IsSourceTrayCycleReady()const{return sourceReady;}
+    bool CheckWorkTraySignals(int,AnsiString&){return sourceReady;}
+    bool CheckAutomaticFmsMode(const AnsiString&){return equipMode==modeAuto;}
+    void InitStep(Step *s){s->step=0;}
+    void ClearTargetTrayInfo(){++clears;targetTrayInfoActiveId="";tray_target=Tray();}
+    void NotifyIdMatching_target(const AnsiString&){}
+    void NotifyEquipStatus(const AnsiString&){}
+    void ProcessStepLog(int,const AnsiString&){}
+    void CompleteProcessStep(int,const AnsiString&){}
+    void BeginProcessStep(int,const AnsiString&){}
+    void SetProcessWaitStatus(int,const AnsiString&,const AnsiString&,int){}
+    void memoMainLineAdd(const AnsiString&){}
+    void WriteOpcUaLog(const AnsiString&,const AnsiString&,bool){}
+    void ReportIdleWaitStatus(){}
+    void ShowCommonError(const AnsiString&,const AnsiString&){++errors;}
+    void SetTrayLoadBypassDisplay(bool,int){}
+    int RestoreTargetTrayInfo(const AnsiString &id,bool){++restores;targetTrayInfoActiveId=id;return 0;}
+    void ReadTargetTrayBarcode(){++scans;pTrayid_target->Caption="NEW_TARGET";NotifyTrayInfo("NEW_TARGET",false);}
+};
+/* PRODUCTION_FUNCTIONS */
+void acceptUnload(TMainForm &f){f.opcTargetUnloadPending=false;f.CmdTrayOut(1);}
+void arrive(TMainForm &f){
+    plc.targetIn=plc.center=false;f.ServiceTargetTrayExchange();assert(f.targetTrayExchangeState==ttxWaitIn);
+    plc.targetIn=plc.center=true;f.ServiceTargetTrayExchange();assert(f.targetTrayExchangeState==ttxLoading);
+}
+int main(){
+    {
+        TMainForm f;base.config.targetTrayUnloadCount=0;f.tray_target.CELL_EXIST[0]=true;
+        f.CheckTargetTrayUnloadAtSourceEnd();assert(!f.IsTargetTrayExchangeActive());
+        base.config.targetTrayUnloadCount=10;
+        for(int i=0;i<10;++i)f.tray_target.CELL_EXIST[i]=true;
+        f.tray_target.PICK[9]="R";assert(f.GetTargetTrayOccupiedCount()==9);
+        f.CheckTargetTrayUnloadAtSourceEnd();assert(!f.IsTargetTrayExchangeActive());
+        f.tray_target.PICK[9]="Y";assert(f.GetTargetTrayOccupiedCount()==10);
+        assert(!f.IsTargetTrayExchangeActive()); // Reaching the count alone is not an event.
+        f.CheckTargetTrayUnloadAtSourceEnd();assert(f.targetTrayExchangeState==ttxWaitSafe);
+        f.opcProcessStarted=true;f.ServiceTargetTrayExchange();assert(!f.btnTargetTrayExchangeOut->Enabled);
+        f.opcProcessStarted=false;f.sourceTrayOutPending=true;f.ServiceTargetTrayExchange();assert(!f.btnTargetTrayExchangeOut->Enabled);
+        f.sourceTrayOutPending=false;f.ServiceTargetTrayExchange();assert(f.targetTrayExchangeState==ttxWaitOperator);
+        f.ServiceTargetTrayExchange();assert(opc.unloads==0 && plc.outWrites==0);
+        f.btnTargetTrayExchangeOutClick(0);f.btnTargetTrayExchangeOutClick(0);assert(opc.unloads==1 && plc.outWrites==0);
+        puts("PASS: 0 disables threshold; only Source end latches >=10; reservations excluded; button required after reports");
+    }
+    {
+        TMainForm f;f.opcProcessStarted=true;grip.seq=Tgripper::seqInit;f.tray_target.remainCnt=0;
+        f.tray_source.CELL_EXIST[7]=true;f.tray_source.PICK[7]="Y";f.tray_source.remainCnt=6;
+        f.RequestTargetTrayExchange(false);f.opcCellTrackOutPending=true;f.ServiceTargetTrayExchange();assert(opc.unloads==0);
+        f.opcCellTrackOutPending=false;grip.seq=Tgripper::seqInserting;f.ServiceTargetTrayExchange();assert(opc.unloads==0);
+        grip.seq=Tgripper::seqInit;f.tray_target.PICK[2]="R";f.ServiceTargetTrayExchange();assert(opc.unloads==0);
+        f.tray_target.PICK[2]="Y";f.opcFinalTrackOutTrayId="SOURCE";f.ServiceTargetTrayExchange();assert(opc.unloads==0);
+        f.opcFinalTrackOutTrayId="";f.ServiceTargetTrayExchange();f.ServiceTargetTrayExchange();assert(opc.unloads==1);
+        assert(plc.outWrites==0);acceptUnload(f);assert(blockingSleeps==0);
+        ticks=2999;f.ServiceTargetTrayExchange();assert(plc.outWrites==0);
+        ticks=3000;sscValues[0]=1;f.ServiceTargetTrayExchange();assert(plc.outWrites==0);
+        sscValues[0]=0;plc.fresh=false;f.ServiceTargetTrayExchange();assert(plc.outWrites==0);
+        plc.fresh=true;f.ServiceTargetTrayExchange();assert(plc.outWrites==1);
+        f.ServiceTargetTrayExchange();assert(f.scans==0 && plc.outWrites==1); // Existing ON is not a new tray.
+        arrive(f);assert(f.scans==1 && opc.loads==1 && f.restores==1);
+        f.opcTrayLoadPending[1]=false;f.opcTrayDisplayed[1]=true;f.AdvanceOpcTrayLoad(false);
+        assert(!f.IsTargetTrayExchangeActive() && f.pwork2->Color==clLime && f.opcProcessStarted && opc.starts==0);
+        assert(f.tray_source.CELL_EXIST[7] && f.tray_source.PICK[7]=="Y" && f.tray_source.remainCnt==6);
+        puts("PASS: full tray waits last insert/FMS/motion; nonblocking delay; OFF->ON rescan; resumes same Source without ProcessStart");
+    }
+    {
+        TMainForm f;f.RequestTargetTrayExchange(true);f.ServiceTargetTrayExchange();f.btnTargetTrayExchangeOutClick(0);
+        acceptUnload(f);ticks=3000;f.ServiceTargetTrayExchange();f.sourceReady=false;f.sourceCenteringCompleted=false;
+        arrive(f);assert(opc.loads==1);f.opcTrayLoadPending[1]=false;f.opcTrayDisplayed[1]=true;
+        robot.pauseStatus=true;f.AdvanceOpcTrayLoad(false);assert(f.opcTrayAdvanceDeferred[1] && f.IsTargetTrayExchangeActive());
+        robot.pauseStatus=false;f.equipMode=modeManual;f.ServiceTargetTrayExchange();assert(f.IsTargetTrayExchangeActive());
+        f.equipMode=modeAuto;f.fmsAlarmTransaction=1;f.ServiceTargetTrayExchange();assert(f.IsTargetTrayExchangeActive());
+        f.fmsAlarmTransaction=0;f.ServiceTargetTrayExchange();assert(!f.IsTargetTrayExchangeActive() && opc.starts==0);
+        puts("PASS: threshold replacement loads without Source present; Manual/Pause/FMS alarm retain state until recovery");
+    }
+    {
+        TMainForm f;f.targetTrayExchangeState=ttxLoading;f.opcTrayDisplayed[1]=f.opcTrayLoaded[1]=true;
+        f.tray_target.remainCnt=0;f.CompleteTargetTrayExchange();assert(f.targetTrayExchangeState==ttxWaitSafe);
+        assert(!f.targetTrayExchangeByLimit);
+        f.targetTrayExchangeState=ttxLoading;f.tray_target.remainCnt=1;plc.center=false;
+        f.CompleteTargetTrayExchange();assert(f.IsTargetTrayExchangeActive());
+        puts("PASS: full or physically unready replacement never enables insertion");
+    }
+    {
+        TMainForm f;assert(robot.IsTargetTrayUnloadSafe());
+        robot.ccReady=false;assert(!robot.IsTargetTrayUnloadSafe());robot.ccReady=true;
+        robot.sscOpened=false;assert(!robot.IsTargetTrayUnloadSafe());robot.sscOpened=true;
+        robot.cell=true;assert(!robot.IsTargetTrayUnloadSafe());robot.cell=false;
+        robot.input.GRIPPER1_BUFFER=true;assert(!robot.IsTargetTrayUnloadSafe());robot.input.GRIPPER1_BUFFER=false;
+        robot.open=false;assert(!robot.IsTargetTrayUnloadSafe());robot.open=true;
+        robot.emergency=true;assert(!robot.IsTargetTrayUnloadSafe());robot.emergency=false;
+        robot.homeRequiredAfterServoOff=true;assert(!robot.IsTargetTrayUnloadSafe());robot.homeRequiredAfterServoOff=false;
+        currentZ=1;assert(!robot.IsTargetTrayUnloadSafe());currentZ=0;
+        sscError=7;assert(!robot.IsTargetTrayUnloadSafe());sscError=0;
+        sscValues[1]=0;assert(!robot.IsTargetTrayUnloadSafe());sscValues[1]=1;
+        sscValues[2]=0;assert(!robot.IsTargetTrayUnloadSafe());sscValues[2]=1;
+        sscValues[3]=1;assert(!robot.IsTargetTrayUnloadSafe());sscValues[3]=0;
+        assert(robot.IsTargetTrayUnloadSafe());
+        puts("PASS: real-state safety guard rejects I/O loss, cell, buffer, open/home/servo faults and SSC read errors");
+    }
+    {
+        TMainForm f;f.targetTrayExchangeState=ttxLoading;grip.seq=Tgripper::seqInit;
+        f.targetTrayInfoActiveId="NEW_TARGET";gateway.connected=false;
+        f.NotifyTrayInfo("NEW_TARGET",false);assert(opc.loads==0 && f.opcDeferredTrayId[1]=="NEW_TARGET");
+        int errors=f.errors;f.ServiceTargetTrayExchange();assert(f.errors==errors && opc.loads==0);
+        gateway.connected=true;f.ServiceTargetTrayExchange();assert(opc.loads==1 && f.opcDeferredTrayId[1].IsEmpty());
+        f.NotifyTrayInfo("NEW_TARGET",false);assert(opc.loads==1);
+        puts("PASS: replacement barcode retained on Gateway loss; waiting Init does not discard retry; pending duplicates ignored");
+    }
+    {
+        TMainForm f;f.RequestTargetTrayExchange(false);gateway.connected=false;
+        f.ServiceTargetTrayExchange();assert(opc.unloads==0 && f.targetTrayExchangeState==ttxWaitSafe);
+        gateway.connected=true;f.ServiceTargetTrayExchange();assert(opc.unloads==1);
+        f.fmsAlarmTransaction=1;f.opcTargetUnloadPending=false;f.ServiceTargetTrayExchange();assert(plc.outWrites==0);
+        f.NotifyTrayInfo("STALE_TARGET",false);assert(opc.loads==0 && f.restores==0);
+        puts("PASS: disconnected Gateway and FMS failure never emit PLC unload; stale barcode during exchange ignored");
+    }
+    return 0;
+}

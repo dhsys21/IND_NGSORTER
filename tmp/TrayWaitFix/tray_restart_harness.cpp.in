@@ -10,7 +10,7 @@ public:
     bool IsEmpty() const { return empty(); }
     int ToIntDef(int fallback) const { return empty() ? fallback : std::atoi(c_str()); }
 };
-const int modeAuto=1, modeManual=0, fmsAlarmNone=0, clSilver=0;
+const int modeAuto=1, modeManual=0, fmsAlarmNone=0, clSilver=0, ttxLoading=7;
 unsigned long GetTickCount() { return 100; }
 struct Panel { AnsiString Caption; int Color; };
 struct Timer { bool Enabled; };
@@ -86,6 +86,11 @@ public:
     bool IsTargetTrayInSignal() { return true; }
     bool IsSourceTrayCycleReady() const { return true; } // Admission gate tested separately.
     void TryStartOpcProcess() { ++starts; }
+    // These cases cover normal TrayLoad; replacement cases execute real functions in TargetTrayExchange.
+    enum {targetTrayExchangeState=0};
+    bool IsTargetTrayExchangeActive() const {return false;}
+    bool IsReplacementTargetLoadAllowed() const {return false;}
+    void CompleteTargetTrayExchange() {assert(false);}
     int RestoreTargetTrayInfo(const AnsiString&,bool) { ++restores; return 0; }
     void ReadTargetTrayBarcode() { ++scans; NotifyTrayInfo("TR-20260818-trg",false); }
 };

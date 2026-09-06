@@ -51,6 +51,7 @@ typedef struct{
 	int ims_port;
 	AnsiString fmsIp;
 	int gatewayPort;
+	int targetTrayUnloadCount; // 0: full trays only; otherwise checked at Source completion.
 	//* max speed mode - need remove
 	// FAT maximum-speed mode changes only the timing of non-critical work:
 	// start the next motion first, then write logs/results and report CellTrackOut.

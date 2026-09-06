@@ -266,11 +266,13 @@ void __fastcall TMainForm::AdvanceOpcTrayLoad(bool sourceTray)
 	int stepNo = sourceTray ? 2 : 5;
 	AnsiString locationName = sourceTray ? "Location1" : "Location2";
 	AnsiString trayId = sourceTray ? pTrayid_source->Caption : pTrayid_target->Caption;
+	bool replacementTarget = !sourceTray && IsReplacementTargetLoadAllowed();
 	// TRAY LOAD RESTART: response handling may finish while an alarm has the
 	// equipment paused. Remember completion, but issue no NEXT-stage requests
 	// (centering, Target barcode or ProcessStart) until operator Restart.
 	if(equipMode != modeAuto || gripper == NULL || robostar == NULL ||
-		gripper->pauseStatus || robostar->pauseStatus || !IsSourceTrayCycleReady()){
+		gripper->pauseStatus || robostar->pauseStatus ||
+		(!replacementTarget && !IsSourceTrayCycleReady())){
 		if(!opcTrayAdvanceDeferred[index])
 			ProcessStepLog(stepNo, "HANDSHAKE COMPLETE / next stage deferred / WAIT admitted tray, real centering and Pause release / "
 				"Request=OFF / response accepted / no next-stage request sent");
@@ -315,6 +317,11 @@ void __fastcall TMainForm::AdvanceOpcTrayLoad(bool sourceTray)
 		}
 	}
 
+	if(!sourceTray && IsTargetTrayExchangeActive()){
+		CompleteTargetTrayExchange();
+		tray = &tray_target;
+		return;
+	}
 	TryStartOpcProcess();
 	tray = &tray_target;
 }
@@ -343,6 +350,7 @@ void __fastcall TMainForm::ResumeDeferredTrayLoads()
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::TryStartOpcProcess()
 {
+	if(IsTargetTrayExchangeActive()) return;
 	if(!CheckAutomaticFmsMode("ProcessStart"))
 		return;
 	//* DOOR/PLC AUTO INTERLOCK: real inputs remain required, PLC AUTO is not rechecked.
@@ -381,6 +389,12 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 		return;
 	int index = bsrc ? 0 : 1;
 	tray = bsrc ? &tray_source : &tray_target;
+	bool replacementTarget = !bsrc && IsReplacementTargetLoadAllowed();
+	// A late/stale barcode must not replace the tray while unloading or waiting for departure.
+	if(IsTargetTrayExchangeActive() && !replacementTarget){
+		if(!bsrc && targetTrayExchangeState == ttxLoading) opcDeferredTrayId[1] = strTray;
+		return;
+	}
 
 	//* 불량트레이 관리
 	// Ignore actual duplicate requests and protect active cell reservations.
@@ -389,7 +403,7 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 	if(!bsrc && IsTargetCenteringSignal() &&
 		targetTrayInfoActiveId == strTray &&
 		(opcTrayLoadPending[1] || opcTrayLoaded[1] || opcTrayAdvanceDeferred[1] ||
-		 (gripper != NULL && gripper->IsSortingWorkActive()))){
+		 (!replacementTarget && gripper != NULL && gripper->IsSortingWorkActive()))){
 		memoMainLineAdd("[LOCAL TARGET] Duplicate Location2 load ignored; target map/reservation preserved. TrayId=" + strTray);
 		tray = &tray_target;
 		return;
@@ -397,8 +411,8 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 	// A barcode callback can also arrive during Pause. Retain the ID instead
 	// of losing the request or replacing tray/reservation data behind the alarm.
 	if(gripper == NULL || robostar == NULL || gripper->pauseStatus || robostar->pauseStatus ||
-		!IsSourceTrayCycleReady() || (!bsrc && (!sourceCenteringCompleted ||
-		!IsTargetTrayInSignal() || !IsTargetCenteringSignal()))){
+		(!replacementTarget && (!IsSourceTrayCycleReady() || (!bsrc && (!sourceCenteringCompleted ||
+		!IsTargetTrayInSignal() || !IsTargetCenteringSignal()))))){
 		if(opcDeferredTrayId[index] != strTray)
 			ProcessStepLog(bsrc ? 2 : 5, "TrayLoad NOT SENT / barcode retained / WAIT admitted tray, real centering and Pause release / TrayId=" + strTray);
 		opcDeferredTrayId[index] = strTray;
@@ -457,6 +471,7 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 
 	if (MesOpc == NULL || Mod_Fms == NULL || !Mod_Fms->IsGatewayConnected())
 	{
+		if(replacementTarget) opcDeferredTrayId[1] = strTray;
 		ProcessStepLog(bsrc ? 2 : 5, "ERROR - FMS Gateway disconnected / TrayLoad Request not sent");
 		ShowCommonError("FMS Gateway is not connected",
 			"Tray load request was not sent. Check the gateway connection.");
@@ -591,10 +606,10 @@ void __fastcall TMainForm::NotifyTransferOut(AnsiString strTray)
 	}
 	opcFinalTrackOutTrayId = "";
 
-	// Final cumulative report: Location2 TrackIn snapshot plus every completed insert.
-	MesOpc->PROCESS_DATA_WRITE();
-	WriteOpcUaLog("DETAIL", "Final TrackOutCellInformation written before process/tray completion", false);
 	if(strTray == pTrayid_source->Caption || strTray == pTrayid_source2->Caption){
+		// Final cumulative report: Location2 snapshot plus every completed insert.
+		MesOpc->PROCESS_DATA_WRITE();
+		WriteOpcUaLog("DETAIL", "Final TrackOutCellInformation written before process completion", false);
 		if(!opcProcessEndPending){
 			BeginProcessStep(14, "ProcessEnd request / wait response");
 			MesOpc->PROCESS_END_REQUEST();
@@ -609,18 +624,26 @@ void __fastcall TMainForm::NotifyTransferOut(AnsiString strTray)
 			memoMainLineAdd("[FMS OPC UA] Duplicate Source ProcessEnd request ignored; response is pending.");
 		}
 	}else{
-		if(!opcTargetUnloadPending){
-			BeginProcessStep(16, "TrayUnload request / wait response");
-			MesOpc->TRAY_UNLOAD_REQUEST();
-			opcTargetUnloadPending = true;
-			opcTargetUnloadWaitResponseOff = false;
-			opcTargetUnloadResponseOffError = false;
-			opcTargetUnloadResponseResult = 0;
-			opcTargetUnloadTick = GetTickCount();
-			opcMesTimer->Enabled = true;
-			SetProcessWaitStatus(16, "TrayUnloadRequest=ON", "TrayUnloadResponse", 0);
-		}
+		NotifyTargetTrayUnload();
 	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::NotifyTargetTrayUnload()
+{
+	// Explicit target direction avoids classifying by tray-ID equality during exchange.
+	if(equipMode != modeAuto || MesOpc == NULL || Mod_Fms == NULL ||
+		!Mod_Fms->IsGatewayConnected() || opcCellTrackOutPending || opcTargetUnloadPending) return;
+	MesOpc->PROCESS_DATA_WRITE();
+	WriteOpcUaLog("DETAIL", "Final TrackOutCellInformation written before Target TrayUnload", false);
+	BeginProcessStep(16, "TrayUnload request / wait response");
+	MesOpc->TRAY_UNLOAD_REQUEST();
+	opcTargetUnloadPending = true;
+	opcTargetUnloadWaitResponseOff = false;
+	opcTargetUnloadResponseOffError = false;
+	opcTargetUnloadResponseResult = 0;
+	opcTargetUnloadTick = GetTickCount();
+	opcMesTimer->Enabled = true;
+	SetProcessWaitStatus(16, "TrayUnloadRequest=ON", "TrayUnloadResponse", 0);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::NotifyEquipStatus(AnsiString process)

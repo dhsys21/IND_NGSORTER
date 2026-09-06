@@ -581,6 +581,48 @@ object ConfigForm: TConfigForm
       TabOrder = 7
     end
   end
+  object GroupBoxTargetUnload: TGroupBox
+    Left = 500
+    Top = 395
+    Width = 390
+    Height = 88
+    Caption = 'Target Tray Unload'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 10
+    object lblTargetUnloadCount: TLabel
+      Left = 12
+      Top = 28
+      Width = 265
+      Height = 24
+      AutoSize = False
+      Caption = 'Unload cell count (0-96)'
+      Layout = tlCenter
+    end
+    object lblTargetUnloadDisabled: TLabel
+      Left = 12
+      Top = 58
+      Width = 366
+      Height = 18
+      AutoSize = False
+      Caption = '0: Full tray only'
+    end
+    object editTargetUnloadCount: TEdit
+      Left = 290
+      Top = 25
+      Width = 80
+      Height = 26
+      Alignment = taRightJustify
+      MaxLength = 2
+      NumbersOnly = True
+      TabOrder = 0
+      Text = '0'
+    end
+  end
   object AdvSmoothButton2: TAdvSmoothButton
     Left = 686
     Top = 18

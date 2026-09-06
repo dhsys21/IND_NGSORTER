@@ -251,6 +251,11 @@ bool __fastcall Tgripper::IsSortingWorkActive() const
 	return active == seqInit || active == seqSorting || active == seqInserting;
 }
 //---------------------------------------------------------------------------
+bool __fastcall Tgripper::IsTargetTrayExchangeBoundary() const
+{
+	return !pauseStatus && (seq == seqIdle || (seq == seqInit && step.step == 0));
+}
+//---------------------------------------------------------------------------
 void __fastcall Tgripper::stepTimerTimer(TObject *Sender)
 {
 	UpdateTransferResult();
@@ -307,6 +312,8 @@ bool __fastcall Tgripper::GetZoneCode(int zone, AnsiString code)
 //---------------------------------------------------------------------------
 void __fastcall Tgripper::Initialize()
 {
+	// Target exchange owns replacement loading; preserve the current Source map.
+	if(MainForm->IsTargetTrayExchangeActive()) return;
 	bool bcheck = true;
 	bool repeatCheck = false;
 	AnsiString strMsg;
@@ -328,15 +335,7 @@ void __fastcall Tgripper::Initialize()
 				return;
 			}
 			if(MainForm->tray_target.remainCnt == 0){
-				if(!waitTimer->Enabled)
-				{
-					MainForm->BeginProcessStep(16, "Target tray full / unload request");
-					MainForm->NotifyIdMatching_target("2");		// 대상 트레이 선별완료 보고하고
-					MainForm->NotifyTransferOut(MainForm->pTrayid_target->Caption);
-				}
-				MainForm->memoGripperLineAdd("[Init step 0] " + BaseForm->GetLangStr("MSG_TARGETTRAY_FULL"));
-
-				waitTimer->Enabled = true;
+				MainForm->RequestTargetTrayExchange(false);
 				return;
 			}
 			else if(MainForm->equipMode == modeAuto){	// 자동 - 운전 모드일 경우에만 동작한다.
@@ -535,6 +534,7 @@ void __fastcall Tgripper::Initialize()
 				InitSequence(seqIdle);						// 시퀀스 종료
 				MainForm->NotifyIdMatching_source();		// 소스 트레이 작업완료 보고하고
 				MainForm->NotifyIdMatching_target("1");		// 대상 트레이 작업완료 보고하고
+				MainForm->CheckTargetTrayUnloadAtSourceEnd();
 				MainForm->NotifyTransferOut(MainForm->pTrayid_source->Caption);				// 검사 완료 보고
 			}
 			break;

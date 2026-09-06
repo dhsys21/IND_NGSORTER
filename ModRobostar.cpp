@@ -2568,6 +2568,30 @@ bool __fastcall Trobostar::getGripperOpenStatus()
 	return input.GRIPPER1_UNCHUCK && !input.GRIPPER1_CHUCK;
 }
 //---------------------------------------------------------------------------
+bool __fastcall Trobostar::IsTargetTrayUnloadSafe()
+{
+	// Target exchange is allowed only after motion and cell handling have ended.
+	// Read live SSC status: cached UI positions/running bits can lag a move.
+	if(seq != seqIdle || pauseStatus || !IsCcLinkReady() || !IsSscOpened() ||
+		!IsSafetyReady() || IsEmergencyStopActive() || homeRequiredAfterServoOff ||
+		getCellDetectStatus() || !getGripperOpenStatus() || input.GRIPPER1_BUFFER)
+		return false;
+	for(int axis = 1; axis <= servoCnt; ++axis){
+		int running = SSC_BIT_ON;
+		int ready = SSC_BIT_OFF;
+		int inPosition = SSC_BIT_OFF;
+		int zeroRequest = SSC_BIT_ON;
+		if(sscGetStatusBitSignalEx(board_id, channel_id, axis, SSC_STSBIT_AX_OP, &running) != SSC_OK ||
+			sscGetStatusBitSignalEx(board_id, channel_id, axis, SSC_STSBIT_AX_RDY, &ready) != SSC_OK ||
+			sscGetStatusBitSignalEx(board_id, channel_id, axis, SSC_STSBIT_AX_INP, &inPosition) != SSC_OK ||
+			sscGetStatusBitSignalEx(board_id, channel_id, axis, SSC_STSBIT_AX_ZREQ, &zeroRequest) != SSC_OK ||
+			running != SSC_BIT_OFF || ready != SSC_BIT_ON || inPosition != SSC_BIT_ON || zeroRequest != SSC_BIT_OFF)
+			return false;
+	}
+	long z = -1;
+	return sscGetCurrentCmdPositionFast(board_id, channel_id, Axis_z, &z) == SSC_OK && z == 0;
+}
+//---------------------------------------------------------------------------
 void __fastcall Trobostar::mr2Sensing()
 {
 	if(!sscOpened) return;

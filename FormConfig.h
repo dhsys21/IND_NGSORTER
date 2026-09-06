@@ -42,6 +42,10 @@ __published:	// IDE-managed Components
 	TCheckBox *chkSkipGripStabilization;
 	TCheckBox *chkUseFatTestBarcodes;
 	TGroupBox *GroupBoxFatTest;
+	TGroupBox *GroupBoxTargetUnload;
+	TLabel *lblTargetUnloadCount;
+	TLabel *lblTargetUnloadDisabled;
+	TEdit *editTargetUnloadCount;
 	TEdit *editFatSourceBcr;
 	TEdit *editFatTargetBcr;
 	TPanel *pnlFatSourceBcr;

@@ -125,6 +125,7 @@ public:		// User declarations
 	void __fastcall req_Pause(bool stop);
     bool __fastcall getReadyStatus();
 	bool __fastcall IsSortingWorkActive() const;
+	bool __fastcall IsTargetTrayExchangeBoundary() const;
 
 	bool __fastcall GetZoneCode(int zone, AnsiString code);
 
