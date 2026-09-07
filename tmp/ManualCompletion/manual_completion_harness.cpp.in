@@ -1,0 +1,176 @@
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <new>
+#include <string>
+#include "../../ManualCellRecovery.h"
+class String : public std::string {
+public:
+    String(const char *s=""):std::string(s){}
+    String(const std::string &s):std::string(s){}
+    String(const wchar_t *s){while(*s)push_back((char)*s++);}
+    String Trim()const{return *this;}
+    int ToIntDef(int d)const{char *e;long n=std::strtol(c_str(),&e,10);return *e?d:(int)n;}
+    bool IsEmpty()const{return empty();}
+};
+typedef String AnsiString;
+typedef String UnicodeString;
+String operator+(const wchar_t *a,const String &b){return String(a).append(b);}
+String operator+(const String &a,const wchar_t *b){return String(a).append(String(b));}
+String IntToStr(int n){char b[40];sprintf(b,"%d",n);return b;}
+String RecoveryText(const char *s){return s;}
+typedef unsigned long DWORD;
+DWORD tick=100; DWORD GetTickCount(){return tick;}
+struct TObject{};
+const int gripCnt=1,mrOk=1;
+enum Seq {seqIdle,seqPause,seqWait,seqInit,seqSorting,seqInserting,seqAutoEject,seqAutoInsert};
+struct Control {String Text,Caption;bool Checked,Enabled;void Hide(){}};
+struct Tray {
+    int SLOT_COUNT,remainCnt;
+    String SLOT_ID[96],PICK[96],CELL_LOT_ID[96],LOSS_CD[96],RANK[96];
+    bool CELL_EXIST[96],WORK_FLAG[96];
+    Tray():SLOT_COUNT(96),remainCnt(96){for(int i=0;i<96;++i){CELL_EXIST[i]=WORK_FLAG[i]=false;PICK[i]="N";}}
+};
+struct Main {
+    Control src,dst,*pTrayid_source,*pTrayid_target;
+    Tray tray_source,tray_target;
+    bool cellRecoveryReportAccepted,canStart,saveOkay,m_ServoON,m_ServoHomeEmg;
+    int resumes,saves;
+    Main():pTrayid_source(&src),pTrayid_target(&dst),cellRecoveryReportAccepted(false),
+        canStart(true),saveOkay(true),m_ServoON(true),m_ServoHomeEmg(true),resumes(0),saves(0){}
+    bool CanStartManualCellCompletion(){return canStart;}
+    bool setTrayInfo(int){++saves;return saveOkay;}
+    void DisplaySourceCell(int,int){} void DisplayTargetCell(int,int){} void DisplayTargetCellInfo(int,int){}
+    void WriteOpcUaLog(String,String,bool){} void memoRobostarLineAdd(String){}
+    void ResumeAfterManualCellCompletion(){++resumes;}
+} mainForm,*MainForm=&mainForm;
+struct Tgripper {
+    struct Tool {String source_ch,target_ch;bool eject_end,insert_end;} tool[1];
+    struct Result {bool active;int targetChannel;} transferResult;
+    struct Step {int step;} step;
+    struct Action {int gripper,conCnt;} eject,insert;
+    bool pauseStatus,pending,saveOkay;Seq seq,seq_save;
+    Tgripper():pauseStatus(true),pending(false),saveOkay(true),seq(seqPause){transferResult.active=true;}
+    void req_Pause(bool p){if(p&&!pauseStatus)seq_save=seq;if(p)seq=seqPause;pauseStatus=p;}
+    bool HasPendingCompletion(){return pending;}
+    bool SaveTransferResult(bool){return saveOkay;}
+    bool CommitEjectTrayState(int){tool[0].eject_end=true;return saveOkay;}
+    void InitSequence(Seq s,Seq unused=seqIdle){seq=s;step.step=0;}
+    void __fastcall ResumeCompletedCell(bool,int);
+    bool __fastcall PrepareNextAfterManualCompletion();
+} grip,*gripper=&grip;
+struct Trobostar {
+    bool pauseStatus,prepareOkay,stopped,standby,cellHeld,opened,sscOpened,cc,gripperOpen;
+    int waits,stops,oldResumes;Seq seq;
+    struct {int tool,cnt;} move;
+    struct {int step;} step;
+    Trobostar():pauseStatus(true),prepareOkay(true),stopped(true),standby(true),cellHeld(false),
+        opened(true),sscOpened(true),cc(true),gripperOpen(true),waits(0),stops(0),oldResumes(0),seq(seqPause){}
+    void req_Pause(bool p){if(!p)++oldResumes;pauseStatus=p;if(p)seq=seqPause;}
+    void req_Stop(){pauseStatus=false;seq=seqIdle;++stops;}
+    bool StopAxes(){return stopped;}
+    bool CanResumeMotion(){return prepareOkay&&cc;}
+    bool getCellDetectStatus(){return cellHeld;}
+    bool getGripperOpenStatus(){return gripperOpen;}
+    bool IsCcLinkReady(){return cc;}
+    void InitSequence(Seq s){seq=s;step.step=0;}
+    bool __fastcall PrepareCellRecovery(bool);
+    bool __fastcall req_EjectComplete(int);
+    bool __fastcall req_InsertComplete(int);
+    bool AreAxesStopped(){return stopped;}
+    bool IsRecoveryStandby(){return standby;}
+    void req_WaitPosition(){++waits;seq=seqWait;pauseStatus=false;}
+} robot,*robostar=&robot;
+struct Gateway {bool connected;Gateway():connected(true){}bool IsGatewayConnected(){return connected;}void FlushPendingPcTags(bool){}} gateway,*Mod_Fms=&gateway;
+struct Mes {
+    bool writeComplete;
+    int response,requests,cancels,clears,from,to;String cell,src,dst;
+    Mes():writeComplete(true),response(0),requests(0),cancels(0),clears(0){}
+    bool CELL_TRACK_OUT_WRITE_COMPLETE(bool){return writeComplete;}
+    void CELL_TRACK_OUT_CANCEL(){++cancels;}
+    int CELL_TRACK_OUT_RESPONSE_VALUE(){return response;}
+    void CLEAR_CELL_TRACK_OUT_DATA(){++clears;}
+    void CELL_TRACK_OUT_REQUEST(int f,int t,String c,String s,String d){++requests;from=f;to=t;cell=c;src=s;dst=d;}
+} mes,*MesOpc=&mes;
+Control errorEject,errorInsert,*ErrorForm_eject=&errorEject,*ErrorForm_insert=&errorInsert;
+class TManualCompleteForm {
+public:
+    TManualCellPhase phase;
+    int toolNo,sourceNo,targetNo,reservedNo;
+    String sourceId,targetId,cellId,lotId,ngCode,grade;
+    bool workFlag,polling,restored,journalOkay,Visible,saveOkay,requestClearQueued;
+    DWORD started;int ModalResult,journalSaves;
+    Control status,channel,confirm,*lblStatus,*editChannel,*chkInserted;
+    TManualCompleteForm():phase(mcIdle),toolNo(1),sourceNo(3),targetNo(7),reservedNo(7),
+      sourceId("SRC"),targetId("TGT"),cellId("CELL3"),lotId("LOT"),ngCode("NG1"),grade("NG"),
+      workFlag(true),polling(false),restored(false),journalOkay(true),Visible(true),saveOkay(true),requestClearQueued(false),started(0),ModalResult(0),journalSaves(0),
+      lblStatus(&status),editChannel(&channel),chkInserted(&confirm){
+        MainForm->src.Caption=sourceId;MainForm->dst.Caption=targetId;
+        MainForm->tray_source.SLOT_ID[2]=cellId;MainForm->tray_source.CELL_EXIST[2]=true;
+        MainForm->tray_source.PICK[2]="Y";MainForm->tray_source.remainCnt=9;
+        MainForm->tray_target.PICK[6]="R";
+        gripper->tool[0].source_ch="3";gripper->tool[0].target_ch="7";
+        gripper->tool[0].eject_end=gripper->tool[0].insert_end=false;
+        editChannel->Text="7";chkInserted->Checked=true;
+      }
+    bool IsBlocking()const{return phase!=mcIdle||!journalOkay;}
+    void RefreshControls(){}
+    void Fail(String s){polling=false;lblStatus->Caption=s;}
+    bool SaveJournal(){++journalSaves;journalOkay=saveOkay;if(!saveOkay)Fail("save failed");return saveOkay;}
+    bool ContextMatches();bool ApplyPhysicalCompletion();void CancelRequest();void SendRequest();
+    void __fastcall btnReportClick(TObject*);void __fastcall btnRetryClick(TObject*);
+    void __fastcall pollTimerTimer(TObject*);void __fastcall btnResumeClick(TObject*);
+};
+/* PRODUCTION METHODS */
+void reset(){
+    mainForm.~Main();new(&mainForm) Main();grip=Tgripper();robot=Trobostar();gateway=Gateway();mes=Mes();tick=100;
+}
+void report(TManualCompleteForm &f){f.btnReportClick(0);assert(f.phase==mcPrepared);f.pollTimerTimer(0);assert(f.phase==mcWaitResult&&mes.requests==1);}
+void accept(TManualCompleteForm &f){mes.response=1;f.pollTimerTimer(0);assert(f.phase==mcAccepted);mes.response=0;f.pollTimerTimer(0);assert(f.phase==mcReady);}
+int main(){
+    for(int r=-1;r<5;++r){assert(ManualCellReply(mcIdle,r)==mrWait);assert(ManualCellReply(mcAccepted,r)==(r==0?mrReset:mrWait));}
+    assert(ManualCellReply(mcWaitResult,2)==mrFailure);assert(ManualCellReply(mcWaitResult,3)==mrInvalid);
+    reset();{TManualCompleteForm f;report(f);assert(mes.src=="SRC"&&mes.dst=="TGT"&&mes.cell=="CELL3"&&mes.from==3&&mes.to==7);
+        f.btnReportClick(0);assert(mes.requests==1);accept(f);assert(MainForm->cellRecoveryReportAccepted&&mes.clears==1);
+        f.btnRetryClick(0);assert(mes.requests==1);f.btnResumeClick(0);assert(robot.waits==1&&MainForm->resumes==0);
+        robot.seq=seqIdle;f.pollTimerTimer(0);assert(!f.IsBlocking()&&MainForm->resumes==1&&grip.seq_save==seqInit);
+        assert(!MainForm->tray_source.CELL_EXIST[2]&&MainForm->tray_source.PICK[2]=="N"&&MainForm->tray_target.CELL_EXIST[6]);
+        assert(robot.oldResumes==0&&MainForm->tray_source.remainCnt==9);}
+    reset();{TManualCompleteForm f;f.editChannel->Text="12";report(f);assert(mes.to==12&&grip.tool[0].target_ch=="12");
+        assert(MainForm->tray_target.PICK[6]=="N"&&!MainForm->tray_target.CELL_EXIST[6]&&MainForm->tray_target.CELL_EXIST[11]);
+        accept(f);f.btnResumeClick(0);robot.seq=seqIdle;f.pollTimerTimer(0);assert(grip.transferResult.targetChannel==12);}
+    reset();{TManualCompleteForm f;MainForm->tray_target.CELL_EXIST[6]=true;f.btnReportClick(0);assert(f.phase==mcIdle&&mes.requests==0);}
+    reset();{TManualCompleteForm f;MainForm->tray_target.CELL_EXIST[6]=true;f.editChannel->Text="12";f.btnReportClick(0);assert(f.phase==mcIdle&&mes.requests==0);}
+    reset();{TManualCompleteForm f;mes.writeComplete=false;f.btnReportClick(0);f.pollTimerTimer(0);
+        assert(f.phase==mcClearForSend&&mes.requests==0);int cancels=mes.cancels;
+        f.pollTimerTimer(0);assert(mes.cancels==cancels&&mes.requests==0);
+        mes.writeComplete=true;f.pollTimerTimer(0);assert(mes.requests==1);
+        mes.writeComplete=false;mes.response=1;f.pollTimerTimer(0);assert(f.phase==mcWaitResult);
+        mes.writeComplete=true;f.pollTimerTimer(0);assert(f.phase==mcAccepted);}
+    reset();{TManualCompleteForm f;f.editChannel->Text="0";f.btnReportClick(0);assert(f.phase==mcIdle&&mes.requests==0);}
+    reset();{TManualCompleteForm f;MainForm->canStart=false;f.btnReportClick(0);assert(f.phase==mcIdle&&mes.requests==0);}
+    reset();{TManualCompleteForm f;robot.cc=false;f.btnReportClick(0);assert(f.phase==mcIdle&&mes.requests==0);}
+    reset();{TManualCompleteForm f;report(f);mes.response=2;f.pollTimerTimer(0);assert(!f.polling&&f.IsBlocking());
+        f.btnRetryClick(0);f.pollTimerTimer(0);assert(mes.requests==1);mes.response=0;f.pollTimerTimer(0);assert(mes.requests==2);accept(f);}
+    reset();{TManualCompleteForm f;report(f);mes.response=1;f.pollTimerTimer(0);tick+=30001;f.pollTimerTimer(0);
+        assert(f.phase==mcAccepted&&!f.polling);f.btnRetryClick(0);f.pollTimerTimer(0);assert(mes.requests==1);
+        mes.response=0;f.pollTimerTimer(0);assert(f.phase==mcReady&&mes.requests==1);}
+    reset();{TManualCompleteForm f;report(f);gateway.connected=false;f.pollTimerTimer(0);assert(!f.polling&&f.IsBlocking());
+        gateway.connected=true;f.btnRetryClick(0);f.pollTimerTimer(0);assert(mes.requests==2&&robot.waits==0);}
+    reset();{TManualCompleteForm f;f.saveOkay=false;f.btnReportClick(0);assert(f.IsBlocking()&&mes.requests==0&&!f.polling);
+        f.saveOkay=true;f.btnRetryClick(0);f.pollTimerTimer(0);assert(mes.requests==1);}
+    reset();{TManualCompleteForm f;report(f);mes.response=1;f.saveOkay=false;f.pollTimerTimer(0);assert(f.phase==mcAccepted&&!f.polling);
+        f.saveOkay=true;f.btnRetryClick(0);mes.response=0;f.pollTimerTimer(0);assert(f.phase==mcReady&&mes.requests==1&&MainForm->cellRecoveryReportAccepted);}
+    reset();{TManualCompleteForm f;MainForm->saveOkay=false;f.btnReportClick(0);f.pollTimerTimer(0);assert(f.phase==mcPrepared&&mes.requests==0);
+        MainForm->saveOkay=true;f.btnRetryClick(0);f.pollTimerTimer(0);assert(mes.requests==1);}
+    reset();{TManualCompleteForm f;report(f);MainForm->dst.Caption="OTHER";mes.response=1;f.pollTimerTimer(0);assert(f.IsBlocking()&&!f.polling&&MainForm->resumes==0);}
+    reset();{TManualCompleteForm f;report(f);accept(f);f.btnResumeClick(0);robot.seq=seqIdle;robot.standby=false;f.pollTimerTimer(0);
+        assert(f.IsBlocking()&&MainForm->resumes==0);robot.standby=true;f.btnResumeClick(0);robot.seq=seqIdle;f.pollTimerTimer(0);assert(MainForm->resumes==1&&mes.requests==1);}
+    reset();{TManualCompleteForm f;report(f);f.restored=true;f.polling=false;f.btnRetryClick(0);f.btnResumeClick(0);assert(mes.requests==1&&robot.waits==0&&f.IsBlocking());}
+    reset();{robot.cellHeld=true;assert(robot.req_EjectComplete(1));assert(robot.move.cnt==1&&robot.seq==seqAutoEject&&robot.step.step==7&&robot.oldResumes==0&&grip.step.step==2);}
+    reset();{robot.cellHeld=false;assert(!robot.req_EjectComplete(1));assert(robot.oldResumes==0);}
+    reset();{assert(robot.req_InsertComplete(1));assert(robot.move.cnt==1&&robot.seq==seqAutoInsert&&robot.step.step==5&&robot.oldResumes==0&&grip.step.step==1);}
+    reset();{robot.stopped=false;assert(!robot.req_InsertComplete(1));assert(robot.oldResumes==0);}
+    puts("PASS: production manual completion methods: payload, maps, channel override, response/reset/retry, disk/link/context faults, standby/resume and Complete no-replay");
+    return 0;
+}

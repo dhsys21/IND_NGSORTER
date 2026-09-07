@@ -123,6 +123,9 @@ public:		// User declarations
 	void __fastcall req_Init();
 	bool __fastcall CommitEjectTrayState(int toolNo);
 	bool __fastcall CommitInsertTrayState(int toolNo);
+	void __fastcall ResumeCompletedCell(bool ejectComplete, int toolNo);
+	bool __fastcall PrepareNextAfterManualCompletion();
+	bool HasPendingCompletion() const { return fastPostMovePending || cellTrackOutRequestStarted; }
 
 	gripperSequence seq_save;
 	bool pauseStatus;

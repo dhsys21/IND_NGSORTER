@@ -66,7 +66,8 @@ public:		// User declarations
         const AnsiString &CellId, const UnicodeString &SourceTrayId,
         const UnicodeString &TargetTrayId);
     int __fastcall CELL_TRACK_OUT_RESPONSE_RESULT();
-    int __fastcall CELL_TRACK_OUT_RESPONSE_VALUE();
+	int __fastcall CELL_TRACK_OUT_RESPONSE_VALUE();
+	bool CELL_TRACK_OUT_WRITE_COMPLETE(bool requestOn);
     void __fastcall LogCellTrackOutTimeout();
     void __fastcall LogCellTrackOutResponseOffTimeout();
     bool __fastcall CELL_TRACK_OUT_RETRY();

@@ -519,6 +519,7 @@ void __fastcall TMainForm::NotifyTransferIn(AnsiString strTray)
 
 bool __fastcall TMainForm::ReportCellTrackOut(int sourceChannel, int targetChannel, AnsiString cellId)
 {
+	if(ManualCompleteForm != NULL && ManualCompleteForm->IsBlocking()) return false;
 	// A second physical cell must never overwrite the in-flight report.
 	if(opcCellTrackOutPending) return false;
 	opcCellTrackOutMoveReleased = false;
@@ -592,6 +593,35 @@ bool __fastcall TMainForm::ConsumeCellTrackOutMoveRelease()
 
 	opcCellTrackOutMoveReleased = false;
 	return true;
+}
+//---------------------------------------------------------------------------
+bool TMainForm::CanStartManualCellCompletion() const
+{
+	return gripper != NULL && robostar != NULL && opcProcessStarted &&
+		!gripper->HasPendingCompletion() && !cellRecoveryReportAccepted &&
+		!opcCellTrackOutPending && !opcProcessStartPending && !opcProcessEndPending &&
+		!opcTargetUnloadPending && !opcTrayLoadPending[0] && !opcTrayLoadPending[1] &&
+		fmsAlarmTransaction == fmsAlarmNone && !IsTargetTrayExchangeActive();
+}
+//---------------------------------------------------------------------------
+void TMainForm::ResumeAfterManualCellCompletion()
+{
+	// Called only after the operator requested standby-and-resume and the
+	// controller confirmed the report reset, durable maps and standby position.
+	robostar->RestoreServoState();
+	// Recovery resumes at the taught standby position, which need not be XYZ=0.
+	// Keep origin completion and all physical interlocks; normal AUTO entry is unchanged.
+	if(!opcProcessStarted || !m_ServoOpen || !m_ServoON || !m_ServoHomeEmg ||
+		!robostar->IsRecoveryStandby() || !robostar->CanResumeMotion()){
+		ShowCommonError(BaseForm->GetLangStr("CAP_MANUAL_COMPLETE"),
+			BaseForm->GetLangStr("MSG_RECOVERY_INTERLOCK"));
+		return;
+	}
+	autoBtn->Down = true;
+	manualBtn->Down = false;
+	EnableButton_auto(true);
+	playBtnClick(NULL);
+	pause_startBtnClick(NULL);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::NotifyTransferOut(AnsiString strTray)

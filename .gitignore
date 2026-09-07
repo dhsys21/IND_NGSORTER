@@ -3,6 +3,8 @@ __recovery
 *.obj
 *.exe
 *.tds
+ManualCellCompletion.ini
+ManualCellCompletion.ini.pending
 *.pch
 *.map
 *.ils
@@ -10,4 +12,3 @@ __recovery
 *.ild
 *.ilc
 *.#00
- 

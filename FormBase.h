@@ -28,6 +28,7 @@
 #include "FormError.h"
 #include "FormError_eject.h"
 #include "FormError_insert.h"
+#include "FormManualComplete.h"
 #include "FormError_bcr.h"
 #include "FormError_mes.h"
 #include "FormError_limit.h"

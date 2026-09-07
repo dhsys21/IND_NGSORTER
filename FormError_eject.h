@@ -20,6 +20,7 @@ __published:	// IDE-managed Components
 	TLabel *errMsg2;
 	TAdvSmoothPanel *AdvSmoothPanel5;
 	TAdvSmoothButton *ignoreBtn;
+	TAdvSmoothButton *btnManualComplete;
 	TAdvSmoothButton *retryBtn;
 	TAdvSmoothButton *AdvSmoothButton3;
 	TAdvSmoothButton *AdvSmoothButton5;
@@ -130,6 +131,7 @@ __published:	// IDE-managed Components
 	TMemo *Memo_Hu;
 	void __fastcall retryBtnClick(TObject *Sender);
 	void __fastcall ignoreBtnClick(TObject *Sender);
+	void __fastcall btnManualCompleteClick(TObject *Sender);
 	void __fastcall manualBtnClick(TObject *Sender);
 	void __fastcall AdvSmoothButton12Click(TObject *Sender);
 	void __fastcall AdvSmoothButton11Click(TObject *Sender);

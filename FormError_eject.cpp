@@ -47,6 +47,7 @@ void __fastcall TErrorForm_eject::ShowError(AnsiString str1, AnsiString str2, in
 }
 void __fastcall TErrorForm_eject::retryBtnClick(TObject *Sender)
 {
+	if(ManualCompleteForm->IsBlocking()){ManualCompleteForm->OpenRecovery(toolNum+1);return;}
 	int sourceChannel = psource_ch1->Caption.ToIntDef(0);
 	if(sourceChannel < 1 || sourceChannel > MainForm->tray_source.SLOT_COUNT){
 		MessageBox(Handle, L"Invalid Source Tray channel.", L"EJECT RETRY", MB_OK|MB_ICONWARNING);
@@ -88,6 +89,7 @@ void __fastcall TErrorForm_eject::retryBtnClick(TObject *Sender)
 
 void __fastcall TErrorForm_eject::ignoreBtnClick(TObject *Sender)
 {
+	if(ManualCompleteForm->IsBlocking()){ManualCompleteForm->OpenRecovery(toolNum+1);return;}
 	if(!robostar->getCellDetectStatus()){
 		MainForm->memoRobostarLineAdd(
 			"[EJECT COMPLETE INTERLOCK] Blocked: no cell detected in the gripper.");
@@ -98,13 +100,12 @@ void __fastcall TErrorForm_eject::ignoreBtnClick(TObject *Sender)
 		return;
 	}
 
-	gripper->req_Pause(false);
-	robostar->req_Pause(false);
-	if(!robostar->req_EjectComplete()){
+	if(!robostar->req_EjectComplete(toolNum + 1)){
 		gripper->req_Pause(true);
 		robostar->req_Pause(true);
 		MainForm->memoRobostarLineAdd(
 			"[EJECT COMPLETE INTERLOCK] Cancelled: cell signal changed before completion.");
+		ShowMessage(BaseForm->GetLangStr("MSG_RECOVERY_INTERLOCK"));
 		return;
 	}
 
@@ -128,6 +129,7 @@ void __fastcall TErrorForm_eject::manualBtnClick(TObject *Sender)
 
 void __fastcall TErrorForm_eject::AdvSmoothButton12Click(TObject *Sender)
 {
+	if(ManualCompleteForm->IsBlocking()){ManualCompleteForm->OpenRecovery(toolNum+1);return;}
 	TAdvSmoothButton *btn;
 	btn = (TAdvSmoothButton*)Sender;
 
@@ -137,6 +139,7 @@ void __fastcall TErrorForm_eject::AdvSmoothButton12Click(TObject *Sender)
 
 void __fastcall TErrorForm_eject::AdvSmoothButton11Click(TObject *Sender)
 {
+	if(ManualCompleteForm->IsBlocking()){ManualCompleteForm->OpenRecovery(toolNum+1);return;}
 	TAdvSmoothButton *btn;
 	btn = (TAdvSmoothButton*)Sender;
 
@@ -145,6 +148,7 @@ void __fastcall TErrorForm_eject::AdvSmoothButton11Click(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TErrorForm_eject::btnMoveTargetClick(TObject *Sender)
 {
+	if(ManualCompleteForm->IsBlocking()){ManualCompleteForm->OpenRecovery(toolNum+1);return;}
 	int map = 0;
 
 	map = psource_ch1->Caption.ToInt();
@@ -154,6 +158,7 @@ void __fastcall TErrorForm_eject::btnMoveTargetClick(TObject *Sender)
 
 void __fastcall TErrorForm_eject::btnMoveSourceClick(TObject *Sender)
 {
+	if(ManualCompleteForm->IsBlocking()){ManualCompleteForm->OpenRecovery(toolNum+1);return;}
 	robostar->req_AutoMove(2, toolNum+1, ptarget_ch1->Caption.ToInt(), 96);
 }
 //---------------------------------------------------------------------------
@@ -164,6 +169,7 @@ void __fastcall TErrorForm_eject::AdvSmoothButton5Click(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TErrorForm_eject::btnUpClick(TObject *Sender)
 {
+	if(ManualCompleteForm->IsBlocking()){ManualCompleteForm->OpenRecovery(toolNum+1);return;}
 	if(robostar->seq == seqIdle || robostar->seq == seqPause)
 		robostar->req_zUp();
 	else
@@ -173,6 +179,7 @@ void __fastcall TErrorForm_eject::btnUpClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TErrorForm_eject::btnDownClick(TObject *Sender)
 {
+	if(ManualCompleteForm->IsBlocking()){ManualCompleteForm->OpenRecovery(toolNum+1);return;}
 	if(robostar->move.pallet == 1 && robostar->getGripperChuckStatus()){
 		MessageBox(Handle,
 			L"The gripper is CHUCK. Z DOWN is blocked at the Source Tray.",
@@ -191,6 +198,10 @@ void __fastcall TErrorForm_eject::FormHide(TObject *Sender)
 	MainForm->NotifyAlarm(false, this->Tag);
 	MainForm->BuzzerOn(false);
     MainForm->LampModeChange(MainForm->beforeLampMode);
+}
+void __fastcall TErrorForm_eject::btnManualCompleteClick(TObject *Sender)
+{
+	ManualCompleteForm->OpenRecovery(toolNum+1);
 }
 //---------------------------------------------------------------------------
 

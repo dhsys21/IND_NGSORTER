@@ -1587,6 +1587,11 @@ int __fastcall TMesOpc::CELL_TRACK_OUT_RESPONSE_RESULT()
 	return -1;
 }
 //---------------------------------------------------------------------------
+bool TMesOpc::CELL_TRACK_OUT_WRITE_COMPLETE(bool requestOn)
+{
+	return Mod_Fms != NULL && Mod_Fms->IsPcTagWriteComplete(
+		CellTrackOutTag(L"CellUnloadComplete"), requestOn ? L"true" : L"false");
+}
 int __fastcall TMesOpc::CELL_TRACK_OUT_RESPONSE_VALUE()
 {
 	if(Mod_Fms == NULL) return -1;

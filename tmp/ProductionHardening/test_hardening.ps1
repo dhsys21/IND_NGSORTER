@@ -22,6 +22,7 @@ foreach($sig in @('bool __fastcall Trobostar::setPoint(', 'void __fastcall Trobo
  'void Trobostar::MotionFault(')){$motion+=Body 'ModRobostar.cpp' $sig}
 $template=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'hardening_harness.cpp.in'))
 $gateway=Body 'ModMes_Gateway.cpp' 'void TMod_Fms::AcknowledgePcTags('
+$gateway+="`r`n"+(Body 'ModMes_Gateway.cpp' 'bool TMod_Fms::IsPcTagWriteComplete(')
 $save=Body 'ModGripper.cpp' 'bool __fastcall Tgripper::SavePendingTransferResult('
 $source=$template.Replace('/* MOTION */',($motion -join "`r`n")).Replace('/* ACK */',$gateway).Replace('/* SAVE */',$save)
 [IO.File]::WriteAllText((Join-Path $PSScriptRoot 'hardening_harness.cpp'),$source,$cp)

@@ -182,6 +182,12 @@
             <DependentOn>FormDryRun.h</DependentOn>
             <BuildOrder>41</BuildOrder>
         </CppCompile>
+        <CppCompile Include="FormManualComplete.cpp">
+            <Form>ManualCompleteForm</Form>
+            <FormType>dfm</FormType>
+            <DependentOn>FormManualComplete.h</DependentOn>
+            <BuildOrder>42</BuildOrder>
+        </CppCompile>
         <CppCompile Include="FormError.cpp">
             <Form>ErrorForm</Form>
             <FormType>dfm</FormType>
@@ -362,6 +368,7 @@
         <FormResources Include="FormMain.dfm"/>
         <FormResources Include="FormServoAlarmList.dfm"/>
         <FormResources Include="FormDryRun.dfm"/>
+        <FormResources Include="FormManualComplete.dfm"/>
         <FormResources Include="FormError_eject.dfm"/>
         <FormResources Include="FormError_bcr.dfm"/>
         <FormResources Include="FormError_insert.dfm"/>

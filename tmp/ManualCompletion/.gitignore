@@ -1,0 +1,10 @@
+edit/
+baseline/
+*_harness.cpp
+*.log
+edit_sources.ps1
+Win32Debug/
+*.exe
+*.obj
+*.tds
+*.map

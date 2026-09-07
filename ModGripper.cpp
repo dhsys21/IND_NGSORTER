@@ -222,6 +222,36 @@ bool __fastcall Tgripper::CommitInsertTrayState(int toolNo)
 	return true;
 }
 //---------------------------------------------------------------------------
+void __fastcall Tgripper::ResumeCompletedCell(bool ejectComplete, int toolNo)
+{
+	// Explicit recovery replaces the interrupted gripper step without replaying it.
+	if(ejectComplete){
+		eject.gripper = toolNo;
+		eject.conCnt = 1;
+		InitSequence(seqSorting);
+		step.step = 2;
+	}else{
+		insert.gripper = toolNo;
+		insert.conCnt = 1;
+		InitSequence(seqInserting);
+		step.step = 1;
+	}
+	pauseStatus = false;
+}
+//---------------------------------------------------------------------------
+bool __fastcall Tgripper::PrepareNextAfterManualCompletion()
+{
+	if(HasPendingCompletion()) return false;
+	// The operator may have used a different empty Target channel.
+	if(transferResult.active) transferResult.targetChannel = tool[0].target_ch.ToIntDef(0);
+	if(!SaveTransferResult(true)) return false;
+	// Retain tray maps; only abandon the completed cell's motion bookkeeping.
+	InitSequence(seqInit, seqSorting);
+	pauseStatus = false;
+	req_Pause(true);
+	return true;
+}
+//---------------------------------------------------------------------------
 void __fastcall Tgripper::InitSequence(gripperSequence data, gripperSequence reserve)
 {
 	seq = data;

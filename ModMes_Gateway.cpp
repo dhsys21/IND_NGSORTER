@@ -1164,6 +1164,17 @@ void TMod_Fms::AcknowledgePcTags()
 	}
 	FInFlightPcTags.clear();
 }
+bool TMod_Fms::IsPcTagWriteComplete(const UnicodeString &Key, const UnicodeString &ExpectedJson)
+{
+	// Transport completion only; callers must separately check the FMS response.
+	UnicodeString key = NormalizeTagKeyForDirection(Key, ftdEqpOnly);
+	TLockGuard Guard(FLock);
+	TTagMap::iterator current = FPcTags.find(key);
+	return FSnapshotReceived && !FStopping && current != FPcTags.end() &&
+		current->second == ExpectedJson && FStagedPcTags.find(key) == FStagedPcTags.end() &&
+		FPendingPcTags.find(key) == FPendingPcTags.end() &&
+		FInFlightPcTags.find(key) == FInFlightPcTags.end();
+}
 void TMod_Fms::SetPcEnvStatus(const UnicodeString &Prefix, double Temperature,
 	bool Smoke, bool Warning, bool Danger, bool Running)
 {

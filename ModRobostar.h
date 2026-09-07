@@ -407,8 +407,10 @@ public:		// User declarations
 	void __fastcall req_AutoEject(int pallet, int tool, int channel, int cnt, int type);
 	void __fastcall req_AutoInsert(int pallet, int tool, int channel, int cnt, int type);
 
-	bool __fastcall req_EjectComplete();
-	bool __fastcall req_InsertComplete();
+	bool __fastcall req_EjectComplete(int toolNo = 1);
+	bool __fastcall req_InsertComplete(int toolNo = 1);
+	bool __fastcall PrepareCellRecovery(bool cellHeld);
+	bool IsRecoveryStandby();
 
 	void __fastcall req_Reset();
 	void __fastcall req_WaitPosition();

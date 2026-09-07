@@ -13,6 +13,7 @@ public:
 AnsiString IntToStr(int n) {char b[32];std::sprintf(b,"%d",n);return b;}
 typedef unsigned long DWORD;
 typedef void TObject;
+struct ManualRecovery {bool blocking;ManualRecovery():blocking(false){}bool IsBlocking(){return blocking;}} manualRecovery,*ManualCompleteForm=&manualRecovery;
 const int modeManual=0,modeAuto=1,fmsAlarmNone=0,clSilver=0,clLime=1;
 const int SSC_OK=0,SSC_BIT_OFF=0,SSC_BIT_ON=1,servoCnt=3,Axis_z=3;
 const int SSC_STSBIT_AX_OP=0,SSC_STSBIT_AX_RDY=1,SSC_STSBIT_AX_INP=2,SSC_STSBIT_AX_ZREQ=3;
@@ -240,6 +241,13 @@ int main(){
         f.fmsAlarmTransaction=1;f.opcTargetUnloadPending=false;f.ServiceTargetTrayExchange();assert(plc.outWrites==0);
         f.NotifyTrayInfo("STALE_TARGET",false);assert(opc.loads==0 && f.restores==0);
         puts("PASS: disconnected Gateway and FMS failure never emit PLC unload; stale barcode during exchange ignored");
+    }
+    {
+        TMainForm f;manualRecovery.blocking=true;
+        f.CmdTrayOut(0);f.CmdTrayOut(1);
+        assert(plc.outWrites==0&&plc.sourceWrites==0);
+        manualRecovery.blocking=false;
+        puts("PASS: pending manual completion blocks both PLC tray unload commands");
     }
     return 0;
 }

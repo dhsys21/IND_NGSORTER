@@ -36,6 +36,7 @@ USEFORM("FormError_bcr.cpp", ErrorForm_bcr);
 USEFORM("FormError_limit.cpp", ErrorForm_limit);
 USEFORM("FormError_insert.cpp", ErrorForm_insert);
 USEFORM("FormAlarm_fms.cpp", AlarmForm_fms);
+USEFORM("FormManualComplete.cpp", ManualCompleteForm);
 //---------------------------------------------------------------------------
 int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 {
@@ -80,6 +81,7 @@ int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 		Application->CreateForm(__classid(TSmokeDetector), &SmokeDetector);
 		Application->CreateForm(__classid(TInterfaceForm), &InterfaceForm);
 		Application->CreateForm(__classid(TAlarmForm_fms), &AlarmForm_fms);
+		Application->CreateForm(__classid(TManualCompleteForm), &ManualCompleteForm);
 		Application->Run();
 	}
 	catch (Exception &exception)

@@ -4,6 +4,9 @@
 #include <cstdio>
 #include "../../ProductionProtocol.h"
 typedef std::string AnsiString;
+typedef std::string UnicodeString;
+const int ftdEqpOnly=1;
+UnicodeString NormalizeTagKeyForDirection(const UnicodeString &s,int){return s;}
 AnsiString IntToStr(int n){char b[32];sprintf(b,"%d",n);return b;}
 enum {SSC_OK=0,SSC_BIT_OFF=0,SSC_BIT_ON=1,SSC_STSBIT_AX_OP=1,AxisCnt=4,Axis_x=1,Axis_y=2,Axis_z=3,Axis_zUp=4};
 enum Sequence{seqIdle,seqAutoMove,seqPause,seqHome,seqAutoRun,seqEmgAutoRun,seqJOGx_Plus,seqJogStop};
@@ -57,10 +60,12 @@ struct Lock{};
 struct TLockGuard{TLockGuard(Lock*){}};
 struct TMod_Fms{
     typedef std::map<std::string,std::string> TTagMap;
-    TTagMap FPendingPcTags,FInFlightPcTags;
+    TTagMap FPendingPcTags,FInFlightPcTags,FStagedPcTags,FPcTags;
+    bool FSnapshotReceived,FStopping;
     Lock lock;Lock *FLock;
-    TMod_Fms():FLock(&lock){}
+    TMod_Fms():FSnapshotReceived(true),FStopping(false),FLock(&lock){}
     void AcknowledgePcTags();
+    bool IsPcTagWriteComplete(const UnicodeString&,const UnicodeString&);
 };
 /* MOTION */
 /* ACK */
@@ -99,6 +104,14 @@ int main(){
     // A failed write never calls Acknowledge; retry retains the frame.
     assert(f.FPendingPcTags["A"]=="1");f.FPendingPcTags["A"]="2";f.AcknowledgePcTags();assert(f.FPendingPcTags["A"]=="2");
     f.FInFlightPcTags=f.FPendingPcTags;f.AcknowledgePcTags();assert(f.FPendingPcTags.empty());
+    assert(!f.IsPcTagWriteComplete("Request","false"));
+    f.FPcTags["Request"]="false";assert(f.IsPcTagWriteComplete("Request","false"));
+    f.FStagedPcTags["Request"]="false";assert(!f.IsPcTagWriteComplete("Request","false"));f.FStagedPcTags.clear();
+    f.FPendingPcTags["Request"]="false";assert(!f.IsPcTagWriteComplete("Request","false"));
+    f.FInFlightPcTags=f.FPendingPcTags;assert(!f.IsPcTagWriteComplete("Request","false"));f.AcknowledgePcTags();
+    assert(f.IsPcTagWriteComplete("Request","false"));assert(!f.IsPcTagWriteComplete("Request","true"));
+    f.FSnapshotReceived=false;assert(!f.IsPcTagWriteComplete("Request","false"));f.FSnapshotReceived=true;
+    f.FStopping=true;assert(!f.IsPcTagWriteComplete("Request","false"));
     grip.pendingTransferResultValid=true;grip.saveOkay=false;assert(!grip.SavePendingTransferResult(true)&&grip.pendingTransferResultValid);
     grip.saveOkay=true;assert(grip.SavePendingTransferResult(true)&&!grip.pendingTransferResultValid);
     puts("PASS: failed send retains pending state; concurrent update survives ACK; failed disk save retains result for retry");

@@ -6011,6 +6011,23 @@ object ErrorForm_eject: TErrorForm_eject
       end
     end
   end
+  object btnManualComplete: TAdvSmoothButton
+    Left = 126
+    Top = 148
+    Width = 163
+    Height = 50
+    Appearance.Font.Charset = DEFAULT_CHARSET
+    Appearance.Font.Color = clBlack
+    Appearance.Font.Height = -16
+    Appearance.Font.Name = 'Tahoma'
+    Appearance.Font.Style = [fsBold]
+    Appearance.Rounding = 3
+    Appearance.WordWrapping = True
+    Caption = 'Manual work complete'
+    Color = clWhite
+    ParentFont = False
+    OnClick = btnManualCompleteClick
+  end
   object ignoreBtn: TAdvSmoothButton
     Left = 575
     Top = 148

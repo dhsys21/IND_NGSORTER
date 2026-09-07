@@ -134,6 +134,7 @@ public:		// User declarations
 	void __fastcall SetPcTag(const System::UnicodeString &Key, const System::UnicodeString &Value);
 	void __fastcall SetPcTagJson(const System::UnicodeString &Key, const System::UnicodeString &JsonValue);
 	void __fastcall FlushPendingPcTags(bool LogTx = true);
+	bool IsPcTagWriteComplete(const System::UnicodeString &Key, const System::UnicodeString &ExpectedJson);
 	void SetPcEnvStatus(const System::UnicodeString &Prefix, double Temperature,
 		bool Smoke, bool Warning, bool Danger, bool Running);
 	bool __fastcall GetPcTagJson(const System::UnicodeString &Key, System::UnicodeString &JsonValue);

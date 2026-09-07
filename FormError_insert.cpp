@@ -55,6 +55,7 @@ void __fastcall TErrorForm_insert::AdvSmoothButton1Click(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TErrorForm_insert::retryBtnClick(TObject *Sender)
 {
+	if(ManualCompleteForm->IsBlocking()){ManualCompleteForm->OpenRecovery(toolNum+1);return;}
 	int targetChannel = ptarget_ch1->Caption.ToIntDef(0);
 	if(targetChannel < 1 || targetChannel > MainForm->tray_target.SLOT_COUNT){
 		MessageBox(Handle, L"Invalid Target Tray channel.", L"INSERT RETRY", MB_OK|MB_ICONWARNING);
@@ -85,14 +86,14 @@ void __fastcall TErrorForm_insert::retryBtnClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TErrorForm_insert::ignoreBtnClick(TObject *Sender)
 {
+	if(ManualCompleteForm->IsBlocking()){ManualCompleteForm->OpenRecovery(toolNum+1);return;}
 	MainForm->memoMainLineAdd("Insert complete");
-	gripper->req_Pause(false);
-	robostar->req_Pause(false);
-	if(!robostar->req_InsertComplete()){
+	if(!robostar->req_InsertComplete(toolNum + 1)){
 		gripper->req_Pause(true);
 		robostar->req_Pause(true);
 		MainForm->memoRobostarLineAdd(
 			"[INSERT COMPLETE INTERLOCK] Forced completion was rejected.");
+		ShowMessage(BaseForm->GetLangStr("MSG_RECOVERY_INTERLOCK"));
 		return;
 	}
 	MainForm->playBtnClick(Sender);
@@ -107,6 +108,7 @@ void __fastcall TErrorForm_insert::AdvSmoothButton5Click(TObject *Sender)
 
 void __fastcall TErrorForm_insert::btnMoveSourceClick(TObject *Sender)
 {
+	if(ManualCompleteForm->IsBlocking()){ManualCompleteForm->OpenRecovery(toolNum+1);return;}
 	int map = 0;
 
 	map = psource_ch1->Caption.ToInt();
@@ -116,12 +118,14 @@ void __fastcall TErrorForm_insert::btnMoveSourceClick(TObject *Sender)
 
 void __fastcall TErrorForm_insert::btnMoveTargetClick(TObject *Sender)
 {
+	if(ManualCompleteForm->IsBlocking()){ManualCompleteForm->OpenRecovery(toolNum+1);return;}
 	robostar->req_AutoMove(2, toolNum+1, ptarget_ch1->Caption.ToInt(), 96);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall TErrorForm_insert::btnOpenClick(TObject *Sender)
 {
+	if(ManualCompleteForm->IsBlocking()){ManualCompleteForm->OpenRecovery(toolNum+1);return;}
 	TAdvSmoothButton *btn;
 	btn = (TAdvSmoothButton*)Sender;
 
@@ -131,6 +135,7 @@ void __fastcall TErrorForm_insert::btnOpenClick(TObject *Sender)
 
 void __fastcall TErrorForm_insert::btnCloseClick(TObject *Sender)
 {
+	if(ManualCompleteForm->IsBlocking()){ManualCompleteForm->OpenRecovery(toolNum+1);return;}
 	TAdvSmoothButton *btn;
 	btn = (TAdvSmoothButton*)Sender;
 
@@ -140,6 +145,7 @@ void __fastcall TErrorForm_insert::btnCloseClick(TObject *Sender)
 
 void __fastcall TErrorForm_insert::btnUpClick(TObject *Sender)
 {
+	if(ManualCompleteForm->IsBlocking()){ManualCompleteForm->OpenRecovery(toolNum+1);return;}
 	if(robostar->seq == seqIdle || robostar->seq == seqPause)
 		robostar->req_zUp();
 	else
@@ -149,6 +155,7 @@ void __fastcall TErrorForm_insert::btnUpClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TErrorForm_insert::btnDownClick(TObject *Sender)
 {
+	if(ManualCompleteForm->IsBlocking()){ManualCompleteForm->OpenRecovery(toolNum+1);return;}
 	if(robostar->move.pallet == 1 && robostar->getGripperChuckStatus()){
 		MessageBox(Handle,
 			L"The gripper is CHUCK. Z DOWN is blocked at the Source Tray.",
@@ -167,6 +174,10 @@ void __fastcall TErrorForm_insert::FormHide(TObject *Sender)
 	MainForm->NotifyAlarm(false, this->Tag);
 	MainForm->BuzzerOn(false);
 	MainForm->LampModeChange(MainForm->beforeLampMode);
+}
+void __fastcall TErrorForm_insert::btnManualCompleteClick(TObject *Sender)
+{
+	ManualCompleteForm->OpenRecovery(toolNum+1);
 }
 //---------------------------------------------------------------------------
 

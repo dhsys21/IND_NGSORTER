@@ -605,6 +605,9 @@ void __fastcall TBaseForm::ChangeLanguage()
     ErrorForm_insert->pcell1->Caption = GetLangStr("CAP_CELL");
 
     //* FormError_eject
+	if(ManualCompleteForm != NULL) ManualCompleteForm->ApplyLanguage();
+	ErrorForm_eject->btnManualComplete->Caption = GetLangStr("CAP_MANUAL_COMPLETE");
+	ErrorForm_insert->btnManualComplete->Caption = GetLangStr("CAP_MANUAL_COMPLETE");
 	ErrorForm_eject->Caption = GetLangStr("CAP_EJECT_ERROR");
 	ErrorForm_eject->ignoreBtn->Caption = GetLangStr("CAP_EJECT_COMPLETE");
 	ErrorForm_eject->retryBtn->Caption = GetLangStr("CAP_RETRY");

@@ -852,6 +852,7 @@ void __fastcall TMainForm::UpdateTargetTrayExchangePanel()
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::CmdTrayOut(int pos)
 {
+	if(ManualCompleteForm != NULL && ManualCompleteForm->IsBlocking()) return;
 	if(pos == 0){
 		NotifyEquipStatus("IDLE");
 
@@ -932,6 +933,10 @@ void __fastcall TMainForm::targetGridDrawCell(TObject *Sender, int ACol,
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::pause_startBtnClick(TObject *Sender)
 {
+	if(ManualCompleteForm != NULL && ManualCompleteForm->IsBlocking()){
+		ManualCompleteForm->OpenRecovery(0);
+		return;
+	}
 	if(equipMode == modeAuto)
 	{
 		if(gripper->pauseStatus && robostar->pauseStatus)
@@ -2250,6 +2255,10 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 
 bool __fastcall TMainForm::CheckServoAutoReady(bool showError)
 {
+	if(ManualCompleteForm != NULL && ManualCompleteForm->IsBlocking()){
+		if(showError) ManualCompleteForm->OpenRecovery(0);
+		return false;
+	}
 	// Read controller status at the AUTO transition; UI colors are display only.
 	// m_ServoHome includes origin completion and the physical XYZ=0 wait position.
 	robostar->RestoreServoState();
@@ -2361,6 +2370,10 @@ void __fastcall TMainForm::manualBtnClick(TObject *Sender)
 
 void __fastcall TMainForm::playBtnClick(TObject *Sender)
 {
+	if(ManualCompleteForm != NULL && ManualCompleteForm->IsBlocking()){
+		ManualCompleteForm->OpenRecovery(0);
+		return;
+	}
 	// Servo OPEN/ON/HOME is checked only when entering AUTO mode.
 	// START resumes the paused sequence without re-running the AUTO interlock.
 	equipMode = modeAuto;
@@ -3680,6 +3693,10 @@ void __fastcall TMainForm::memoRobostarLineAdd(AnsiString msg)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::AdvSmoothToggleButton_InitWorkClick(TObject *Sender)
 {
+	if(ManualCompleteForm != NULL && ManualCompleteForm->IsBlocking()){
+		ManualCompleteForm->OpenRecovery(0);
+		return;
+	}
 	if(IsTargetTrayExchangeActive()){
 		memoMainLineAdd("[TARGET EXCHANGE] Work reset blocked; finish the target exchange before clearing tray data.");
 		ShowMessage(BaseForm->GetLangStr("MSG_TARGET_EXCHANGE_RESET"));

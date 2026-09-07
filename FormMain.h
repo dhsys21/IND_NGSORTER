@@ -558,6 +558,8 @@ private:	// User declarations
 	int ioOutputCount;
 
 public:		// User declarations
+	bool CanStartManualCellCompletion() const;
+	void ResumeAfterManualCellCompletion();
 
 	TMod_Bcr *comBcr[2];
 	TSmokeDetector *comSmoke[1];

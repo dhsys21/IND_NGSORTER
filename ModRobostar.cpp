@@ -2864,8 +2864,37 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 //	else MainForm->memoRobostarLineAdd("[로보트] 대기상태");
 }
 //---------------------------------------------------------------------------
-bool __fastcall Trobostar::req_EjectComplete()
+bool __fastcall Trobostar::PrepareCellRecovery(bool cellHeld)
 {
+	// Never release Pause here: that would reissue the interrupted XYZ targets.
+	if(::gripper == NULL) return false;
+	::gripper->req_Pause(true);
+	req_Pause(true);
+	if(!StopAxes() || !CanResumeMotion() || !sscOpened ||
+		!MainForm->m_ServoON || !MainForm->m_ServoHomeEmg) return false;
+	if(getCellDetectStatus() != cellHeld) return false;
+	if(!cellHeld && !getGripperOpenStatus()) return false;
+	// Stop acknowledgement precedes discarding the old move and creating recovery.
+	req_Stop();
+	return true;
+}
+bool Trobostar::IsRecoveryStandby()
+{
+	if(!IsCcLinkReady() || getCellDetectStatus() || !getGripperOpenStatus() ||
+		!IsSafetyReady() || !IsKeyLockActive() || IsEmergencyStopActive()) return false;
+	long expected[4] = {0, Wait_xAxis, Wait_yAxis, 0};
+	for(int a=1;a<=servoCnt;++a){
+		long p = -1;
+		if(sscGetCurrentCmdPositionFast(board_id, channel_id, a, &p) != SSC_OK || p != expected[a]) return false;
+	}
+	return AreAxesStopped();
+}
+//---------------------------------------------------------------------------
+bool __fastcall Trobostar::req_EjectComplete(int toolNo)
+{
+	if(toolNo < 1 || toolNo > gripCnt || !PrepareCellRecovery(true)) return false;
+	move.tool = toolNo;
+	move.cnt = 1;
 	if(!IsCcLinkReady()){
 		MainForm->memoRobostarLineAdd(
 			"[EJECT COMPLETE INTERLOCK] Request rejected: CC-Link is not ready.");
@@ -2885,20 +2914,20 @@ bool __fastcall Trobostar::req_EjectComplete()
 	// Forced recovery still raises Z and confirms position 0 before completion.
 	InitSequence(seqAutoEject);
 	step.step = 7;
+	::gripper->ResumeCompletedCell(true, toolNo);
 	return true;
 }
 //---------------------------------------------------------------------------
-bool __fastcall Trobostar::req_InsertComplete()
+bool __fastcall Trobostar::req_InsertComplete(int toolNo)
 {
-	if(::gripper == NULL || !::gripper->CommitInsertTrayState(move.tool)){
-		MainForm->memoRobostarLineAdd(
-			"[INSERT COMPLETE INTERLOCK] Target tray state commit failed.");
-		return false;
-	}
+	if(toolNo < 1 || toolNo > gripCnt || !PrepareCellRecovery(false)) return false;
+	move.tool = toolNo;
+	move.cnt = 1;
 
-	// Forced recovery still issues Z UP and confirms position 0 before completion.
+	// Do not mark Target occupied until Z UP and the normal cell-clear check pass.
 	InitSequence(seqAutoInsert);
 	step.step = 5;
+	::gripper->ResumeCompletedCell(false, toolNo);
 	return true;
 }
 //---------------------------------------------------------------------------
