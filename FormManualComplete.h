@@ -11,6 +11,7 @@ class TManualCompleteForm : public TForm
 __published:
     TPanel *pnlTitle;
     TLabel *lblSource, *lblTarget, *lblCell, *lblChannel, *lblStatus;
+    TLabel *lblFmsState;
     TEdit *editSource, *editTarget, *editCell, *editChannel;
     TCheckBox *chkInserted;
     TButton *btnReport, *btnRetry, *btnResume, *btnClose;
@@ -34,6 +35,7 @@ private:
     bool ApplyPhysicalCompletion();
     void Fail(const UnicodeString &message);
     void RefreshControls();
+    void RefreshFmsWaitLabel();
     void CancelRequest();
     void SendRequest();
 public:

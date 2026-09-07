@@ -1,6 +1,6 @@
 # Manual Cell Completion (codex-improve)
 
-Version: 2026-09-07 001. Applies only to NGSORTER's improvement branch.
+Version: 2026-09-07 002. Applies only to NGSORTER's improvement branch.
 
 ## Operator Procedure
 
@@ -15,6 +15,12 @@ Version: 2026-09-07 001. Applies only to NGSORTER's improvement branch.
 6. Click **Return to standby and resume**. The robot raises Z and returns to the
    taught standby position. After position, stop, origin and safety checks, automatic
    sorting continues with the next unprocessed Source NG cell.
+
+The FMS status label above the detailed message remains visible throughout the
+handshake. Amber distinguishes report preparation, Request OFF/reset wait, Request
+ON/response wait and accepted-report reset wait. A stopped incomplete handshake is
+red and preserves the error detail below it. Green completion appears only after
+the response reset phase finishes; reset-timeout Retry still displays reset wait.
 
 The ordinary Complete buttons retain their separate meanings: Eject complete
 requires a cell held in the gripper; Insert complete requires an empty/open gripper.

@@ -16,6 +16,7 @@ function Body($file,$signature){
     throw "Unclosed $signature"
 }
 $methods=@()
+$methods+=Body 'FormManualComplete.cpp' 'void TManualCompleteForm::RefreshFmsWaitLabel('
 foreach($sig in @('bool TManualCompleteForm::ContextMatches(', 'bool TManualCompleteForm::ApplyPhysicalCompletion(',
  'void TManualCompleteForm::CancelRequest(', 'void TManualCompleteForm::SendRequest(',
  'void __fastcall TManualCompleteForm::btnReportClick(', 'void __fastcall TManualCompleteForm::btnRetryClick(',
@@ -56,5 +57,19 @@ foreach($lang in @('En','Ko','Hi')){
     foreach($match in [regex]::Matches($form,'RecoveryText\("([A-Z_]+)"\)')){
         if(!$s.Contains($match.Groups[1].Value+'=')){throw "Missing $lang translation: $($match.Groups[1].Value)"}
     }
+    foreach($match in [regex]::Matches($form,'"(MSG_MC_FMS_[A-Z_]+|MSG_MC_HANDSHAKE_WAIT)"')){
+        if(!$s.Contains($match.Groups[1].Value+'=')){throw "Missing $lang wait-state translation: $($match.Groups[1].Value)"}
+    }
 }
+if(!(Body 'FormManualComplete.cpp' 'void TManualCompleteForm::RefreshControls(').Contains('RefreshFmsWaitLabel()')){throw 'Wait label is not updated on state changes'}
+$dfm=Source 'FormManualComplete.dfm'
+function Rect($name){
+    $m=[regex]::Match($dfm,"(?s)object ${name}: \w+\s+Left = (\d+)\s+Top = (\d+)\s+Width = (\d+)\s+Height = (\d+)")
+    if(!$m.Success){throw "Missing bounds: $name"}
+    return @{x=[int]$m.Groups[1].Value;y=[int]$m.Groups[2].Value;w=[int]$m.Groups[3].Value;h=[int]$m.Groups[4].Value}
+}
+$state=Rect 'lblFmsState';$detail=Rect 'lblStatus';$report=Rect 'btnReport';$resume=Rect 'btnResume'
+$clientHeight=[int][regex]::Match($dfm,'ClientHeight = (\d+)').Groups[1].Value
+if($state.y+$state.h -gt $detail.y -or $detail.y+$detail.h -gt $report.y -or $report.y+$report.h -gt $resume.y -or $resume.y+$resume.h -gt $clientHeight){throw 'FMS status label overlaps details or buttons'}
+Write-Output 'PASS: wait/reset/error/complete label transitions, reset retry text, three languages and DFM layout bounds'
 Write-Output 'PASS: UI wiring, automatic-start/reset guards, translations, durable journal and CellTrackOut-only protocol'

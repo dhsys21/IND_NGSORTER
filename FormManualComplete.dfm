@@ -3,7 +3,7 @@ object ManualCompleteForm: TManualCompleteForm
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Manual work complete'
-  ClientHeight = 486
+  ClientHeight = 544
   ClientWidth = 660
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -65,9 +65,24 @@ object ManualCompleteForm: TManualCompleteForm
     AutoSize = False
     Caption = 'Target Channel'
   end
-  object lblStatus: TLabel
+  object lblFmsState: TLabel
     Left = 20
     Top = 282
+    Width = 620
+    Height = 50
+    AutoSize = False
+    Caption = 'FMS Request / Response pending'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clMaroon
+    Font.Height = -16
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+    WordWrap = True
+  end
+  object lblStatus: TLabel
+    Left = 20
+    Top = 338
     Width = 620
     Height = 104
     AutoSize = False
@@ -117,7 +132,7 @@ object ManualCompleteForm: TManualCompleteForm
   end
   object btnReport: TButton
     Left = 20
-    Top = 392
+    Top = 450
     Width = 300
     Height = 38
     Caption = 'Confirm and report'
@@ -126,7 +141,7 @@ object ManualCompleteForm: TManualCompleteForm
   end
   object btnRetry: TButton
     Left = 332
-    Top = 392
+    Top = 450
     Width = 148
     Height = 38
     Caption = 'Retry'
@@ -135,7 +150,7 @@ object ManualCompleteForm: TManualCompleteForm
   end
   object btnClose: TButton
     Left = 492
-    Top = 392
+    Top = 450
     Width = 148
     Height = 38
     Caption = 'Close'
@@ -144,7 +159,7 @@ object ManualCompleteForm: TManualCompleteForm
   end
   object btnResume: TButton
     Left = 20
-    Top = 438
+    Top = 496
     Width = 620
     Height = 38
     Caption = 'Return to standby and resume'

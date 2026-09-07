@@ -96,6 +96,29 @@ void TManualCompleteForm::ApplyLanguage()
     btnRetry->Caption = RecoveryText("CAP_RETRY");
     btnResume->Caption = RecoveryText("CAP_MC_RESUME");
     btnClose->Caption = RecoveryText("CAP_CLOSE");
+    RefreshFmsWaitLabel();
+}
+void TManualCompleteForm::RefreshFmsWaitLabel()
+{
+    // Keep handshake state separate from error details, including reset-timeout Retry.
+    lblFmsState->Visible = IsBlocking();
+    if(!lblFmsState->Visible) return;
+    const char *key = "MSG_MC_FMS_PREPARING";
+    lblFmsState->Font->Color = (TColor)0x00006090;
+    if(phase >= mcReady){
+        key = "MSG_MC_FMS_COMPLETE";
+        lblFmsState->Font->Color = journalOkay ? clGreen : clMaroon;
+    }else if(!polling || restored || !journalOkay){
+        key = "MSG_MC_FMS_PENDING";
+        lblFmsState->Font->Color = clMaroon;
+    }else if(phase == mcClearForSend){
+        key = "MSG_MC_FMS_CLEAR";
+    }else if(phase == mcWaitResult){
+        key = "MSG_MC_FMS_RESPONSE";
+    }else if(phase == mcAccepted){
+        key = "MSG_MC_FMS_RESET";
+    }
+    lblFmsState->Caption = RecoveryText(key);
 }
 void TManualCompleteForm::RefreshControls()
 {
@@ -110,6 +133,7 @@ void TManualCompleteForm::RefreshControls()
         (phase < mcReady || !journalOkay) && !restored;
     btnResume->Enabled = (phase == mcReady || (phase == mcMoving && !polling)) && journalOkay && !restored;
     btnClose->Enabled = !polling;
+    RefreshFmsWaitLabel();
 }
 void TManualCompleteForm::Fail(const UnicodeString &message)
 {
@@ -259,7 +283,8 @@ void __fastcall TManualCompleteForm::btnRetryClick(TObject *Sender)
     if(!SaveJournal()) return;
     polling = true;
     started = GetTickCount();
-    lblStatus->Caption = RecoveryText("MSG_MC_WAIT_RESULT");
+    lblStatus->Caption = RecoveryText(phase == mcAccepted ?
+        "MSG_MC_WAIT_RESET" : "MSG_MC_HANDSHAKE_WAIT");
     RefreshControls();
 }
 void __fastcall TManualCompleteForm::pollTimerTimer(TObject *Sender)

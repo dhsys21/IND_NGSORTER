@@ -24,7 +24,11 @@ DWORD tick=100; DWORD GetTickCount(){return tick;}
 struct TObject{};
 const int gripCnt=1,mrOk=1;
 enum Seq {seqIdle,seqPause,seqWait,seqInit,seqSorting,seqInserting,seqAutoEject,seqAutoInsert};
-struct Control {String Text,Caption;bool Checked,Enabled;void Hide(){}};
+typedef int TColor;
+const int clGreen=0x008000,clMaroon=0x000080;
+struct FontInfo {TColor Color;};
+struct Control {String Text,Caption;bool Checked,Enabled,Visible;FontInfo font,*Font;
+    Control():Checked(false),Enabled(true),Visible(true),Font(&font){} void Hide(){}};
 struct Tray {
     int SLOT_COUNT,remainCnt;
     String SLOT_ID[96],PICK[96],CELL_LOT_ID[96],LOSS_CD[96],RANK[96];
@@ -100,11 +104,11 @@ public:
     String sourceId,targetId,cellId,lotId,ngCode,grade;
     bool workFlag,polling,restored,journalOkay,Visible,saveOkay,requestClearQueued;
     DWORD started;int ModalResult,journalSaves;
-    Control status,channel,confirm,*lblStatus,*editChannel,*chkInserted;
+    Control status,channel,confirm,fmsState,*lblStatus,*editChannel,*chkInserted,*lblFmsState;
     TManualCompleteForm():phase(mcIdle),toolNo(1),sourceNo(3),targetNo(7),reservedNo(7),
       sourceId("SRC"),targetId("TGT"),cellId("CELL3"),lotId("LOT"),ngCode("NG1"),grade("NG"),
       workFlag(true),polling(false),restored(false),journalOkay(true),Visible(true),saveOkay(true),requestClearQueued(false),started(0),ModalResult(0),journalSaves(0),
-      lblStatus(&status),editChannel(&channel),chkInserted(&confirm){
+      lblStatus(&status),editChannel(&channel),chkInserted(&confirm),lblFmsState(&fmsState){
         MainForm->src.Caption=sourceId;MainForm->dst.Caption=targetId;
         MainForm->tray_source.SLOT_ID[2]=cellId;MainForm->tray_source.CELL_EXIST[2]=true;
         MainForm->tray_source.PICK[2]="Y";MainForm->tray_source.remainCnt=9;
@@ -114,8 +118,9 @@ public:
         editChannel->Text="7";chkInserted->Checked=true;
       }
     bool IsBlocking()const{return phase!=mcIdle||!journalOkay;}
-    void RefreshControls(){}
-    void Fail(String s){polling=false;lblStatus->Caption=s;}
+    void RefreshControls(){RefreshFmsWaitLabel();}
+    void RefreshFmsWaitLabel();
+    void Fail(String s){polling=false;lblStatus->Caption=s;RefreshControls();}
     bool SaveJournal(){++journalSaves;journalOkay=saveOkay;if(!saveOkay)Fail("save failed");return saveOkay;}
     bool ContextMatches();bool ApplyPhysicalCompletion();void CancelRequest();void SendRequest();
     void __fastcall btnReportClick(TObject*);void __fastcall btnRetryClick(TObject*);
@@ -128,6 +133,18 @@ void reset(){
 void report(TManualCompleteForm &f){f.btnReportClick(0);assert(f.phase==mcPrepared);f.pollTimerTimer(0);assert(f.phase==mcWaitResult&&mes.requests==1);}
 void accept(TManualCompleteForm &f){mes.response=1;f.pollTimerTimer(0);assert(f.phase==mcAccepted);mes.response=0;f.pollTimerTimer(0);assert(f.phase==mcReady);}
 int main(){
+    reset();{TManualCompleteForm f;f.RefreshControls();assert(!f.lblFmsState->Visible);
+        f.phase=mcPrepared;f.polling=true;f.RefreshControls();assert(f.lblFmsState->Caption=="MSG_MC_FMS_PREPARING");
+        f.phase=mcClearForSend;f.RefreshControls();assert(f.lblFmsState->Caption=="MSG_MC_FMS_CLEAR");
+        f.phase=mcWaitResult;f.RefreshControls();assert(f.lblFmsState->Caption=="MSG_MC_FMS_RESPONSE");
+        f.phase=mcAccepted;f.RefreshControls();assert(f.lblFmsState->Caption=="MSG_MC_FMS_RESET");
+        assert(f.lblFmsState->Font->Color!=clGreen);
+        f.Fail("TIMEOUT");assert(f.lblFmsState->Caption=="MSG_MC_FMS_PENDING"&&f.lblFmsState->Font->Color==clMaroon);
+        f.RefreshControls();assert(f.lblStatus->Caption=="TIMEOUT");
+        f.btnRetryClick(0);assert(f.lblFmsState->Caption=="MSG_MC_FMS_RESET"&&f.lblStatus->Caption=="MSG_MC_WAIT_RESET");
+        f.phase=mcReady;f.polling=false;f.RefreshControls();assert(f.lblFmsState->Caption=="MSG_MC_FMS_COMPLETE"&&f.lblFmsState->Font->Color==clGreen);
+        f.phase=mcMoving;f.RefreshControls();assert(f.lblFmsState->Caption=="MSG_MC_FMS_COMPLETE");
+        f.phase=mcIdle;f.RefreshControls();assert(!f.lblFmsState->Visible);}
     for(int r=-1;r<5;++r){assert(ManualCellReply(mcIdle,r)==mrWait);assert(ManualCellReply(mcAccepted,r)==(r==0?mrReset:mrWait));}
     assert(ManualCellReply(mcWaitResult,2)==mrFailure);assert(ManualCellReply(mcWaitResult,3)==mrInvalid);
     reset();{TManualCompleteForm f;report(f);assert(mes.src=="SRC"&&mes.dst=="TGT"&&mes.cell=="CELL3"&&mes.from==3&&mes.to==7);
