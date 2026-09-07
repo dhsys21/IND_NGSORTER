@@ -34,7 +34,7 @@ const int PC_INDEX_INTERFACE					=		11;
 //	시작 번지
 //---------------------------------------------------------------------------
 const int PLC_D_INTERFACE_START_DEV_NUM	 			=	10100;
-const int PLC_D_INTERFACE_LEN 						= 	7;
+const int PLC_D_INTERFACE_LEN 						= 	18;
 //---------------------------------------------------------------------------
 const int PC_D_INTERFACE_START_DEV_NUM				=	10150;
 const int PC_D_INTERFACE_LEN	 					= 	9;
@@ -49,6 +49,12 @@ const int PLC_D_SOURCE_TRAY_IN 				        =   3;
 const int PLC_D_SOURCE_CENTERING                    =   4;
 const int PLC_D_TARGET_TRAY_IN 				        =   5;
 const int PLC_D_TARGET_CENTERING                    =   6;
+
+// Two-word unsigned fixed-point meter readings, low word first, scaled by 1000.
+const int PLC_D_METER_VOLTAGE = 10; // D10110-D10111, V
+const int PLC_D_METER_CURRENT = 12; // D10112-D10113, A
+const int PLC_D_METER_POWER = 14;   // D10114-D10115, kW
+const int PLC_D_METER_ENERGY = 16;  // D10116-D10117, kWh
 
 //---------------------------------------------------------------------------
 //	PC - PLC Interface
@@ -139,7 +145,7 @@ private:	// User declarations
     bool plc_ReadFlag;
     AnsiString plc_Read, plc_Read_Temp;
 	int plc_ReadCount, plc_index;
-	DWORD lastPlcStatusTick; // Last successfully parsed D10100-D10106 response.
+	DWORD lastPlcStatusTick; // Last successfully parsed D10100-D10117 response.
     void __fastcall PLC_Initialization();
     void __fastcall PLC_DataChange(int subCommand, int address, int devCode, int devLen);
     void __fastcall PLC_Recv_Interface();
@@ -184,6 +190,8 @@ public:		// User declarations
     bool __fastcall IsTargetTrayIn();
     bool __fastcall IsTargetCentering();
     bool __fastcall IsPlcStatusFresh(DWORD maxAgeMs = 1000);
+	bool __fastcall GetPowerMeterInfo(double &voltage, double &current,
+		double &power, double &energy);
 
     // PC -> PLC command buffer values.
     bool __fastcall IsPcHeartBeatOn();

@@ -1,0 +1,46 @@
+#include <cassert>
+#include <cstdio>
+#include <cwchar>
+struct Gateway {
+    bool power; int mode,status,flushes,writes;
+    Gateway():power(false),mode(0),status(0),flushes(0),writes(0){}
+    void SetPcTag(const wchar_t *key,bool value){assert(std::wcsstr(key,L".Power"));power=value;++writes;}
+    void SetPcTag(const wchar_t *key,int value){if(std::wcsstr(key,L".Mode"))mode=value;else status=value;++writes;}
+    void FlushPendingPcTags(bool){++flushes;}
+} gateway,*Mod_Fms=&gateway;
+struct TMesOpc {
+    bool FShutdown,FEquipmentStatusInitialized,FLastEquipmentPower;
+    int FLastEquipmentMode,FLastEquipmentStatus;
+    TMesOpc():FShutdown(false),FEquipmentStatusInitialized(false),FLastEquipmentPower(false),
+        FLastEquipmentMode(1),FLastEquipmentStatus(1){}
+    void __fastcall PublishEquipmentStatus(bool,int,int);
+} mes,*MesOpc=&mes;
+enum {modeManual,modeAutoStop,modeAuto};
+enum {LampManual,LampAuto,LampAlarm,LampEmergency};
+enum {seqIdle,seqMoving};
+struct Unit {bool pauseStatus,emergency;int seq;Unit():pauseStatus(false),emergency(false),seq(seqIdle){}
+    bool IsEmergencyStopActive(){return emergency;}
+} grip,robot,*gripper=&grip,*robostar=&robot;
+struct TMainForm {
+    int equipMode,nowLampMode;bool busy;
+    TMainForm():equipMode(modeManual),nowLampMode(LampManual),busy(false){}
+    bool IsProductionSequenceBusy(){return busy;}
+    void __fastcall UpdateFmsEquipmentStatus();
+};
+/* METHODS */
+int main(){
+    TMainForm f;
+    f.UpdateFmsEquipmentStatus();assert(gateway.power&&gateway.mode==1&&gateway.status==1);
+    for(int i=0;i<100;++i)f.UpdateFmsEquipmentStatus();assert(gateway.flushes==1&&gateway.writes==3);
+    f.equipMode=modeAutoStop;f.UpdateFmsEquipmentStatus();assert(gateway.mode==2&&gateway.status==1);
+    f.equipMode=modeAuto;f.busy=true;f.UpdateFmsEquipmentStatus();assert(gateway.status==2);
+    robot.pauseStatus=true;f.UpdateFmsEquipmentStatus();assert(gateway.status==8);
+    f.nowLampMode=LampAlarm;f.UpdateFmsEquipmentStatus();assert(gateway.status==4);
+    f.nowLampMode=LampManual;robot.emergency=true;f.UpdateFmsEquipmentStatus();assert(gateway.status==4);
+    robot.emergency=false;robot.pauseStatus=false;f.busy=false;f.equipMode=modeManual;
+    robot.seq=seqMoving;f.UpdateFmsEquipmentStatus();assert(gateway.mode==1&&gateway.status==2);
+    robot.seq=seqIdle;f.UpdateFmsEquipmentStatus();assert(gateway.status==1);
+    mes.FShutdown=true;mes.PublishEquipmentStatus(false,1,1);assert(!gateway.power);
+    int sends=gateway.flushes;f.UpdateFmsEquipmentStatus();assert(!gateway.power&&gateway.flushes==sends);
+    puts("PASS: Power/Mode/Status types, priority, manual/auto/idle/run/pause/trouble, dedup and shutdown guard");
+}

@@ -819,6 +819,13 @@ static void ApplyTrayDisplay(TRAY_INFO *Tray, const UnicodeString &TrayId,
 __fastcall TMesOpc::TMesOpc(TComponent* Owner)
 	: TDataModule(Owner),
 	  FShutdown(false),
+	  FEquipmentStatusInitialized(false),
+	  FLastEquipmentPower(false),
+	  FLastEquipmentMode(1),
+	  FLastEquipmentStatus(1),
+	  FPowerMeterInitialized(false),
+	  FLastMeterVoltage(0.0), FLastMeterCurrent(0.0),
+	  FLastMeterPower(0.0), FLastMeterEnergy(0.0),
 	  FEnvStatusInitialized(false),
 	  FLastEnvTemperature(0.0),
 	  FLastEnvSmokeDetected(false),
@@ -844,6 +851,8 @@ void __fastcall TMesOpc::Shutdown()
 	if(FShutdown)
 		return;
 	FShutdown = true;
+	// Best-effort power-off report while the Gateway send queue is still alive.
+	PublishEquipmentStatus(false, FLastEquipmentMode, 1);
 
 	// FMS EnvStatus shutdown report: retain the last measured values and only
 	// change Running to false while the Gateway is still available.
@@ -860,6 +869,38 @@ void __fastcall TMesOpc::Shutdown()
 	SetPcBool(TrayProcessTag(TAG_TARGET, L"TrayUnloadRequest"), false);
 	if(Mod_Fms != NULL)
 		Mod_Fms->FlushPendingPcTags(false);
+}
+//---------------------------------------------------------------------------
+void __fastcall TMesOpc::PublishEquipmentStatus(bool Power, int Mode, int Status)
+{
+	if(Mod_Fms == NULL || (FShutdown && Power)) return;
+	if(FEquipmentStatusInitialized && FLastEquipmentPower == Power &&
+		FLastEquipmentMode == Mode && FLastEquipmentStatus == Status) return;
+	Mod_Fms->SetPcTag(L"NGS.F1NGS01.EquipmentStatus.Power", Power);
+	Mod_Fms->SetPcTag(L"NGS.F1NGS01.EquipmentStatus.Mode", Mode);
+	Mod_Fms->SetPcTag(L"NGS.F1NGS01.EquipmentStatus.Status", Status);
+	Mod_Fms->FlushPendingPcTags(false);
+	FLastEquipmentPower = Power;
+	FLastEquipmentMode = Mode;
+	FLastEquipmentStatus = Status;
+	FEquipmentStatusInitialized = true;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMesOpc::PublishPowerMeter(double Voltage, double Current, double Power, double Energy)
+{
+	if(Mod_Fms == NULL || FShutdown) return;
+	if(FPowerMeterInitialized && FLastMeterVoltage == Voltage && FLastMeterCurrent == Current &&
+		FLastMeterPower == Power && FLastMeterEnergy == Energy) return;
+	Mod_Fms->SetPcTag(L"NGS.F1NGS01.PowerMeter.Voltage", Voltage);
+	Mod_Fms->SetPcTag(L"NGS.F1NGS01.PowerMeter.Current", Current);
+	Mod_Fms->SetPcTag(L"NGS.F1NGS01.PowerMeter.Power", Power);
+	Mod_Fms->SetPcTag(L"NGS.F1NGS01.PowerMeter.Energy", Energy);
+	Mod_Fms->FlushPendingPcTags(false);
+	FLastMeterVoltage = Voltage;
+	FLastMeterCurrent = Current;
+	FLastMeterPower = Power;
+	FLastMeterEnergy = Energy;
+	FPowerMeterInitialized = true;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::PublishEnvStatus(double Temperature,

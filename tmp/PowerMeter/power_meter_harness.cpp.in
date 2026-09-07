@@ -1,0 +1,61 @@
+#include <cassert>
+#include <cstdio>
+#include <cstring>
+#include <cwchar>
+#include <cmath>
+/* CONSTANTS */
+struct TPlcBin {
+    unsigned char plc_Interface_Data[PLC_D_INTERFACE_LEN][2]; bool fresh;
+    TPlcBin():fresh(false){std::memset(plc_Interface_Data,0,sizeof(plc_Interface_Data));}
+    bool IsPlcStatusFresh(){return fresh;}
+    bool __fastcall GetPowerMeterInfo(double &,double &,double &,double &);
+};
+struct Gateway {
+    double voltage,current,power,energy;int writes,flushes;
+    Gateway():writes(0),flushes(0){}
+    void SetPcTag(const wchar_t *key,double value){
+        assert(std::wcsstr(key,L"NGS.F1NGS01.PowerMeter.")==key);
+        if(std::wcsstr(key,L".Voltage"))voltage=value;
+        else if(std::wcsstr(key,L".Current"))current=value;
+        else if(std::wcsstr(key,L".PowerMeter.Power"))power=value;
+        else if(std::wcsstr(key,L".Energy"))energy=value;
+        else assert(false);
+        ++writes;
+    }
+    void FlushPendingPcTags(bool){++flushes;}
+} gateway,*Mod_Fms=&gateway;
+struct TMesOpc {
+    bool FShutdown,FPowerMeterInitialized;
+    double FLastMeterVoltage,FLastMeterCurrent,FLastMeterPower,FLastMeterEnergy;
+    TMesOpc():FShutdown(false),FPowerMeterInitialized(false),FLastMeterVoltage(0),
+        FLastMeterCurrent(0),FLastMeterPower(0),FLastMeterEnergy(0){}
+    void __fastcall PublishPowerMeter(double,double,double,double);
+};
+/* METHODS */
+void Put(TPlcBin &p,int offset,unsigned long raw){
+    p.plc_Interface_Data[offset][0]=raw&255;
+    p.plc_Interface_Data[offset][1]=(raw>>8)&255;
+    p.plc_Interface_Data[offset+1][0]=(raw>>16)&255;
+    p.plc_Interface_Data[offset+1][1]=(raw>>24)&255;
+}
+bool Equal(double a,double b){return std::fabs(a-b)<0.0000001;}
+int main(){
+    assert(sizeof(unsigned long)==4 && PLC_D_INTERFACE_LEN==18);
+    TPlcBin p;TMesOpc mes;double v=-1,c=-1,w=-1,e=-1;
+    assert(!p.GetPowerMeterInfo(v,c,w,e));assert(v==-1&&c==-1&&w==-1&&e==-1);
+    Put(p,10,220123);Put(p,12,12345);Put(p,14,6789);Put(p,16,123456789);
+    p.fresh=true;assert(p.GetPowerMeterInfo(v,c,w,e));
+    assert(Equal(v,220.123)&&Equal(c,12.345)&&Equal(w,6.789)&&Equal(e,123456.789));
+    mes.PublishPowerMeter(v,c,w,e);assert(gateway.writes==4&&gateway.flushes==1);
+    assert(Equal(gateway.voltage,v)&&Equal(gateway.current,c)&&Equal(gateway.power,w)&&Equal(gateway.energy,e));
+    for(int i=0;i<100;++i)mes.PublishPowerMeter(v,c,w,e);
+    assert(gateway.flushes==1);
+    Put(p,16,123456790);assert(p.GetPowerMeterInfo(v,c,w,e));mes.PublishPowerMeter(v,c,w,e);
+    assert(gateway.flushes==2&&gateway.writes==8&&Equal(gateway.energy,123456.790));
+    Put(p,10,0xffffffffUL);assert(p.GetPowerMeterInfo(v,c,w,e));assert(Equal(v,4294967.295));
+    Put(p,10,0);Put(p,12,0);Put(p,14,0);Put(p,16,0);
+    assert(p.GetPowerMeterInfo(v,c,w,e));assert(v==0&&c==0&&w==0&&e==0);
+    p.fresh=false;assert(!p.GetPowerMeterInfo(v,c,w,e));
+    mes.FShutdown=true;mes.PublishPowerMeter(0,0,0,0);assert(gateway.flushes==2);
+    puts("PASS: 18 words, low-word-first UInt32 /1000, four addresses, zero/max, freshness, Double tags, dedup and shutdown");
+}

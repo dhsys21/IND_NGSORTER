@@ -1,0 +1,162 @@
+#include <vcl.h>
+#include <System.DateUtils.hpp>
+#include <cassert>
+#include <cstdio>
+
+#undef assert
+#define assert(condition) do { if(!(condition)) { printf("FAIL at line %d: %s\n", __LINE__, #condition); return 1; } } while(0)
+
+AnsiString TRAY_PATH;
+BOOL WINAPI CheckedReplaceFileW(LPCWSTR file, LPCWSTR replacement, LPCWSTR backup,
+    DWORD flags, LPVOID exclude, LPVOID reserved) {
+    BOOL result = ::ReplaceFileW(file, replacement, backup, flags, exclude, reserved);
+    if(!result) {
+        DWORD error = GetLastError();
+        printf("ReplaceFileW failed: %lu\n", error);
+        SetLastError(error);
+    }
+    return result;
+}
+#define ReplaceFileW CheckedReplaceFileW
+struct CaptionControl { AnsiString Caption; };
+struct TMainForm {
+    bool sourceTrayResultActive;
+    AnsiString sourceTrayResultId, sourceTrayResultFileName;
+    int sourceTrayResultBlockOffset;
+    TDateTime sourceTrayInTime, sourceSortStartTime, sourceSortEndTime, sourceTrayOutTime;
+    bool sourceTrayInTimeSet, sourceSortStartTimeSet, sourceSortEndTimeSet, sourceTrayOutTimeSet;
+    CaptionControl sourceCaption, *pTrayid_source;
+    int errors;
+    TMainForm(): sourceTrayResultActive(false), sourceTrayResultBlockOffset(-1),
+        sourceTrayInTimeSet(false), sourceSortStartTimeSet(false), sourceSortEndTimeSet(false),
+        sourceTrayOutTimeSet(false), pTrayid_source(&sourceCaption), errors(0) {}
+    void memoMainLineAdd(AnsiString text) {
+        if(text.Pos("ERROR") > 0) { ++errors; printf("Test log: %s\n", text.c_str()); }
+    }
+    AnsiString __fastcall GetSourceTrayResultFileName();
+    bool __fastcall WriteSourceTrayResultSummary();
+    void __fastcall CaptureSourceTrayInTime();
+    void __fastcall BeginSourceTrayResult(AnsiString);
+    void __fastcall MarkSourceSortStart();
+    void __fastcall MarkSourceSortEnd();
+    void __fastcall FinalizeSourceTrayResult();
+    bool __fastcall SaveCellTransferResult(AnsiString, int, AnsiString, int,
+        DWORD, DWORD, DWORD, DWORD, DWORD, int, int, int, AnsiString);
+};
+
+/* PRODUCTION METHODS */
+
+AnsiString Read(AnsiString file) {
+    TFileStream *input = new TFileStream(file, fmOpenRead | fmShareDenyNone);
+    AnsiString text;
+    try {
+        text.SetLength((int)input->Size);
+        if(text.Length()) input->ReadBuffer(&text[1], text.Length());
+    } __finally { delete input; }
+    return text;
+}
+void Write(AnsiString file, AnsiString text) {
+    TFileStream *output = new TFileStream(file, fmCreate);
+    try {
+        if(text.Length()) output->WriteBuffer(text.c_str(), text.Length());
+    } __finally { delete output; }
+}
+int Count(AnsiString text, AnsiString needle) {
+    int count = 0, pos;
+    while((pos = text.Pos(needle)) > 0) { ++count; text.Delete(1, pos + needle.Length() - 1); }
+    return count;
+}
+bool SaveCell(TMainForm &form, int channel) {
+    return form.SaveCellTransferResult("REPEAT-TRAY", channel, "TARGET-TRAY", channel,
+        100, 200, 300, 400, 50, 1, 2, 3, "WAIT_POSITION");
+}
+int main() {
+    setvbuf(stdout, NULL, _IONBF, 0);
+    try {
+        TRAY_PATH = GetCurrentDir() + "\\data_" + IntToStr((__int64)GetTickCount()) + "\\";
+        TMainForm form;
+        puts("TEST: create first block");
+        form.sourceCaption.Caption = "REPEAT-TRAY";
+        form.CaptureSourceTrayInTime(); form.BeginSourceTrayResult("REPEAT-TRAY");
+        AnsiString file = form.GetSourceTrayResultFileName();
+        form.BeginSourceTrayResult("REPEAT-TRAY");
+        assert(Count(Read(file), "Tray ID,") == 1);
+        puts("TEST: start sorting");
+        form.MarkSourceSortStart();
+        TDateTime start = form.sourceSortStartTime;
+        form.MarkSourceSortStart(); assert(form.sourceSortStartTime == start);
+        puts("TEST: save six cells");
+        for(int i=1; i<=6; ++i) assert(SaveCell(form, i));
+        form.MarkSourceSortEnd(); form.FinalizeSourceTrayResult();
+        AnsiString first = Read(file);
+        assert(Count(first, "\"TARGET-TRAY\"") == 6);
+        assert(Count(first, "Timestamp,SourceTrayId") == 1);
+        assert(first.Pos("Sort Start Time,\"\"\r\n") == 0);
+        puts("PASS: first run has six records and one complete summary/header");
+
+        form.CaptureSourceTrayInTime(); form.BeginSourceTrayResult("REPEAT-TRAY");
+        assert(form.GetSourceTrayResultFileName() == file);
+        form.MarkSourceSortEnd(); form.FinalizeSourceTrayResult();
+        AnsiString secondFile = Read(file);
+        assert(secondFile.SubString(1, first.Length()) == first);
+        AnsiString second = secondFile.SubString(form.sourceTrayResultBlockOffset+1,
+            secondFile.Length()-form.sourceTrayResultBlockOffset);
+        assert(Count(second, "Tray ID,") == 1);
+        assert(Count(second, "Timestamp,SourceTrayId") == 1);
+        assert(Count(second, "\"TARGET-TRAY\"") == 0);
+        assert(second.Pos("Sort Start Time,\"\"\r\n") > 0);
+        assert(second.Pos("Sort End Time,\"\"\r\n") > 0);
+        assert(second.Pos("Tray In Time,\"\"\r\n") == 0);
+        assert(second.Pos("Tray Out Time,\"\"\r\n") == 0);
+        puts("PASS: repeated tray with no NG preserves previous run; blank sort times and zero rows");
+
+        form.CaptureSourceTrayInTime(); form.BeginSourceTrayResult("REPEAT-TRAY");
+        form.MarkSourceSortStart(); assert(SaveCell(form, 7));
+        form.FinalizeSourceTrayResult();
+        assert(form.WriteSourceTrayResultSummary());
+        assert(form.WriteSourceTrayResultSummary());
+        AnsiString third = Read(file);
+        assert(third.SubString(1, secondFile.Length()) == secondFile);
+        assert(Count(third, "Tray ID,") == 3);
+        assert(Count(third, "Timestamp,SourceTrayId") == 3);
+        assert(Count(third, "\"TARGET-TRAY\"") == 7);
+        puts("PASS: third run appends its own cell; repeated saves never duplicate blocks/rows");
+
+        form.CaptureSourceTrayInTime();
+        TFileStream *locked = new TFileStream(file, fmOpenRead | fmShareDenyWrite);
+        form.BeginSourceTrayResult("REPEAT-TRAY");
+        assert(form.sourceTrayResultBlockOffset == -1);
+        assert(Read(file) == third);
+        delete locked;
+        // A cell save retries the failed first summary, even when an older file exists.
+        form.MarkSourceSortStart(); assert(SaveCell(form, 8)); form.FinalizeSourceTrayResult();
+        AnsiString fourth = Read(file);
+        assert(fourth.SubString(1, third.Length()) == third);
+        assert(Count(fourth, "Tray ID,") == 4);
+        assert(Count(fourth, "\"TARGET-TRAY\"") == 8);
+        puts("PASS: locked-file first-write failure preserves old data and retries one new block");
+
+        form.CaptureSourceTrayInTime(); form.BeginSourceTrayResult("LEGACY");
+        AnsiString legacyFile = form.GetSourceTrayResultFileName();
+        AnsiString legacy = "Tray ID,\"LEGACY\"\r\nOld summary\r\n"
+            "Timestamp,SourceTrayId,SourceChannel,TargetTrayId,TargetChannel,EjectMs,MoveMs\r\nold,row\r\n";
+        Write(legacyFile, legacy);
+        form.CaptureSourceTrayInTime(); form.BeginSourceTrayResult("LEGACY");
+        form.FinalizeSourceTrayResult();
+        AnsiString migrated = Read(legacyFile);
+        assert(migrated.SubString(1, legacy.Length()) == legacy);
+        assert(Count(migrated, "Tray ID,") == 2);
+        puts("PASS: existing legacy-format results are retained without reinterpretation");
+
+        Write(legacyFile, "truncated");
+        assert(!form.WriteSourceTrayResultSummary());
+        assert(Read(legacyFile) == "truncated");
+        puts("PASS: truncation of an active file fails safely instead of overwriting its history");
+        assert(form.errors >= 2);
+        printf("Test data: %s\n", TRAY_PATH.c_str());
+        return 0;
+    } catch(Exception &error) {
+        printf("FAIL: %s\n", AnsiString(error.Message).c_str());
+        return 1;
+    }
+}

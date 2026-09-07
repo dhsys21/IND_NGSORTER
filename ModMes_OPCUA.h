@@ -17,6 +17,12 @@ private:	// User declarations
 	UnicodeString FApprovedSourceTrayId;
 	void CaptureApprovedSource(const UnicodeString &TrayId);
     bool FShutdown;
+	bool FEquipmentStatusInitialized;
+	bool FLastEquipmentPower;
+	int FLastEquipmentMode;
+	int FLastEquipmentStatus;
+	bool FPowerMeterInitialized;
+	double FLastMeterVoltage, FLastMeterCurrent, FLastMeterPower, FLastMeterEnergy;
 	bool FEnvStatusInitialized;
 	double FLastEnvTemperature;
 	bool FLastEnvSmokeDetected;
@@ -34,6 +40,8 @@ public:		// User declarations
 		AnsiString &NGCode, AnsiString &Grade, bool &WorkFlag);
 	__fastcall TMesOpc(TComponent* Owner);
     void __fastcall Shutdown();
+	void __fastcall PublishEquipmentStatus(bool Power, int Mode, int Status);
+	void __fastcall PublishPowerMeter(double Voltage, double Current, double Power, double Energy);
 	// Publishes one coherent TSD-V50 state through F1NGS01.EnvStatus EQP-only tags.
 	void __fastcall PublishEnvStatus(double Temperature, bool SmokeDetected,
 		bool TempWarning, bool TempDanger, bool Running);

@@ -63,6 +63,10 @@ void __fastcall TInterfaceForm::SetListViewPLC()
         AddListView(ListView_PLC, "D" + IntToStr(PLC_D_INTERFACE_START_DEV_NUM + PLC_D_SOURCE_CENTERING), "SOURCE CENTERING");
         AddListView(ListView_PLC, "D" + IntToStr(PLC_D_INTERFACE_START_DEV_NUM + PLC_D_TARGET_TRAY_IN), "TARGET TRAY IN");
         AddListView(ListView_PLC, "D" + IntToStr(PLC_D_INTERFACE_START_DEV_NUM + PLC_D_TARGET_CENTERING), "TARGET CENTERING");
+		AddListView(ListView_PLC, "D10110-D10111", "VOLTAGE (V)");
+		AddListView(ListView_PLC, "D10112-D10113", "CURRENT (A)");
+		AddListView(ListView_PLC, "D10114-D10115", "POWER (kW)");
+		AddListView(ListView_PLC, "D10116-D10117", "ENERGY (kWh)");
     }
     __finally
     {
@@ -107,6 +111,12 @@ void __fastcall TInterfaceForm::SetListViewPC()
 void __fastcall TInterfaceForm::Timer_PLC_UpdateTimer(TObject *Sender)
 {
     int index;
+	double voltage, current, power, energy;
+	bool meterFresh = PlcBin->GetPowerMeterInfo(voltage, current, power, energy);
+	ListView_PLC->Items->Item[7]->SubItems->Strings[1] = meterFresh ? FormatFloat("0.000", voltage) : UnicodeString("--");
+	ListView_PLC->Items->Item[8]->SubItems->Strings[1] = meterFresh ? FormatFloat("0.000", current) : UnicodeString("--");
+	ListView_PLC->Items->Item[9]->SubItems->Strings[1] = meterFresh ? FormatFloat("0.000", power) : UnicodeString("--");
+	ListView_PLC->Items->Item[10]->SubItems->Strings[1] = meterFresh ? FormatFloat("0.000", energy) : UnicodeString("--");
     if(PlcBin->ClientSocket_PLC->Active)
     {
         index = 0;

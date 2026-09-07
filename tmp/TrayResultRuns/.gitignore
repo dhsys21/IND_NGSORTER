@@ -1,0 +1,6 @@
+edit/
+data_*/
+tray_result_harness.cpp
+equipment_status_harness.cpp
+*.log
+Win32Debug/

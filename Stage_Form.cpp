@@ -680,33 +680,38 @@ bool __fastcall TMainForm::WriteSourceTrayResultSummary()
 		"MoveSourceChMs,EjectMs,MoveTargetChMs,InsertMs,MoveWaitingMs,TotalMs,"
 		"PeakLoadXPercent,PeakLoadYPercent,PeakLoadZPercent,MoveWaitingMode\r\n";
 	AnsiString resultBody = header;
+	AnsiString previousRuns;
+	int blockOffset = sourceTrayResultBlockOffset;
 	TFileStream *input = NULL;
 	try{
+		AnsiString existing;
 		if(FileExists(fileName)){
 			input = new TFileStream(fileName, fmOpenRead | fmShareDenyNone);
+			if(input->Size > 0x7FFFFFFF)
+				throw Exception("Tray result file is too large");
 			int size = (int)input->Size;
 			if(size > 0){
-				AnsiString existing;
 				existing.SetLength(size);
 				input->ReadBuffer(&existing[1], size);
-				AnsiString legacyHeader =
-					"Timestamp,SourceTrayId,SourceChannel,TargetTrayId,TargetChannel,"
-					"EjectMs,MoveMs,InsertMs,WaitMs,TotalMs,PeakLoadXPercent,"
-					"PeakLoadYPercent,PeakLoadZPercent,WaitMode\r\n";
-				int headerPos = existing.Pos(header);
-				int legacyHeaderPos = existing.Pos(legacyHeader);
-				if(legacyHeaderPos > 0 && (headerPos <= 0 || legacyHeaderPos < headerPos)){
-					resultBody = existing.SubString(legacyHeaderPos,
-						existing.Length() - legacyHeaderPos + 1);
-					if(headerPos <= 0)
-						resultBody += "\r\n" + header;
-				}else if(headerPos > 0)
-					resultBody = existing.SubString(headerPos, existing.Length() - headerPos + 1);
-				else
-					resultBody = header + existing;
 			}
 			delete input;
 			input = NULL;
+		}
+		if(blockOffset < 0){
+			// A new tray-in starts a complete block; keep all older runs byte-for-byte.
+			previousRuns = existing;
+			if(!previousRuns.IsEmpty()) previousRuns += "\r\n\r\n";
+			blockOffset = previousRuns.Length();
+		}else{
+			if(blockOffset > existing.Length())
+				throw Exception("Tray result file was truncated during the current run");
+			previousRuns = existing.SubString(1, blockOffset);
+			AnsiString currentRun = existing.SubString(blockOffset + 1,
+				existing.Length() - blockOffset);
+			int headerPos = currentRun.Pos(header);
+			if(headerPos <= 0)
+				throw Exception("Current tray result block is missing its CSV header");
+			resultBody = currentRun.SubString(headerPos, currentRun.Length() - headerPos + 1);
 		}
 	}catch(Exception &e){
 		if(input != NULL) delete input;
@@ -728,9 +733,10 @@ bool __fastcall TMainForm::WriteSourceTrayResultSummary()
 	TFileStream *output = NULL;
 	try{
 		output = new TFileStream(temporaryPath, fmCreate);
-		AnsiString content = summary + resultBody;
+		AnsiString content = previousRuns + summary + resultBody;
 		if(content.Length() > 0)
 			output->WriteBuffer(content.c_str(), content.Length());
+		if(!FlushFileBuffers((HANDLE)output->Handle)) RaiseLastOSError();
 		delete output;
 		output = NULL;
 		if(!MoveFileExW(UnicodeString(temporaryPath).c_str(), UnicodeString(fileName).c_str(),
@@ -746,6 +752,8 @@ bool __fastcall TMainForm::WriteSourceTrayResultSummary()
 		memoMainLineAdd("[TRAY RESULT] ERROR - " + AnsiString(e.Message));
 		return false;
 	}
+	// Commit the offset only after durable replacement so failed writes can retry.
+	sourceTrayResultBlockOffset = blockOffset;
 	return true;
 }
 //---------------------------------------------------------------------------
@@ -754,6 +762,7 @@ void __fastcall TMainForm::CaptureSourceTrayInTime()
 	sourceTrayResultActive = false;
 	sourceTrayResultId = "";
 	sourceTrayResultFileName = "";
+	sourceTrayResultBlockOffset = -1;
 	sourceTrayInTime = Now();
 	sourceTrayInTimeSet = true;
 	sourceSortStartTimeSet = false;
@@ -771,6 +780,7 @@ void __fastcall TMainForm::BeginSourceTrayResult(AnsiString sourceTrayId)
 		sourceTrayInTimeSet;
 	sourceTrayResultId = newTrayId;
 	sourceTrayResultFileName = "";
+	sourceTrayResultBlockOffset = -1;
 	sourceTrayResultActive = true;
 	if(!capturedTrayIn){
 		sourceTrayInTime = Now();
@@ -794,7 +804,7 @@ void __fastcall TMainForm::MarkSourceSortStart()
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::MarkSourceSortEnd()
 {
-	if(!sourceTrayResultActive || sourceSortEndTimeSet) return;
+	if(!sourceTrayResultActive || !sourceSortStartTimeSet || sourceSortEndTimeSet) return;
 	sourceSortEndTime = Now();
 	sourceSortEndTimeSet = true;
 	WriteSourceTrayResultSummary();
@@ -803,7 +813,7 @@ void __fastcall TMainForm::MarkSourceSortEnd()
 void __fastcall TMainForm::FinalizeSourceTrayResult()
 {
 	if(!sourceTrayResultActive || sourceTrayOutTimeSet) return;
-	if(!sourceSortEndTimeSet){
+	if(sourceSortStartTimeSet && !sourceSortEndTimeSet){
 		sourceSortEndTime = Now();
 		sourceSortEndTimeSet = true;
 	}
@@ -827,7 +837,9 @@ bool __fastcall TMainForm::SaveCellTransferResult(AnsiString sourceTrayId,
 		BeginSourceTrayResult(sourceTrayId);
 	}
 	AnsiString fileName = GetSourceTrayResultFileName();
-	if(fileName.IsEmpty() || (!FileExists(fileName) && !WriteSourceTrayResultSummary()))
+	// Establish this run's block before appending, including a failed first-write retry.
+	if(fileName.IsEmpty() || ((sourceTrayResultBlockOffset < 0 || !FileExists(fileName)) &&
+		!WriteSourceTrayResultSummary()))
 		return false;
 	DWORD totalMs = moveSourceChMs + ejectMs + moveTargetChMs + insertMs +
 		moveWaitingMs;

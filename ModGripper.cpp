@@ -68,6 +68,8 @@ void __fastcall Tgripper::BeginTransferResult(int toolIndex)
 	if(MainForm == NULL || robostar == NULL || toolIndex < 0 || toolIndex >= gripCnt)
 		return;
 
+	// Record sorting only when the first selected-cell move has been accepted.
+	MainForm->MarkSourceSortStart();
 	transferResult.active = true;
 	transferResult.sourceChannel = tool[toolIndex].source_ch.ToIntDef(0);
 	transferResult.targetChannel = tool[toolIndex].target_ch.ToIntDef(0);

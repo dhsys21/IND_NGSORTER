@@ -527,6 +527,8 @@ private:	// User declarations
 	bool sourceTrayResultActive;
 	AnsiString sourceTrayResultId;
 	AnsiString sourceTrayResultFileName;
+	// Set after WriteSourceTrayResultSummary succeeds; reset by Capture/BeginSourceTrayResult.
+	int sourceTrayResultBlockOffset;
 	TDateTime sourceTrayInTime;
 	TDateTime sourceSortStartTime;
 	TDateTime sourceSortEndTime;
@@ -537,6 +539,7 @@ private:	// User declarations
 	bool sourceTrayOutTimeSet;
 	AnsiString __fastcall GetSourceTrayResultFileName();
 	bool __fastcall WriteSourceTrayResultSummary();
+	void __fastcall UpdateFmsEquipmentStatus();
 
 	int __fastcall FindList(AnsiString strType);
 	void __fastcall AddList(AnsiString strType);

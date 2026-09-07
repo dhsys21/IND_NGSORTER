@@ -356,6 +356,10 @@ void __fastcall TPlcBin::PLC_Recv_Interface()
 		num += 4;
 	}
 	lastPlcStatusTick = GetTickCount();
+	// Publish only complete, fresh PLC responses; never synthesize zeros on disconnect.
+	double voltage, current, power, energy;
+	if(MesOpc != NULL && GetPowerMeterInfo(voltage, current, power, energy))
+		MesOpc->PublishPowerMeter(voltage, current, power, energy);
 }
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
@@ -501,6 +505,26 @@ bool __fastcall TPlcBin::IsPlcStatusFresh(DWORD maxAgeMs)
 	return ClientSocket_PLC != NULL && ClientSocket_PLC->Active &&
 		lastPlcStatusTick != 0 &&
 		(DWORD)(GetTickCount() - lastPlcStatusTick) <= maxAgeMs;
+}
+//---------------------------------------------------------------------------
+static double DecodePlcMeterValue(const unsigned char (*data)[2], int offset)
+{
+	unsigned long raw = (unsigned long)data[offset][0] |
+		((unsigned long)data[offset][1] << 8) |
+		((unsigned long)data[offset + 1][0] << 16) |
+		((unsigned long)data[offset + 1][1] << 24);
+	return (double)raw / 1000.0;
+}
+//---------------------------------------------------------------------------
+bool __fastcall TPlcBin::GetPowerMeterInfo(double &voltage, double &current,
+	double &power, double &energy)
+{
+	if(!IsPlcStatusFresh()) return false;
+	voltage = DecodePlcMeterValue(plc_Interface_Data, PLC_D_METER_VOLTAGE);
+	current = DecodePlcMeterValue(plc_Interface_Data, PLC_D_METER_CURRENT);
+	power = DecodePlcMeterValue(plc_Interface_Data, PLC_D_METER_POWER);
+	energy = DecodePlcMeterValue(plc_Interface_Data, PLC_D_METER_ENERGY);
+	return true;
 }
 //---------------------------------------------------------------------------
 bool __fastcall TPlcBin::IsPcHeartBeatOn()

@@ -154,6 +154,7 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	sourceTrayResultActive = false;
 	sourceTrayResultId = "";
 	sourceTrayResultFileName = "";
+	sourceTrayResultBlockOffset = -1;
 	sourceTrayInTimeSet = false;
 	sourceSortStartTimeSet = false;
 	sourceSortEndTimeSet = false;
@@ -1951,8 +1952,6 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 					ShowCommonError("Sorting initialization failed",
 						"ProcessStart completed, but the Gripper initialization request was not accepted.");
 				}
-				else
-					MarkSourceSortStart();
 			}
 		}
 
@@ -3087,8 +3086,29 @@ void __fastcall TMainForm::btnCloseIoPanelClick(TObject *Sender)
 	grp_io->Visible = false;
 }
 //---------------------------------------------------------------------------
+void __fastcall TMainForm::UpdateFmsEquipmentStatus()
+{
+	if(MesOpc == NULL) return;
+	int mode = equipMode == modeManual ? 1 : 2;
+	int status = 1;
+	// Priority: machine trouble > paused > active operation > idle.
+	if(nowLampMode == LampAlarm || nowLampMode == LampEmergency ||
+		(robostar != NULL && robostar->IsEmergencyStopActive()))
+		status = 4;
+	else if((gripper != NULL && gripper->pauseStatus) ||
+		(robostar != NULL && robostar->pauseStatus))
+		status = 8;
+	else if((gripper != NULL && gripper->seq != seqIdle) ||
+		(robostar != NULL && robostar->seq != seqIdle) ||
+		(equipMode == modeAuto && IsProductionSequenceBusy()))
+		status = 2;
+	// Power denotes the running equipment application, not the servo-enable state.
+	MesOpc->PublishEquipmentStatus(true, mode, status);
+}
+//---------------------------------------------------------------------------
 void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 {
+	UpdateFmsEquipmentStatus();
 	// Target tray information deletion.
 	// D10106 is normally ON while centered. Its ON-to-OFF transition confirms
 	// centering release, after which the old target tray information is cleared.

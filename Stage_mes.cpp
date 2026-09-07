@@ -144,7 +144,6 @@ void __fastcall TMainForm::DisplayTranserIn(AnsiString trayid)
 		{
 			if(gripper->seq == seqIdle && robostar->seq == seqIdle){
 				gripper->req_Init();
-				if((int)gripper->seq == 1) MarkSourceSortStart();
 			}
 		}
 	}
@@ -155,7 +154,6 @@ void __fastcall TMainForm::DisplayTranserIn(AnsiString trayid)
 		{
 			if(gripper->seq == seqIdle && robostar->seq == seqIdle){
 				gripper->req_Init();
-				if((int)gripper->seq == 1) MarkSourceSortStart();
 			}
 		}
 	}
