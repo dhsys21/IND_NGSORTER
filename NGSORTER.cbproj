@@ -270,7 +270,7 @@
             <IgnorePath>true</IgnorePath>
         </LibFiles>
         <CppCompile Include="ModGripper.cpp">
-            <Form>w</Form>
+            <Form>gripper</Form>
             <FormType>dfm</FormType>
             <DesignClass>TDataModule</DesignClass>
             <DependentOn>ModGripper.h</DependentOn>
@@ -362,18 +362,18 @@
         <FormResources Include="Barcode_comm.dfm"/>
         <FormResources Include="FormAlarm_fms.dfm"/>
         <FormResources Include="FormAlarm.dfm"/>
-        <FormResources Include="FormError.dfm"/>
-        <FormResources Include="FormLoadFactor.dfm"/>
-        <FormResources Include="FormInterface.dfm"/>
-        <FormResources Include="FormMain.dfm"/>
-        <FormResources Include="FormServoAlarmList.dfm"/>
         <FormResources Include="FormDryRun.dfm"/>
-        <FormResources Include="FormManualComplete.dfm"/>
-        <FormResources Include="FormError_eject.dfm"/>
-        <FormResources Include="FormError_bcr.dfm"/>
-        <FormResources Include="FormError_insert.dfm"/>
+        <FormResources Include="FormInterface.dfm"/>
         <FormResources Include="FormError_mes.dfm"/>
+        <FormResources Include="FormLoadFactor.dfm"/>
+        <FormResources Include="FormServoAlarmList.dfm"/>
+        <FormResources Include="FormMain.dfm"/>
+        <FormResources Include="FormError_bcr.dfm"/>
+        <FormResources Include="FormError.dfm"/>
+        <FormResources Include="FormError_eject.dfm"/>
         <FormResources Include="FormError_limit.dfm"/>
+        <FormResources Include="FormError_insert.dfm"/>
+        <FormResources Include="FormManualComplete.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -555,27 +555,12 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployClass Name="DependencyModule">
-                    <Platform Name="Win32">
-                        <Operation>0</Operation>
-                        <Extensions>.dll;.bpl</Extensions>
-                    </Platform>
+                <DeployClass Name="ProjectiOSDeviceResourceRules">
                     <Platform Name="iOSDevice64">
                         <Operation>1</Operation>
-                        <Extensions>.dylib</Extensions>
-                    </Platform>
-                    <Platform Name="OSX32">
-                        <RemoteDir>Contents\MacOS</RemoteDir>
-                        <Operation>1</Operation>
-                        <Extensions>.dylib</Extensions>
                     </Platform>
                     <Platform Name="iOSDevice32">
                         <Operation>1</Operation>
-                        <Extensions>.dylib</Extensions>
-                    </Platform>
-                    <Platform Name="iOSSimulator">
-                        <Operation>1</Operation>
-                        <Extensions>.dylib</Extensions>
                     </Platform>
                 </DeployClass>
                 <DeployClass Name="ProjectOSXResource">
@@ -954,12 +939,27 @@
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
-                <DeployClass Name="ProjectiOSDeviceResourceRules">
+                <DeployClass Name="DependencyModule">
+                    <Platform Name="Win32">
+                        <Operation>0</Operation>
+                        <Extensions>.dll;.bpl</Extensions>
+                    </Platform>
                     <Platform Name="iOSDevice64">
                         <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
+                    </Platform>
+                    <Platform Name="OSX32">
+                        <RemoteDir>Contents\MacOS</RemoteDir>
+                        <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
                     </Platform>
                     <Platform Name="iOSDevice32">
                         <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
+                    </Platform>
+                    <Platform Name="iOSSimulator">
+                        <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
                     </Platform>
                 </DeployClass>
                 <ProjectRoot Platform="iOSDevice64" Name="$(PROJECTNAME).app"/>

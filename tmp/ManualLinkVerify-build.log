@@ -1,0 +1,51 @@
+Build started 9/7/2026 2:27:07 PM.
+Project "D:\Program\IND_NGSORTER\NGSORTER.cbproj" on node 0 (Build target(s)).
+  Creating directory "tmp\ManualLinkVerify\obj\".
+  Creating directory "tmp\ManualLinkVerify\bin".
+FormMain.cpp(3754): warning W8018: Assigning Sequence to Tgripper::Sequence in function _fastcall TMainForm::AdvSmoothToggleButton_InitWorkClick(TObject *)
+ModGripper.cpp(374): warning W8070: Function should return a value in function _fastcall Tgripper::GetZoneCode(int,AnsiString)
+ModGripper.cpp(605): warning W8004: 'bcheck' is assigned a value that is never used in function _fastcall Tgripper::Initialize()
+ModGripper.cpp(698): warning W8004: 'bfind' is assigned a value that is never used in function _fastcall Tgripper::Sorting()
+ModGripper.cpp(698): warning W8004: 'div2' is assigned a value that is never used in function _fastcall Tgripper::Sorting()
+ModGripper.cpp(698): warning W8004: 'div1' is assigned a value that is never used in function _fastcall Tgripper::Sorting()
+ModGripper.cpp(698): warning W8004: 'pos2' is assigned a value that is never used in function _fastcall Tgripper::Sorting()
+ModGripper.cpp(1024): warning W8004: 'div2' is assigned a value that is never used in function _fastcall Tgripper::Inserting()
+ModGripper.cpp(1024): warning W8004: 'div1' is assigned a value that is never used in function _fastcall Tgripper::Inserting()
+ModGripper.cpp(1024): warning W8004: 'pos2' is assigned a value that is never used in function _fastcall Tgripper::Inserting()
+Modmes.cpp(152): warning W8004: 'a' is assigned a value that is never used in function __stdcall TxThread(void *)
+BuildVersionResource:
+  CodeGear Resource Compiler/Binder
+  Version 1.2.2 Copyright (c) 2008-2012 Embarcadero Technologies Inc.
+  
+  Microsoft (R) Windows (R) Resource Compiler Version 6.0.5724.0
+  
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  
+  
+  Deleting file "NGSORTER.vrc".
+  Deleting file "NGSORTER.$manifest".
+_RcCoreCompile:
+  Borland Resource Compiler  Version 5.40
+  Copyright (c) 1990, 1999 Inprise Corporation.  All rights reserved.
+Done Building Project "D:\Program\IND_NGSORTER\NGSORTER.cbproj" (Build target(s)).
+
+Build succeeded.
+
+"D:\Program\IND_NGSORTER\NGSORTER.cbproj" (Build target) (1) ->
+(_BCC32CoreCompile target) -> 
+  FormMain.cpp(3754): warning W8018: Assigning Sequence to Tgripper::Sequence in function _fastcall TMainForm::AdvSmoothToggleButton_InitWorkClick(TObject *)
+  ModGripper.cpp(374): warning W8070: Function should return a value in function _fastcall Tgripper::GetZoneCode(int,AnsiString)
+  ModGripper.cpp(605): warning W8004: 'bcheck' is assigned a value that is never used in function _fastcall Tgripper::Initialize()
+  ModGripper.cpp(698): warning W8004: 'bfind' is assigned a value that is never used in function _fastcall Tgripper::Sorting()
+  ModGripper.cpp(698): warning W8004: 'div2' is assigned a value that is never used in function _fastcall Tgripper::Sorting()
+  ModGripper.cpp(698): warning W8004: 'div1' is assigned a value that is never used in function _fastcall Tgripper::Sorting()
+  ModGripper.cpp(698): warning W8004: 'pos2' is assigned a value that is never used in function _fastcall Tgripper::Sorting()
+  ModGripper.cpp(1024): warning W8004: 'div2' is assigned a value that is never used in function _fastcall Tgripper::Inserting()
+  ModGripper.cpp(1024): warning W8004: 'div1' is assigned a value that is never used in function _fastcall Tgripper::Inserting()
+  ModGripper.cpp(1024): warning W8004: 'pos2' is assigned a value that is never used in function _fastcall Tgripper::Inserting()
+  Modmes.cpp(152): warning W8004: 'a' is assigned a value that is never used in function __stdcall TxThread(void *)
+
+    11 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:21.08
