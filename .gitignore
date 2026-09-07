@@ -1,5 +1,10 @@
 __history  
 __recovery
+# IDE-local state, compiled resources and Debug output (keep local copies).
+*.local
+*.stat
+*.res
+[Dd]ebug/
 *.obj
 *.exe
 *.tds
