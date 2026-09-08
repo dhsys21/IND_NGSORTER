@@ -237,6 +237,8 @@ bool Trobostar::AreAxesStopped()
 }
 bool Trobostar::CanResumeMotion()
 {
+	//* FMS TROUBLE: independent mode-wide latch, checked before any resumed target.
+	if(MainForm != NULL && MainForm->IsFmsTroubleBlocking()) return false;
 	if(!pauseStatus) return true;
 	// Check the retained collision interlock BEFORE reissuing paused targets.
 	if(centeringMotionMonitorActive &&
@@ -261,6 +263,10 @@ void Trobostar::MotionFault(const AnsiString &reason)
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::InitSequence(robotSequence data, robotSequence reserve)
 {
+	//* FMS TROUBLE: allow stop/reset/servo-off, but no new motion while latched.
+	if(MainForm != NULL && MainForm->IsFmsTroubleBlocking() &&
+		data != seqIdle && data != seqPause && data != seqJogStop &&
+		data != seqServoOff && data != seqReset) return;
 	// Keep MELSEC I/O alive when the position board cannot be opened, but allow
 	// seqInit so the Servo Open button can retry sscOpen().
 	if(!sscOpened && data != seqIdle && data != seqPause && data != seqInit) return;
@@ -956,6 +962,7 @@ void __fastcall Trobostar::Reset()
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::setPoint(int axnum_id, unsigned long int pos)
 {
+	if(MainForm != NULL && MainForm->IsFmsTroubleBlocking()) return false;
 	int axis = axnum_id == Axis_zUp ? Axis_z : axnum_id;
 	if(axis < 1 || axis > servoCnt || motionFaultLatched) return false;
 	if(!IsCcLinkReady() || input.GRIPPER1_BUFFER || !IsSafetyReady()){

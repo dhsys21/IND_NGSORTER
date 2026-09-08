@@ -65,6 +65,8 @@ private:	// User declarations
 	DWORD stepStartTick;
 	DWORD stepTimeoutMs;
 	bool running;
+	bool fmsPauseTiming;
+	DWORD fmsPauseTick;
 	bool waitPositionRequested;
 	bool highSpeedWarningShown;
 

@@ -36,11 +36,16 @@ public:
 } alarm,*AlarmForm_fms=&alarm;
 class TMainForm {
 public:
+    // Independent service is covered by ManualFmsService; keep legacy transaction scope here.
+    bool fmsTroubleLatched;
+    int manualTrayPhase;
+    bool IsManualTrayLoadBusy(){return false;}
+    void FailManualTrayLoad(AnsiString){}
     int fmsAlarmTransaction,fmsAlarmAcceptedResult,logs,errors,cancels;
     bool fmsAlarmRetryRequested,fmsAlarmAwaitingReset,automatic;
     DWORD fmsAlarmRetryStartTick;
     Widget timer,*opcMesTimer;
-    TMainForm():fmsAlarmTransaction(fmsAlarmTargetTrayLoad),fmsAlarmAcceptedResult(1),logs(0),errors(0),cancels(0),
+    TMainForm():fmsTroubleLatched(false),manualTrayPhase(0),fmsAlarmTransaction(fmsAlarmTargetTrayLoad),fmsAlarmAcceptedResult(1),logs(0),errors(0),cancels(0),
         fmsAlarmRetryRequested(false),fmsAlarmAwaitingReset(true),automatic(true),fmsAlarmRetryStartTick(0),opcMesTimer(&timer){}
     void memoMainLineAdd(AnsiString){++logs;}
     void WriteErrorLog(AnsiString,AnsiString){++errors;}

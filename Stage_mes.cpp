@@ -1,4 +1,266 @@
 #include "FormBase.h"
+#include "FormDryRun.h"
+
+// ============================================================================
+//* FMS TROUBLE / MANUAL TRAY LOAD
+// Trouble is an independent FMS input, NOT a TrayLoad timeout/response result.
+// Manual Scan owns only one Location1/2 TrayLoad transaction. It never advances
+// the AUTO sequence, requests centering/tray-out, or starts servo motion.
+// ============================================================================
+static const UnicodeString FMS_TROUBLE_STATUS = L"NGS.F1NGS01.FmsStatus.Trouble.Status";
+static const UnicodeString FMS_TROUBLE_CODE = L"NGS.F1NGS01.FmsStatus.Trouble.ErrorNo";
+
+bool __fastcall TMainForm::IsFmsTroubleBlocking() const
+{
+	// Also close the interval between receiving a tag and the next service tick.
+	return fmsTroubleLatched || (Mod_Fms != NULL &&
+		Mod_Fms->GetFmsTagBool(FMS_TROUBLE_STATUS, false));
+}
+
+bool __fastcall TMainForm::IsManualTrayLoadBusy() const
+{
+	return manualTrayPhase != 0;
+}
+
+void __fastcall TMainForm::PollFmsTrouble()
+{
+	UnicodeString raw;
+	bool parsed = Mod_Fms != NULL && Mod_Fms->GetFmsTagJson(FMS_TROUBLE_STATUS, raw);
+	if(parsed){
+		raw = raw.Trim().LowerCase();
+		parsed = raw == L"true" || raw == L"false" || raw == L"1" || raw == L"0";
+	}
+	fmsTroubleStatusKnown = parsed && Mod_Fms->IsGatewayConnected() && Mod_Fms->SnapshotReceived;
+	// An observed ON is always enough to stop, even if the connection just fell.
+	// An OFF may clear the input only from a connected, valid snapshot.
+	if(fmsTroubleStatusKnown || (parsed && (raw == L"true" || raw == L"1"))){
+		bool active = raw == L"true" || raw == L"1";
+		AnsiString code = Mod_Fms->GetFmsTagString(FMS_TROUBLE_CODE, L"UNKNOWN");
+		bool changed = active && (!fmsTroublePresent || !fmsTroubleLatched || code != fmsTroubleCode);
+		bool cleared = !active && fmsTroublePresent;
+		fmsTroublePresent = active;
+		if(active){
+			// Latch BEFORE UI callbacks: closing a popup or clearing Status does not resume.
+			fmsTroubleLatched = true;
+			fmsTroubleCode = code;
+			fmsAlarmRetryRequested = false;
+			if(manualTrayPhase > 0 && manualTrayPhase != 4)
+				FailManualTrayLoad("FMS Trouble interrupted manual TrayLoad. Correct FMS and press Retry/Restart.");
+		}
+		if(changed){
+			if(gripper != NULL) gripper->req_Pause(true);
+			if(robostar != NULL) robostar->req_Pause(true);
+			memoMainLineAdd("[FMS TROUBLE] Status=ON / ErrorNo=" + code + " / PAUSE (all modes)");
+			if(AlarmForm_fms != NULL)
+				AlarmForm_fms->ShowFmsError("FMS Trouble", "FmsStatus.Trouble.Status=true / ErrorNo=" + code +
+					"\r\nAll work is paused. Wait for FMS Status=false, then press Retry or Main Restart. Close does not resume.",
+					AnsiString(FMS_TROUBLE_STATUS), 1);
+		}
+		if(cleared){
+			memoMainLineAdd("[FMS TROUBLE] Status=OFF / pause retained / WAIT operator Retry or Restart");
+			if(AlarmForm_fms != NULL)
+				AlarmForm_fms->SetRetryWaiting("FMS Trouble cleared. PAUSED until operator Retry or Main Restart.");
+		}
+	}
+	// A disconnected/missing tag must never clear a latched Trouble.
+	if(fmsTroubleLatched){
+		if(gripper != NULL) gripper->req_Pause(true);
+		if(robostar != NULL) robostar->req_Pause(true);
+		if(AlarmForm_fms != NULL) AlarmForm_fms->RefreshAlarmVisibility();
+	}
+}
+
+bool __fastcall TMainForm::AcknowledgeFmsTrouble()
+{
+	PollFmsTrouble();
+	if(!fmsTroubleLatched) return true;
+	if(!fmsTroubleStatusKnown || fmsTroublePresent){
+		if(AlarmForm_fms != NULL){
+			AlarmForm_fms->SetRetryWaiting("Restart blocked: require connected FMS / FmsStatus.Trouble.Status=false. ErrorNo=" + fmsTroubleCode);
+			AlarmForm_fms->Show();
+			AlarmForm_fms->BringToFront();
+		}
+		return false;
+	}
+	fmsTroubleLatched = false;
+	// Restart wait budgets without changing the accepted phase/result or sending
+	// new requests. Time spent in an independent Trouble must not cause an instant
+	// production response timeout on the first resumed polling tick.
+	DWORD nowTick = GetTickCount();
+	for(int i = 0; i < 2; ++i)
+		if(opcTrayLoadPending[i]) opcTrayLoadStartTick[i] = nowTick;
+	if(opcProcessStartPending) opcProcessStartTick = nowTick;
+	if(opcSortingStartPending) opcSortingStartTick = nowTick;
+	if(opcProcessEndPending) opcProcessEndTick = nowTick;
+	if(opcCellTrackOutPending) opcCellTrackOutStartTick = nowTick;
+	if(opcTargetUnloadPending) opcTargetUnloadTick = nowTick;
+	if(AlarmForm_fms != NULL) AlarmForm_fms->Hide();
+	memoMainLineAdd("[FMS TROUBLE] Operator acknowledged Status=OFF; normal Restart interlocks still apply.");
+	return true;
+}
+
+void __fastcall TMainForm::fmsServiceTimerTimer(TObject *Sender)
+{
+	// Always monitor Trouble, including while a data-validation dialog pumps messages.
+	PollFmsTrouble();
+	if(fmsTroubleLatched || manualFmsPolling) return;
+	manualFmsPolling = true;
+	try { PollManualTrayLoad(); }
+	__finally { manualFmsPolling = false; }
+}
+
+void __fastcall TMainForm::StartManualTrayLoad(bool sourceTray, const AnsiString &enteredId)
+{
+	//* MANUAL FMS: no PLC tray simulation and no automatic-motion authority.
+	if(equipMode != modeManual || IsProductionSequenceBusy() ||
+		IsFmsTroubleBlocking() || gripper == NULL || robostar == NULL ||
+		gripper->IsSortingWorkActive() ||
+		(robostar->pauseStatus ? robostar->seq_save != seqIdle : robostar->seq != seqIdle) ||
+		(DryRunForm != NULL && DryRunForm->IsRunning()) ||
+		(ManualCompleteForm != NULL && ManualCompleteForm->IsBlocking())){
+		ShowCommonError("Manual TrayLoad blocked", "Require MANUAL, idle production/motion, no pending TrayLoad and no FMS Trouble. Active work must not be overwritten.");
+		return;
+	}
+	if(MesOpc == NULL || Mod_Fms == NULL || !Mod_Fms->IsGatewayConnected()){
+		ShowCommonError("Manual TrayLoad blocked", "FMS Gateway is not connected. No request was sent.");
+		return;
+	}
+	manualTrayIndex = sourceTray ? 0 : 1;
+	manualTrayPhase = 1;
+	manualTrayRetryPhase = manualTrayResult = 0;
+	manualTrayTick = GetTickCount();
+	manualTrayWaitLog = "";
+	opcTrayDisplayed[manualTrayIndex] = opcTrayLoaded[manualTrayIndex] = false;
+	opcTrayAdvanceDeferred[manualTrayIndex] = false;
+	opcDeferredTrayId[manualTrayIndex] = "";
+	memoMainLineAdd(AnsiString("[MANUAL FMS] ") + (sourceTray ? "Location1" : "Location2") +
+		" / WAIT barcode (reader or configured FAT ID) / data-only operation");
+	if(!enteredId.Trim().IsEmpty()) AcceptManualTrayBarcode(manualTrayIndex, enteredId);
+	else if(sourceTray) ReadSourceTrayBarcode();
+	else ReadTargetTrayBarcode();
+}
+
+void __fastcall TMainForm::AcceptManualTrayBarcode(int index, const AnsiString &trayId)
+{
+	if(manualTrayPhase != 1 || index != manualTrayIndex) return;
+	if(equipMode != modeManual || IsFmsTroubleBlocking()){
+		FailManualTrayLoad("Mode changed or FMS Trouble is active. Barcode was not reported.");
+		return;
+	}
+	AnsiString id = trayId.Trim();
+	if(id.IsEmpty()) { FailManualTrayLoad("Barcode is empty. Check the reader/configured ID."); return; }
+	if(MesOpc == NULL || Mod_Fms == NULL || !Mod_Fms->IsGatewayConnected()){
+		FailManualTrayLoad("Gateway disconnected before TrayLoad request."); return;
+	}
+	bool sourceTray = index == 0;
+	PrepareActiveTrayInfoFile(sourceTray, id);
+	(sourceTray ? pTrayid_source : pTrayid_target)->Caption = id;
+	if(!sourceTray && RestoreTargetTrayInfo(id, false) < 0){
+		FailManualTrayLoad("Target local information could not be prepared."); return;
+	}
+	manualTrayPhase = 2; // Set ownership before sending/any callbacks.
+	manualTrayTick = GetTickCount();
+	manualTrayWaitLog = "";
+	SetTrayLoadBypassDisplay(sourceTray, 0);
+	MesOpc->TRAY_LOAD_REQUEST(sourceTray); // TrayId + TrayExist=true + TrayLoad=true.
+	memoMainLineAdd("[MANUAL FMS] Location" + IntToStr(index + 1) + " TrayId=" + id +
+		" / TrayExist=ON / TrayLoad=ON / WAIT TrayLoadResponse=1 or 2 and valid data");
+}
+
+void __fastcall TMainForm::FailManualTrayLoad(const AnsiString &detail)
+{
+	if(manualTrayPhase == 0 || manualTrayPhase == 4) return;
+	manualTrayRetryPhase = manualTrayPhase;
+	manualTrayPhase = 4; // Latch failure before showing modeless UI.
+	if(MesOpc != NULL && manualTrayRetryPhase != 1)
+		MesOpc->TRAY_LOAD_CANCEL(manualTrayIndex == 0);
+	if(gripper != NULL) gripper->req_Pause(true);
+	if(robostar != NULL) robostar->req_Pause(true);
+	memoMainLineAdd("[MANUAL FMS] ERROR Location" + IntToStr(manualTrayIndex + 1) + " / " + detail);
+	if(!fmsTroubleLatched && AlarmForm_fms != NULL)
+		AlarmForm_fms->ShowFmsError("Manual TrayLoad error", detail +
+			"\r\nCorrect the cause, then press Retry or Main Restart. Motion remains paused.",
+			"Location" + IntToStr(manualTrayIndex + 1) + ".TrayLoad", MesOpc != NULL ?
+			MesOpc->TRAY_LOAD_RESPONSE_VALUE(manualTrayIndex == 0) : -1);
+}
+
+void __fastcall TMainForm::RetryManualTrayLoad()
+{
+	if(manualTrayPhase != 4 || equipMode != modeManual || IsFmsTroubleBlocking()) return;
+	if(MesOpc == NULL || Mod_Fms == NULL || !Mod_Fms->IsGatewayConnected()){
+		if(AlarmForm_fms != NULL) AlarmForm_fms->SetRetryWaiting("WAIT connected FMS Gateway before manual Retry.");
+		return;
+	}
+	if(AlarmForm_fms != NULL) AlarmForm_fms->Hide();
+	manualTrayPhase = manualTrayRetryPhase;
+	manualTrayTick = GetTickCount();
+	manualTrayWaitLog = "";
+	if(manualTrayPhase == 1){
+		if(manualTrayIndex == 0) ReadSourceTrayBarcode(); else ReadTargetTrayBarcode();
+	}else if(manualTrayPhase == 2){
+		MesOpc->TRAY_LOAD_REQUEST(manualTrayIndex == 0);
+	}else MesOpc->TRAY_LOAD_CANCEL(manualTrayIndex == 0);
+	memoMainLineAdd("[MANUAL FMS] Operator Retry / WAIT " + AnsiString(manualTrayPhase == 3 ?
+		"TrayLoadResponse=0 (RESET)" : "barcode/TrayLoadResponse=1 or 2 (RESULT)"));
+}
+
+void __fastcall TMainForm::PollManualTrayLoad()
+{
+	if(manualTrayPhase == 0) return;
+	if(manualTrayPhase == 4){
+		if(AlarmForm_fms != NULL) AlarmForm_fms->RefreshAlarmVisibility();
+		return;
+	}
+	if(equipMode != modeManual){ FailManualTrayLoad("MANUAL mode was lost."); return; }
+	if(MesOpc == NULL || Mod_Fms == NULL || !Mod_Fms->IsGatewayConnected()){
+		FailManualTrayLoad("FMS Gateway disconnected."); return;
+	}
+	if(manualTrayPhase == 1){
+		if((DWORD)(GetTickCount() - manualTrayTick) >= 10000)
+			FailManualTrayLoad("Barcode timeout: no reader/configured ID within 10 seconds.");
+		return;
+	}
+	bool sourceTray = manualTrayIndex == 0;
+	int response = MesOpc->TRAY_LOAD_RESPONSE_VALUE(sourceTray);
+	AnsiString wait = "[MANUAL FMS] Location" + IntToStr(manualTrayIndex + 1) +
+		(manualTrayPhase == 3 ? " Request=OFF / WAIT Response=0 (RESET)" :
+		" Request=ON / WAIT Response=1 or 2 (RESULT) and validated data") + " / CURRENT=" + IntToStr(response);
+	if(wait != manualTrayWaitLog){ manualTrayWaitLog = wait; memoMainLineAdd(wait); }
+	if(manualTrayPhase == 2){
+		int result = MesOpc->TRAY_LOAD_RESPONSE(sourceTray);
+		// A modal FMS/LOCAL choice can pump the independent Trouble monitor.
+		if(manualTrayPhase != 2 || IsFmsTroubleBlocking()) return;
+		if(result == 1 || result == 2){
+			if(result == 1){
+				DisplayOpcTrayLoad(sourceTray);
+				if(!opcTrayDisplayed[manualTrayIndex]){
+					FailManualTrayLoad("Tray data display did not complete."); return;
+				}
+			}
+			manualTrayResult = result;
+			SetTrayLoadBypassDisplay(sourceTray, result);
+			MesOpc->TRAY_LOAD_CANCEL(sourceTray);
+			manualTrayPhase = 3;
+			manualTrayTick = GetTickCount();
+			manualTrayWaitLog = "";
+			memoMainLineAdd("[MANUAL FMS] Response=" + IntToStr(result) +
+				" accepted / Request=OFF / WAIT Response=0 (RESET); no AUTO advance or tray discharge");
+			return;
+		}
+		if(result < 0){ FailManualTrayLoad("Invalid TrayLoadResponse: " + IntToStr(response)); return; }
+	}else if(response == 0){
+		// Even Cycle Test must complete the explicitly requested manual reset handshake.
+		opcTrayLoaded[manualTrayIndex] = false; // Never authorize production from manual data.
+		opcTrayAdvanceDeferred[manualTrayIndex] = false;
+		memoMainLineAdd("[MANUAL FMS] Location" + IntToStr(manualTrayIndex + 1) +
+			" COMPLETE / Response=0 / data retained / no ProcessStart, centering, tray-out or motion");
+		manualTrayPhase = 0;
+		manualTrayIndex = -1;
+		return;
+	}
+	if((DWORD)(GetTickCount() - manualTrayTick) >= 10000)
+		FailManualTrayLoad(wait + " / 10-second timeout / " + MesOpc->TRAY_LOAD_VALIDATION_ERROR(sourceTray));
+}
 
 // 전지 정보 표시
 void __fastcall TMainForm::InitTrayInfo(int pos)

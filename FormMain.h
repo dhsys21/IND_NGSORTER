@@ -439,6 +439,27 @@ private:	// User declarations
 	int __fastcall GetTargetReservationTool(int ch) const;
 
 	TTimer *opcMesTimer;
+	//* FMS SERVICE: independent of AUTO sequence and production request timer.
+	TTimer *fmsServiceTimer;
+	bool fmsTroubleLatched;
+	bool fmsTroublePresent;
+	bool fmsTroubleStatusKnown;
+	AnsiString fmsTroubleCode;
+	bool manualFmsPolling;
+	int manualTrayIndex;
+	int manualTrayPhase; // 0=idle, 1=barcode, 2=response/data, 3=reset, 4=failed.
+	int manualTrayRetryPhase;
+	int manualTrayResult;
+	DWORD manualTrayTick;
+	AnsiString manualTrayWaitLog;
+	void __fastcall fmsServiceTimerTimer(TObject *Sender);
+	void __fastcall PollFmsTrouble();
+	bool __fastcall AcknowledgeFmsTrouble();
+	void __fastcall StartManualTrayLoad(bool sourceTray, const AnsiString &enteredId = "");
+	void __fastcall AcceptManualTrayBarcode(int index, const AnsiString &trayId);
+	void __fastcall PollManualTrayLoad();
+	void __fastcall FailManualTrayLoad(const AnsiString &detail);
+	void __fastcall RetryManualTrayLoad();
 	TFmsAlarmTransaction fmsAlarmTransaction;
 	bool fmsAlarmRetryRequested;
 	// FMS CURRENT RESPONSE: retain only THIS transaction's accepted result
@@ -561,6 +582,8 @@ private:	// User declarations
 	int ioOutputCount;
 
 public:		// User declarations
+	bool __fastcall IsFmsTroubleBlocking() const;
+	bool __fastcall IsManualTrayLoadBusy() const;
 	bool CanStartManualCellCompletion() const;
 	void ResumeAfterManualCellCompletion();
 

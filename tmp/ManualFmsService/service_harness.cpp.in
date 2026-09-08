@@ -1,0 +1,79 @@
+#include <string>
+#include <cctype>
+#include <cstdio>
+#include <cassert>
+class Text: public std::string {
+public:
+ Text(){} Text(const char*s):std::string(s){} Text(const std::string&s):std::string(s){}
+ Text(const wchar_t*s){while(*s)push_back((char)*s++);}
+ Text Trim()const{size_t a=find_first_not_of(" \r\n\t"),b=find_last_not_of(" \r\n\t");return a==npos?Text():Text(substr(a,b-a+1));}
+ Text LowerCase()const{Text t=*this;for(size_t i=0;i<t.size();++i)t[i]=(char)tolower(t[i]);return t;}
+ bool IsEmpty()const{return empty();}
+ bool operator==(const wchar_t*s)const{return compare(Text(s))==0;}
+ bool operator==(const Text&s)const{return compare(s)==0;}
+};
+typedef Text AnsiString; typedef Text UnicodeString; typedef unsigned long DWORD; typedef void TObject;
+DWORD tick=100; DWORD GetTickCount(){return tick;}
+Text IntToStr(int n){char b[32];sprintf(b,"%d",n);return b;}
+enum{modeManual,modeAuto,modeAutoStop,seqIdle=0};
+struct Motion{bool pauseStatus,work;int seq,seq_save;Motion():pauseStatus(false),work(false),seq(0),seq_save(0){} void req_Pause(bool b){pauseStatus=b;}bool IsSortingWorkActive(){return work;}} g,r,*gripper=&g,*robostar=&r;
+struct Gateway{bool connected,SnapshotReceived,known;Text raw,code;Gateway():connected(true),SnapshotReceived(true),known(true),raw("false"),code("0"){} bool IsGatewayConnected(){return connected;}bool GetFmsTagJson(Text,Text&v){v=raw;return known;}bool GetFmsTagBool(Text,bool){return known&&(raw==Text("true")||raw==Text("1"));}Text GetFmsTagString(Text,Text){return code;}} gateway,*Mod_Fms=&gateway;
+void (*onResponse)()=NULL;
+struct Opc{int response[2],result[2],requests[2],cancels[2];Opc(){for(int i=0;i<2;i++)response[i]=result[i]=requests[i]=cancels[i]=0;}void TRAY_LOAD_REQUEST(bool s){requests[s?0:1]++;}void TRAY_LOAD_CANCEL(bool s){cancels[s?0:1]++;}int TRAY_LOAD_RESPONSE_VALUE(bool s){return response[s?0:1];}int TRAY_LOAD_RESPONSE(bool s){if(onResponse)onResponse();return result[s?0:1];}Text TRAY_LOAD_VALIDATION_ERROR(bool){return "test validation details";}} opc,*MesOpc=&opc;
+struct Panel{Text Caption;};
+struct Alarm{int shows;bool visible;Text status;Alarm():shows(0),visible(false){}void ShowFmsError(Text,Text,Text,int){shows++;visible=true;}void Hide(){visible=false;}void Show(){visible=true;}void BringToFront(){}void SetRetryWaiting(Text s){status=s;}void RefreshAlarmVisibility(){}} alarm,*AlarmForm_fms=&alarm;
+struct Dry{bool running;Dry():running(false){}bool IsRunning(){return running;}} dry,*DryRunForm=&dry;
+struct Recovery{bool IsBlocking(){return false;}} recovery,*ManualCompleteForm=&recovery;
+struct TMainForm{
+ bool fmsTroubleLatched,fmsTroublePresent,fmsTroubleStatusKnown,fmsAlarmRetryRequested,manualFmsPolling;
+ Text fmsTroubleCode,manualTrayWaitLog;int manualTrayIndex,manualTrayPhase,manualTrayRetryPhase,manualTrayResult,equipMode;
+ DWORD manualTrayTick;bool opcTrayDisplayed[2],opcTrayLoaded[2],opcTrayAdvanceDeferred[2],opcTrayLoadPending[2];Text opcDeferredTrayId[2];DWORD opcTrayLoadStartTick[2];
+ bool opcProcessStartPending,opcSortingStartPending,opcProcessEndPending,opcCellTrackOutPending,opcTargetUnloadPending;
+ DWORD opcProcessStartTick,opcSortingStartTick,opcProcessEndTick,opcCellTrackOutStartTick,opcTargetUnloadTick;
+ Panel source,target,*pTrayid_source,*pTrayid_target;int logs,commonErrors,displayCount[2],bypass[2],reads[2];bool productionBusy;
+ TMainForm():fmsTroubleLatched(false),fmsTroublePresent(false),fmsTroubleStatusKnown(false),fmsAlarmRetryRequested(false),manualFmsPolling(false),manualTrayIndex(-1),manualTrayPhase(0),manualTrayRetryPhase(0),manualTrayResult(0),equipMode(modeManual),manualTrayTick(0),opcProcessStartPending(false),opcSortingStartPending(false),opcProcessEndPending(false),opcCellTrackOutPending(false),opcTargetUnloadPending(false),pTrayid_source(&source),pTrayid_target(&target),logs(0),commonErrors(0),productionBusy(false){for(int i=0;i<2;i++){opcTrayDisplayed[i]=opcTrayLoaded[i]=opcTrayAdvanceDeferred[i]=opcTrayLoadPending[i]=false;displayCount[i]=bypass[i]=reads[i]=0;}}
+ bool __fastcall IsFmsTroubleBlocking()const;bool __fastcall IsManualTrayLoadBusy()const;
+ void __fastcall PollFmsTrouble();bool __fastcall AcknowledgeFmsTrouble();void __fastcall fmsServiceTimerTimer(TObject*);
+ void __fastcall StartManualTrayLoad(bool,const Text & = "");void __fastcall AcceptManualTrayBarcode(int,const Text&);
+ void __fastcall FailManualTrayLoad(const Text&);void __fastcall RetryManualTrayLoad();void __fastcall PollManualTrayLoad();
+ bool IsProductionSequenceBusy(){return productionBusy||IsManualTrayLoadBusy();}
+ void memoMainLineAdd(Text){logs++;}void ShowCommonError(Text,Text){commonErrors++;}
+ void PrepareActiveTrayInfoFile(bool,Text){}int RestoreTargetTrayInfo(Text,bool){return 0;}
+ void SetTrayLoadBypassDisplay(bool s,int n){bypass[s?0:1]=n==2;}
+ void DisplayOpcTrayLoad(bool s){int i=s?0:1;displayCount[i]++;opcTrayDisplayed[i]=true;}
+ void ReadSourceTrayBarcode(){reads[0]++;}void ReadTargetTrayBarcode(){reads[1]++;}
+};
+/* PRODUCTION_FUNCTIONS */
+TMainForm *interruptMain=NULL;
+void troubleDuringResponse(){gateway.raw="true";gateway.code="77";interruptMain->PollFmsTrouble();}
+void reset(){gateway=Gateway();opc=Opc();g=Motion();r=Motion();alarm=Alarm();dry=Dry();tick=100;onResponse=NULL;}
+int main(){
+ for(int mode=0;mode<7;mode++){
+  reset();TMainForm m;m.equipMode=mode;m.PollFmsTrouble();assert(!m.IsFmsTroubleBlocking());
+  gateway.raw="true";gateway.code="123";m.PollFmsTrouble();assert(g.pauseStatus&&r.pauseStatus&&m.fmsTroubleLatched&&alarm.shows==1);
+  int logs=m.logs;for(int j=0;j<10;j++)m.PollFmsTrouble();assert(alarm.shows==1&&m.logs==logs);
+  assert(!m.AcknowledgeFmsTrouble());gateway.raw="false";m.PollFmsTrouble();assert(m.fmsTroubleLatched&&g.pauseStatus&&r.pauseStatus);
+  gateway.connected=false;assert(!m.AcknowledgeFmsTrouble());gateway.connected=true;gateway.known=false;assert(!m.AcknowledgeFmsTrouble());
+  gateway.known=true;gateway.raw="null";assert(!m.AcknowledgeFmsTrouble());gateway.raw="false";m.opcProcessStartPending=true;
+  tick=90123;assert(m.AcknowledgeFmsTrouble());assert(!m.IsFmsTroubleBlocking()&&g.pauseStatus&&r.pauseStatus&&m.opcProcessStartTick==tick);
+ }
+ puts("PASS: remote Trouble all modes, one-shot alarm/log, missing/disconnected tag, OFF latch, explicit acknowledgement");
+ reset();{TMainForm m;gateway.raw="true";gateway.connected=false;m.PollFmsTrouble();assert(m.fmsTroubleLatched&&g.pauseStatus&&r.pauseStatus);gateway.raw="false";assert(!m.AcknowledgeFmsTrouble());}
+ for(int i=0;i<2;i++){
+  reset();TMainForm m;m.StartManualTrayLoad(i==0);assert(m.manualTrayPhase==1&&m.reads[i]==1);
+  m.AcceptManualTrayBarcode(i,"TRAY-ID");assert(m.manualTrayPhase==2&&opc.requests[i]==1);
+  m.PollManualTrayLoad();int logs=m.logs;m.PollManualTrayLoad();assert(m.logs==logs);
+  opc.response[i]=1;opc.result[i]=0;m.PollManualTrayLoad();assert(m.manualTrayPhase==2&&m.displayCount[i]==0);
+  opc.result[i]=1;m.PollManualTrayLoad();assert(m.manualTrayPhase==3&&m.displayCount[i]==1&&opc.cancels[i]==1);
+  m.PollManualTrayLoad();assert(m.manualTrayPhase==3);opc.response[i]=0;m.PollManualTrayLoad();assert(!m.IsManualTrayLoadBusy()&&!m.opcTrayLoaded[i]&&m.opcTrayDisplayed[i]);
+  assert(opc.requests[1-i]==0&&m.reads[1-i]==0);
+ }
+ puts("PASS: both locations scan/request/data/display/OFF/reset independently, unchanged waits logged once, no AUTO authorization");
+ reset();{TMainForm m;m.StartManualTrayLoad(true,"BYPASS");opc.response[0]=opc.result[0]=2;m.PollManualTrayLoad();assert(m.manualTrayPhase==3&&m.bypass[0]==1&&m.displayCount[0]==0);opc.response[0]=0;m.PollManualTrayLoad();assert(m.manualTrayPhase==0);}
+ reset();{TMainForm m;m.StartManualTrayLoad(true,"TIMEOUT");tick+=10000;m.PollManualTrayLoad();assert(m.manualTrayPhase==4&&m.manualTrayRetryPhase==2&&g.pauseStatus&&r.pauseStatus);m.RetryManualTrayLoad();assert(m.manualTrayPhase==2&&opc.requests[0]==2&&g.pauseStatus);opc.response[0]=opc.result[0]=1;m.PollManualTrayLoad();tick+=10000;m.PollManualTrayLoad();assert(m.manualTrayPhase==4&&m.manualTrayRetryPhase==3);m.RetryManualTrayLoad();assert(m.manualTrayPhase==3&&opc.requests[0]==2);opc.response[0]=0;m.PollManualTrayLoad();assert(m.manualTrayPhase==0);}
+ puts("PASS: response=2 display-only, ON timeout retry, reset timeout retry without resending accepted request");
+ reset();{TMainForm m;m.StartManualTrayLoad(false,"TARGET");interruptMain=&m;onResponse=troubleDuringResponse;opc.response[1]=opc.result[1]=1;m.PollManualTrayLoad();assert(m.manualTrayPhase==4&&m.fmsTroubleLatched&&m.displayCount[1]==0&&opc.cancels[1]>0);onResponse=NULL;gateway.raw="false";assert(m.AcknowledgeFmsTrouble());m.RetryManualTrayLoad();assert(m.manualTrayPhase==2&&r.pauseStatus);}
+ reset();{TMainForm m;m.productionBusy=true;m.StartManualTrayLoad(true,"BUSY");assert(m.manualTrayPhase==0&&m.commonErrors==1&&opc.requests[0]==0);m.productionBusy=false;m.equipMode=modeAuto;m.StartManualTrayLoad(true);assert(m.manualTrayPhase==0);m.equipMode=modeManual;m.StartManualTrayLoad(true);tick+=10000;m.PollManualTrayLoad();assert(m.manualTrayPhase==4&&m.manualTrayRetryPhase==1);}
+ puts("PASS: Trouble during data callback halts manual work; active production/nonmanual rejected; barcode timeout");
+ return 0;
+}

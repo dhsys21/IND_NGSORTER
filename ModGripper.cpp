@@ -267,6 +267,8 @@ void __fastcall Tgripper::InitSequence(gripperSequence data, gripperSequence res
 //---------------------------------------------------------------------------
 void __fastcall Tgripper::req_Pause(bool stop)
 {
+	//* FMS TROUBLE: no alternate caller may release the independent alarm Pause.
+	if(!stop && MainForm != NULL && MainForm->IsFmsTroubleBlocking()) return;
 	if(stop != pauseStatus){
 		if(stop){
 			seq_save = seq;

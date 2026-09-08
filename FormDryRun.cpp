@@ -27,6 +27,8 @@ __fastcall TDryRunForm::TDryRunForm(TComponent* Owner)
 	stepStartTick = 0;
 	stepTimeoutMs = 0;
 	running = false;
+	fmsPauseTiming = false;
+	fmsPauseTick = 0;
 	waitPositionRequested = false;
 	highSpeedWarningShown = false;
 	//* DRY RUN : Explicit event binding also works when the form was added to an
@@ -385,6 +387,10 @@ void __fastcall TDryRunForm::CompleteDryRun(const AnsiString &message)
 //---------------------------------------------------------------------------
 void __fastcall TDryRunForm::btnStartClick(TObject *Sender)
 {
+	if(MainForm != NULL && MainForm->IsFmsTroubleBlocking()){
+		ShowMessage(L"FMS Trouble: clear the FMS alarm and acknowledge with Main Restart first.");
+		return;
+	}
 	//* DRY RUN : Start is accepted only from an idle robot at physical HOME.
 	if(running) return;
 
@@ -410,6 +416,7 @@ void __fastcall TDryRunForm::btnStartClick(TObject *Sender)
 
 	currentChannel = startChannel;
 	completedCycleCount = 0;
+	fmsPauseTiming = false;
 	running = true;
 	waitPositionRequested = false;
 	btnStart->Enabled = false;
@@ -636,6 +643,16 @@ void __fastcall TDryRunForm::dryRunTimerTimer(TObject *Sender)
 {
 	UpdateDryRunStatus();
 	if(!running) return;
+	//* FMS TROUBLE: retain dry-run step; no gripper command or timeout while paused.
+	if(MainForm != NULL && (MainForm->IsFmsTroubleBlocking() ||
+		(fmsPauseTiming && robostar != NULL && robostar->pauseStatus))){
+		if(!fmsPauseTiming){ fmsPauseTiming = true; fmsPauseTick = GetTickCount(); }
+		return;
+	}
+	if(fmsPauseTiming){
+		stepStartTick += (DWORD)(GetTickCount() - fmsPauseTick);
+		fmsPauseTiming = false;
+	}
 
 	//* DRY RUN : D10104 and safety are monitored continuously, not only at START.
 	AnsiString reason;

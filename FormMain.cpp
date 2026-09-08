@@ -213,12 +213,25 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	opcMesTimer->Enabled = false;
 	opcMesTimer->Interval = 200;
 	opcMesTimer->OnTimer = opcMesTimerTimer;
+	//* FMS SERVICE: always poll incoming Trouble, even in MANUAL/idle.
+	fmsTroubleLatched = fmsTroublePresent = fmsTroubleStatusKnown = false;
+	fmsTroubleCode = "";
+	manualFmsPolling = false;
+	manualTrayIndex = -1;
+	manualTrayPhase = manualTrayRetryPhase = manualTrayResult = 0;
+	manualTrayTick = 0;
+	fmsServiceTimer = new TTimer(this);
+	fmsServiceTimer->Enabled = false;
+	fmsServiceTimer->Interval = 200;
+	fmsServiceTimer->OnTimer = fmsServiceTimerTimer;
+	fmsServiceTimer->Enabled = true;
 	comSmoke[0] = NULL;
 	CreateIoMonitoringPanel();
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::EndThread()
 {
+	if(fmsServiceTimer != NULL) fmsServiceTimer->Enabled = false;
 	// Stop all sequence/response timers before closing communication objects.
 	if(opcMesTimer != NULL) opcMesTimer->Enabled = false;
 	if(senTimer != NULL) senTimer->Enabled = false;
@@ -890,6 +903,8 @@ void __fastcall TMainForm::CmdTrayOut(int pos)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::sourceTrayOutTimerTimer(TObject *Sender)
 {
+	//* FMS TROUBLE: retain delayed discharge, but never issue it while paused by FMS.
+	if(IsFmsTroubleBlocking()) return;
 	if(sourceTrayOutTimer != NULL) sourceTrayOutTimer->Enabled = false;
 	if(!sourceTrayOutPending) return;
 
@@ -934,8 +949,23 @@ void __fastcall TMainForm::targetGridDrawCell(TObject *Sender, int ACol,
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::pause_startBtnClick(TObject *Sender)
 {
+	//* FMS TROUBLE: OFF alone never restarts equipment; operator acknowledges.
+	if(!AcknowledgeFmsTrouble()) return;
+	if(IsManualTrayLoadBusy()){
+		RetryManualTrayLoad(); // Data-only retry never releases servo/gripper Pause.
+		return;
+	}
 	if(ManualCompleteForm != NULL && ManualCompleteForm->IsBlocking()){
 		ManualCompleteForm->OpenRecovery(0);
+		return;
+	}
+	if(equipMode == modeManual){
+		// Explicit manual Restart may resume manual motion, never paused production.
+		if(gripper != NULL && robostar != NULL && !gripper->IsSortingWorkActive() &&
+			fmsAlarmTransaction == fmsAlarmNone && robostar->CanResumeMotion()){
+			robostar->req_Pause(false);
+			if(!robostar->pauseStatus) gripper->req_Pause(false);
+		}else ShowCommonError("Manual Restart blocked", "Check motion interlocks. Paused automatic production cannot resume in MANUAL.");
 		return;
 	}
 	if(equipMode == modeAuto)
@@ -1047,12 +1077,15 @@ void __fastcall TMainForm::teachingBtnClick(TObject *Sender)
 
 void __fastcall TMainForm::btnScanTargetTrayClick(TObject *Sender)
 {
+	// Existing designer names are opposite to their physical tray placement.
+	if(equipMode == modeManual){ StartManualTrayLoad(true); return; }
 	pTrayid_source->Caption = BaseForm->GetLangStr("MSG_SCANNING");
 	ReadSourceTrayBarcode();
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::btnScanSourceTrayClick(TObject *Sender)
 {
+	if(equipMode == modeManual){ StartManualTrayLoad(false); return; }
 	pTrayid_target->Caption = BaseForm->GetLangStr("MSG_SCANNING");
 	ReadTargetTrayBarcode();
 }
@@ -1103,6 +1136,15 @@ void __fastcall TMainForm::ReadTargetTrayBarcode()
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::setBarcode(int pos, AnsiString strBcr)
 {
+	//* MANUAL FMS: accept only the reader explicitly armed by the Scan button.
+	if(manualTrayPhase == 1 && pos == manualTrayIndex){
+		AcceptManualTrayBarcode(pos, strBcr);
+		return;
+	}
+	if(equipMode == modeManual){
+		memoMainLineAdd("[MANUAL FMS] Unrequested/late barcode ignored. Reader=" + IntToStr(pos));
+		return;
+	}
 	if(IsTargetTrayExchangeActive() && (pos != 1 || targetTrayExchangeState != ttxLoading)){
 		memoMainLineAdd("[TARGET EXCHANGE] Barcode ignored outside replacement loading / Reader=" + IntToStr(pos));
 		return;
@@ -1230,6 +1272,14 @@ void __fastcall TMainForm::ShowFmsAlarm(TFmsAlarmTransaction Transaction,
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::PauseFmsAlarm()
 {
+	if(fmsTroubleLatched || IsManualTrayLoadBusy()){
+		if(gripper != NULL) gripper->req_Pause(true);
+		if(robostar != NULL) robostar->req_Pause(true);
+		if(!fmsTroubleLatched && manualTrayPhase != 4)
+			FailManualTrayLoad("Operator paused manual TrayLoad.");
+		if(AlarmForm_fms != NULL) AlarmForm_fms->SetOperatorPaused();
+		return;
+	}
 	// FMS ALARM PAUSE/CLOSE: no InitWork, no data clearing and no new request.
 	// Also stop an in-progress reset retry; only Main Restart may re-arm it.
 	if(gripper != NULL) gripper->req_Pause(true);
@@ -1459,6 +1509,7 @@ bool __fastcall TMainForm::ProcessFmsAlarmRecovery()
 //---------------------------------------------------------------------------
 bool __fastcall TMainForm::CheckAutomaticFmsMode(const AnsiString &Operation)
 {
+	if(IsFmsTroubleBlocking() || IsManualTrayLoadBusy()) return false;
 	if(equipMode == modeAuto)
 		return true;
 
@@ -1583,6 +1634,7 @@ void __fastcall TMainForm::ResumeAutomaticFmsSequence()
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 {
+	if(IsFmsTroubleBlocking()) return; // Independent service owns Pause/recovery.
 	// Every FMS command uses the same four-phase handshake:
 	//   1) PC Request=ON
 	//   2) FMS Response=1(success) or 2(fail)
@@ -2300,6 +2352,11 @@ bool __fastcall TMainForm::CheckServoAutoReady(bool showError)
 
 void __fastcall TMainForm::autoBtnClick(TObject *Sender)
 {
+	if(IsManualTrayLoadBusy() || IsFmsTroubleBlocking()){
+		ShowCommonError("AUTO blocked", "Complete the manual TrayLoad handshake and acknowledge FMS Trouble first.");
+		autoBtn->Down = false;
+		return;
+	}
 	// AUTO entry always validates the real servo/CC-Link/gripper interlocks.
 	// cbCycle bypasses FMS response freshness/reset handshakes for unattended FAT
 	// demonstration. Motion/barcode options remain independent, and no setting
@@ -2369,6 +2426,10 @@ void __fastcall TMainForm::manualBtnClick(TObject *Sender)
 
 void __fastcall TMainForm::playBtnClick(TObject *Sender)
 {
+	if(IsFmsTroubleBlocking() || IsManualTrayLoadBusy()){
+		ShowCommonError("START blocked", "Acknowledge FMS Trouble / finish manual TrayLoad before starting AUTO.");
+		return;
+	}
 	if(ManualCompleteForm != NULL && ManualCompleteForm->IsBlocking()){
 		ManualCompleteForm->OpenRecovery(0);
 		return;
@@ -2397,6 +2458,11 @@ void __fastcall TMainForm::target_idEditKeyDown(TObject *Sender, WORD &Key,
 	  TShiftState Shift)
 {
 	if(Key == VK_RETURN){
+		if(equipMode == modeManual){
+			StartManualTrayLoad(false, target_idEdit->Text);
+			target_idEdit->Visible = false;
+			return;
+		}
 		pTrayid_target->Caption = target_idEdit->Text;
 		NotifyTrayInfo(pTrayid_target->Caption, false);	// Send target tray information to FMS.
 		target_idEdit->Visible = false;
@@ -2417,6 +2483,11 @@ void __fastcall TMainForm::src_idEditKeyDown(TObject *Sender, WORD &Key,
 	  TShiftState Shift)
 {
 	if(Key == VK_RETURN){
+		if(equipMode == modeManual){
+			StartManualTrayLoad(true, src_idEdit->Text);
+			src_idEdit->Visible = false;
+			return;
+		}
 		pTrayid_source->Caption = src_idEdit->Text;
 		NotifyTrayInfo(pTrayid_source->Caption, true);	// Send source tray information to FMS.
 		src_idEdit->Visible = false;
@@ -2682,7 +2753,7 @@ bool __fastcall TMainForm::RetryWorkStartTrayAlarm()
 // ============================================================================
 bool __fastcall TMainForm::IsProductionSequenceBusy() const
 {
-	return IsTargetTrayExchangeActive() || step[0].step != 0 || step[1].step != 0 ||
+	return IsManualTrayLoadBusy() || IsTargetTrayExchangeActive() || step[0].step != 0 || step[1].step != 0 ||
 		opcTrayLoadPending[0] || opcTrayLoadPending[1] ||
 		opcProcessStartPending || opcSortingStartPending || opcProcessStarted ||
 		opcProcessEndPending || opcCellTrackOutPending || opcTargetUnloadPending ||
@@ -2699,6 +2770,7 @@ void __fastcall TMainForm::InitStep(STEP *data)
 // Automatic equipment sequence.
 void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 {
+	if(IsFmsTroubleBlocking()) return;
 	if(equipMode != modeAuto){
 		memoMainLineAdd(BaseForm->GetLangStr("MSG_AUTOMODE_WARNING"));
 		return;
@@ -3713,6 +3785,10 @@ void __fastcall TMainForm::memoRobostarLineAdd(AnsiString msg)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::AdvSmoothToggleButton_InitWorkClick(TObject *Sender)
 {
+	if(IsManualTrayLoadBusy()){
+		ShowCommonError("Init Work blocked", "Finish or Retry the manual TrayLoad transaction first.");
+		return;
+	}
 	if(ManualCompleteForm != NULL && ManualCompleteForm->IsBlocking()){
 		ManualCompleteForm->OpenRecovery(0);
 		return;

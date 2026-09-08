@@ -13,7 +13,8 @@ foreach($name in @('IsSourceTrayInSignal','IsSourceCenteringSignal','IsTargetTra
 }
 $bodies+=Body 'Stage_mes.cpp' 'void __fastcall TMainForm::TryStartOpcProcess()'
 $restart=Body 'FormMain.cpp' 'void __fastcall TMainForm::pause_startBtnClick('
-if($restart.IndexOf('RetryWorkStartTrayAlarm()') -gt $restart.IndexOf('gripper->req_Pause(false)')){throw 'Restart releases motion before interlock retry'}
+$autoRestart=$restart.Substring($restart.IndexOf('if(equipMode == modeAuto)'))
+if($autoRestart.IndexOf('RetryWorkStartTrayAlarm()') -gt $autoRestart.IndexOf('gripper->req_Pause(false)')){throw 'AUTO Restart releases motion before interlock retry'}
 $advance=Body 'Stage_mes.cpp' 'void __fastcall TMainForm::AdvanceOpcTrayLoad('
 if($advance.Contains('ReadTargetTrayBarcode()') -or $advance.Contains('CmdSourceCenteringRequest(true)')) {throw 'Out-of-order STEP02 action'}
 $step=Body 'FormMain.cpp' 'void __fastcall TMainForm::stepTimerTimer('
