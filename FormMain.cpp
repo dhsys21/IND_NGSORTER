@@ -990,6 +990,7 @@ void __fastcall TMainForm::pause_startBtnClick(TObject *Sender)
 				if(fmsAlarmTransaction != fmsAlarmNone) break;
 				if(!opcTrayLoadRetryRequired[i])
 					continue;
+				if(!CheckTrayLoadPresence(i == 0)) continue;
 
 				bool sourceTray = (i == 0);
 				int stepNo = sourceTray ? 2 : 5;
@@ -1310,6 +1311,9 @@ void __fastcall TMainForm::ConfirmFmsAlarmRetry()
 		return;
 	if(fmsAlarmTransaction == fmsAlarmNone)
 		return;
+	if((fmsAlarmTransaction == fmsAlarmSourceTrayLoad ||
+		fmsAlarmTransaction == fmsAlarmTargetTrayLoad) &&
+		!CheckTrayLoadPresence(fmsAlarmTransaction == fmsAlarmSourceTrayLoad)) return;
 
 	fmsAlarmRetryRequested = true;
 	fmsAlarmRetryStartTick = GetTickCount();
@@ -1393,6 +1397,9 @@ void __fastcall TMainForm::CancelFmsAlarmRequest()
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::ReissueFmsAlarmRequest()
 {
+	if((fmsAlarmTransaction == fmsAlarmSourceTrayLoad ||
+		fmsAlarmTransaction == fmsAlarmTargetTrayLoad) &&
+		!CheckTrayLoadPresence(fmsAlarmTransaction == fmsAlarmSourceTrayLoad)) return;
 	DWORD nowTick = GetTickCount();
 	switch(fmsAlarmTransaction){
 		case fmsAlarmSourceTrayLoad:
@@ -1449,6 +1456,9 @@ bool __fastcall TMainForm::ProcessFmsAlarmRecovery()
 {
 	if(fmsAlarmTransaction == fmsAlarmNone)
 		return false;
+	if((fmsAlarmTransaction == fmsAlarmSourceTrayLoad ||
+		fmsAlarmTransaction == fmsAlarmTargetTrayLoad) &&
+		!CheckTrayLoadPresence(fmsAlarmTransaction == fmsAlarmSourceTrayLoad)) return false;
 	if(!fmsAlarmRetryRequested){
 		if(AlarmForm_fms != NULL) AlarmForm_fms->RefreshAlarmVisibility();
 		return true;
@@ -1557,6 +1567,54 @@ void __fastcall TMainForm::SuspendAutomaticFmsSequence()
 		(equipMode == modeManual ? AnsiString("MANUAL") : AnsiString("AUTO STOP")));
 }
 //---------------------------------------------------------------------------
+void __fastcall TMainForm::ResetTrayLoadTransaction(bool sourceTray)
+{
+	int i = sourceTray ? 0 : 1;
+	if(MesOpc != NULL) MesOpc->TRAY_LOAD_CANCEL(sourceTray);
+	opcTrayLoadPending[i] = false;
+	opcTrayLoadWaitResponseOff[i] = false;
+	opcTrayLoadResponseOffError[i] = false;
+	opcTrayLoadRetryRequired[i] = false;
+	opcTrayLoadResponseResult[i] = 0;
+	opcTrayLoadStartTick[i] = 0;
+	opcTrayDisplayed[i] = false;
+	opcTrayLoaded[i] = false;
+	opcTrayAdvanceDeferred[i] = false;
+	opcDeferredTrayId[i] = "";
+	// A discarded load must never be revived by popup Retry or Main Restart.
+	TFmsAlarmTransaction loadAlarm = sourceTray ? fmsAlarmSourceTrayLoad : fmsAlarmTargetTrayLoad;
+	if(fmsAlarmTransaction == loadAlarm){
+		fmsAlarmTransaction = fmsAlarmNone;
+		fmsAlarmRetryRequested = false;
+		fmsAlarmAwaitingReset = false;
+		fmsAlarmAcceptedResult = 0;
+		fmsAlarmRetryStartTick = 0;
+		// MERGE 2026-09-08: the shared popup may now display independent FMS Trouble.
+		// Discarding an AUTO load must not dismiss that latched equipment-wide alarm.
+		if(AlarmForm_fms != NULL && !fmsTroubleLatched) AlarmForm_fms->Hide();
+	}
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMainForm::CheckTrayLoadPresence(bool sourceTray)
+{
+	bool fresh = PlcBin != NULL && PlcBin->IsPlcStatusFresh(1000);
+	bool sourceIn = fresh && IsSourceTrayInSignal();
+	bool targetReady = fresh && IsTargetTrayInSignal() && IsTargetCenteringSignal();
+	if(sourceIn && (sourceTray || targetReady)) return true;
+	ResetTrayLoadTransaction(sourceTray);
+	InitStep(&step[sourceTray ? 0 : 1]);
+	if(sourceTray){
+		sourceTrayCycleAdmitted = false;
+		sourceCenteringCompleted = false;
+		if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(false);
+	}
+	ProcessStepLog(sourceTray ? 1 : 4,
+		"TRAY LOAD CANCELLED / old request and retry discarded / WAIT fresh Tray In and NEW barcode"
+		" / PLC_FRESH=" + IntToStr(fresh ? 1 : 0) + " / SOURCE_IN=" + IntToStr(sourceIn ? 1 : 0) +
+		" / TARGET_READY=" + IntToStr(targetReady ? 1 : 0));
+	return false;
+}
+//---------------------------------------------------------------------------
 void __fastcall TMainForm::ResumeAutomaticFmsSequence()
 {
 	if(equipMode != modeAuto || !opcFmsSuspendedByManual)
@@ -1574,6 +1632,7 @@ void __fastcall TMainForm::ResumeAutomaticFmsSequence()
 	if(MesOpc != NULL){
 		for(int i = 0; i < 2; ++i){
 			if(!opcTrayLoadPending[i]) continue;
+			if(!CheckTrayLoadPresence(i == 0)) continue;
 			opcTrayLoadStartTick[i] = nowTick;
 			if(opcTrayLoadWaitResponseOff[i]) continue; // Accepted: only finish Response=0.
 			opcTrayLoadWaitResponseOff[i] = false;
@@ -1673,6 +1732,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 	{
 		if (!opcTrayLoadPending[i])
 			continue;
+		if(!CheckTrayLoadPresence(i == 0)) continue;
 
 		bool sourceTray = (i == 0);
 		AnsiString trayName = sourceTray ? "Source" : "Target";
@@ -1772,6 +1832,8 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 		// the tray information received with TrayLoadResponse=1.
 		int rawResponse = MesOpc != NULL ? MesOpc->TRAY_LOAD_RESPONSE_VALUE(sourceTray) : -1;
 		int response = MesOpc != NULL ? MesOpc->TRAY_LOAD_RESPONSE(sourceTray) : -1;
+		// Target data selection can pump messages; the tray may disappear in that dialog.
+		if(!CheckTrayLoadPresence(sourceTray) || !opcTrayLoadPending[i]) continue;
 		// TRAY BYPASS DISPLAY: cache the ON-phase result separately from the
 		// handshake flags. Response reset to 0 must not erase a tray's Y result.
 		SetTrayLoadBypassDisplay(sourceTray, rawResponse);
@@ -3181,6 +3243,13 @@ void __fastcall TMainForm::UpdateFmsEquipmentStatus()
 void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 {
 	UpdateFmsEquipmentStatus();
+	// Also invalidate removed trays during MANUAL/Pause while opcMesTimer is stopped.
+	for(int i = 0; i < 2; ++i){
+		if(opcTrayLoadPending[i] || opcTrayLoadRetryRequired[i] || opcTrayAdvanceDeferred[i] ||
+			!opcDeferredTrayId[i].IsEmpty() ||
+			fmsAlarmTransaction == (i == 0 ? fmsAlarmSourceTrayLoad : fmsAlarmTargetTrayLoad))
+			CheckTrayLoadPresence(i == 0);
+	}
 	// Target tray information deletion.
 	// D10106 is normally ON while centered. Its ON-to-OFF transition confirms
 	// centering release, after which the old target tray information is cleared.
@@ -3813,10 +3882,12 @@ void __fastcall TMainForm::AdvSmoothToggleButton_InitWorkClick(TObject *Sender)
 					return;
 				}
 			}
-			if(opcCellTrackOutPending){
+			if(opcCellTrackOutPending || fmsAlarmTransaction == fmsAlarmCellTrackOut ||
+				opcProcessEndPending || fmsAlarmTransaction == fmsAlarmProcessEnd ||
+				opcTargetUnloadPending || fmsAlarmTransaction == fmsAlarmTrayUnload){
 				memoMainLineAdd("[INIT WORK] BLOCKED - CellTrackOut response is pending");
 				ShowCommonError("Initialize work blocked",
-					"Complete or recover the pending CellTrackOut response first.");
+					"Complete or recover the pending CellTrackOut, ProcessEnd or TrayUnload report first.");
 				return;
 			}
 
@@ -3849,7 +3920,25 @@ void __fastcall TMainForm::AdvSmoothToggleButton_InitWorkClick(TObject *Sender)
 
             gripper->seq_save = seqIdle;
 			robostar->seq_save = seqIdle;
-			// INIT WORK discards queued next-stage actions from the old cycle.
+			// INIT WORK starts at Tray In, so old load/result/retry state is invalid.
+			if(opcMesTimer != NULL) opcMesTimer->Enabled = false;
+			ResetTrayLoadTransaction(true);
+			ResetTrayLoadTransaction(false);
+			if(MesOpc != NULL) MesOpc->PROCESS_START_CANCEL();
+			opcProcessStartPending = opcProcessStartWaitResponseOff = false;
+			opcProcessStartResponseOffError = false;
+			opcProcessStartResponseResult = 0;
+			opcProcessStarted = opcSortingStartPending = opcSortingStartWaitError = false;
+			opcFmsSuspendedByManual = false;
+			if(fmsAlarmTransaction == fmsAlarmProcessStart){
+				fmsAlarmTransaction = fmsAlarmNone;
+				fmsAlarmRetryRequested = fmsAlarmAwaitingReset = false;
+				fmsAlarmAcceptedResult = 0;
+				fmsAlarmRetryStartTick = 0;
+				// INIT WORK clears the old ProcessStart, not independent FMS Trouble.
+				if(AlarmForm_fms != NULL && !fmsTroubleLatched) AlarmForm_fms->Hide();
+			}
+			// Discard queued next-stage actions, but preserve completed cell records.
 			for(int i = 0; i < 2; ++i){
 				opcTrayAdvanceDeferred[i] = false;
 				opcDeferredTrayId[i] = "";

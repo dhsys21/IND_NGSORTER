@@ -522,6 +522,7 @@ void __fastcall TMainForm::DisplayOpcTrayLoad(bool sourceTray)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::AdvanceOpcTrayLoad(bool sourceTray)
 {
+	if(!CheckTrayLoadPresence(sourceTray)) return;
 	int index = sourceTray ? 0 : 1;
 	int stepNo = sourceTray ? 2 : 5;
 	AnsiString locationName = sourceTray ? "Location1" : "Location2";
@@ -647,6 +648,7 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 {
 	if(!CheckAutomaticFmsMode(bsrc ? "Source TrayLoad" : "Target TrayLoad"))
 		return;
+	if(!CheckTrayLoadPresence(bsrc)) return;
 	int index = bsrc ? 0 : 1;
 	tray = bsrc ? &tray_source : &tray_target;
 	bool replacementTarget = !bsrc && IsReplacementTargetLoadAllowed();

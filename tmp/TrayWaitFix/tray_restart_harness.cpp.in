@@ -75,6 +75,7 @@ public:
     void ReportIdleWaitStatus() {}
     void SetTrayLoadBypassDisplay(bool,int) {} // Display-only binding tested separately.
     bool CheckAutomaticFmsMode(const AnsiString&) { return equipMode==modeAuto; }
+    bool CheckTrayLoadPresence(bool) { return true; } // Loss/reset tested in TrayLoadPresence.
     void ProcessStepLog(int,const AnsiString&) {}
     void CompleteProcessStep(int,const AnsiString&) {}
     void BeginProcessStep(int,const AnsiString&) {}

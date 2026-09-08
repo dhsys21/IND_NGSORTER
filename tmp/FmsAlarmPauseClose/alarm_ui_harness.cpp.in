@@ -5,7 +5,7 @@ typedef std::string AnsiString;
 typedef unsigned long DWORD;
 typedef void TObject;
 enum TCloseAction { caNone, caHide };
-enum { fsNormal, LampAlarm, fmsAlarmNone, fmsAlarmTargetTrayLoad };
+enum { fsNormal, LampAlarm, fmsAlarmNone, fmsAlarmSourceTrayLoad, fmsAlarmTargetTrayLoad };
 DWORD ticks=0;
 DWORD GetTickCount(){return ticks;}
 AnsiString IntToStr(int n){char s[32];sprintf(s,"%d",n);return s;}
@@ -53,6 +53,7 @@ public:
     void BuzzerOn(bool){}
     void LampModeChange(int){}
     bool CheckAutomaticFmsMode(AnsiString){return automatic;}
+    bool CheckTrayLoadPresence(bool){return true;} // Presence-loss cases: TrayLoadPresence suite.
     void CancelFmsAlarmRequest(){++cancels;}
     void __fastcall PauseFmsAlarm();
     void __fastcall CheckFmsResetRetryTimeout(int);
