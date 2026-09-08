@@ -420,6 +420,8 @@ private:	// User declarations
 	bool __fastcall CheckAutomaticFmsMode(const AnsiString &Operation);
 	void __fastcall SuspendAutomaticFmsSequence();
 	void __fastcall ResumeAutomaticFmsSequence();
+	void __fastcall ResetTrayLoadTransaction(bool sourceTray);
+	bool __fastcall CheckTrayLoadPresence(bool sourceTray);
 	void __fastcall DisplayOpcTrayLoad(bool sourceTray);
 	void __fastcall AdvanceOpcTrayLoad(bool sourceTray);
 	void __fastcall TryStartOpcProcess();

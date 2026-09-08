@@ -1,0 +1,68 @@
+#include <cassert>
+#include <string>
+#include <cstdio>
+struct AnsiString:std::string {
+    AnsiString(const char *s=""):std::string(s){}
+    AnsiString(const std::string &s):std::string(s){}
+};
+AnsiString IntToStr(int n){char b[32];sprintf(b,"%d",n);return b;}
+enum TFmsAlarmTransaction {fmsAlarmNone,fmsAlarmSourceTrayLoad,fmsAlarmTargetTrayLoad,fmsAlarmCellTrackOut};
+struct Mes {int cancels[2];Mes(){cancels[0]=cancels[1]=0;}void TRAY_LOAD_CANCEL(bool src){++cancels[src?0:1];}} mes,*MesOpc=&mes;
+struct Plc {bool fresh,centering;Plc():fresh(true),centering(true){}bool IsPlcStatusFresh(int){return fresh;}
+    void CmdSourceCenteringRequest(bool v){centering=v;}} plc,*PlcBin=&plc;
+struct Alarm {int hides;Alarm():hides(0){}void Hide(){++hides;}} alarm,*AlarmForm_fms=&alarm;
+struct Step {int step;};
+struct TMainForm {
+    bool opcTrayLoadPending[2],opcTrayLoadWaitResponseOff[2],opcTrayLoadResponseOffError[2],opcTrayLoadRetryRequired[2];
+    int opcTrayLoadResponseResult[2],opcTrayLoadStartTick[2];
+    bool opcTrayDisplayed[2],opcTrayLoaded[2],opcTrayAdvanceDeferred[2];
+    AnsiString opcDeferredTrayId[2];
+    TFmsAlarmTransaction fmsAlarmTransaction;
+    bool fmsAlarmRetryRequested,fmsAlarmAwaitingReset;
+    int fmsAlarmAcceptedResult,fmsAlarmRetryStartTick;
+    bool sourceTrayCycleAdmitted,sourceCenteringCompleted,sourceIn,targetIn,targetCentered;
+    Step step[2];int logs;
+    TMainForm():fmsAlarmTransaction(fmsAlarmSourceTrayLoad),fmsAlarmRetryRequested(true),fmsAlarmAwaitingReset(true),
+        fmsAlarmAcceptedResult(1),fmsAlarmRetryStartTick(123),sourceTrayCycleAdmitted(true),sourceCenteringCompleted(true),
+        sourceIn(true),targetIn(true),targetCentered(true),logs(0){
+        for(int i=0;i<2;++i){
+            opcTrayLoadPending[i]=opcTrayLoadWaitResponseOff[i]=opcTrayLoadResponseOffError[i]=opcTrayLoadRetryRequired[i]=true;
+            opcTrayDisplayed[i]=opcTrayLoaded[i]=opcTrayAdvanceDeferred[i]=true;
+            opcTrayLoadResponseResult[i]=1;opcTrayLoadStartTick[i]=123;opcDeferredTrayId[i]="OLD";step[i].step=3;
+        }
+    }
+    bool IsSourceTrayInSignal(){return sourceIn;}
+    bool IsTargetTrayInSignal(){return targetIn;}
+    bool IsTargetCenteringSignal(){return targetCentered;}
+    void InitStep(Step *s){s->step=0;}
+    void ProcessStepLog(int,AnsiString){++logs;}
+    void __fastcall ResetTrayLoadTransaction(bool);
+    bool __fastcall CheckTrayLoadPresence(bool);
+};
+/* METHODS */
+void Cleared(TMainForm &f,int i){
+    assert(!f.opcTrayLoadPending[i]&&!f.opcTrayLoadWaitResponseOff[i]&&!f.opcTrayLoadRetryRequired[i]);
+    assert(!f.opcTrayLoadResponseOffError[i]&&f.opcTrayLoadResponseResult[i]==0&&f.opcTrayLoadStartTick[i]==0);
+    assert(!f.opcTrayDisplayed[i]&&!f.opcTrayLoaded[i]&&!f.opcTrayAdvanceDeferred[i]&&f.opcDeferredTrayId[i].empty());
+}
+int main(){
+    TMainForm absent;absent.sourceIn=false;
+    assert(!absent.CheckTrayLoadPresence(true));Cleared(absent,0);
+    assert(absent.fmsAlarmTransaction==fmsAlarmNone&&!absent.fmsAlarmRetryRequested&&!absent.fmsAlarmAwaitingReset);
+    assert(!absent.sourceTrayCycleAdmitted&&!absent.sourceCenteringCompleted&&absent.step[0].step==0&&!plc.centering);
+    absent.sourceIn=true;assert(absent.CheckTrayLoadPresence(true));Cleared(absent,0);
+    puts("PASS: removed source cancels old result/retry; reinsertion does not revive it");
+    TMainForm target;target.fmsAlarmTransaction=fmsAlarmTargetTrayLoad;target.targetIn=false;
+    assert(!target.CheckTrayLoadPresence(false));Cleared(target,1);assert(target.opcTrayLoadPending[0]);
+    TMainForm centering;centering.targetCentered=false;assert(!centering.CheckTrayLoadPresence(false));
+    TMainForm noSource;noSource.sourceIn=false;assert(!noSource.CheckTrayLoadPresence(false));
+    puts("PASS: target needs source tray, target tray and target centering");
+    TMainForm stale;plc.fresh=false;assert(!stale.CheckTrayLoadPresence(true));Cleared(stale,0);plc.fresh=true;
+    TMainForm valid;valid.targetCentered=false;assert(valid.CheckTrayLoadPresence(true));assert(valid.opcTrayLoadPending[0]);
+    valid.targetCentered=true;assert(valid.CheckTrayLoadPresence(false));assert(valid.opcTrayLoadPending[1]);
+    puts("PASS: stale PLC cannot resume; valid source load does not require premature centering");
+    TMainForm completion;completion.fmsAlarmTransaction=fmsAlarmCellTrackOut;
+    completion.ResetTrayLoadTransaction(true);completion.ResetTrayLoadTransaction(false);
+    assert(completion.fmsAlarmTransaction==fmsAlarmCellTrackOut&&completion.fmsAlarmAcceptedResult==1);
+    puts("PASS: load cleanup never erases an unrelated completed-cell report");
+}
