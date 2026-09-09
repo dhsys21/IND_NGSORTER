@@ -46,6 +46,9 @@ __fastcall TdoorForm::TdoorForm(TComponent* Owner)
 	pSafetyEmgReady->BringToFront();
 	// Load the large drawing after DFM streaming. Keeping Picture.Data out of
 	// the DFM prevents image-property EReadError during form construction.
+	// DOOR DRAWING 2026-09-09: retain an optional external override, but always
+	// ship the original PNG in myres.rc. Ignored Debug folders are not assets.
+	bool drawingLoaded = false;
 	AnsiString drawingPath = ExtractFilePath(Application->ExeName) + "NGSORTER.png";
 	if(!FileExists(drawingPath))
 		drawingPath = "D:\\Program\\NGSORTER.png";
@@ -55,15 +58,35 @@ __fastcall TdoorForm::TdoorForm(TComponent* Owner)
 			try{
 				drawing->LoadFromFile(drawingPath);
 				imgMachineDrawing->Picture->Assign(drawing);
+				drawingLoaded = true;
 			}
 			__finally{
 				delete drawing;
 			}
 		}
 		catch(const Exception &){
-			imgMachineDrawing->Picture->Assign(NULL);
+			OutputDebugStringW(L"[FORMDOOR] External drawing failed; using embedded NGSORTER_DRAWING.\n");
 		}
 	}
+	if(!drawingLoaded){
+		try{
+			TResourceStream *stream = new TResourceStream((NativeUInt)HInstance,
+				L"NGSORTER_DRAWING", RT_RCDATA);
+			try{
+				TPngImage *drawing = new TPngImage();
+				try{
+					drawing->LoadFromStream(stream);
+					imgMachineDrawing->Picture->Assign(drawing);
+					drawingLoaded = true;
+				}__finally{ delete drawing; }
+			}__finally{ delete stream; }
+		}catch(const Exception &){
+			imgMachineDrawing->Picture->Assign(NULL);
+			OutputDebugStringW(L"[FORMDOOR] Embedded drawing load failed. Rebuild with Assets/NGSORTER.png and myres.rc.\n");
+		}
+	}
+	// Preserve designer bounds/overlay positions (1088px = about 80% of panel).
+	imgMachineDrawing->Visible = drawingLoaded;
 	imgMachineDrawing->SendToBack();
 	pSafetyDoorReady->BringToFront();
 	lblRecoverySequence->BringToFront();

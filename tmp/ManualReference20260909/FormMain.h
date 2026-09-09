@@ -54,7 +54,7 @@ typedef enum
 }LampMode;
 
 
-//* ºÒ·®Æ®·¹ÀÌ °ü¸®
+//* ë¶ˆëŸ‰íŠ¸ë ˆì´ ê´€ë¦¬
 typedef struct
 {
 	AnsiString LOT_ID;
@@ -373,7 +373,7 @@ __published:	// IDE-managed Components
 	//* DRY RUN : Opens the dedicated dry-run form; it never starts motion directly.
 	void __fastcall btnDryRunClick(TObject *Sender);
 private:	// User declarations
-//------------ Æû °ü·Ã -------------------//
+//------------ í¼ ê´€ë ¨ -------------------//
 
 	bool __fastcall CheckServoAutoReady(bool showError);
 	void __fastcall InitMode();
@@ -430,7 +430,7 @@ private:	// User declarations
 	AnsiString opcDeferredTrayId[2];
 	void __fastcall ResumeDeferredTrayLoads();
 	AnsiString lastIdleWaitStatus;
-	//* ºÒ·®Æ®·¹ÀÌ °ü¸®
+	//* ë¶ˆëŸ‰íŠ¸ë ˆì´ ê´€ë¦¬
 	AnsiString __fastcall GetSourceTrayInfoFile(AnsiString trayId) const;
 	AnsiString __fastcall GetTargetTrayInfoFile(AnsiString trayId) const;
 	void __fastcall PrepareActiveTrayInfoFile(bool sourceTray, AnsiString trayId);
@@ -450,6 +450,7 @@ private:	// User declarations
 	AnsiString fmsTroubleCode;
 	bool manualFmsPolling;
 	bool manualTraySessionUsed; // Also remains set after a successful manual load.
+	unsigned int manualTrayGeneration; // Invalidates reentrant reference callbacks on cancel/new Scan.
 	int manualTrayIndex;
 	int manualTrayPhase; // 0=idle, 1=barcode, 2=response/data, 3=reset, 4=failed.
 	int manualTrayRetryPhase;
@@ -518,7 +519,7 @@ private:	// User declarations
 	bool statusLogDisplaySuppressed;
 	std::deque<AnsiString> deferredStatusLogs; // Flushed once after the motion command.
 	void __fastcall UpdateProcessFlowPanel();
-	//* ºÒ·®Æ®·¹ÀÌ °ü¸®
+	//* ë¶ˆëŸ‰íŠ¸ë ˆì´ ê´€ë¦¬
 	bool targetTrayInfoDeletePending;
 	bool targetTrayInfoWasCentered;
 	bool targetTrayInfoPromptActive;
@@ -614,7 +615,7 @@ public:		// User declarations
 
 	TColor color_target[4][24];
     TColor color_target2[96];
-	int mapSort[2][96];		// 96Ã¤³Î 48Ã¤³Î ¸ÊÇÎ
+	int mapSort[2][96];		// 96ì±„ë„ 48ì±„ë„ ë§µí•‘
 	TAdvSmoothPanel *pt_ch[96];
 
 	STAGE_INFO stage;
@@ -702,7 +703,7 @@ public:		// User declarations
 	void __fastcall ProcessStepLog(int stepNo, AnsiString msg);
 	void __fastcall ReportIdleWaitStatus(bool force = false);
 
-	//* ºÒ·®Æ®·¹ÀÌ °ü¸®
+	//* ë¶ˆëŸ‰íŠ¸ë ˆì´ ê´€ë¦¬
 	bool __fastcall setTrayInfo(int index);
 	bool __fastcall saveTrayInfo(int index);
 	bool traySavePending[2]; // Set by failed save; cleared only by successful retry.
@@ -714,7 +715,7 @@ public:		// User declarations
 
 
 
-	bool m_ServoOpen, m_ServoON, m_ServoHome, m_ServoHomeEmg;//* ¿¡·¯ ³µÀ» ¶§ x,y,zÃàÀÌ ¿øÁ¡ÀÏ ¶§ gripper Á¶±×¹öÆ° µ¿ÀÛ°¡´É
+	bool m_ServoOpen, m_ServoON, m_ServoHome, m_ServoHomeEmg;//* ì—ëŸ¬ ë‚¬ì„ ë•Œ x,y,zì¶•ì´ ì›ì ì¼ ë•Œ gripper ì¡°ê·¸ë²„íŠ¼ ë™ì‘ê°€ëŠ¥
     int LampCount;
 
 	__fastcall TMainForm(TComponent* Owner);

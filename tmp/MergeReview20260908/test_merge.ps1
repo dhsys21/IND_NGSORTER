@@ -9,14 +9,16 @@ function Body($text,$signature){
 }
 $main=ReadSource 'FormMain.cpp';$stage=ReadSource 'Stage_mes.cpp'
 $manual=Body $stage 'void __fastcall TMainForm::StartManualTrayLoad('
-if(!$manual.Contains('IsProductionSequenceBusy()')){throw 'Manual load may overwrite active AUTO transaction'}
+if($manual -match 'IsProductionSequenceBusy\(|IsSortingWorkActive\(|robostar->seq|CheckTrayLoadPresence\('){throw 'Manual data request incorrectly requires production/motion admission'}
+if(!$manual.Contains('ResetTrayLoadTransaction(sourceTray)') -or !$manual.Contains('IsManualTrayLoadBusy()')){throw 'Manual request has no explicit TrayLoad ownership transfer'}
+if($manual.IndexOf('ResetTrayLoadTransaction(sourceTray)') -gt $manual.IndexOf('manualTrayPhase = 1')){throw 'Old AUTO owner not retired before manual Scan'}
 $busy=Body $main 'bool __fastcall TMainForm::IsProductionSequenceBusy()'
 foreach($flag in @('IsManualTrayLoadBusy()','opcTrayLoadPending[0]','fmsAlarmTransaction')){
  if(!$busy.Contains($flag)){throw "Ownership gate missing: $flag"}
 }
 foreach($name in @('StartManualTrayLoad','AcceptManualTrayBarcode','RetryManualTrayLoad','PollManualTrayLoad')){
  $fn=Body $stage ('void __fastcall TMainForm::'+$name+'(')
- if($fn -match 'CheckTrayLoadPresence\(|ResetTrayLoadTransaction\(|opcTrayLoadPending\[[^\]]+\]\s*=\s*true|AdvanceOpcTrayLoad\('){throw "Manual ownership crossed AUTO gate: $name"}
+ if($fn -match 'CheckTrayLoadPresence\(|opcTrayLoadPending\[[^\]]+\]\s*=\s*true|AdvanceOpcTrayLoad\('){throw "Manual ownership crossed AUTO gate: $name"}
 }
 $restart=Body $main 'void __fastcall TMainForm::pause_startBtnClick('
 if($restart.IndexOf('RetryManualTrayLoad()') -gt $restart.IndexOf('CheckTrayLoadPresence(')){throw 'Manual Retry routed through AUTO presence gate'}

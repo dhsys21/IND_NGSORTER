@@ -219,6 +219,7 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	fmsTroubleCode = "";
 	manualFmsPolling = false;
 	manualTraySessionUsed = false;
+	manualTrayGeneration = 0;
 	manualTrayIndex = -1;
 	manualTrayPhase = manualTrayRetryPhase = manualTrayResult = 0;
 	manualTrayTick = 0;
@@ -2510,10 +2511,8 @@ void __fastcall TMainForm::manualBtnClick(TObject *Sender)
 
 void __fastcall TMainForm::playBtnClick(TObject *Sender)
 {
-	if(IsManualTrayLoadBusy()){
-		ShowCommonError("START blocked", "Select AUTO to initialize the manual TrayLoad session first.");
-		return;
-	}
+	//* MANUAL REFERENCE: leftover Scan/result/reset waits never prevent START.
+	if(!ResetManualTrayLoadForAuto()) return;
 	if(ManualCompleteForm != NULL && ManualCompleteForm->IsBlocking()){
 		ManualCompleteForm->OpenRecovery(0);
 		return;
@@ -3913,10 +3912,8 @@ void __fastcall TMainForm::memoRobostarLineAdd(AnsiString msg)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::AdvSmoothToggleButton_InitWorkClick(TObject *Sender)
 {
-	if(IsManualTrayLoadBusy()){
-		ShowCommonError("Init Work blocked", "Finish or Retry the manual TrayLoad transaction first.");
-		return;
-	}
+	//* MANUAL REFERENCE: discard the lookup first; only real work/safety guards below apply.
+	if(!ResetManualTrayLoadForAuto()) return;
 	if(ManualCompleteForm != NULL && ManualCompleteForm->IsBlocking()){
 		ManualCompleteForm->OpenRecovery(0);
 		return;

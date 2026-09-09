@@ -2,6 +2,8 @@
 #include <cctype>
 #include <cstdio>
 #include <cassert>
+#include <cstdlib>
+#include "../../NGSorterErrors.h"
 class Text: public std::string {
 public:
  Text(){} Text(const char*s):std::string(s){} Text(const std::string&s):std::string(s){}
@@ -9,6 +11,7 @@ public:
  Text Trim()const{size_t a=find_first_not_of(" \r\n\t"),b=find_last_not_of(" \r\n\t");return a==npos?Text():Text(substr(a,b-a+1));}
  Text LowerCase()const{Text t=*this;for(size_t i=0;i<t.size();++i)t[i]=(char)tolower(t[i]);return t;}
  bool IsEmpty()const{return empty();}
+ int ToInt()const{return std::atoi(c_str());}
  bool operator==(const wchar_t*s)const{return compare(Text(s))==0;}
  bool operator==(const Text&s)const{return compare(s)==0;}
 };
@@ -16,22 +19,52 @@ typedef Text AnsiString; typedef Text UnicodeString; typedef unsigned long DWORD
 DWORD tick=100; DWORD GetTickCount(){return tick;}
 Text IntToStr(int n){char b[32];sprintf(b,"%d",n);return b;}
 enum{modeManual,modeAuto,modeAutoStop,seqIdle=0};
-struct Motion{bool pauseStatus,work;int seq,seq_save;Motion():pauseStatus(false),work(false),seq(0),seq_save(0){} void req_Pause(bool b){pauseStatus=b;}bool IsSortingWorkActive(){return work;}} g,r,*gripper=&g,*robostar=&r;
+enum{LampAuto=1};
+struct Button{bool Down;Button():Down(false){}};
+struct Edit{Text Text;Edit():Text("1000"){}};
+struct Teach{Edit speed,accl,dccl;Edit *speedEdit,*acclSpeedEdit,*dcclSpeedEdit;Teach():speedEdit(&speed),acclSpeedEdit(&accl),dcclSpeedEdit(&dccl){}} teaching,*teachForm=&teaching;
+enum TFmsAlarmTransaction{fmsAlarmNone,fmsAlarmSourceTrayLoad,fmsAlarmTargetTrayLoad,fmsAlarmCellTrackOut,fmsAlarmProcessEnd,fmsAlarmTrayUnload};
+struct Step{int step;};
+struct Motion{bool pauseStatus,work;int seq,seq_save;Motion():pauseStatus(false),work(false),seq(0),seq_save(0){} void req_Pause(bool b){pauseStatus=b;}bool IsSortingWorkActive(){return work;}void req_Speed(int,int,int){}} g,r,*gripper=&g,*robostar=&r;
 struct Gateway{bool connected,SnapshotReceived,known;Text raw,code;Gateway():connected(true),SnapshotReceived(true),known(true),raw("false"),code("0"){} bool IsGatewayConnected(){return connected;}bool GetFmsTagJson(Text,Text&v){v=raw;return known;}bool GetFmsTagBool(Text,bool){return known&&(raw==Text("true")||raw==Text("1"));}Text GetFmsTagString(Text,Text){return code;}} gateway,*Mod_Fms=&gateway;
 void (*onResponse)()=NULL;
-struct Opc{int response[2],result[2],requests[2],cancels[2];Opc(){for(int i=0;i<2;i++)response[i]=result[i]=requests[i]=cancels[i]=0;}void TRAY_LOAD_REQUEST(bool s){requests[s?0:1]++;}void TRAY_LOAD_CANCEL(bool s){cancels[s?0:1]++;}int TRAY_LOAD_RESPONSE_VALUE(bool s){return response[s?0:1];}int TRAY_LOAD_RESPONSE(bool s){if(onResponse)onResponse();return result[s?0:1];}Text TRAY_LOAD_VALIDATION_ERROR(bool){return "test validation details";}} opc,*MesOpc=&opc;
-struct Panel{Text Caption;};
+struct Opc{
+ int response[2],result[2],requests[2],cancels[2];bool localAlarms[512];
+ Opc(){for(int i=0;i<2;i++)response[i]=result[i]=requests[i]=cancels[i]=0;for(int j=0;j<512;j++)localAlarms[j]=false;}
+ void SetLocalAlarm(int code,bool on){assert(code>=0&&code<512);localAlarms[code]=on;}
+ void PROCESS_START_CANCEL(){}
+ void TRAY_LOAD_REQUEST(bool s){requests[s?0:1]++;}void TRAY_LOAD_CANCEL(bool s){cancels[s?0:1]++;}
+ int TRAY_LOAD_RESPONSE_VALUE(bool s){return response[s?0:1];}
+ int TRAY_LOAD_RESPONSE(bool s){if(onResponse)onResponse();return result[s?0:1];}
+ Text TRAY_LOAD_VALIDATION_ERROR(bool){return "test validation details";}
+} opc,*MesOpc=&opc;
+enum{clSilver=0};
+struct Panel{Text Caption;int Color;};
+struct Timer{bool Enabled;Timer():Enabled(false){}};
+struct Reader{int cancels;Reader():cancels(0){}void CancelScan(){cancels++;}};
 struct Alarm{int shows;bool visible;Text status;Alarm():shows(0),visible(false){}void ShowFmsError(Text,Text,Text,int){shows++;visible=true;}void Hide(){visible=false;}void Show(){visible=true;}void BringToFront(){}void SetRetryWaiting(Text s){status=s;}void RefreshAlarmVisibility(){}} alarm,*AlarmForm_fms=&alarm;
 struct Dry{bool running;Dry():running(false){}bool IsRunning(){return running;}} dry,*DryRunForm=&dry;
-struct Recovery{bool IsBlocking(){return false;}} recovery,*ManualCompleteForm=&recovery;
+struct Recovery{bool IsBlocking(){return false;}void OpenRecovery(int){}} recovery,*ManualCompleteForm=&recovery;
+Alarm bcrAlarm,*ErrorForm_bcr=&bcrAlarm;
 struct TMainForm{
  bool fmsTroubleLatched,fmsTroublePresent,fmsTroubleStatusKnown,fmsAlarmRetryRequested,manualFmsPolling;
+ bool fmsTroubleRunAcknowledged,physicalReady;int restartCalls,resumeCalls,nowLampMode;Button buttons[4],*autoBtn,*manualBtn,*playBtn,*stopBtn;
  Text fmsTroubleCode,manualTrayWaitLog;int manualTrayIndex,manualTrayPhase,manualTrayRetryPhase,manualTrayResult,equipMode;
  DWORD manualTrayTick;bool opcTrayDisplayed[2],opcTrayLoaded[2],opcTrayAdvanceDeferred[2],opcTrayLoadPending[2];Text opcDeferredTrayId[2];DWORD opcTrayLoadStartTick[2];
  bool opcProcessStartPending,opcSortingStartPending,opcProcessEndPending,opcCellTrackOutPending,opcTargetUnloadPending;
+ bool manualTraySessionUsed,sourceTrayOutPending,opcProcessStartWaitResponseOff,opcProcessStartResponseOffError;
+ bool opcProcessStarted,opcSortingStartWaitError,opcFmsSuspendedByManual,sourceTrayCycleAdmitted,sourceCenteringCompleted;
+ bool sourceTrayResultActive,sourceTrayInTimeSet,sourceSortStartTimeSet,sourceSortEndTimeSet,sourceTrayOutTimeSet;
+ int opcProcessStartResponseResult,flowResets;Panel work[2],*pwork1,*pwork2;Timer timer,*opcMesTimer;Reader reader[2],*comBcr[2];
+ bool opcTrayLoadWaitResponseOff[2],opcTrayLoadResponseOffError[2],opcTrayLoadRetryRequired[2];
+ int opcTrayLoadResponseResult[2];Step step[2];
+ TFmsAlarmTransaction fmsAlarmTransaction;bool fmsAlarmAwaitingReset;int fmsAlarmAcceptedResult;DWORD fmsAlarmRetryStartTick;
  DWORD opcProcessStartTick,opcSortingStartTick,opcProcessEndTick,opcCellTrackOutStartTick,opcTargetUnloadTick;
  Panel source,target,*pTrayid_source,*pTrayid_target;int logs,commonErrors,displayCount[2],bypass[2],reads[2];bool productionBusy;
- TMainForm():fmsTroubleLatched(false),fmsTroublePresent(false),fmsTroubleStatusKnown(false),fmsAlarmRetryRequested(false),manualFmsPolling(false),manualTrayIndex(-1),manualTrayPhase(0),manualTrayRetryPhase(0),manualTrayResult(0),equipMode(modeManual),manualTrayTick(0),opcProcessStartPending(false),opcSortingStartPending(false),opcProcessEndPending(false),opcCellTrackOutPending(false),opcTargetUnloadPending(false),pTrayid_source(&source),pTrayid_target(&target),logs(0),commonErrors(0),productionBusy(false){for(int i=0;i<2;i++){opcTrayDisplayed[i]=opcTrayLoaded[i]=opcTrayAdvanceDeferred[i]=opcTrayLoadPending[i]=false;displayCount[i]=bypass[i]=reads[i]=0;}}
+ TMainForm():fmsTroubleLatched(false),fmsTroublePresent(false),fmsTroubleStatusKnown(false),fmsAlarmRetryRequested(false),manualFmsPolling(false),manualTrayIndex(-1),manualTrayPhase(0),manualTrayRetryPhase(0),manualTrayResult(0),equipMode(modeManual),manualTrayTick(0),opcProcessStartPending(false),opcSortingStartPending(false),opcProcessEndPending(false),opcCellTrackOutPending(false),opcTargetUnloadPending(false),fmsAlarmTransaction(fmsAlarmNone),fmsAlarmAwaitingReset(false),fmsAlarmAcceptedResult(0),fmsAlarmRetryStartTick(0),pTrayid_source(&source),pTrayid_target(&target),logs(0),commonErrors(0),productionBusy(false){for(int i=0;i<2;i++){opcTrayDisplayed[i]=opcTrayLoaded[i]=opcTrayAdvanceDeferred[i]=opcTrayLoadPending[i]=false;opcTrayLoadWaitResponseOff[i]=opcTrayLoadResponseOffError[i]=opcTrayLoadRetryRequired[i]=false;opcTrayLoadResponseResult[i]=step[i].step=0;displayCount[i]=bypass[i]=reads[i]=0;}manualTraySessionUsed=sourceTrayOutPending=opcProcessStartWaitResponseOff=opcProcessStartResponseOffError=false;opcProcessStarted=opcSortingStartWaitError=opcFmsSuspendedByManual=sourceTrayCycleAdmitted=sourceCenteringCompleted=false;sourceTrayResultActive=sourceTrayInTimeSet=sourceSortStartTimeSet=sourceSortEndTimeSet=sourceTrayOutTimeSet=false;opcProcessStartResponseResult=flowResets=0;pwork1=&work[0];pwork2=&work[1];opcMesTimer=&timer;comBcr[0]=&reader[0];comBcr[1]=&reader[1];fmsTroubleRunAcknowledged=false;physicalReady=true;restartCalls=resumeCalls=nowLampMode=0;autoBtn=&buttons[0];manualBtn=&buttons[1];playBtn=&buttons[2];stopBtn=&buttons[3];manualBtn->Down=true;}
+ void __fastcall ResetTrayLoadTransaction(bool);void InitStep(Step*s){s->step=0;}
+ bool __fastcall ResetManualTrayLoadForAuto();bool IsTargetTrayExchangeActive(){return false;}
+ void ResetProcessFlow(){flowResets++;}
  bool __fastcall IsFmsTroubleBlocking()const;bool __fastcall IsManualTrayLoadBusy()const;
  void __fastcall PollFmsTrouble();bool __fastcall AcknowledgeFmsTrouble();void __fastcall fmsServiceTimerTimer(TObject*);
  void __fastcall StartManualTrayLoad(bool,const Text & = "");void __fastcall AcceptManualTrayBarcode(int,const Text&);
@@ -42,6 +75,11 @@ struct TMainForm{
  void SetTrayLoadBypassDisplay(bool s,int n){bypass[s?0:1]=n==2;}
  void DisplayOpcTrayLoad(bool s){int i=s?0:1;displayCount[i]++;opcTrayDisplayed[i]=true;}
  void ReadSourceTrayBarcode(){reads[0]++;}void ReadTargetTrayBarcode(){reads[1]++;}
+ void __fastcall autoBtnClick(TObject*);void __fastcall playBtnClick(TObject*);
+ bool CheckServoAutoReady(bool){return physicalReady;}void EnableButton_auto(bool){}
+ void ResumeAutomaticFmsSequence(){resumeCalls++;}
+ // Physical Restart is a dependency here; the runner checks its real interlock wiring.
+ void pause_startBtnClick(TObject*){restartCalls++;if(physicalReady&&!IsFmsTroubleBlocking()){r.req_Pause(false);g.req_Pause(false);}}
 };
 /* PRODUCTION_FUNCTIONS */
 TMainForm *interruptMain=NULL;
@@ -52,19 +90,21 @@ int main(){
   reset();TMainForm m;m.equipMode=mode;m.PollFmsTrouble();assert(!m.IsFmsTroubleBlocking());
   gateway.raw="true";gateway.code="123";m.PollFmsTrouble();assert(g.pauseStatus&&r.pauseStatus&&m.fmsTroubleLatched&&alarm.shows==1);
   int logs=m.logs;for(int j=0;j<10;j++)m.PollFmsTrouble();assert(alarm.shows==1&&m.logs==logs);
-  assert(!m.AcknowledgeFmsTrouble());gateway.raw="false";m.PollFmsTrouble();assert(m.fmsTroubleLatched&&g.pauseStatus&&r.pauseStatus);
-  gateway.connected=false;assert(!m.AcknowledgeFmsTrouble());gateway.connected=true;gateway.known=false;assert(!m.AcknowledgeFmsTrouble());
-  gateway.known=true;gateway.raw="null";assert(!m.AcknowledgeFmsTrouble());gateway.raw="false";m.opcProcessStartPending=true;
-  tick=90123;assert(m.AcknowledgeFmsTrouble());assert(!m.IsFmsTroubleBlocking()&&g.pauseStatus&&r.pauseStatus&&m.opcProcessStartTick==tick);
+  m.opcProcessStartPending=true;tick=90123;assert(m.AcknowledgeFmsTrouble());assert(!m.IsFmsTroubleBlocking()&&m.fmsTroubleLatched&&m.fmsTroubleRunAcknowledged&&g.pauseStatus&&r.pauseStatus&&m.opcProcessStartTick==tick);
+  assert(opc.localAlarms[NGSorterErrors::FmsTrouble]);g.pauseStatus=r.pauseStatus=false;
+  tick+=50000;m.fmsAlarmRetryRequested=true;for(int j=0;j<10;j++)m.PollFmsTrouble();assert(!g.pauseStatus&&!r.pauseStatus&&alarm.shows==1&&m.opcProcessStartTick==90123&&m.fmsAlarmRetryRequested);
+  gateway.code="124";assert(m.IsFmsTroubleBlocking());m.PollFmsTrouble();assert(g.pauseStatus&&r.pauseStatus&&!m.fmsTroubleRunAcknowledged&&alarm.shows==2);
+  assert(m.AcknowledgeFmsTrouble());gateway.raw="false";m.PollFmsTrouble();assert(!m.IsFmsTroubleBlocking()&&!m.fmsTroubleLatched&&!opc.localAlarms[NGSorterErrors::FmsTrouble]);
+  gateway.raw="true";m.PollFmsTrouble();assert(m.IsFmsTroubleBlocking()&&alarm.shows==3);
  }
- puts("PASS: remote Trouble all modes, one-shot alarm/log, missing/disconnected tag, OFF latch, explicit acknowledgement");
- reset();{TMainForm m;gateway.raw="true";gateway.connected=false;m.PollFmsTrouble();assert(m.fmsTroubleLatched&&g.pauseStatus&&r.pauseStatus);gateway.raw="false";assert(!m.AcknowledgeFmsTrouble());}
+ puts("PASS: new Trouble pauses all modes; operator accepts ON without faking OFF; repeated ON never re-pauses; new code/ON re-arms");
+ reset();{TMainForm m;gateway.raw="true";gateway.connected=false;m.PollFmsTrouble();assert(m.fmsTroubleLatched&&g.pauseStatus&&r.pauseStatus);gateway.raw="false";assert(m.AcknowledgeFmsTrouble()&&m.fmsTroubleLatched&&!m.IsFmsTroubleBlocking()&&opc.localAlarms[NGSorterErrors::FmsTrouble]);}
  for(int i=0;i<2;i++){
   reset();TMainForm m;m.StartManualTrayLoad(i==0);assert(m.manualTrayPhase==1&&m.reads[i]==1);
   m.AcceptManualTrayBarcode(i,"TRAY-ID");assert(m.manualTrayPhase==2&&opc.requests[i]==1);
   m.PollManualTrayLoad();int logs=m.logs;m.PollManualTrayLoad();assert(m.logs==logs);
   opc.response[i]=1;opc.result[i]=0;m.PollManualTrayLoad();assert(m.manualTrayPhase==2&&m.displayCount[i]==0);
-  opc.result[i]=1;m.PollManualTrayLoad();assert(m.manualTrayPhase==3&&m.displayCount[i]==1&&opc.cancels[i]==1);
+  opc.result[i]=1;m.PollManualTrayLoad();assert(m.manualTrayPhase==3&&m.displayCount[i]==1&&opc.cancels[i]==2);
   m.PollManualTrayLoad();assert(m.manualTrayPhase==3);opc.response[i]=0;m.PollManualTrayLoad();assert(!m.IsManualTrayLoadBusy()&&!m.opcTrayLoaded[i]&&m.opcTrayDisplayed[i]);
   assert(opc.requests[1-i]==0&&m.reads[1-i]==0);
  }
@@ -73,7 +113,59 @@ int main(){
  reset();{TMainForm m;m.StartManualTrayLoad(true,"TIMEOUT");tick+=10000;m.PollManualTrayLoad();assert(m.manualTrayPhase==4&&m.manualTrayRetryPhase==2&&g.pauseStatus&&r.pauseStatus);m.RetryManualTrayLoad();assert(m.manualTrayPhase==2&&opc.requests[0]==2&&g.pauseStatus);opc.response[0]=opc.result[0]=1;m.PollManualTrayLoad();tick+=10000;m.PollManualTrayLoad();assert(m.manualTrayPhase==4&&m.manualTrayRetryPhase==3);m.RetryManualTrayLoad();assert(m.manualTrayPhase==3&&opc.requests[0]==2);opc.response[0]=0;m.PollManualTrayLoad();assert(m.manualTrayPhase==0);}
  puts("PASS: response=2 display-only, ON timeout retry, reset timeout retry without resending accepted request");
  reset();{TMainForm m;m.StartManualTrayLoad(false,"TARGET");interruptMain=&m;onResponse=troubleDuringResponse;opc.response[1]=opc.result[1]=1;m.PollManualTrayLoad();assert(m.manualTrayPhase==4&&m.fmsTroubleLatched&&m.displayCount[1]==0&&opc.cancels[1]>0);onResponse=NULL;gateway.raw="false";assert(m.AcknowledgeFmsTrouble());m.RetryManualTrayLoad();assert(m.manualTrayPhase==2&&r.pauseStatus);}
- reset();{TMainForm m;m.productionBusy=true;m.StartManualTrayLoad(true,"BUSY");assert(m.manualTrayPhase==0&&m.commonErrors==1&&opc.requests[0]==0);m.productionBusy=false;m.equipMode=modeAuto;m.StartManualTrayLoad(true);assert(m.manualTrayPhase==0);m.equipMode=modeManual;m.StartManualTrayLoad(true);tick+=10000;m.PollManualTrayLoad();assert(m.manualTrayPhase==4&&m.manualTrayRetryPhase==1);}
- puts("PASS: Trouble during data callback halts manual work; active production/nonmanual rejected; barcode timeout");
+ reset();{TMainForm m;m.equipMode=modeAuto;m.StartManualTrayLoad(true);assert(m.manualTrayPhase==0);m.equipMode=modeManual;m.StartManualTrayLoad(true);tick+=10000;m.PollManualTrayLoad();assert(m.manualTrayPhase==4&&m.manualTrayRetryPhase==1);m.StartManualTrayLoad(true);assert(m.manualTrayPhase==1&&m.reads[0]==2);}
+ puts("PASS: Trouble during data callback halts manual work; nonmanual rejected; Scan retries barcode failure");
+ for(int i=0;i<2;i++){
+  reset();TMainForm m;m.productionBusy=true;g.work=true;r.seq=9;r.seq_save=9;r.pauseStatus=true;dry.running=true;
+  m.opcTrayLoadPending[i]=m.opcTrayLoadRetryRequired[i]=m.opcTrayAdvanceDeferred[i]=true;
+  m.opcDeferredTrayId[i]="OLD";m.step[i].step=1;m.fmsAlarmTransaction=i==0?fmsAlarmSourceTrayLoad:fmsAlarmTargetTrayLoad;
+  m.StartManualTrayLoad(i==0,"MANUAL");assert(m.manualTrayPhase==2&&m.commonErrors==0&&opc.requests[i]==1);
+  assert(!m.opcTrayLoadPending[i]&&!m.opcTrayLoadRetryRequired[i]&&!m.opcTrayAdvanceDeferred[i]&&m.opcDeferredTrayId[i].IsEmpty());
+  assert(m.fmsAlarmTransaction==fmsAlarmNone&&m.step[i].step==0&&r.pauseStatus);
+  m.StartManualTrayLoad(i==0);assert(opc.requests[i]==1);m.StartManualTrayLoad(i!=0);assert(m.commonErrors==1&&opc.requests[1-i]==0);
+  tick+=10000;m.PollManualTrayLoad();assert(m.manualTrayPhase==4);m.StartManualTrayLoad(i==0);assert(m.manualTrayPhase==2&&opc.requests[i]==2);
+  opc.response[i]=opc.result[i]=1;m.PollManualTrayLoad();m.StartManualTrayLoad(i==0);assert(m.manualTrayPhase==3&&opc.requests[i]==2);
+ }
+ puts("PASS: manual Scan independent of production/motion state, retires only selected AUTO load; duplicate ownership and Scan retry");
+ reset();{TMainForm m;m.fmsAlarmTransaction=fmsAlarmCellTrackOut;m.opcCellTrackOutPending=m.opcProcessEndPending=m.opcTargetUnloadPending=true;m.opcTrayLoadPending[1]=true;
+  m.StartManualTrayLoad(true,"DATA");assert(m.manualTrayPhase==2&&m.fmsAlarmTransaction==fmsAlarmCellTrackOut&&m.opcCellTrackOutPending&&m.opcProcessEndPending&&m.opcTargetUnloadPending&&m.opcTrayLoadPending[1]);}
+ reset();{TMainForm m;gateway.connected=false;m.StartManualTrayLoad(true,"OFFLINE");assert(m.manualTrayPhase==0&&opc.requests[0]==0);gateway.connected=true;gateway.raw="true";m.StartManualTrayLoad(true,"TROUBLE");assert(m.manualTrayPhase==0&&opc.requests[0]==0);}
+ puts("PASS: completed-work reports preserved; disconnected Gateway and independent Trouble still blocked");
+ for(int i=0;i<2;i++){
+  reset();TMainForm m;int code=i==0?NGSorterErrors::ManualSourceLoad:NGSorterErrors::ManualTargetLoad;
+  m.StartManualTrayLoad(i==0,"ALARM");tick+=10000;m.PollManualTrayLoad();assert(opc.localAlarms[code]);
+  m.StartManualTrayLoad(i==0);assert(opc.localAlarms[code]);opc.response[i]=opc.result[i]=1;m.PollManualTrayLoad();assert(opc.localAlarms[code]);
+  opc.response[i]=0;m.PollManualTrayLoad();assert(!opc.localAlarms[code]);
+ }
+ puts("PASS: latest equipment alarm reporting retained until full manual handshake/reset completes");
+ for(int phase=0;phase<=4;phase++){
+  reset();TMainForm m;m.manualTraySessionUsed=true;m.manualTrayPhase=phase;m.manualTrayIndex=1;
+  m.manualTrayRetryPhase=2;m.manualTrayResult=1;m.manualTrayTick=777;m.manualTrayWaitLog="OLD";
+  m.opcTrayDisplayed[0]=m.opcTrayLoaded[0]=m.opcTrayLoadPending[1]=true;m.step[0].step=3;m.step[1].step=1;
+  m.opcProcessStartPending=m.opcProcessStarted=m.opcSortingStartPending=true;m.opcFmsSuspendedByManual=true;
+  m.sourceTrayCycleAdmitted=m.sourceCenteringCompleted=m.sourceTrayInTimeSet=true;
+  opc.localAlarms[NGSorterErrors::ManualTargetLoad]=true;g.pauseStatus=r.pauseStatus=true;
+  assert(m.ResetManualTrayLoadForAuto());assert(!m.manualTraySessionUsed&&!m.IsManualTrayLoadBusy()&&m.manualTrayIndex==-1);
+  assert(m.manualTrayRetryPhase==0&&m.manualTrayTick==0&&m.manualTrayWaitLog.IsEmpty());
+  assert(!m.opcTrayDisplayed[0]&&!m.opcTrayLoaded[0]&&!m.opcTrayLoadPending[1]&&m.step[0].step==0&&m.step[1].step==0);
+  assert(!m.opcProcessStartPending&&!m.opcProcessStarted&&!m.opcSortingStartPending&&!m.opcFmsSuspendedByManual);
+  assert(!m.sourceTrayCycleAdmitted&&!m.sourceCenteringCompleted&&!m.sourceTrayInTimeSet&&m.flowResets==1);
+  assert(m.reader[0].cancels==1&&m.reader[1].cancels==1&&opc.cancels[0]==1&&opc.cancels[1]==1);
+  assert(!opc.localAlarms[NGSorterErrors::ManualTargetLoad]&&g.pauseStatus&&r.pauseStatus);
+  m.RetryManualTrayLoad();m.AcceptManualTrayBarcode(1,"LATE");m.PollManualTrayLoad();assert(opc.requests[0]==0&&opc.requests[1]==0);
+ }
+ puts("PASS: completed, barcode/result/reset waits and failure all reset for AUTO; old callbacks cannot revive manual requests; safety Pause retained");
+ reset();{TMainForm m;m.opcProcessStarted=true;assert(m.ResetManualTrayLoadForAuto());assert(m.opcProcessStarted&&m.flowResets==0);}
+ reset();{TMainForm m;m.StartManualTrayLoad(true,"TEST");gateway.raw="true";m.PollFmsTrouble();assert(m.ResetManualTrayLoadForAuto()&&m.manualTrayPhase==0&&m.fmsTroubleLatched&&alarm.visible);}
+ reset();{TMainForm m;m.StartManualTrayLoad(true,"TEST");m.manualFmsPolling=true;assert(!m.ResetManualTrayLoadForAuto());m.manualFmsPolling=false;m.opcCellTrackOutPending=true;assert(!m.ResetManualTrayLoadForAuto()&&m.opcCellTrackOutPending);}
+ puts("PASS: manual cleanup during Trouble keeps remote alarm; active data dialog and actual unreported cell not discarded");
+ reset();{TMainForm m;m.StartManualTrayLoad(true,"BEFORE ALARM");gateway.raw="true";gateway.code="9001";m.PollFmsTrouble();m.autoBtnClick(NULL);
+  assert(m.equipMode==modeAutoStop&&m.autoBtn->Down&&!m.manualBtn->Down&&m.manualTrayPhase==0&&m.fmsTroubleLatched&&g.pauseStatus);
+  m.playBtnClick(NULL);assert(m.equipMode==modeAuto&&m.playBtn->Down&&!g.pauseStatus&&!r.pauseStatus&&m.restartCalls==1&&m.resumeCalls==1);
+  m.fmsServiceTimerTimer(NULL);assert(!g.pauseStatus&&!r.pauseStatus&&opc.localAlarms[NGSorterErrors::FmsTrouble]&&gateway.raw==Text("true"));}
+ reset();{TMainForm m;gateway.raw="true";m.PollFmsTrouble();m.autoBtnClick(NULL);m.physicalReady=false;m.playBtnClick(NULL);
+  assert(m.equipMode==modeAutoStop&&!m.playBtn->Down&&g.pauseStatus&&r.pauseStatus&&m.resumeCalls==0);m.physicalReady=true;m.playBtnClick(NULL);assert(m.equipMode==modeAuto&&m.resumeCalls==1&&!g.pauseStatus);}
+ reset();{TMainForm m;m.physicalReady=false;gateway.raw="true";m.PollFmsTrouble();m.autoBtnClick(NULL);assert(m.equipMode==modeManual&&!m.autoBtn->Down);}
+ puts("PASS: actual AUTO/START handlers enter AUTO RUN with Trouble ON and invoke physical Restart; physical failure still prevents RUN");
  return 0;
 }

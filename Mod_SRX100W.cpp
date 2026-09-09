@@ -137,6 +137,23 @@ void __fastcall TMod_Bcr::ReadTimeoutTimer(TObject *Sender)
 		ErrorForm_bcr->ShowError("Target Tray barcode can not be scanned.", false);
 }
 //---------------------------------------------------------------------------
+void __fastcall TMod_Bcr::CancelScan()
+{
+	//* MANUAL -> AUTO: no old timeout/result may create an AUTO load request.
+	bool wasReading = bReading;
+	bReading = false;
+	Timer1->Enabled = false;
+	rxBuffer = "";
+	if(!wasReading) return;
+	TriggerOff();
+	// This protocol has no request ID: isolate late packets using a new session,
+	// just as ReadTimeoutTimer does. The normal reconnect timer stays responsible.
+	ClientSocketBcr->Close();
+	Timer_AutoConnect->Enabled = true;
+	if(MainForm != NULL)
+		MainForm->memoMainLineAdd(ReaderName() + " manual scan cancelled / old TCP session discarded / reconnect pending.");
+}
+//---------------------------------------------------------------------------
 void __fastcall TMod_Bcr::ClientSocketBcrConnect(TObject *Sender, TCustomWinSocket *Socket)
 {
 	Timer_AutoConnect->Enabled = false;

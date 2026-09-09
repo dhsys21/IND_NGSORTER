@@ -36,6 +36,7 @@ public:		// User declarations
 	void __fastcall TriggerOn();
 	void __fastcall TriggerOff();
 	void __fastcall GetBarcode();
+	void __fastcall CancelScan();
 };
 //---------------------------------------------------------------------------
 

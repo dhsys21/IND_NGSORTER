@@ -1,6 +1,21 @@
 # NGSORTER FMS Error Reporting
 
-Version: 2026-09-08 003. Applied to `codex-improve`; no change to `main`.
+Original error-reporting version: 2026-09-08 003. Applied to `codex-improve`; no change to `main`.
+
+## FMS Trouble operator continuation (2026-09-09 005)
+
+AUTO mode selection is allowed while `FmsStatus.Trouble.Status` is ON.
+A new FMS Trouble incident still raises the alarm and pauses work, but an explicit
+START / Retry / Main Restart acknowledges that incident even while Status stays ON.
+START uses the normal physical Restart checks before releasing the paused sequence.
+Repeated polling of the same acknowledged error cannot re-pause work or reset a
+different FMS transaction's retry. A changed ErrorNo or a new ON after OFF requires
+a fresh operator acknowledgement. Closing the popup alone never resumes work.
+
+Acknowledgement does not write FMS Status/ErrorNo, clear the published equipment
+alarm, fabricate FMS responses, or bypass physical interlocks. The 50000307 code
+remains until a valid connected FMS snapshot confirms Status=OFF. Missing data and
+request/response failures retain their existing timeout/retry handling.
 
 ## Wire Contract
 
@@ -69,8 +84,8 @@ Only a successful read of that same alarm source can replace/clear it. Disconnec
 | 50000305 | ProcessEnd failure / timeout | Full response-reset handshake completes |
 | 50000306 | TrayUnload failure / timeout | Full response-reset handshake completes |
 | 50000307 | FMS-side Trouble.Status=true | Connected valid snapshot confirms false (Pause still requires acknowledgement) |
-| 50000308 | Manual Source TrayLoad failure | Manual handshake including response reset completes |
-| 50000309 | Manual Target TrayLoad failure | Manual handshake including response reset completes |
+| 50000308 | Manual Source TrayLoad failure | Manual handshake including response reset completes, or explicit AUTO entry discards the manual session |
+| 50000309 | Manual Target TrayLoad failure | Manual handshake including response reset completes, or explicit AUTO entry discards the manual session |
 
 FMS failure kinds (timeout, rejected response, invalid data) share a per-transaction code; detailed reason, response value and phase remain in the FMS alarm window/log.
 FMS Close and Retry do not clear the registered failure. Eject/Insert Retry and popup Hide likewise do not imply successful recovery.

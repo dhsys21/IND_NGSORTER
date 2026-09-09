@@ -6,7 +6,17 @@ $taskA=$taskSource.IndexOf('static const UnicodeString FMS_TROUBLE_STATUS')
 $taskB=$taskSource.IndexOf('void __fastcall TMainForm::InitTrayInfo(',$taskA)
 if($taskA -lt 0 -or $taskB -lt 0){throw 'Service boundaries missing'}
 $taskTemplate=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'service_harness.cpp.in'))
-[IO.File]::WriteAllText((Join-Path $PSScriptRoot 'service_harness.cpp'),$taskTemplate.Replace('/* PRODUCTION_FUNCTIONS */',$taskSource.Substring($taskA,$taskB-$taskA)),$taskEncoding)
+$taskMain=[IO.File]::ReadAllText((Join-Path $taskRoot 'FormMain.cpp'),$taskEncoding)
+$taskResetA=$taskMain.IndexOf('void __fastcall TMainForm::ResetTrayLoadTransaction(')
+$taskResetB=$taskMain.IndexOf("`n}",$taskResetA)
+if($taskResetA -lt 0 -or $taskResetB -lt 0){throw 'ResetTrayLoadTransaction missing'}
+$taskMethods=$taskMain.Substring($taskResetA,$taskResetB-$taskResetA+2)+"`r`n"+$taskSource.Substring($taskA,$taskB-$taskA)
+foreach($name in @('autoBtnClick','playBtnClick')){
+ $a=$taskMain.IndexOf('void __fastcall TMainForm::'+$name+'(');$b=$taskMain.IndexOf("`n}",$a)
+ if($a -lt 0 -or $b -lt 0){throw "Missing $name"}
+ $taskMethods+="`r`n"+$taskMain.Substring($a,$b-$a+2)
+}
+[IO.File]::WriteAllText((Join-Path $PSScriptRoot 'service_harness.cpp'),$taskTemplate.Replace('/* PRODUCTION_FUNCTIONS */',$taskMethods),$taskEncoding)
 Push-Location $PSScriptRoot
 try {
  & 'C:/Program Files (x86)/Embarcadero/Studio/18.0/bin/bcc32.exe' '-tWC' '-eservice_test.exe' 'service_harness.cpp'
@@ -30,3 +40,17 @@ foreach($taskName in @('CanResumeMotion()','InitSequence(robotSequence','setPoin
 }
 if($taskDry -notmatch 'stepStartTick \+= \(DWORD\)\(GetTickCount\(\) - fmsPauseTick\)'){throw 'Dry-run timeout not frozen during FMS Pause'}
 Write-Output 'PASS: AUTO polling, delayed tray-out, motion resume/new target and dry-run Pause boundaries'
+$taskAutoA=$taskMain.IndexOf('void __fastcall TMainForm::autoBtnClick(')
+$taskAutoB=$taskMain.IndexOf("`n}",$taskAutoA)
+$taskAuto=$taskMain.Substring($taskAutoA,$taskAutoB-$taskAutoA)
+if($taskAuto.Contains('IsManualTrayLoadBusy()') -or !$taskAuto.Contains('ResetManualTrayLoadForAuto()')){throw 'AUTO still blocked by manual transaction'}
+if($taskAuto.IndexOf('CheckServoAutoReady(true)') -gt $taskAuto.IndexOf('ResetManualTrayLoadForAuto()')){throw 'Manual cleanup precedes AUTO physical interlocks'}
+if(!$taskSource.Contains('manualTraySessionUsed = true;') -or !$taskMain.Contains('manualTraySessionUsed = false;')){throw 'Completed manual session does not reset at AUTO entry'}
+Write-Output 'PASS: AUTO validates physical interlocks then resets manual session, including already-completed manual data'
+if($taskAuto.Contains('IsFmsTroubleBlocking()')){throw 'FMS Trouble still prohibits AUTO selection'}
+$a=$taskMain.IndexOf('void __fastcall TMainForm::pause_startBtnClick(');$b=$taskMain.IndexOf("`n}",$a);$restart=$taskMain.Substring($a,$b-$a)
+$restart=$restart.Substring($restart.IndexOf('if(equipMode == modeAuto)'))
+foreach($guard in @('CanResumeMotion()','RetryPendingTraySaves()','RetryWorkStartTrayAlarm()')){
+ if(!$restart.Contains($guard) -or $restart.IndexOf($guard) -gt $restart.IndexOf('robostar->req_Pause(false)')){throw "Physical restart guard missing: $guard"}
+}
+Write-Output 'PASS: START reuses real physical/recovery checks; no servo, centering, pending-save or tray-input bypass'

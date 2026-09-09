@@ -38,24 +38,37 @@ bool __fastcall TMainForm::ResetManualTrayLoadForAuto()
 	if(!manualTraySessionUsed && !IsManualTrayLoadBusy()) return true;
 	// Mode selection may discard manual requests even during FMS Trouble.
 	// Keep the independent alarm/latch; START, not AUTO selection, acknowledges it.
-	if(manualFmsPolling){
-		ShowCommonError("AUTO initialization waiting", "Close the manual tray data selection dialog, then select AUTO again.");
-		return false;
-	}
-	if(opcCellTrackOutPending || opcProcessEndPending || opcTargetUnloadPending || sourceTrayOutPending ||
+	bool preserveAutomaticWork = opcCellTrackOutPending || opcProcessEndPending || opcTargetUnloadPending || sourceTrayOutPending ||
 		fmsAlarmTransaction == fmsAlarmCellTrackOut || fmsAlarmTransaction == fmsAlarmProcessEnd ||
 		fmsAlarmTransaction == fmsAlarmTrayUnload || IsTargetTrayExchangeActive() ||
 		(gripper != NULL && gripper->IsSortingWorkActive()) ||
-		(ManualCompleteForm != NULL && ManualCompleteForm->IsBlocking())){
-		ShowCommonError("AUTO initialization blocked", "An actual automatic cell operation/report is unfinished. Recover it before starting a new cycle; manual TrayLoad response is not the blocker.");
-		return false;
-	}
+		(ManualCompleteForm != NULL && ManualCompleteForm->IsBlocking());
 	int oldPhase = manualTrayPhase;
+	int oldIndex = manualTrayIndex;
 	// Retire the owner first, so a late barcode/timer cannot recreate the request.
+	++manualTrayGeneration;
 	manualTrayPhase = manualTrayRetryPhase = manualTrayResult = 0;
 	manualTrayIndex = -1;
 	manualTrayTick = 0;
 	manualTrayWaitLog = "";
+	manualTraySessionUsed = false;
+	if(MesOpc != NULL){
+		MesOpc->SetLocalAlarm(NGSorterErrors::ManualSourceLoad, false);
+		MesOpc->SetLocalAlarm(NGSorterErrors::ManualTargetLoad, false);
+	}
+	// Reference Scan is disposable even if an unrelated real report is pending.
+	// Preserve that report/recovery; do not turn its existence into a Scan blocker.
+	if(preserveAutomaticWork){
+		if(oldIndex >= 0 && oldIndex < 2){
+			if(comBcr[oldIndex] != NULL) comBcr[oldIndex]->CancelScan();
+			if(MesOpc != NULL) MesOpc->TRAY_LOAD_CANCEL(oldIndex == 0);
+		}
+		if(AlarmForm_fms != NULL && !fmsTroubleLatched && fmsAlarmTransaction == fmsAlarmNone)
+			AlarmForm_fms->Hide();
+		if(ErrorForm_bcr != NULL) ErrorForm_bcr->Hide();
+		memoMainLineAdd("[MANUAL SCAN RESET] Reference request cancelled without waiting for response/reset. Actual cell work/report and safety recovery retained.");
+		return true;
+	}
 	for(int i = 0; i < 2; ++i){
 		if(comBcr[i] != NULL) comBcr[i]->CancelScan();
 		ResetTrayLoadTransaction(i == 0);
@@ -89,7 +102,7 @@ bool __fastcall TMainForm::ResetManualTrayLoadForAuto()
 	sourceTrayInTimeSet = sourceSortStartTimeSet = sourceSortEndTimeSet = sourceTrayOutTimeSet = false;
 	ResetProcessFlow();
 	manualTraySessionUsed = false;
-	memoMainLineAdd("[MANUAL -> AUTO] Manual TrayLoad cancelled / phase=" + IntToStr(oldPhase) +
+	memoMainLineAdd("[MANUAL SCAN RESET] Reference TrayLoad cancelled / phase=" + IntToStr(oldPhase) +
 		" / both requests OFF / manual waits, retry and load approval reset / START begins STEP 01 with live PLC inputs and a NEW barcode. Safety Pause retained; use Restart if paused.");
 	return true;
 }
@@ -229,6 +242,7 @@ void __fastcall TMainForm::StartManualTrayLoad(bool sourceTray, const AnsiString
 	int index = sourceTray ? 0 : 1;
 	if(step[index].step == 1) InitStep(&step[index]); // AUTO must perform its own new load.
 	manualTraySessionUsed = true;
+	++manualTrayGeneration;
 	manualTrayIndex = sourceTray ? 0 : 1;
 	manualTrayPhase = 1;
 	manualTrayRetryPhase = manualTrayResult = 0;
@@ -257,11 +271,15 @@ void __fastcall TMainForm::AcceptManualTrayBarcode(int index, const AnsiString &
 		FailManualTrayLoad("Gateway disconnected before TrayLoad request."); return;
 	}
 	bool sourceTray = index == 0;
+	unsigned int generation = manualTrayGeneration;
 	PrepareActiveTrayInfoFile(sourceTray, id);
 	(sourceTray ? pTrayid_source : pTrayid_target)->Caption = id;
 	if(!sourceTray && RestoreTargetTrayInfo(id, false) < 0){
 		FailManualTrayLoad("Target local information could not be prepared."); return;
 	}
+	// A data-choice dialog may process AUTO/Init Work while this callback waits.
+	if(generation != manualTrayGeneration || manualTrayPhase != 1 ||
+		manualTrayIndex != index || equipMode != modeManual) return;
 	manualTrayPhase = 2; // Set ownership before sending/any callbacks.
 	manualTrayTick = GetTickCount();
 	manualTrayWaitLog = "";
@@ -280,14 +298,14 @@ void __fastcall TMainForm::FailManualTrayLoad(const AnsiString &detail)
 		NGSorterErrors::ManualSourceLoad : NGSorterErrors::ManualTargetLoad,true);
 	if(MesOpc != NULL && manualTrayRetryPhase != 1)
 		MesOpc->TRAY_LOAD_CANCEL(manualTrayIndex == 0);
-	if(gripper != NULL) gripper->req_Pause(true);
-	if(robostar != NULL) robostar->req_Pause(true);
 	memoMainLineAdd("[MANUAL FMS] ERROR Location" + IntToStr(manualTrayIndex + 1) + " / " + detail);
+	//* MANUAL REFERENCE: a lookup timeout never pauses production or latches motion.
+	// Independent FMS Trouble and physical safety alarms retain their own Pause.
 	if(!IsFmsTroubleBlocking() && AlarmForm_fms != NULL)
 		AlarmForm_fms->ShowFmsError("Manual TrayLoad error", detail +
-			"\r\nCorrect the cause, then press Retry or Main Restart. Motion remains paused.",
+			"\r\nReference lookup only. Retry to read again, or select AUTO / Init Work to discard this lookup.",
 			"Location" + IntToStr(manualTrayIndex + 1) + ".TrayLoad", MesOpc != NULL ?
-			MesOpc->TRAY_LOAD_RESPONSE_VALUE(manualTrayIndex == 0) : -1);
+			MesOpc->TRAY_LOAD_RESPONSE_VALUE(manualTrayIndex == 0) : -1, false);
 }
 
 void __fastcall TMainForm::RetryManualTrayLoad()
@@ -327,6 +345,7 @@ void __fastcall TMainForm::PollManualTrayLoad()
 		return;
 	}
 	bool sourceTray = manualTrayIndex == 0;
+	unsigned int generation = manualTrayGeneration;
 	int response = MesOpc->TRAY_LOAD_RESPONSE_VALUE(sourceTray);
 	AnsiString wait = "[MANUAL FMS] Location" + IntToStr(manualTrayIndex + 1) +
 		(manualTrayPhase == 3 ? " Request=OFF / WAIT Response=0 (RESET)" :
@@ -335,10 +354,13 @@ void __fastcall TMainForm::PollManualTrayLoad()
 	if(manualTrayPhase == 2){
 		int result = MesOpc->TRAY_LOAD_RESPONSE(sourceTray);
 		// A modal FMS/LOCAL choice can pump the independent Trouble monitor.
-		if(manualTrayPhase != 2 || IsFmsTroubleBlocking()) return;
+		if(generation != manualTrayGeneration || manualTrayPhase != 2 ||
+			equipMode != modeManual || IsFmsTroubleBlocking()) return;
 		if(result == 1 || result == 2){
 			if(result == 1){
 				DisplayOpcTrayLoad(sourceTray);
+				if(generation != manualTrayGeneration || manualTrayPhase != 2 ||
+					equipMode != modeManual || IsFmsTroubleBlocking()) return;
 				if(!opcTrayDisplayed[manualTrayIndex]){
 					FailManualTrayLoad("Tray data display did not complete."); return;
 				}
@@ -370,7 +392,7 @@ void __fastcall TMainForm::PollManualTrayLoad()
 		FailManualTrayLoad(wait + " / 10-second timeout / " + MesOpc->TRAY_LOAD_VALIDATION_ERROR(sourceTray));
 }
 
-// ÀüÁö Á¤º¸ Ç¥½Ã
+// ì „ì§€ ì •ë³´ í‘œì‹œ
 void __fastcall TMainForm::InitTrayInfo(int pos)
 {
 	SetTrayLoadBypassDisplay(pos == 0, 0);
@@ -391,9 +413,9 @@ void __fastcall TMainForm::InitTrayInfo(int pos)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::DisplayTrayInfo()
 {
-	// ¼±º° Æ®·¹ÀÌ Á¤º¸
+	// ì„ ë³„ íŠ¸ë ˆì´ ì •ë³´
 	if(tray == &tray_source){
-		memoMainLineAdd("[C_Maint] [MES] ¼±º° Æ®·¹ÀÌ Á¤º¸ ÀÀ´ä ¿Ï·á.");
+		memoMainLineAdd("[C_Maint] [MES] ì„ ë³„ íŠ¸ë ˆì´ ì •ë³´ ì‘ë‹µ ì™„ë£Œ.");
 		pTrayid_source2->Caption = mes->mes_rx.LOT_ID;
 		pPROCESS->Caption = mes->mes_rx.PROCESS;
 		pOPER->Caption = mes->mes_rx.OPER;
@@ -404,7 +426,7 @@ void __fastcall TMainForm::DisplayTrayInfo()
 		tray->startTime = Now();
 		BeginSourceTrayResult(pTrayid_source2->Caption);
 
-		tray->remainCnt = 0;	// ´ë»ó Æ®·¹ÀÌ ÃëÃâ°¡´É ¼ö·® È®ÀÎ
+		tray->remainCnt = 0;	// ëŒ€ìƒ íŠ¸ë ˆì´ ì·¨ì¶œê°€ëŠ¥ ìˆ˜ëŸ‰ í™•ì¸
 		tray->empTray = true;
 
 		pbad_sum->Caption = "0";
@@ -435,20 +457,20 @@ void __fastcall TMainForm::DisplayTrayInfo()
             if(checkTrayInfo(0))
             {
                 if(pbad_sum->Caption.ToInt() <= stage.limitCnt){
-                    memoMainLineAdd("[C_Maint] [PLC] ¼±º° Æ®·¹ÀÌ ¼¾ÅÍ¸µ ¿äÃ»");
+                    memoMainLineAdd("[C_Maint] [PLC] ì„ ë³„ íŠ¸ë ˆì´ ì„¼í„°ë§ ìš”ì²­");
                     //* DOOR/PLC AUTO INTERLOCK: legacy callback cannot bypass the automatic request gate.
                     if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(CanRequestAutoSourceCentering());
                 }else{
-                    memoMainLineAdd("[C_Maint] NG ¼ö°¡ ¼³Á¤°ªÀ» ÃÊ°ú Çß½À´Ï´Ù.");
+                    memoMainLineAdd("[C_Maint] NG ìˆ˜ê°€ ì„¤ì •ê°’ì„ ì´ˆê³¼ í–ˆìŠµë‹ˆë‹¤.");
                     ErrorForm_limit->ShowError();
                 }
             }
-            else trayinfoForm->ShowError("[C_Maint] ¼±º° Æ®·¹ÀÌ Á¤º¸°¡ ´Ù¸¨´Ï´Ù.", "¼±º° Æ®·¹ÀÌ Á¤º¸¸¦ È®ÀÎÇØ ÁÖ¼¼¿ä.", pTrayid_source->Caption, 0);
+            else trayinfoForm->ShowError("[C_Maint] ì„ ë³„ íŠ¸ë ˆì´ ì •ë³´ê°€ ë‹¤ë¦…ë‹ˆë‹¤.", "ì„ ë³„ íŠ¸ë ˆì´ ì •ë³´ë¥¼ í™•ì¸í•´ ì£¼ì„¸ìš”.", pTrayid_source->Caption, 0);
 		}
 		tray = &tray_target;
 	}
 	else if(tray == &tray_target){
-		memoMainLineAdd("[C_Maint] [MES] ´ë»ó Æ®·¹ÀÌ Á¤º¸ ¿äÃ» ¿Ï·á.");
+		memoMainLineAdd("[C_Maint] [MES] ëŒ€ìƒ íŠ¸ë ˆì´ ì •ë³´ ìš”ì²­ ì™„ë£Œ.");
 		pTrayid_target2->Caption = mes->mes_rx.LOT_ID;
 		pPROCESS_target->Caption = mes->mes_rx.PROCESS;
 		pDATE_target->Caption = mes->mes_rx.DATE;
@@ -456,7 +478,7 @@ void __fastcall TMainForm::DisplayTrayInfo()
 		pKIND_target->Caption = tray->KIND;
 
 		AnsiString str;
-		tray->remainCnt = 0;	// ´ë»ó Æ®·¹ÀÌ ÅõÀÔ°¡´É ¼ö·® È®ÀÎ
+		tray->remainCnt = 0;	// ëŒ€ìƒ íŠ¸ë ˆì´ íˆ¬ì…ê°€ëŠ¥ ìˆ˜ëŸ‰ í™•ì¸
 
 		for(int i = 0; i < tray->TRAY_GUBUN && i < 96; ++i)
 		{
@@ -483,10 +505,10 @@ void __fastcall TMainForm::DisplayTrayInfo()
 			{
 				if(MainForm->IsSourceCenteringSignal()){
 					memoMainLineAdd("[MES] Work start request.");
-					NotifyTransferIn(pTrayid_target2->Caption);		// ÀÛ¾÷5. ¼±º° Æ®·¹ÀÌ°¡ ¼¾ÅÍ¸µÀ» Ä¡°í ÀÖÀ¸¸é ÀÛ¾÷ ½ÃÀÛ º¸°í¸¦ ÇÑ´Ù.
+					NotifyTransferIn(pTrayid_target2->Caption);		// ì‘ì—…5. ì„ ë³„ íŠ¸ë ˆì´ê°€ ì„¼í„°ë§ì„ ì¹˜ê³  ìˆìœ¼ë©´ ì‘ì—… ì‹œì‘ ë³´ê³ ë¥¼ í•œë‹¤.
 				}
 			}
-			else trayinfoForm->ShowError("[C_Maint] ´ë»ó Æ®·¹ÀÌ Á¤º¸°¡ ´Ù¸¨´Ï´Ù.", "´ë»ó Æ®·¹ÀÌ Á¤º¸¸¦ È®ÀÎÇØ ÁÖ¼¼¿ä.", pTrayid_target->Caption, 1);
+			else trayinfoForm->ShowError("[C_Maint] ëŒ€ìƒ íŠ¸ë ˆì´ ì •ë³´ê°€ ë‹¤ë¦…ë‹ˆë‹¤.", "ëŒ€ìƒ íŠ¸ë ˆì´ ì •ë³´ë¥¼ í™•ì¸í•´ ì£¼ì„¸ìš”.", pTrayid_target->Caption, 1);
         }
 		else Memo1->Lines->Add("gripper->getReadyStatus(ntarget, false)");
     }
@@ -518,7 +540,7 @@ void __fastcall TMainForm::DisplayTranserIn(AnsiString trayid)
 		}
 	}
 	else if(trayid == pTrayid_target->Caption){
-		pwork2->Color = clLime;		// ÀÛ¾÷6. ´ë»ó Æ®·¹ÀÌ ÀÛ¾÷ ½ÃÀÛ º¸°í°¡ µé¾î¿À¸é ¼±º° ÀÛ¾÷À» ½ÃÀÛÇÑ´Ù.
+		pwork2->Color = clLime;		// ì‘ì—…6. ëŒ€ìƒ íŠ¸ë ˆì´ ì‘ì—… ì‹œì‘ ë³´ê³ ê°€ ë“¤ì–´ì˜¤ë©´ ì„ ë³„ ì‘ì—…ì„ ì‹œì‘í•œë‹¤.
 
 		if(pwork1->Color == clLime)
 		{
@@ -570,8 +592,8 @@ void __fastcall TMainForm::DisplayOpcTrayLoad(bool sourceTray)
 	{
 		ProcessStepLog(5, "Location2.TrayLoadResponse=1 / Target tray data displayed");
 		memoMainLineAdd("[FMS OPC UA] Target TrayLoadResponse=1; tray data displayed. Waiting Response=0.");
-		//* ºÒ·®Æ®·¹ÀÌ °ü¸®
-		// Location2 ¼¿ Á¤º¸°¡ Á¦°øµÇ±â Àü±îÁö ¹ÙÄÚµåº° ·ÎÄÃ ÆÄÀÏÀ» »ç¿ëÇÑ´Ù.
+		//* ë¶ˆëŸ‰íŠ¸ë ˆì´ ê´€ë¦¬
+		// Location2 ì…€ ì •ë³´ê°€ ì œê³µë˜ê¸° ì „ê¹Œì§€ ë°”ì½”ë“œë³„ ë¡œì»¬ íŒŒì¼ì„ ì‚¬ìš©í•œë‹¤.
 		int restoreResult = RestoreTargetTrayInfo(pTrayid_target->Caption, false);
 		if(restoreResult < 0){
 			if(MesOpc != NULL) MesOpc->TRAY_LOAD_CANCEL(false);
@@ -591,7 +613,7 @@ void __fastcall TMainForm::DisplayOpcTrayLoad(bool sourceTray)
 			{
 				DisplayTargetCell(-1, i);
 				DisplayTargetCellInfo(-1, i);
-				//* ºÒ·®Æ®·¹ÀÌ °ü¸®
+				//* ë¶ˆëŸ‰íŠ¸ë ˆì´ ê´€ë¦¬
 				memoGripperLineAdd("[TARGET CELL] DISPLAY RESERVATION RESTORED TargetCh=" +
 					IntToStr(i + 1) + " PICK=R");
 			}
@@ -602,7 +624,7 @@ void __fastcall TMainForm::DisplayOpcTrayLoad(bool sourceTray)
 				targetGrid->Cells[i / 24][23 - (i % 24)] = cellText;
 				pTarget_bad[i]->Caption = cellText;
 				pTarget_bad[i]->Color = clSilver;
-				//* ºÒ·®Æ®·¹ÀÌ °ü¸®
+				//* ë¶ˆëŸ‰íŠ¸ë ˆì´ ê´€ë¦¬
 				memoGripperLineAdd("[TARGET CELL] DISPLAY INSERTED NG RESTORED TargetCh=" +
 					IntToStr(i + 1) + " PICK=Y LossCode=" + loadedTray->LOSS_CD[i] +
 					" Rank=" + loadedTray->RANK[i]);
@@ -616,8 +638,8 @@ void __fastcall TMainForm::DisplayOpcTrayLoad(bool sourceTray)
 				pTarget_bad[i]->Color = clWhite;
 			}
 		}
-		//* ºÒ·®Æ®·¹ÀÌ °ü¸®
-		// »õ ¹ÙÄÚµå ¶Ç´Â ÃÊ±âÈ­ ¼±ÅÃ ½Ã ºó »óÅÂÀÇ ¹ÙÄÚµåº° ÆÄÀÏÀ» Áï½Ã »ı¼ºÇÑ´Ù.
+		//* ë¶ˆëŸ‰íŠ¸ë ˆì´ ê´€ë¦¬
+		// ìƒˆ ë°”ì½”ë“œ ë˜ëŠ” ì´ˆê¸°í™” ì„ íƒ ì‹œ ë¹ˆ ìƒíƒœì˜ ë°”ì½”ë“œë³„ íŒŒì¼ì„ ì¦‰ì‹œ ìƒì„±í•œë‹¤.
 		if(!restoredLocalTarget)
 			setTrayInfo(1);
 	}
@@ -767,7 +789,7 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 		return;
 	}
 
-	//* ºÒ·®Æ®·¹ÀÌ °ü¸®
+	//* ë¶ˆëŸ‰íŠ¸ë ˆì´ ê´€ë¦¬
 	// Ignore actual duplicate requests and protect active cell reservations.
 	// A paused IDLE sequence is NOT active sorting; the previous check treated
 	// seqPause as work and discarded the next Source cycle's Location2 request.
@@ -792,8 +814,8 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 	}
 	if(!bsrc){
 		ProcessStepLog(5, "PREPARE - load LOCAL Target tray information for FMS comparison / TrayId=" + strTray);
-		//* ºÒ·®Æ®·¹ÀÌ °ü¸®
-		// ¸ğ´Ş È®ÀÎÃ¢ÀÌ ¿­¸° µ¿¾È Å¸ÀÌ¸Ó°¡ ´Ù½Ã ½ºÄµÀ» È£ÃâÇØµµ ÁßÃ¸ ÁøÀÔÇÏÁö ¾Ê´Â´Ù.
+		//* ë¶ˆëŸ‰íŠ¸ë ˆì´ ê´€ë¦¬
+		// ëª¨ë‹¬ í™•ì¸ì°½ì´ ì—´ë¦° ë™ì•ˆ íƒ€ì´ë¨¸ê°€ ë‹¤ì‹œ ìŠ¤ìº”ì„ í˜¸ì¶œí•´ë„ ì¤‘ì²© ì§„ì…í•˜ì§€ ì•ŠëŠ”ë‹¤.
 		if(targetTrayInfoPromptActive){
 			tray = &tray_target;
 			return;
@@ -801,7 +823,7 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 		targetTrayInfoPromptActive = true;
 		int prepareResult = 0;
 		try{
-			// ¹ÙÄÚµå¸¦ ÀĞÀº Á÷ÈÄ ±âÁ¸ Á¤º¸¸¦ È®ÀÎÇÏ°í, Ãë¼Ò ½Ã FMS ¿äÃ»µµ º¸³»Áö ¾Ê´Â´Ù.
+			// ë°”ì½”ë“œë¥¼ ì½ì€ ì§í›„ ê¸°ì¡´ ì •ë³´ë¥¼ í™•ì¸í•˜ê³ , ì·¨ì†Œ ì‹œ FMS ìš”ì²­ë„ ë³´ë‚´ì§€ ì•ŠëŠ”ë‹¤.
 			// Use the dedicated FMS/LOCAL comparison dialog after TrackIn validation.
 			// Do not show the legacy Yes/No confirmation before the FMS request.
 			prepareResult = RestoreTargetTrayInfo(strTray, false);
@@ -868,14 +890,14 @@ void __fastcall TMainForm::NotifyTrayInfo(AnsiString strTray, bool bsrc)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::NotifyIdMatching_source()
 {
-	// ±¸Çü ASCII ID_MATCHING_EVENT´Â »ç¿ëÇÏÁö ¾Ê´Â´Ù.
+	// êµ¬í˜• ASCII ID_MATCHING_EVENTëŠ” ì‚¬ìš©í•˜ì§€ ì•ŠëŠ”ë‹¤.
 	mesTimer->Enabled = false;
 	memoMainLineAdd("[FMS OPC UA] Source cell information is managed by TrackIn/TrackOut.");
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::NotifyIdMatching_target(AnsiString matchingStep)
 {
-	// ±¸Çü ASCII ID_MATCHING_EVENT ´ë½Å ÇöÀç ºÒ·®Æ®·¹ÀÌ ÀüÃ¼ TrackOut Á¤º¸¸¦ °»½ÅÇÑ´Ù.
+	// êµ¬í˜• ASCII ID_MATCHING_EVENT ëŒ€ì‹  í˜„ì¬ ë¶ˆëŸ‰íŠ¸ë ˆì´ ì „ì²´ TrackOut ì •ë³´ë¥¼ ê°±ì‹ í•œë‹¤.
 	mesTimer->Enabled = false;
 	// TrackOutCellInformation is written once at Source completion or before Target unload.
 	WriteOpcUaLog("DETAIL", "Target working map saved; final TrackOut deferred. Step=" + matchingStep, false);
@@ -896,7 +918,7 @@ bool __fastcall TMainForm::ReportCellTrackOut(int sourceChannel, int targetChann
 	opcCellTrackOutMoveReleased = false;
 	if(!CheckAutomaticFmsMode("CellTrackOut"))
 		return false;
-	// ¼¿ »ğÀÔ ¿Ï·á Á÷ÈÄ ÀüÃ¼ TrackOut ¸Ê°ú ´ÜÀÏ CellTrackOut ÀÌº¥Æ®¸¦ ÇÔ²² º¸°íÇÑ´Ù.
+	// ì…€ ì‚½ì… ì™„ë£Œ ì§í›„ ì „ì²´ TrackOut ë§µê³¼ ë‹¨ì¼ CellTrackOut ì´ë²¤íŠ¸ë¥¼ í•¨ê»˜ ë³´ê³ í•œë‹¤.
 	mesTimer->Enabled = false;
 	if(MesOpc == NULL || Mod_Fms == NULL || !Mod_Fms->IsGatewayConnected()){
 		WriteOpcUaLog("ERROR", "CellTrackOut write skipped: Gateway disconnected", true);
@@ -999,7 +1021,7 @@ void __fastcall TMainForm::NotifyTransferOut(AnsiString strTray)
 {
 	if(!CheckAutomaticFmsMode("ProcessEnd/TrayUnload"))
 		return;
-	// ±¸Çü ASCII TRANSFER_OUT_EVENT´Â »ç¿ëÇÏÁö ¾Ê´Â´Ù.
+	// êµ¬í˜• ASCII TRANSFER_OUT_EVENTëŠ” ì‚¬ìš©í•˜ì§€ ì•ŠëŠ”ë‹¤.
 	mesTimer->Enabled = false;
 	if(MesOpc == NULL || Mod_Fms == NULL || !Mod_Fms->IsGatewayConnected()){
 		WriteOpcUaLog("ERROR", "OPC transfer-out report skipped: Gateway disconnected", true);
@@ -1057,12 +1079,12 @@ void __fastcall TMainForm::NotifyEquipStatus(AnsiString process)
 {
 	/*
 		<READY></READY>	                         //READY
-		<STATE></STATE>	                         //¼³ºñ »óÅÂ: AUTO / MANUAL
-		<PROCESS_STATE></PROCESS_STATE>          //¼³ºñ »óÅÂ: IDLE / PROCESS /  PAUSE / DOWN / MAINT
-		<MAINT_STATE></MAINT_STATE>              //MAINT( MAINT ¹ß»ı½Ã ) ; SET(º¸°í), CLEAR(ÇØÁ¦)
-		<MAINT_CODE> <MAINT_CODE>                //MAINT ¹ß»ı ÄÚµå  ( º¸°í, ÇØÁ¦ ¸ğµÎ Ã³¸® )
+		<STATE></STATE>	                         //ì„¤ë¹„ ìƒíƒœ: AUTO / MANUAL
+		<PROCESS_STATE></PROCESS_STATE>          //ì„¤ë¹„ ìƒíƒœ: IDLE / PROCESS /  PAUSE / DOWN / MAINT
+		<MAINT_STATE></MAINT_STATE>              //MAINT( MAINT ë°œìƒì‹œ ) ; SET(ë³´ê³ ), CLEAR(í•´ì œ)
+		<MAINT_CODE> <MAINT_CODE>                //MAINT ë°œìƒ ì½”ë“œ  ( ë³´ê³ , í•´ì œ ëª¨ë‘ ì²˜ë¦¬ )
 	 */
-	// ¼³ºñ »óÅÂ º¸°í
+	// ì„¤ë¹„ ìƒíƒœ ë³´ê³ 
 
 	AnsiString state;
 	tx->MSG_ID = "EQ_STATE_EVENT";
@@ -1084,11 +1106,11 @@ void __fastcall TMainForm::NotifyAlarm(bool alarm, AnsiString code,  bool warnin
 {
 	/*
 	<DATA>
-		 <ALM_STATE></ALM_STATE>	                         //Alarm ; ALARM_SET, ALARM_CLEAR ( °æ¾Ë¶÷ ¼³ºñ¸ğµå, ¼³ºñ»óÅÂ °ü°è¾øÀÌ ¹ß»ı )
-		 <ALM_CODE></ALM_CODE>	                         //Alarm Code ; 100, 200, 300, 400 ¡¦
-		 <ALM_TYPE></ALM_TYPE>	                         //Alarm Type ; WARNING(°æ¾Ë¶÷), ABORT(Áß¾Ë¶÷, ¼³ºñ¸ğµå DOWN ¹ß»ı)
-		 <ALM_TEXT></ALM_TEXT>	                         //Alarm Text ; DOOR OPEN ¡¦, READER ERROR ¡¦
-		 <PORT></PORT>                                                  //¾Ë¶÷¹ß»ı½Ã C/V PORT ¹øÈ£ ( C/V ¹°·ù¸¸ Æ÷ÇÔ )
+		 <ALM_STATE></ALM_STATE>	                         //Alarm ; ALARM_SET, ALARM_CLEAR ( ê²½ì•ŒëŒ ì„¤ë¹„ëª¨ë“œ, ì„¤ë¹„ìƒíƒœ ê´€ê³„ì—†ì´ ë°œìƒ )
+		 <ALM_CODE></ALM_CODE>	                         //Alarm Code ; 100, 200, 300, 400 â€¦
+		 <ALM_TYPE></ALM_TYPE>	                         //Alarm Type ; WARNING(ê²½ì•ŒëŒ), ABORT(ì¤‘ì•ŒëŒ, ì„¤ë¹„ëª¨ë“œ DOWN ë°œìƒ)
+		 <ALM_TEXT></ALM_TEXT>	                         //Alarm Text ; DOOR OPEN â€¦, READER ERROR â€¦
+		 <PORT></PORT>                                                  //ì•ŒëŒë°œìƒì‹œ C/V PORT ë²ˆí˜¸ ( C/V ë¬¼ë¥˜ë§Œ í¬í•¨ )
 
 	</DATA>
 	*/
