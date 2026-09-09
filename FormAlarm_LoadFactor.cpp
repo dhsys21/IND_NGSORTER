@@ -18,6 +18,7 @@ __fastcall Tloadfactor_AlarmForm::Tloadfactor_AlarmForm(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall Tloadfactor_AlarmForm::ShowError(AnsiString str1, AnsiString str2)
 {
+	if(MesOpc != NULL) MesOpc->SetLocalAlarm(NGSorterErrors::LoadFactor,true);
 	// Every alarm popup freezes both automatic state machines. Closing the form
 	// does not release Pause; the operator resumes after correcting the cause.
 	MainForm->pause_stopBtnClick(this);

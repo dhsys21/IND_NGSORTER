@@ -39,6 +39,7 @@ void __fastcall TMainForm::PollFmsTrouble()
 		bool changed = active && (!fmsTroublePresent || !fmsTroubleLatched || code != fmsTroubleCode);
 		bool cleared = !active && fmsTroublePresent;
 		fmsTroublePresent = active;
+		if(MesOpc != NULL) MesOpc->SetLocalAlarm(NGSorterErrors::FmsTrouble,active);
 		if(active){
 			// Latch BEFORE UI callbacks: closing a popup or clearing Status does not resume.
 			fmsTroubleLatched = true;
@@ -172,6 +173,8 @@ void __fastcall TMainForm::FailManualTrayLoad(const AnsiString &detail)
 	if(manualTrayPhase == 0 || manualTrayPhase == 4) return;
 	manualTrayRetryPhase = manualTrayPhase;
 	manualTrayPhase = 4; // Latch failure before showing modeless UI.
+	if(MesOpc != NULL) MesOpc->SetLocalAlarm(manualTrayIndex==0 ?
+		NGSorterErrors::ManualSourceLoad : NGSorterErrors::ManualTargetLoad,true);
 	if(MesOpc != NULL && manualTrayRetryPhase != 1)
 		MesOpc->TRAY_LOAD_CANCEL(manualTrayIndex == 0);
 	if(gripper != NULL) gripper->req_Pause(true);
@@ -255,6 +258,8 @@ void __fastcall TMainForm::PollManualTrayLoad()
 		memoMainLineAdd("[MANUAL FMS] Location" + IntToStr(manualTrayIndex + 1) +
 			" COMPLETE / Response=0 / data retained / no ProcessStart, centering, tray-out or motion");
 		manualTrayPhase = 0;
+		if(MesOpc != NULL) MesOpc->SetLocalAlarm(manualTrayIndex==0 ?
+			NGSorterErrors::ManualSourceLoad : NGSorterErrors::ManualTargetLoad,false);
 		manualTrayIndex = -1;
 		return;
 	}
@@ -523,6 +528,7 @@ void __fastcall TMainForm::DisplayOpcTrayLoad(bool sourceTray)
 void __fastcall TMainForm::AdvanceOpcTrayLoad(bool sourceTray)
 {
 	if(!CheckTrayLoadPresence(sourceTray)) return;
+	if(MesOpc != NULL) MesOpc->CompleteFmsAlarmStep(sourceTray ? 2 : 5);
 	int index = sourceTray ? 0 : 1;
 	int stepNo = sourceTray ? 2 : 5;
 	AnsiString locationName = sourceTray ? "Location1" : "Location2";

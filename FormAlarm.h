@@ -24,7 +24,7 @@ __published:	// IDE-managed Components
 private:	// User declarations
 public:		// User declarations
 
-	void __fastcall ShowError(AnsiString str1, UnicodeString str2);
+	void __fastcall ShowError(AnsiString str1, UnicodeString str2, bool ReportLocal = true);
 
 	__fastcall TAlarmForm(TComponent* Owner);
 };

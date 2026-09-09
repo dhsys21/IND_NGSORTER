@@ -18,6 +18,8 @@ __fastcall TErrorForm_bcr::TErrorForm_bcr(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall TErrorForm_bcr::ShowError(AnsiString str,  bool bsuccess)
 {
+	// Set on scan failure, clear on a successful rescan or discarded tray load.
+	if(MesOpc != NULL) MesOpc->SetLocalAlarm(Tag==0 ? NGSorterErrors::SourceBarcode : NGSorterErrors::TargetBarcode,!bsuccess);
 	if(bsuccess){
 		ignoreBtn->Color = pon->Color;
 		errMsg1->Caption = "[ " + str + " ] " + BaseForm->GetLangStr("MSG_COMPLETE_SCAN");
@@ -51,6 +53,7 @@ void __fastcall TErrorForm_bcr::ignoreBtnClick(TObject *Sender)
 	MainForm->memoMainLineAdd("Normal progress");
 	if(ignoreBtn->Color == clRed){
 		MainForm->CmdTrayOut(this->Tag);
+		if(MesOpc != NULL) MesOpc->SetLocalAlarm(Tag==0 ? NGSorterErrors::SourceBarcode : NGSorterErrors::TargetBarcode,false);
 	}else{
         MainForm->setBarcode(Tag, strBcr);
     }

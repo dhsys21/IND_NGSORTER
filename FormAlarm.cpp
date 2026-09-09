@@ -15,8 +15,10 @@ __fastcall TAlarmForm::TAlarmForm(TComponent* Owner)
 	this->Parent = BaseForm;
 }
 //---------------------------------------------------------------------------
-void __fastcall TAlarmForm::ShowError(AnsiString str1, UnicodeString str2)
+void __fastcall TAlarmForm::ShowError(AnsiString str1, UnicodeString str2, bool ReportLocal)
 {
+	// Native servo/system alarm popups already have their precise reported codes.
+	if(ReportLocal && MesOpc != NULL) MesOpc->SetLocalAlarm(NGSorterErrors::RobotInterlock,true);
 	robostar->req_Pause(true);
 	gripper->req_Pause(true);
 	if(this->Visible == false){
@@ -70,6 +72,7 @@ void __fastcall TAlarmForm::AdvSmoothButton5Click(TObject *Sender)
 
 void __fastcall TAlarmForm::FormHide(TObject *Sender)
 {
+	if(MesOpc != NULL) MesOpc->SetLocalAlarm(NGSorterErrors::RobotInterlock,false);
 	MainForm->BuzzerOn(false);
 	MainForm->LampModeChange(MainForm->beforeLampMode);
 }

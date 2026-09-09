@@ -18,6 +18,7 @@ __fastcall TErrorForm::TErrorForm(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall TErrorForm::ShowError(AnsiString MainStr, AnsiString SubStr, AnsiString SubStr2)
 {
+	if(MesOpc != NULL) MesOpc->SetLocalAlarm(NGSorterErrors::Sequence,true);
 	// Common automatic-sequence errors must stop motion immediately. Closing
 	// this popup does not release Pause; the existing FormMain Restart button
 	// restores the saved gripper/robot steps after the operator corrects the cause.
@@ -72,6 +73,9 @@ void __fastcall ShowCommonError(AnsiString MainStr, AnsiString SubStr1, AnsiStri
 
 void __fastcall TErrorForm::manualBtnClick(TObject *Sender)
 {
+	// Explicit acknowledgement of a generic sequence dialog; hardware and FMS
+	// alarms have separate owners and are not cleared by this button.
+	if(MesOpc != NULL) MesOpc->SetLocalAlarm(NGSorterErrors::Sequence,false);
     this->Visible = false;
 }
 //---------------------------------------------------------------------------

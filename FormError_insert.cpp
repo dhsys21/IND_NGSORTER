@@ -21,6 +21,8 @@ __fastcall TErrorForm_insert::TErrorForm_insert(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall TErrorForm_insert::ShowError(AnsiString str1, AnsiString str2, int toolNo, int mesCode)
 {
+	// Retained across Retry/Hide; cleared by insert completion or manual recovery.
+	if(MesOpc != NULL) MesOpc->SetLocalAlarm(NGSorterErrors::Insert,true);
 	errMsg1->Caption = "S_Maint_" + str1;
 	errMsg2->Caption = str2;
 

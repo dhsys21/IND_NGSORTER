@@ -210,6 +210,7 @@ void __fastcall Trobostar::req_Pause(bool stop)
 			seq = seq_save;
 			step = step_save;
 			pauseStatus = false;
+			if(MesOpc != NULL) MesOpc->SetLocalAlarm(NGSorterErrors::Motion,false);
 			MainForm->memoRobostarLineAdd("[C_Maint] [로보트]일시정지가 해제되었습니다.");
 		}
 	}
@@ -254,6 +255,7 @@ void Trobostar::MotionFault(const AnsiString &reason)
 	req_Pause(true);
 	StopAxes();
 	motionFaultLatched = true;
+	if(MesOpc != NULL) MesOpc->SetLocalAlarm(NGSorterErrors::Motion,true);
 	if(::gripper != NULL) ::gripper->req_Pause(true);
 	if(first){
 		MainForm->memoRobostarLineAdd("[MOTION STOP] " + reason);
@@ -1987,6 +1989,8 @@ void __fastcall Trobostar::req_Stop()
 	int sts = 0;
 	for(int a = 1; a <= servoCnt; ++a) acceptedMove[a] = false;
 	motionFaultLatched = false;
+	// req_Stop cancels this motion sequence; physical faults retain their owners.
+	if(MesOpc != NULL) MesOpc->SetLocalAlarm(NGSorterErrors::Motion,false);
 	pauseStatus = false;
 	seq_save = seqIdle;
 	activeMoveValid = false;
@@ -2686,12 +2690,34 @@ void __fastcall Trobostar::mr2Sensing()
 
 	switch(seq){
 		case 0:
-			sscGetSystemStatusCode(board_id, channel_id, &mr2.system_status);
-			sscGetAlarm(board_id, channel_id, 0, SSC_ALARM_SYSTEM, &mr2.system_alarm, &mr2.system_detail);
+			if(sscGetSystemStatusCode(board_id, channel_id, &mr2.system_status)==SSC_OK){
+				if(MesOpc != NULL){
+					// E*** is a system STATUS code, distinct from sscGetAlarm's system alarm.
+					MesOpc->SetEquipmentAlarm("Board:SystemError",NGSorterErrors::SystemErrorCode(mr2.system_status));
+					MesOpc->SetEquipmentAlarm("Board:StatusRead",0);
+				}
+			}else if(MesOpc != NULL) MesOpc->SetEquipmentAlarm("Board:StatusRead",NGSorterErrors::Encode(50,NGSorterErrors::ServoNotRunning));
+			// Failed reads preserve the last confirmed alarm; never report false recovery.
+			if(sscGetAlarm(board_id, channel_id, 0, SSC_ALARM_SYSTEM, &mr2.system_alarm, &mr2.system_detail) == SSC_OK){
+				if(MesOpc != NULL){
+					MesOpc->SetEquipmentAlarm("Board:System", NGSorterErrors::Encode(10,mr2.system_alarm));
+					MesOpc->SetLocalAlarm(NGSorterErrors::ServoNotRunning, false);
+				}
+			}else if(MesOpc != NULL) MesOpc->SetLocalAlarm(NGSorterErrors::ServoNotRunning, true);
 					// 서보 알람 정보
 			for(int i=1; i<=servoCnt; ++i){
-				sscGetAlarm(board_id, channel_id, i, SSC_ALARM_SERVO, &mr2.servo_alarm[i], &mr2.servo_detail[i]);
-				sscGetAlarm(board_id, channel_id, i, SSC_ALARM_OPERATION, &mr2.oper_alarm[i], &mr2.oper_detail[i]);
+				if(sscGetAlarm(board_id, channel_id, i, SSC_ALARM_SERVO, &mr2.servo_alarm[i], &mr2.servo_detail[i]) == SSC_OK){
+					if(MesOpc != NULL){
+						MesOpc->SetEquipmentAlarm("AxisServo:"+IntToStr(i), NGSorterErrors::Encode(20,mr2.servo_alarm[i]));
+						MesOpc->SetEquipmentAlarm("AxisServoRead:"+IntToStr(i),0);
+					}
+				}else if(MesOpc != NULL) MesOpc->SetEquipmentAlarm("AxisServoRead:"+IntToStr(i),NGSorterErrors::Encode(50,NGSorterErrors::ServoNotRunning));
+				if(sscGetAlarm(board_id, channel_id, i, SSC_ALARM_OPERATION, &mr2.oper_alarm[i], &mr2.oper_detail[i]) == SSC_OK){
+					if(MesOpc != NULL){
+						MesOpc->SetEquipmentAlarm("AxisOperation:"+IntToStr(i), NGSorterErrors::Encode(30,mr2.oper_alarm[i]));
+						MesOpc->SetEquipmentAlarm("AxisOperationRead:"+IntToStr(i),0);
+					}
+				}else if(MesOpc != NULL) MesOpc->SetEquipmentAlarm("AxisOperationRead:"+IntToStr(i),NGSorterErrors::Encode(50,NGSorterErrors::ServoNotRunning));
 			}
 			break;
 		case 1:

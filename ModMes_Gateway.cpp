@@ -837,6 +837,22 @@ bool __fastcall TMod_Fms::ValidateJsonValue(const TFmsTagDefinition &Definition,
 
 	UnicodeString DataType = Definition.DataType.UpperCase();
 	UnicodeString Text = Value->ToString().Trim().LowerCase();
+	// Trouble.ErrorNo is a UInt32 array, not a scalar numeric JSON token.
+	if(Definition.ValueRank==1 && DataType==L"UINT32"){
+		TJSONArray *values=dynamic_cast<TJSONArray*>(Value);
+		if(values==NULL) return false;
+		for(int i=0;i<values->Count;++i){
+			UnicodeString number=values->Items[i]->ToString();
+			unsigned __int64 parsed=0;
+			if(number.IsEmpty()) return false;
+			for(int c=1;c<=number.Length();++c){
+				if(number[c]<L'0' || number[c]>L'9') return false;
+				parsed=parsed*10+(number[c]-L'0');
+				if(parsed>4294967295ULL) return false;
+			}
+		}
+		return true;
+	}
 
 	if (DataType == L"BOOLEAN")
 		return Text == L"true" || Text == L"false";
@@ -1175,6 +1191,20 @@ bool TMod_Fms::IsPcTagWriteComplete(const UnicodeString &Key, const UnicodeStrin
 		FPendingPcTags.find(key) == FPendingPcTags.end() &&
 		FInFlightPcTags.find(key) == FInFlightPcTags.end();
 }
+void TMod_Fms::SetPcEquipmentStatus(bool Power, int Mode, int Status,
+	const UnicodeString &Errors, const UnicodeString &FirstError)
+{
+	// One lock includes the error array, status and pending queue commit.
+	TLockGuard Guard(FLock);
+	UnicodeString prefix=L"NGS.F1NGS01.EquipmentStatus";
+	SetPcTagJson(prefix+L".Trouble.ErrorNo", Errors);
+	SetPcTagJson(prefix+L".Trouble.ErrorLevel", FirstError);
+	SetPcTag(prefix+L".Power", Power);
+	SetPcTag(prefix+L".Mode", Mode);
+	SetPcTag(prefix+L".Status", Status);
+	FlushPendingPcTags(false);
+}
+//---------------------------------------------------------------------------
 void TMod_Fms::SetPcEnvStatus(const UnicodeString &Prefix, double Temperature,
 	bool Smoke, bool Warning, bool Danger, bool Running)
 {

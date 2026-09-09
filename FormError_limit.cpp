@@ -18,6 +18,7 @@ __fastcall TErrorForm_limit::TErrorForm_limit(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall TErrorForm_limit::ShowError()
 {
+	if(MesOpc != NULL) MesOpc->SetLocalAlarm(NGSorterErrors::NgLimit,true);
 
 	// Freeze robot and gripper before presenting the NG limit recovery choices.
 	MainForm->pause_stopBtnClick(this);
@@ -60,6 +61,7 @@ void __fastcall TErrorForm_limit::AdvSmoothButton5Click(TObject *Sender)
 
 void __fastcall TErrorForm_limit::FormHide(TObject *Sender)
 {
+	if(MesOpc != NULL) MesOpc->SetLocalAlarm(NGSorterErrors::NgLimit,false);
 	MainForm->NotifyAlarm(false, 24);
 	MainForm->BuzzerOn(false);
 	MainForm->LampModeChange(MainForm->beforeLampMode);

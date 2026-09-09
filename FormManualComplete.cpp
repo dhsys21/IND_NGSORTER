@@ -137,6 +137,7 @@ void TManualCompleteForm::RefreshControls()
 }
 void TManualCompleteForm::Fail(const UnicodeString &message)
 {
+	if(MesOpc != NULL) MesOpc->SetLocalAlarm(NGSorterErrors::ManualRecovery,true);
     if(phase == mcMoving && robostar != NULL) robostar->req_Pause(true);
     polling = false;
     lblStatus->Caption = message;
@@ -308,6 +309,7 @@ void __fastcall TManualCompleteForm::pollTimerTimer(TObject *Sender)
             ErrorForm_insert->Hide();
             ModalResult = mrOk;
             MainForm->ResumeAfterManualCellCompletion();
+			if(MesOpc != NULL) MesOpc->SetLocalAlarm(NGSorterErrors::ManualRecovery,false);
             return;
         }
         if(GetTickCount()-started > 120000){
@@ -351,6 +353,10 @@ void __fastcall TManualCompleteForm::pollTimerTimer(TObject *Sender)
             phase = mcReady;
             if(!SaveJournal()) return;
             MesOpc->CLEAR_CELL_TRACK_OUT_DATA();
+			MesOpc->SetLocalAlarm(NGSorterErrors::ManualRecovery,false);
+			MesOpc->SetLocalAlarm(NGSorterErrors::Eject,false);
+			MesOpc->SetLocalAlarm(NGSorterErrors::Insert,false);
+			MesOpc->SetLocalAlarm(NGSorterErrors::FmsCellTrackOut,false);
             polling = false;
             lblStatus->Caption = RecoveryText("MSG_MC_READY");
             MainForm->WriteOpcUaLog("EVENT", "[MANUAL COMPLETE] CellTrackOut handshake complete CellId=" + cellId, true);

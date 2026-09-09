@@ -23,6 +23,8 @@ __fastcall TErrorForm_eject::TErrorForm_eject(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall TErrorForm_eject::ShowError(AnsiString str1, AnsiString str2, int toolNo, int mesCode)
 {
+	// Retained across Retry/Hide; cleared by pickup completion or manual recovery.
+	if(MesOpc != NULL) MesOpc->SetLocalAlarm(NGSorterErrors::Eject,true);
 
 	errMsg1->Caption = str1;
 	errMsg2->Caption = str2;

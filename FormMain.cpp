@@ -369,6 +369,11 @@ void __fastcall TMainForm::BeginProcessStep(int stepNo, AnsiString detail)
 void __fastcall TMainForm::CompleteProcessStep(int stepNo, AnsiString detail)
 {
 	if(stepNo < 1 || stepNo > 16) return;
+	if(MesOpc != NULL){
+		MesOpc->CompleteFmsAlarmStep(stepNo);
+		if(stepNo==9) MesOpc->SetLocalAlarm(NGSorterErrors::Eject,false);
+		if(stepNo==11) MesOpc->SetLocalAlarm(NGSorterErrors::Insert,false);
+	}
 	processStepComplete[stepNo - 1] = true;
 	currentProcessStep = stepNo;
 	if(detail.IsEmpty()) currentProcessDetail = "COMPLETE";
@@ -1039,6 +1044,10 @@ void __fastcall TMainForm::pause_startBtnClick(TObject *Sender)
 			robostar->req_Pause(false);
 			if(robostar->pauseStatus) return;
 			gripper->req_Pause(false);
+			if(MesOpc != NULL && !gripper->pauseStatus){
+				MesOpc->SetLocalAlarm(NGSorterErrors::Sequence,false);
+				MesOpc->SetLocalAlarm(NGSorterErrors::Motion,false);
+			}
 			// TRAY LOAD RESTART: recover the previously lost Target request only
 			// at pre-sort IDLE. Do not reinitialize a pickup/insert or retry an
 			// outstanding handshake; those paths retain their own state.
@@ -1221,6 +1230,8 @@ void __fastcall TMainForm::ShowFmsAlarm(TFmsAlarmTransaction Transaction,
 		return;
 
 	fmsAlarmTransaction = Transaction;
+	// Set on failure; CompleteProcessStep clears only after the full handshake.
+	if(MesOpc != NULL) MesOpc->SetLocalAlarm(300+(int)Transaction,true);
 	fmsAlarmRetryRequested = false;
 	fmsAlarmRetryStartTick = 0;
 	// Preserve the acknowledged phase BEFORE Cancel clears its working flags.
@@ -1570,6 +1581,10 @@ void __fastcall TMainForm::SuspendAutomaticFmsSequence()
 void __fastcall TMainForm::ResetTrayLoadTransaction(bool sourceTray)
 {
 	int i = sourceTray ? 0 : 1;
+	if(MesOpc != NULL){
+		MesOpc->SetLocalAlarm(sourceTray ? NGSorterErrors::FmsSourceLoad : NGSorterErrors::FmsTargetLoad,false);
+		MesOpc->SetLocalAlarm(sourceTray ? NGSorterErrors::SourceBarcode : NGSorterErrors::TargetBarcode,false);
+	}
 	if(MesOpc != NULL) MesOpc->TRAY_LOAD_CANCEL(sourceTray);
 	opcTrayLoadPending[i] = false;
 	opcTrayLoadWaitResponseOff[i] = false;
@@ -3223,13 +3238,35 @@ void __fastcall TMainForm::btnCloseIoPanelClick(TObject *Sender)
 void __fastcall TMainForm::UpdateFmsEquipmentStatus()
 {
 	if(MesOpc == NULL) return;
+	// Fresh hardware values alone can clear hardware faults. A lost connection
+	// retains the last confirmed fault and adds a communication alarm.
+	static bool ccWasReady=false, plcWasReady=false;
+	bool ccReady=robostar != NULL && robostar->IsCcLinkReady();
+	if(ccReady) ccWasReady=true;
+	if(ccWasReady) MesOpc->SetLocalAlarm(NGSorterErrors::CcLink,!ccReady);
+	if(ccReady){
+		MesOpc->SetLocalAlarm(NGSorterErrors::Door1,robostar->IsSafetyDoorOpen(1));
+		MesOpc->SetLocalAlarm(NGSorterErrors::Door2,robostar->IsSafetyDoorOpen(2));
+		MesOpc->SetLocalAlarm(NGSorterErrors::Emergency,robostar->IsEmergencyStopActive());
+		MesOpc->SetLocalAlarm(NGSorterErrors::Buffer,robostar->input.GRIPPER1_BUFFER != 0);
+		if(robostar->IsKeyLockActive()) MesOpc->SetLocalAlarm(NGSorterErrors::KeyLock,false);
+		else if(equipMode == modeAuto) MesOpc->SetLocalAlarm(NGSorterErrors::KeyLock,true);
+	}
+	bool plcReady=PlcBin != NULL && PlcBin->IsPlcStatusFresh(1000);
+	if(plcReady) plcWasReady=true;
+	if(plcWasReady) MesOpc->SetLocalAlarm(NGSorterErrors::PlcCommunication,!plcReady);
+	if(plcReady) MesOpc->SetLocalAlarm(NGSorterErrors::PlcError,PlcBin->IsPlcError());
+	if(robostar != NULL && robostar->IsSscOpened() && loadfactorForm != NULL){
+		bool overload=false;
+		for(int axis=1;axis<=servoCnt;++axis)
+			if(robostar->mr2.mondata[axis][0]>loadfactorForm->m_SetLimit) overload=true;
+		if(!overload) MesOpc->SetLocalAlarm(NGSorterErrors::LoadFactor,false);
+	}
 	int mode = equipMode == modeManual ? 1 : 2;
 	int status = 1;
 	// Priority: machine trouble > paused > active operation > idle.
-	if(nowLampMode == LampAlarm || nowLampMode == LampEmergency ||
-		(robostar != NULL && robostar->IsEmergencyStopActive()))
-		status = 4;
-	else if((gripper != NULL && gripper->pauseStatus) ||
+	// TMesOpc applies Trouble from the complete active-alarm registry.
+	if((gripper != NULL && gripper->pauseStatus) ||
 		(robostar != NULL && robostar->pauseStatus))
 		status = 8;
 	else if((gripper != NULL && gripper->seq != seqIdle) ||
@@ -3501,7 +3538,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	if(gripper->pauseStatus)ppause->Color = clRed;
 	else ppause->Color = clSilver;
 
-	if(NGflag) AlarmForm->ShowError(BaseForm->GetLangStr("MSG_ROBOT_ALARM") + " (Error Code : " +  perr->Caption + ")", "Please RESET.");
+	if(NGflag) AlarmForm->ShowError(BaseForm->GetLangStr("MSG_ROBOT_ALARM") + " (Error Code : " +  perr->Caption + ")", "Please RESET.", false);
 	else
 	{
         perr->Caption = "";
@@ -3925,6 +3962,12 @@ void __fastcall TMainForm::AdvSmoothToggleButton_InitWorkClick(TObject *Sender)
 			ResetTrayLoadTransaction(true);
 			ResetTrayLoadTransaction(false);
 			if(MesOpc != NULL) MesOpc->PROCESS_START_CANCEL();
+			if(MesOpc != NULL){
+				MesOpc->SetLocalAlarm(NGSorterErrors::FmsProcessStart,false);
+				MesOpc->SetLocalAlarm(NGSorterErrors::Sequence,false);
+				MesOpc->SetLocalAlarm(NGSorterErrors::Eject,false);
+				MesOpc->SetLocalAlarm(NGSorterErrors::Insert,false);
+			}
 			opcProcessStartPending = opcProcessStartWaitResponseOff = false;
 			opcProcessStartResponseOffError = false;
 			opcProcessStartResponseResult = 0;

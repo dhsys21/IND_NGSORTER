@@ -4,6 +4,7 @@
 #define ModMes_OPCUAH
 //---------------------------------------------------------------------------
 #include <System.Classes.hpp>
+#include "NGSorterErrors.h"
 //---------------------------------------------------------------------------
 class TMesOpc : public TDataModule
 {
@@ -21,6 +22,9 @@ private:	// User declarations
 	bool FLastEquipmentPower;
 	int FLastEquipmentMode;
 	int FLastEquipmentStatus;
+	int FRequestedEquipmentStatus;
+	NGSorterErrors::ActiveAlarms FActiveAlarms;
+	std::string FLastAlarmJson;
 	bool FPowerMeterInitialized;
 	double FLastMeterVoltage, FLastMeterCurrent, FLastMeterPower, FLastMeterEnergy;
 	bool FEnvStatusInitialized;
@@ -41,6 +45,9 @@ public:		// User declarations
 	__fastcall TMesOpc(TComponent* Owner);
     void __fastcall Shutdown();
 	void __fastcall PublishEquipmentStatus(bool Power, int Mode, int Status);
+	void SetEquipmentAlarm(const AnsiString &Owner, unsigned long Code);
+	void SetLocalAlarm(int Code, bool Active);
+	void CompleteFmsAlarmStep(int Step);
 	void __fastcall PublishPowerMeter(double Voltage, double Current, double Power, double Energy);
 	// Publishes one coherent TSD-V50 state through F1NGS01.EnvStatus EQP-only tags.
 	void __fastcall PublishEnvStatus(double Temperature, bool SmokeDetected,

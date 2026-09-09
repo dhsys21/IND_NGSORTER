@@ -823,6 +823,7 @@ __fastcall TMesOpc::TMesOpc(TComponent* Owner)
 	  FLastEquipmentPower(false),
 	  FLastEquipmentMode(1),
 	  FLastEquipmentStatus(1),
+	  FRequestedEquipmentStatus(1),
 	  FPowerMeterInitialized(false),
 	  FLastMeterVoltage(0.0), FLastMeterCurrent(0.0),
 	  FLastMeterPower(0.0), FLastMeterEnergy(0.0),
@@ -874,16 +875,37 @@ void __fastcall TMesOpc::Shutdown()
 void __fastcall TMesOpc::PublishEquipmentStatus(bool Power, int Mode, int Status)
 {
 	if(Mod_Fms == NULL || (FShutdown && Power)) return;
+	FRequestedEquipmentStatus = Status;
+	Status = FActiveAlarms.Status(Status);
+	std::string alarms = FActiveAlarms.Json();
 	if(FEquipmentStatusInitialized && FLastEquipmentPower == Power &&
-		FLastEquipmentMode == Mode && FLastEquipmentStatus == Status) return;
-	Mod_Fms->SetPcTag(L"NGS.F1NGS01.EquipmentStatus.Power", Power);
-	Mod_Fms->SetPcTag(L"NGS.F1NGS01.EquipmentStatus.Mode", Mode);
-	Mod_Fms->SetPcTag(L"NGS.F1NGS01.EquipmentStatus.Status", Status);
-	Mod_Fms->FlushPendingPcTags(false);
+		FLastEquipmentMode == Mode && FLastEquipmentStatus == Status && FLastAlarmJson == alarms) return;
+	std::ostringstream first;
+	first << FActiveAlarms.First(); // UInt32: do not cast prefixed codes to signed int.
+	Mod_Fms->SetPcEquipmentStatus(Power, Mode, Status,
+		UnicodeString(alarms.c_str()), UnicodeString(first.str().c_str()));
+	FLastAlarmJson = alarms;
 	FLastEquipmentPower = Power;
 	FLastEquipmentMode = Mode;
 	FLastEquipmentStatus = Status;
 	FEquipmentStatusInitialized = true;
+}
+// Main-thread producers only. FMS popup Close never clears a transaction alarm.
+void TMesOpc::SetEquipmentAlarm(const AnsiString &Owner, unsigned long Code)
+{
+	if(FShutdown) return;
+	if(FActiveAlarms.Set(std::string(Owner.c_str()), Code))
+		PublishEquipmentStatus(true, FLastEquipmentMode, FRequestedEquipmentStatus);
+}
+void TMesOpc::SetLocalAlarm(int Code, bool Active)
+{
+	SetEquipmentAlarm("Local:" + IntToStr(Code), Active ? NGSorterErrors::Encode(50,Code) : 0);
+}
+void TMesOpc::CompleteFmsAlarmStep(int Step)
+{
+	for(int transaction=1;transaction<=6;++transaction)
+		if(NGSorterErrors::TransactionStep(transaction)==Step)
+			SetLocalAlarm(300+transaction,false);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMesOpc::PublishPowerMeter(double Voltage, double Current, double Power, double Energy)
