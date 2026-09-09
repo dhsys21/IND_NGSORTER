@@ -134,7 +134,7 @@ void __fastcall TBaseForm::ClockTimerTimer(TObject *Sender)
 	btnSafetyReset->Color = robostar->gripper.SAFETY_RESET ? clLime : clWhite;
 
 	if(dt.FormatString("hhnn") == "0700") {
-		DeleteDay = 90;	// 12½Ã°¡ µÇ¸é DeleteDay¸¦ 90À¸·Î ÃÊ±âÈ­
+		DeleteDay = 90;	// 12ì‹œê°€ ë˜ë©´ DeleteDayë¥¼ 90ìœ¼ë¡œ ì´ˆê¸°í™”
 	}
 }
 //---------------------------------------------------------------------------
@@ -173,15 +173,15 @@ void __fastcall TBaseForm::FileDeleteTimerTimer(TObject *Sender)
 
 	TDateTime  dt;
 
-	// 1½Ã°£¿¡ ÆÄÀÏ ÇÏ³ª¾¿ »èÁ¦
+	// 1ì‹œê°„ì— íŒŒì¼ í•˜ë‚˜ì”© ì‚­ì œ
 
 	dt = Now() - DeleteDay;
 	switch(DeleteIndex){
-	case 0:   // IMS ·Î±×
+	case 0:   // IMS ë¡œê·¸
 		DeleteLogFolder((AnsiString)SOCK_LOG + dt.FormatString("yymmdd"));
 		DeleteIndex +=3;
 		break;
-	case 1:   // COMM ·Î±×
+	case 1:   // COMM ë¡œê·¸
 //		DeleteLogFolder((AnsiString)COMM_LOG + dt.FormatString("yymmdd"));
 		DeleteIndex +=1;
 		break;
@@ -193,7 +193,7 @@ void __fastcall TBaseForm::FileDeleteTimerTimer(TObject *Sender)
 		DeleteLogFile((AnsiString)ERROR_LOG + "ERROR_" + dt.FormatString("yymmdd") + ".log");
 		DeleteIndex += 1;
 		break;
-	case 4:    // °Ë»ç°á°ú ÆÄÀÏ
+	case 4:    // ê²€ì‚¬ê²°ê³¼ íŒŒì¼
 		DeleteLogFile((AnsiString)PROG_LOG + "STATUS_" + dt.FormatString("yymmdd") + ".log");
 		DeleteIndex = 0;
 		DeleteDay += 1;
@@ -294,7 +294,7 @@ void __fastcall TBaseForm::btnSafetyResetClick(TObject *Sender)
 		ShowMessage(GetLangStr("MSG_CCLINK_NOT_CONNECTED"));
 }
 //---------------------------------------------------------------------------
-//--------------------     ¾ð¾î º¯°æ          -------------------------------
+//--------------------     ì–¸ì–´ ë³€ê²½          -------------------------------
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::RadioButton1Click(TObject *Sender)
 {
@@ -312,7 +312,7 @@ void __fastcall TBaseForm::RadioButton1Click(TObject *Sender)
 //---------------------------------------------------------------------------
 UnicodeString __fastcall TBaseForm::GetLangStr(AnsiString key)
 {
-    // ÀÌ¹Ì ¸Þ¸ð¸®¿¡ ·ÎµåµÈ LangDict¿¡¼­ °ª¸¸ Ã£¾Æ¼­ ¹ÝÈ¯ (¸Å¿ì ºü¸§)
+    // ì´ë¯¸ ë©”ëª¨ë¦¬ì— ë¡œë“œëœ LangDictì—ì„œ ê°’ë§Œ ì°¾ì•„ì„œ ë°˜í™˜ (ë§¤ìš° ë¹ ë¦„)
     UnicodeString value = LangDict->Values[key];
 	value = StringReplace(value, L"\\r\\n", L"\r\n", TReplaceFlags() << rfReplaceAll);
     return value.IsEmpty() ? L" - " + key : value;

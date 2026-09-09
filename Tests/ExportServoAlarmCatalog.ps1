@@ -28,10 +28,13 @@ foreach($group in 1..4){
   $code=$rows[$i]
   $payload=$code
   if($group -eq 4){$payload=$payload.Substring(1)}
-  $number='40000256..40000511'
+  $number='40256..40511'
   if($payload -match '^[0-9A-F]+$'){
    $raw=[Convert]::ToUInt32($payload,16)
-   $number=([uint32]($group*10000000+$raw)).ToString()
+   # Same compact encoding as NGSorterErrors::Encode: minimum 3 payload digits.
+   $scale=1000L
+   while($raw -ge $scale){$scale *= 10L}
+   $number=([uint32]($group*10*$scale+$raw)).ToString()
   }elseif($group -ne 4 -or $code[1] -ne '1'){throw ('Unrecognized code: '+$code)}
   $code=$code.Replace([string][char]9633,'?')
   $description=$rows[$count+$i].Replace('|','/').Replace([string][char]8211,'-')

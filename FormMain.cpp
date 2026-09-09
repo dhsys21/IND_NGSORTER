@@ -73,6 +73,8 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	//* depend only on the Designer/DFM event metadata.
 	if(btnDryRun != NULL)
 		btnDryRun->OnClick = btnDryRunClick;
+	if(btnTrayStepInit != NULL)
+		btnTrayStepInit->OnClick = btnTrayStepInitClick;
 
 	MakePanel();
 	MakePanel_TargetTray();
@@ -4038,7 +4040,10 @@ void __fastcall TMainForm::lblTitleClick(TObject *Sender)
 
 	//* DRY RUN : Use the same hidden commissioning access as Door/Auto and Cycle Test.
 	btnDryRun->Visible = showTestOptions;
+	btnTrayStepInit->Visible = showTestOptions;
 	if(showTestOptions){
+		btnTrayStepInit->Enabled = true;
+		btnTrayStepInit->BringToFront();
 		btnDryRun->Enabled = true;
 		btnDryRun->BringToFront();
 	}
@@ -4046,5 +4051,88 @@ void __fastcall TMainForm::lblTitleClick(TObject *Sender)
 		chkDoorPlcAuto->Checked = false;
 		cbCycle->Checked = false;
 	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::btnTrayStepInitClick(TObject *Sender)
+{
+	// ========================================================================
+	//* TRAY STEP INIT 2026-09-09: operator-only reset of BOTH tray sequences.
+	// Not EMG/cell recovery. Never discard held cells, active transfers, pending
+	// result reports or tray files. MANUAL prevents automatic re-admission while
+	// retiring delayed Tray Out and clearing the D10154/D10155 interlock owner.
+	// ========================================================================
+	if(equipMode != modeManual || gripper == NULL || robostar == NULL ||
+		!robostar->IsCcLinkReady() || !robostar->AreAxesStopped() ||
+		robostar->getCellDetectStatus() || gripper->IsSortingWorkActive() ||
+		(robostar->seq != seqIdle && robostar->seq != seqPause) ||
+		(robostar->pauseStatus && robostar->seq_save != seqIdle) ||
+		(DryRunForm != NULL && DryRunForm->IsRunning()) ||
+		(ManualCompleteForm != NULL && ManualCompleteForm->IsBlocking())){
+		memoMainLineAdd("[TRAY STEP INIT] BLOCKED / requires MANUAL, stopped axes, no held cell and no active cell work/recovery.");
+		ShowMessage(L"Select MANUAL and stop all motion before INIT.\r\nComplete any held-cell / eject / insert recovery first.");
+		return;
+	}
+	if(manualFmsPolling || IsTargetTrayExchangeActive() ||
+		opcCellTrackOutPending || opcProcessEndPending || opcTargetUnloadPending ||
+		!opcFinalTrackOutTrayId.IsEmpty() || traySavePending[0] || traySavePending[1] ||
+		fmsAlarmTransaction == fmsAlarmCellTrackOut ||
+		fmsAlarmTransaction == fmsAlarmProcessEnd || fmsAlarmTransaction == fmsAlarmTrayUnload){
+		memoMainLineAdd("[TRAY STEP INIT] BLOCKED / actual result report, target exchange, data dialog or tray save is pending.");
+		ShowMessage(L"Finish the pending result report, target exchange or tray save before INIT.\r\nClose any tray data selection dialog first.");
+		return;
+	}
+	// No modal dialog here: it could pump the Tray Out timer while awaiting Yes.
+	// The hidden button is the explicit reset command; all guards precede writes.
+	int sourceStep = step[0].step;
+	int targetStep = step[1].step;
+	if(sourceTrayOutTimer != NULL) sourceTrayOutTimer->Enabled = false;
+	sourceTrayOutPending = false;
+	if(opcMesTimer != NULL) opcMesTimer->Enabled = false;
+	manualTrayPhase = manualTrayRetryPhase = manualTrayResult = 0;
+	manualTrayIndex = -1;
+	manualTrayTick = 0;
+	manualTrayWaitLog = "";
+	manualTraySessionUsed = false;
+	for(int i = 0; i < 2; ++i){
+		if(comBcr[i] != NULL) comBcr[i]->CancelScan();
+		ResetTrayLoadTransaction(i == 0);
+		InitStep(&step[i]);
+		SetTrayLoadBypassDisplay(i == 0, 0);
+	}
+	if(MesOpc != NULL){
+		MesOpc->PROCESS_START_CANCEL();
+		MesOpc->SetLocalAlarm(NGSorterErrors::FmsProcessStart, false);
+		MesOpc->SetLocalAlarm(NGSorterErrors::ManualSourceLoad, false);
+		MesOpc->SetLocalAlarm(NGSorterErrors::ManualTargetLoad, false);
+	}
+	opcProcessStartPending = opcProcessStartWaitResponseOff = opcProcessStartResponseOffError = false;
+	opcProcessStartResponseResult = 0;
+	opcProcessStartTick = 0;
+	opcProcessStarted = opcSortingStartPending = opcSortingStartWaitError = false;
+	opcSortingStartTick = 0;
+	opcFmsSuspendedByManual = false;
+	fmsAlarmTransaction = fmsAlarmNone;
+	fmsAlarmRetryRequested = fmsAlarmAwaitingReset = false;
+	fmsAlarmAcceptedResult = 0;
+	fmsAlarmRetryStartTick = 0;
+	if(AlarmForm_fms != NULL && !fmsTroubleLatched) AlarmForm_fms->Hide();
+	if(ErrorForm_bcr != NULL) ErrorForm_bcr->Hide();
+	// OFF ordering is deliberate: never allow centering and tray-out together.
+	if(PlcBin != NULL){
+		PlcBin->CmdSourceCenteringRequest(false);
+		PlcBin->CmdSourceTrayOut(false); // Also releases the stale Tray Out latch.
+		PlcBin->CmdTargetTrayOut(false);
+	}
+	sourceTrayCycleAdmitted = sourceCenteringCompleted = false;
+	targetTrayInfoDeletePending = targetTrayInfoWasCentered = false;
+	sourceTrayResultActive = false;
+	sourceTrayInTimeSet = sourceSortStartTimeSet = sourceSortEndTimeSet = sourceTrayOutTimeSet = false;
+	pwork1->Color = clSilver;
+	pwork2->Color = clSilver;
+	lastIdleWaitStatus = "";
+	ResetProcessFlow();
+	memoMainLineAdd("[TRAY STEP INIT] Source=" + IntToStr(sourceStep) + "->0 / Target=" +
+		IntToStr(targetStep) + "->0 / delayed Tray Out cancelled / D10154,D10155,D10156 requested OFF / "
+		"TrayLoad and ProcessStart reset / tray cell records retained / MANUAL and safety Pause retained / select AUTO and START for a new admission.");
 }
 //---------------------------------------------------------------------------

@@ -5,11 +5,14 @@
 #include <sstream>
 
 namespace NGSorterErrors {
-// Decimal category prefix + at least six decimal payload digits.
+// FMS ERROR CODE 2026-09-09: category + at least three decimal payload digits.
+// Remove the old three padding zeros: 50 + 307 = 50307 (previously 50000307).
+// Payloads >= 1000 keep every digit (E40Bh -> 40 + 1035 = 401035).
+// Both ErrorNo and ErrorLevel use this value; incoming FMS ErrorNo is unchanged.
 inline unsigned long Encode(unsigned int category, unsigned long raw) {
     if(raw == 0) return 0;
     if(category!=10 && category!=20 && category!=30 && category!=40 && category!=50) return 0;
-    unsigned long scale=1000000UL;
+    unsigned long scale=1000UL;
     while(raw >= scale) {
         if(scale > 100000000UL) return 0;
         scale *= 10UL;

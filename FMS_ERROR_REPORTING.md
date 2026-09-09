@@ -13,7 +13,7 @@ different FMS transaction's retry. A changed ErrorNo or a new ON after OFF requi
 a fresh operator acknowledgement. Closing the popup alone never resumes work.
 
 Acknowledgement does not write FMS Status/ErrorNo, clear the published equipment
-alarm, fabricate FMS responses, or bypass physical interlocks. The 50000307 code
+alarm, fabricate FMS responses, or bypass physical interlocks. The 50307 code
 remains until a valid connected FMS snapshot confirms Status=OFF. Missing data and
 request/response failures retain their existing timeout/retry handling.
 
@@ -25,7 +25,7 @@ The three EQP-only tags under `F1NGS01.EquipmentStatus` are published together:
 - `Trouble.ErrorLevel`: the first complete ErrorNo value; 0 when no errors remain. This is NOT severity 1/2/4 or the first digit of a code.
 - `Status`: 4 while any registered error remains. Otherwise 8 for Pause, 2 for active work, 1 for Idle. Clearing an alarm does not automatically restart motion.
 
-Example: `ErrorNo=[20000026,50000121]`, `ErrorLevel=20000026`, `Status=4`.
+Example: `ErrorNo=[20026,50121]`, `ErrorLevel=20026`, `Status=4`.
 After both recover: `ErrorNo=[]`, `ErrorLevel=0`, and the current normal Status.
 Unchanged snapshots are not repeatedly queued. The Gateway lock covers all fields and the pending-queue commit.
 
@@ -33,17 +33,25 @@ Gateway configuration: `D:\OpcUaGateway_IND\CONFIG\NGSORTER.Config.xml`.
 `ErrorNo` uses ValueRank=1 / ArrayDimensions=0 (variable length). ErrorLevel documentation now specifies the first code.
 Reload/restart the Gateway to apply XML changes. The FMS consumer must use this revised contract, not the old fixed-20-array / severity convention.
 
+## Compact codes (2026-09-09 006)
+
+The outbound code format changed from six to three minimum payload digits.
+For example, old `50000307` is now `50307`, and old `20000026` is now `20026`.
+The FMS consumer must update its code lookup table at deployment. The UInt32 types,
+array handling, alarm lifetimes and incoming FMS Trouble codes are unchanged.
+
 ## Code Encoding
 
-Two decimal category digits plus a minimum six-digit decimal payload:
+Two decimal category digits plus a minimum three-digit decimal payload.
+Values >= 1000 retain all payload digits (for example 40 + 1035 = 401035), not a fixed three-digit truncation:
 
 | Category | Source | Example |
 | --- | --- | --- |
-| 10 | `sscGetAlarm`, SSC_ALARM_SYSTEM | 35h -> 10000053 |
-| 20 | `sscGetAlarm`, SSC_ALARM_SERVO, all configured axes | 1Ah -> 20000026 |
-| 30 | `sscGetAlarm`, SSC_ALARM_OPERATION, all configured axes | 1Ah -> 30000026 |
-| 40 | `sscGetSystemStatusCode`, E***; remove E, convert remaining hex digits | E40Bh -> 40001035 |
-| 50 | Local equipment/sequence/FMS errors | Door #1 -> 50000121 |
+| 10 | `sscGetAlarm`, SSC_ALARM_SYSTEM | 35h -> 10053 |
+| 20 | `sscGetAlarm`, SSC_ALARM_SERVO, all configured axes | 1Ah -> 20026 |
+| 30 | `sscGetAlarm`, SSC_ALARM_OPERATION, all configured axes | 1Ah -> 30026 |
+| 40 | `sscGetSystemStatusCode`, E***; remove E, convert remaining hex digits | E40Bh -> 401035 |
+| 50 | Local equipment/sequence/FMS errors | Door #1 -> 50121 |
 
 Native alarm values returned by the API are already integers. Do not interpret their display strings as decimal.
 E*** system errors are system STATUS codes, separate from system alarms. See the [Mitsubishi API manual](https://www.mitsubishielectric.com/dl/fa/document/manual/ssc/ib0300225/ib0300225engl.pdf).
@@ -58,34 +66,34 @@ Only a successful read of that same alarm source can replace/clear it. Disconnec
 
 | ErrorNo | Condition | Clear Condition |
 | --- | --- | --- |
-| 50000121 | Door #1 open by existing IsSafetyDoorOpen logic | Fresh CC-Link input confirms clear |
-| 50000122 | Door #2 open | Fresh CC-Link input confirms clear |
-| 50000123 | Emergency stop active | Fresh input confirms released |
-| 50000124 | Keylock inactive during AUTO | Fresh input confirms keylock active |
-| 50000125 | Board status / alarm read failure | Successful read of every affected source |
-| 50000126 | X0023 BUFFER active | Fresh input confirms inactive |
-| 50000151 | CC-Link lost after a healthy connection | CC-Link ready again |
-| 50000152 | PLC status stale/lost after healthy communication | Fresh PLC status |
-| 50000153 | PLC ERROR (D10102) | Fresh PLC ERROR OFF |
-| 50000181 | Source barcode failure | Successful rescan, forced tray-out acknowledgement or discarded TrayLoad |
-| 50000182 | Target barcode failure | Same rule for target |
-| 50000201 | Eject recovery alarm | Pickup completes (step 9), manual completion is accepted, or guarded Init Work discards old work |
-| 50000202 | Insert recovery alarm | Insert completes (step 11), manual completion is accepted, or guarded Init Work discards old work |
-| 50000203 | MotionFault stop | Valid Restart or cancellation of the failed motion sequence |
-| 50000204 | Common sequence error dialog | Explicit acknowledgement or successful Restart |
-| 50000205 | General robot/interlock alarm dialog | Dialog acknowledged; native/physical faults remain independent |
-| 50000206 | NG count limit alarm | Operator chooses continue or tray out |
-| 50000207 | Load-factor alarm | Monitored loads return within the configured limit |
-| 50000209 | Manual-completion recovery failure | Report/storage completes or standby recovery completes |
-| 50000301 | Source TrayLoad failure / timeout / invalid data | Complete handshake or explicitly discarded load |
-| 50000302 | Target TrayLoad failure / timeout / invalid data | Same rule for target |
-| 50000303 | ProcessStart failure / timeout | Full response-reset handshake completes or guarded Init Work cancels the old request |
-| 50000304 | CellTrackOut failure / timeout | Full response-reset handshake completes, including accepted manual recovery |
-| 50000305 | ProcessEnd failure / timeout | Full response-reset handshake completes |
-| 50000306 | TrayUnload failure / timeout | Full response-reset handshake completes |
-| 50000307 | FMS-side Trouble.Status=true | Connected valid snapshot confirms false (Pause still requires acknowledgement) |
-| 50000308 | Manual Source TrayLoad failure | Manual handshake including response reset completes, or explicit AUTO entry discards the manual session |
-| 50000309 | Manual Target TrayLoad failure | Manual handshake including response reset completes, or explicit AUTO entry discards the manual session |
+| 50121 | Door #1 open by existing IsSafetyDoorOpen logic | Fresh CC-Link input confirms clear |
+| 50122 | Door #2 open | Fresh CC-Link input confirms clear |
+| 50123 | Emergency stop active | Fresh input confirms released |
+| 50124 | Keylock inactive during AUTO | Fresh input confirms keylock active |
+| 50125 | Board status / alarm read failure | Successful read of every affected source |
+| 50126 | X0023 BUFFER active | Fresh input confirms inactive |
+| 50151 | CC-Link lost after a healthy connection | CC-Link ready again |
+| 50152 | PLC status stale/lost after healthy communication | Fresh PLC status |
+| 50153 | PLC ERROR (D10102) | Fresh PLC ERROR OFF |
+| 50181 | Source barcode failure | Successful rescan, forced tray-out acknowledgement or discarded TrayLoad |
+| 50182 | Target barcode failure | Same rule for target |
+| 50201 | Eject recovery alarm | Pickup completes (step 9), manual completion is accepted, or guarded Init Work discards old work |
+| 50202 | Insert recovery alarm | Insert completes (step 11), manual completion is accepted, or guarded Init Work discards old work |
+| 50203 | MotionFault stop | Valid Restart or cancellation of the failed motion sequence |
+| 50204 | Common sequence error dialog | Explicit acknowledgement or successful Restart |
+| 50205 | General robot/interlock alarm dialog | Dialog acknowledged; native/physical faults remain independent |
+| 50206 | NG count limit alarm | Operator chooses continue or tray out |
+| 50207 | Load-factor alarm | Monitored loads return within the configured limit |
+| 50209 | Manual-completion recovery failure | Report/storage completes or standby recovery completes |
+| 50301 | Source TrayLoad failure / timeout / invalid data | Complete handshake or explicitly discarded load |
+| 50302 | Target TrayLoad failure / timeout / invalid data | Same rule for target |
+| 50303 | ProcessStart failure / timeout | Full response-reset handshake completes or guarded Init Work cancels the old request |
+| 50304 | CellTrackOut failure / timeout | Full response-reset handshake completes, including accepted manual recovery |
+| 50305 | ProcessEnd failure / timeout | Full response-reset handshake completes |
+| 50306 | TrayUnload failure / timeout | Full response-reset handshake completes |
+| 50307 | FMS-side Trouble.Status=true | Connected valid snapshot confirms false (Pause still requires acknowledgement) |
+| 50308 | Manual Source TrayLoad failure | Manual handshake including response reset completes, or explicit AUTO entry discards the manual session |
+| 50309 | Manual Target TrayLoad failure | Manual handshake including response reset completes, or explicit AUTO entry discards the manual session |
 
 FMS failure kinds (timeout, rejected response, invalid data) share a per-transaction code; detailed reason, response value and phase remain in the FMS alarm window/log.
 FMS Close and Retry do not clear the registered failure. Eject/Insert Retry and popup Hide likewise do not imply successful recovery.

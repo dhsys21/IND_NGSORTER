@@ -96,6 +96,7 @@ __published:	// IDE-managed Components
 	TAdvSmoothButton *btnIOMonitoring;
 	//* DRY RUN : Inspection-only modal entry button.
 	TAdvSmoothButton *btnDryRun;
+	TAdvSmoothButton *btnTrayStepInit; // TRAY STEP INIT: hidden commissioning reset.
 	TAdvSmoothPanel *pback;
 	TLabel *lblTitle;
 	TAdvSmoothPanel *AdvSmoothPanel2;
@@ -372,6 +373,7 @@ __published:	// IDE-managed Components
 	void __fastcall btnIOMonitoringClick(TObject *Sender);
 	//* DRY RUN : Opens the dedicated dry-run form; it never starts motion directly.
 	void __fastcall btnDryRunClick(TObject *Sender);
+	void __fastcall btnTrayStepInitClick(TObject *Sender);
 private:	// User declarations
 //------------ Æû °ü·Ã -------------------//
 

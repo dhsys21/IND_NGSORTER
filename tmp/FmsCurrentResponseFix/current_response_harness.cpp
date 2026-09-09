@@ -49,6 +49,7 @@ public:
     TMainForm():fmsAlarmTransaction(fmsAlarmTargetTrayLoad),fmsAlarmRetryRequested(true),
         fmsAlarmAwaitingReset(false),fmsAlarmAcceptedResult(1),currentProcessStep(5),reissues(0),cbCycle(&cycle){cycle.Checked=false;}
     bool __fastcall ProcessFmsAlarmRecovery();
+    bool CheckTrayLoadPresence(bool){return true;} // Separate TrayLoadPresence suite covers loss/reset.
     void CheckFmsResetRetryTimeout(int){} // UI retry timeout tested separately.
     int GetFmsAlarmResponse(){return response;}
     void ReissueFmsAlarmRequest(){++reissues;fmsAlarmTransaction=fmsAlarmNone;}
@@ -269,6 +270,9 @@ bool __fastcall TMainForm::ProcessFmsAlarmRecovery()
 {
 	if(fmsAlarmTransaction == fmsAlarmNone)
 		return false;
+	if((fmsAlarmTransaction == fmsAlarmSourceTrayLoad ||
+		fmsAlarmTransaction == fmsAlarmTargetTrayLoad) &&
+		!CheckTrayLoadPresence(fmsAlarmTransaction == fmsAlarmSourceTrayLoad)) return false;
 	if(!fmsAlarmRetryRequested){
 		if(AlarmForm_fms != NULL) AlarmForm_fms->RefreshAlarmVisibility();
 		return true;

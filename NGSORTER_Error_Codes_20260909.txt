@@ -1,0 +1,470 @@
+NGSORTER 에러 및 FMS 보고코드 정리
+작성일: 2026-09-09
+기준: D:\Program\IND_NGSORTER의 현재 소스, FormBase 표시 버전 2026-09-09 006
+범위: 등록된 로컬 오류 28개 + 화면에 정의된 서보/보드 알람 158개 항목
+주의: 실행 중인 EXE 버전/실제 FMS 수신 상태를 보증하는 자료는 아닙니다.
+      tmp의 검토용 수정본은 제외했습니다. 이번 버전에서 보고코드의 중간 0 세 자리를 줄였습니다.
+
+======================================================================
+1. 단축된 에러코드 규칙
+======================================================================
+현재 FMS 보고값 = 분류번호 2자리 + 원인번호를 최소 3자리로 표현한 10진수.
+보통 5자리이며, 숫자로 전송합니다. 문자열에 임의로 0을 붙이는 방식은 아닙니다.
+
+분류 10 : 서보 보드 시스템 알람 (sscGetAlarm / SSC_ALARM_SYSTEM)
+분류 20 : 축별 서보 알람       (sscGetAlarm / SSC_ALARM_SERVO)
+분류 30 : 축별 운전 알람       (sscGetAlarm / SSC_ALARM_OPERATION)
+분류 40 : 보드 시스템 상태 오류 (sscGetSystemStatusCode의 E***)
+분류 50 : NGSORTER 로컬 설비/시퀀스/FMS 오류
+
+예)
+  도어 #1       : 내부번호 121       -> 50 + 121 = 50121
+  취출 오류     : 내부번호 201       -> 50 + 201 = 50201
+  FMS 수신 알람 : 내부번호 307       -> 50 + 307 = 50307
+  서보 1Ah      : 16진수 1A = 10진수 26          -> 20026
+  시스템 E40Bh  : E를 제외한 40B = 10진수 1035   -> 401035
+
+내부 변수명 FmsCellTrackOut 등은 프로그램 식별자이고 실제 보고값은 숫자입니다.
+서보 원래 코드와 FMS 보고코드는 진법이 다릅니다. 1Ah를 10진수 1로 읽으면 안 됩니다.
+원인번호가 3자리를 넘으면 Encode()는 자릿수를 늘려 모든 숫자를 보존합니다.
+예: 서보 26 -> 20 + 026 = 20026, 시스템 1035 -> 40 + 1035 = 401035.
+0은 해당 원인의 정상/해제를 뜻하며 활성 ErrorNo 배열에 넣지 않습니다.
+
+이번 변경 및 적용 주의
+  기존 50000307 -> 50307, 50000308 -> 50308, 50000121 -> 50121.
+  기존 20000026 -> 20026, 40001035 -> 401035.
+  분류번호는 유지하고 원인번호의 최소 자릿수를 6자리에서 3자리로 줄였습니다.
+  ErrorNo 배열과 ErrorLevel 모두 같은 단축 코드로 보고합니다.
+  FMS가 보내는 수신 ErrorNo(예: 9001)는 변환하지 않습니다.
+  FMS 측에서도 새 코드표를 사용해야 합니다. 기존 로그 파일은 변경하지 않습니다.
+  수정된 EXE를 빌드/적용한 이후의 보고부터 변경됩니다.
+
+======================================================================
+2. FMS로 보내는 태그와 FMS에서 받는 태그
+======================================================================
+[설비 -> FMS]
+  NGS.F1NGS01.EquipmentStatus.Trouble.ErrorNo
+    UInt32 배열. 현재 활성화된 중복 없는 에러코드를 발생 순서로 보고.
+  NGS.F1NGS01.EquipmentStatus.Trouble.ErrorLevel
+    현재 구현은 첫 번째 활성 에러의 전체 코드. 없으면 0.
+    이름과 달리 '심각도 1/2/3' 또는 코드 앞자리만 보고하는 값이 아닙니다.
+  NGS.F1NGS01.EquipmentStatus.Status
+    등록 에러가 있으면 4. 에러가 없을 때 Pause=8, 작업=2, Idle=1.
+    따라서 Pause 중에도 미해제 에러가 있으면 Status는 8이 아니라 4입니다.
+
+예)
+  ErrorNo    = [50121, 50304]
+  ErrorLevel = 50121
+  Status     = 4
+  모든 에러 해제 후: ErrorNo=[], ErrorLevel=0.
+  에러 해제만으로 축 이동/시퀀스가 자동 재개되지는 않습니다.
+
+같은 서보 주 알람이 여러 축에서 발생하면 배열에는 한 번만 나옵니다.
+관련 축/읽기 원인이 전부 해제되어야 해당 코드를 제거합니다.
+읽기 실패/통신 단절을 정상으로 판단해 기존 에러를 지우지 않습니다.
+축 번호와 세부 서브코드는 서보 진단 화면/로그에서 확인해야 합니다.
+
+[FMS -> 설비]
+  NGS.F1NGS01.FmsStatus.Trouble.Status
+  NGS.F1NGS01.FmsStatus.Trouble.ErrorNo
+
+예: FMS 수신 ErrorNo=9001인 경우
+  9001은 FMS가 정한 원래 번호입니다. 이 소스에는 그 번호의 의미표가 없습니다.
+  설비에서 FMS로 보고하는 'FMS Trouble 발생' 코드는 별도 50307입니다.
+  즉 수신 번호 9001과 설비 보고 번호 50307을 혼동하면 안 됩니다.
+  새 수신 알람은 Pause 및 알람창 표시.
+  현재 소스는 작업자가 START/Retry/Restart로 인정한 같은 알람에 한해
+  계속 ON이어도 재진행을 허용하며, 실제 안전 인터락은 계속 확인합니다.
+  인정했다고 50307을 지우거나 FMS 수신 태그를 강제로 OFF하지 않습니다.
+
+사용자 제공 과거 TX_DETAIL 로그 (변경 전 원문 코드 유지)
+  11:43:43.962 ErrorNo=[50000307,50000308], Mode=1, Status=4
+    FMS 수신 Trouble와 수동 Source TrayLoad 오류가 함께 등록됨.
+  11:43:59.915 ErrorNo=[50000307], Mode=1, Status=4
+    수동 Source TrayLoad 코드 50000308은 해제되고 수신 Trouble만 남음.
+    양쪽 TrayLoad와 ProcessStart가 OFF로 기록됨.
+  11:44:00.134 ErrorNo=[50000307], Mode=2, Status=4
+    자동 계열 Mode=2로 변경되었지만 수신 Trouble가 남아 오류 상태 4를 보고함.
+    Mode=2만으로 START 실행 또는 실제 축 이동을 했다고 판단할 수 없음.
+  ErrorLevel=50000307은 첫 번째 활성 코드이며 심각도가 50000307이라는 뜻이 아님.
+  TX_DETAIL의 success=true만으로 FMS 업무 응답/물리 동작 완료를 뜻하지 않음.
+
+  위 과거 로그의 50000307/50000308은 새 코드 50307/50308에 해당합니다.
+
+======================================================================
+3. 로컬 설비 / 시퀀스 / FMS 코드 전체 목록
+======================================================================
+표기: 내부번호 | FMS ErrorNo | 내부 식별자 | 설명
+발생 및 해제는 현재 등록 코드 경로 기준입니다.
+같은 그룹의 서로 다른 상세 원인은 같은 번호로 보고될 수 있습니다.
+
+121 | 50121 | Door1 | 도어 #1 열림
+  발생: 유효한 CC-Link 입력의 IsSafetyDoorOpen(1)이 열림
+  해제: 정상 입력에서 문 닫힘 확인
+
+122 | 50122 | Door2 | 도어 #2 열림
+  발생: 유효한 CC-Link 입력의 IsSafetyDoorOpen(2)이 열림
+  해제: 정상 입력에서 문 닫힘 확인
+
+123 | 50123 | Emergency | 비상정지
+  발생: 유효한 입력에서 IsEmergencyStopActive() 검출
+  해제: 정상 입력에서 비상정지 해제 확인
+
+124 | 50124 | KeyLock | 자동운전 중 키락 미설정
+  발생: modeAuto에서 키락 비활성
+  해제: 유효한 입력에서 키락 설정 확인
+
+125 | 50125 | ServoNotRunning | 서보 보드 상태/알람 읽기 실패
+  발생: 보드 상태, 시스템 알람 또는 각 축 서보/운전 알람 API 읽기 실패
+  해제: 실패했던 각 읽기 원인이 모두 정상 복구; 단순 Servo OFF 전용 코드가 아님
+
+126 | 50126 | Buffer | 그리퍼 BUFFER 감지
+  발생: X0023 GRIPPER1_BUFFER 입력 활성
+  해제: 유효한 입력에서 BUFFER 비활성 확인
+
+151 | 50151 | CcLink | CC-Link 통신 이상
+  발생: 한 번 이상 정상 연결된 후 CC-Link 준비 상태 상실
+  해제: CC-Link Ready 복구
+
+152 | 50152 | PlcCommunication | 물류 PLC 통신/데이터 갱신 이상
+  발생: 한 번 이상 정상 통신 후 PLC 상태가 1,000 ms 이내 최신값이 아님
+  해제: PLC 최신 상태 수신
+
+153 | 50153 | PlcError | 물류 PLC 오류
+  발생: 최신 PLC 데이터에서 D10102 ERROR 활성
+  해제: 최신 PLC 데이터에서 ERROR OFF
+
+181 | 50181 | SourceBarcode | 선별트레이 바코드 읽기 실패
+  발생: 선별트레이 리더 미연결/미검출/읽기 실패 창
+  해제: 재스캔 성공, 강제배출 확인 또는 해당 TrayLoad 취소
+
+182 | 50182 | TargetBarcode | 대상트레이 바코드 읽기 실패
+  발생: 대상트레이 리더 미연결/미검출/읽기 실패 창
+  해제: 재스캔 성공, 강제배출 확인 또는 해당 TrayLoad 취소
+
+201 | 50201 | Eject | 셀 취출 오류
+  발생: FormError_eject 취출 복구 알람
+  해제: 취출 완료(STEP 09), 수동 완료 인정 또는 안전조건을 통과한 Init Work
+
+202 | 50202 | Insert | 셀 삽입 오류
+  발생: FormError_insert 삽입 복구 알람
+  해제: 삽입 완료(STEP 11), 수동 완료 인정 또는 안전조건을 통과한 Init Work
+
+203 | 50203 | Motion | 서보 이동/정지 오류
+  발생: MotionFault로 정지 및 Pause
+  해제: 허용된 Restart 또는 실패 이동 시퀀스 취소
+
+204 | 50204 | Sequence | 공통 시퀀스/동작 조건 오류
+  발생: ShowCommonError -> FormError.ShowError 경로
+  해제: 명시적 창 확인 또는 정상 Restart; 별도 물리/FMS 알람은 유지
+
+205 | 50205 | RobotInterlock | 일반 로봇/인터락 알람
+  발생: FormAlarm.ShowError의 ReportLocal=true 경로
+  해제: 알람 확인; 실제 서보/물리 원인의 코드는 별도로 유지
+
+206 | 50206 | NgLimit | 불량 개수 제한 초과
+  발생: FormError_limit 알람
+  해제: 작업자가 계속 진행 또는 트레이 배출 선택
+
+207 | 50207 | LoadFactor | 축 부하율 제한 초과
+  발생: FormAlarm_LoadFactor 알람
+  해제: 감시 축 부하율이 설정 한도 이내로 복귀
+
+209 | 50209 | ManualRecovery | 수동 완료 복구 실패
+  발생: 수동 완료 과정의 보고/저장/대기위치 복구 실패
+  해제: 관련 보고·저장 완료 또는 대기위치 복구 완료
+
+301 | 50301 | FmsSourceLoad | 선별트레이 TrayLoad 오류
+  발생: Location1 TrayLoad 응답/초기화 타임아웃, 실패 응답, 데이터 검증 실패
+  해제: 응답 및 RESET 핸드셰이크 완료 또는 해당 Load 명시적 취소
+
+302 | 50302 | FmsTargetLoad | 대상트레이 TrayLoad 오류
+  발생: Location2 TrayLoad 응답/초기화 타임아웃, 실패 응답, 데이터 검증 실패
+  해제: 응답 및 RESET 핸드셰이크 완료 또는 해당 Load 명시적 취소
+
+303 | 50303 | FmsProcessStart | ProcessStart 오류
+  발생: ProcessStart 응답/초기화 타임아웃 또는 실패
+  해제: 핸드셰이크 완료 또는 안전조건을 통과한 Init Work로 이전 요청 취소
+
+304 | 50304 | FmsCellTrackOut | CellTrackOut 오류
+  발생: CellUnloadComplete 응답/초기화 타임아웃 또는 실패
+  해제: 핸드셰이크 완료; 인정된 수동 복구 포함
+
+305 | 50305 | FmsProcessEnd | ProcessEnd 오류
+  발생: ProcessEnd 응답/초기화 타임아웃 또는 실패
+  해제: 핸드셰이크 완료
+
+306 | 50306 | FmsTrayUnload | 대상트레이 TrayUnload 오류
+  발생: TrayUnloadRequest 응답/초기화 타임아웃 또는 실패
+  해제: 핸드셰이크 완료
+
+307 | 50307 | FmsTrouble | FMS에서 수신한 Trouble 알람
+  발생: FmsStatus.Trouble.Status=true
+  해제: 연결된 Gateway의 유효한 스냅샷에서 Status=false 확인; 작업자 재시작과 코드 해제는 별개
+
+308 | 50308 | ManualSourceLoad | 수동 선별트레이 조회 오류
+  발생: 수동 Scan/TrayLoad의 바코드·응답·데이터·RESET 오류/타임아웃
+  해제: 수동 응답 RESET까지 완료 또는 AUTO 진입에서 조회 명시적 취소
+
+309 | 50309 | ManualTargetLoad | 수동 대상트레이 조회 오류
+  발생: 수동 Scan/TrayLoad의 바코드·응답·데이터·RESET 오류/타임아웃
+  해제: 수동 응답 RESET까지 완료 또는 AUTO 진입에서 조회 명시적 취소
+
+======================================================================
+4. 화면 메시지와 FMS 코드의 관계 / 확인 시 주의
+======================================================================
+- 모든 에러 문구에 1:1의 별도 번호가 있는 구조는 아닙니다.
+  공통 FormError 경로의 AUTO blocked, Init Work blocked, Restart interlock,
+  Sorting initialization failed 등은 공통 코드 50204를 사용할 수 있습니다.
+  취출/삽입 복구 창은 각각 50201/50202입니다.
+  정확한 원인 문장, 채널, 그리퍼 번호, 축, 기대값/현재값은 화면과 로그를 확인합니다.
+
+- FMS 오류는 거래별로 묶여 있습니다.
+  같은 50302라도 Response ON 대기, 데이터 검증, Response RESET=0 대기
+  중 어느 곳에서 실패했는지는 별도 상세 로그로 구분해야 합니다.
+  ErrorNo만으로 실패한 태그/셀 필드까지 특정할 수 없습니다.
+  Close/Retry 버튼을 눌렀다고 응답 실패 코드가 바로 해제되지는 않습니다.
+
+- 셀 감지, 센터링 상실, 서보 Open/ON/Home 미완료 등의 인터락은
+  호출되는 공통/로봇/이동/취출/삽입 오류 경로에 따라 보고 코드가 달라질 수 있습니다.
+  모든 인터락에 독립된 로컬 번호가 정의되어 있는 것은 아닙니다.
+  단순 ShowMessage, 로그만 남기는 경로는 그 호출만으로 ErrorNo가 추가되지 않습니다.
+
+- 50125는 내부 이름이 ServoNotRunning이지만 실제 등록 위치는
+  보드 상태/알람 읽기 실패입니다. 'Servo OFF'와 동일한 뜻이 아닙니다.
+  보드가 보고한 운전 알람 B2h(Servo is off)는 30178로 구분됩니다.
+
+- CC-Link/PLC 통신 오류는 이전 정상 연결 이력이 있어야 등록됩니다.
+  프로그램 시작부터 미연결이면 해당 통신코드가 반드시 올라간다고 볼 수 없습니다.
+
+- 서보 API 함수 자체의 반환 오류는 기존 로그에도 남습니다.
+  API 반환값을 E*** 보드 시스템 상태 오류로 임의 변환하지 않습니다.
+  IDE의 Access violation, EReadError, EIdNotConnected 같은 실행 예외 또한
+  이 문서의 로컬 오류 열거값에 독립 코드로 정의되어 있지 않습니다.
+
+- Door #3, 극성이 확인되지 않은 CP/MS 접점은 이 로컬 코드표에 없습니다.
+  온도/연기 등은 별도 EnvStatus 태그 경로이며 임의의 신규 코드로 넣지 않았습니다.
+
+======================================================================
+5. 서보 / 보드 알람 전체 대응표
+======================================================================
+출처: 현재 FormServoAlarmList.dfm의 Memo_En1~4 목록.
+아래는 화면에 등록된 카탈로그이며 '현재 발생 중인 알람 목록'이 아닙니다.
+실제 보고는 보드 API가 읽어 준 값에 Encode()를 적용하므로
+화면 카탈로그에 없는 값도 보고될 수 있습니다.
+설명은 원래 영문을 유지했습니다. 범위 E1??는 E100~E1FF를 의미합니다.
+표기: 분류 | 원래 코드(16진수) | FMS ErrorNo(10진수) | 화면 설명
+
+10 | 35 | 10053 | Operation cycle alarm
+10 | 36 | 10054 | Number of write accesses to flash ROM error
+10 | 37 | 10055 | Parameter error
+10 | 38 | 10056 | Mark detection setting error
+20 | 10 | 20016 | Undervoltage
+20 | 11 | 20017 | Switch setting error
+20 | 12 | 20018 | Memory error 1 (RAM)
+20 | 13 | 20019 | Clock error
+20 | 14 | 20020 | Control processing error
+20 | 15 | 20021 | Memory error 2 (EEP-ROM)
+20 | 16 | 20022 | Encoder initial communication error 1
+20 | 17 | 20023 | Board error
+20 | 19 | 20025 | Memory error 3 (FLASH-ROM)
+20 | 1A | 20026 | Servo motor combination error
+20 | 1E | 20030 | Encoder initial communication error 2
+20 | 1F | 20031 | Encoder initial communication error 3
+20 | 20 | 20032 | Encoder normal communication error 1
+20 | 21 | 20033 | Encoder normal communication error 2
+20 | 24 | 20036 | Main circuit error
+20 | 25 | 20037 | Absolute position erased
+20 | 27 | 20039 | Initial magnetic pole detection error
+20 | 28 | 20040 | Linear encoder error 2
+20 | 2A | 20042 | Linear encoder error 1
+20 | 2B | 20043 | Encoder counter error
+20 | 30 | 20048 | Regenerative error
+20 | 31 | 20049 | Overspeed
+20 | 32 | 20050 | Overcurrent
+20 | 33 | 20051 | Overvoltage
+20 | 34 | 20052 | SSCNET receive error 1
+20 | 35 | 20053 | Command frequency alarm
+20 | 36 | 20054 | SSCNET receive error 2
+20 | 37 | 20055 | Parameter error
+20 | 3A | 20058 | Inrush current suppression circuit error
+20 | 3D | 20061 | Parameter setting error for driver communication
+20 | 3E | 20062 | Operation mode error
+20 | 42 | 20066 | Servo control error
+20 | 45 | 20069 | Main circuit device overheat
+20 | 46 | 20070 | Servo motor overheat
+20 | 47 | 20071 | Cooling fan alarm
+20 | 50 | 20080 | Overload 1
+20 | 51 | 20081 | Overload 2
+20 | 52 | 20082 | Error excessive
+20 | 54 | 20084 | Oscillation detection
+20 | 56 | 20086 | Forced stop error
+20 | 63 | 20099 | STO timing error
+20 | 70 | 20112 | Load-side encoder initial communication error 1
+20 | 71 | 20113 | Load-side encoder normal communication error 1
+20 | 72 | 20114 | Load-side encoder normal communication error 2
+20 | 82 | 20130 | Master-slave operation error 1
+20 | 8A | 20138 | USB communication timeout
+20 | 8E | 20142 | USB communication error
+20 | 888 | 202184 | Watchdog
+20 | 91 | 20145 | Servo amplifier overheat warning
+20 | 92 | 20146 | Open battery cable warning
+20 | 95 | 20149 | STO warning
+20 | 96 | 20150 | Home position setting error
+20 | 9F | 20159 | Battery warning
+20 | E0 | 20224 | Excessive regeneration warning
+20 | E1 | 20225 | Overload warning 1
+20 | E2 | 20226 | Servo motor overheat warning
+20 | E3 | 20227 | Absolute position counter warning
+20 | E4 | 20228 | Parameter warning
+20 | E6 | 20230 | Servo forced stop warning
+20 | E7 | 20231 | Controller forced stop warning
+20 | E8 | 20232 | Cooling fan speed reduction warning
+20 | E9 | 20233 | Main circuit off warning
+20 | EB | 20235 | Other axes error warning
+20 | EC | 20236 | Overload warning 2
+20 | ED | 20237 | Output watt excess warning
+20 | F0 | 20240 | Tough drive warning
+20 | F2 | 20242 | Drive recorder - Miswriting warning
+20 | F3 | 20243 | Oscillation detection warning
+30 | 10 | 30016 | Stop command on
+30 | 12 | 30018 | During forced stop
+30 | 13 | 30019 | Interlock is on
+30 | 16 | 30022 | Group error
+30 | 1A | 30026 | In test mode
+30 | 20 | 30032 | Operation mode error
+30 | 21 | 30033 | Command speed zero
+30 | 22 | 30034 | Point number error
+30 | 23 | 30035 | Mode change during operation
+30 | 24 | 30036 | Position exceeded during positioning
+30 | 25 | 30037 | Point table Setting error
+30 | 26 | 30038 | Incremental feed movement amount error
+30 | 2D | 30045 | Latest command buffer number setting error
+30 | 2E | 30046 | Control mode switch error
+30 | 2F | 30047 | Torque control setting error
+30 | 37 | 30055 | Parameter error
+30 | 38 | 30056 | System setting error
+30 | 39 | 30057 | I/O No. assignment setting error
+30 | 3B | 30059 | Mark detection setting error
+30 | 40 | 30064 | Linear interpolation start up error
+30 | 41 | 30065 | Linear interpolation point data error
+30 | 42 | 30066 | Can't start linear interpolation auxiliary axis error
+30 | 43 | 30067 | Interference check axis setting error
+30 | 44 | 30068 | Command error in interference area
+30 | 45 | 30069 | Entering interference area error
+30 | 4D | 30077 | Other axes start setting error
+30 | 50 | 30080 | Tandem drive mode change error
+30 | 51 | 30081 | While in tandem drive nonsynchronous mode
+30 | 52 | 30082 | Tandem drive axis setting error
+30 | 53 | 30083 | Tandem drive excessive deviation
+30 | 54 | 30084 | Tandem drive synchronous alignment valid width error
+30 | 55 | 30085 | Tandem drive while performing synchronization
+30 | 56 | 30086 | Tandem drive slave axis error
+30 | 57 | 30087 | Exceeding of valid width of tandem drive deviation compensation error
+30 | 58 | 30088 | Tandem drive synchronous alignment error
+30 | 5B | 30091 | Using other axes start data
+30 | 5C | 30092 | Pass position interrupt error
+30 | 5D | 30093 | Continuous operation to torque control error
+30 | 5E | 30094 | Continuous operation to torque control setting error
+30 | 5F | 30095 | Point table loop error
+30 | 90 | 30144 | Home position return not complete
+30 | 91 | 30145 | Z-phase not passed
+30 | 92 | 30146 | The proximity dog is short
+30 | 94 | 30148 | Home position return direction error
+30 | 95 | 30149 | Not limiting torque
+30 | 96 | 30150 | Home position setting error
+30 | 97 | 30151 | Home position stop error
+30 | 98 | 30152 | Home position search limit error
+30 | 9C | 30156 | Z-phase mask amount setting error
+30 | 9D | 30157 | Home position return parameter setting error
+30 | A0 | 30160 | Limit switch
+30 | A1 | 30161 | Out of software limit boundaries
+30 | A2 | 30162 | Reached software limit
+30 | A4 | 30164 | Software limit Parameter error
+30 | A5 | 30165 | Position switch parameter error
+30 | A6 | 30166 | Mark detection write/read error
+30 | A7 | 30167 | Command data error
+30 | B0 | 30176 | Servo is not controllable
+30 | B1 | 30177 | Servo alarm occurrence
+30 | B2 | 30178 | Servo is off
+30 | B3 | 30179 | Servo off command
+40 | E001 | 40001 | ROM error
+40 | E002 | 40002 | RAM error 1
+40 | E003 | 40003 | Dual port memory error
+40 | E004 | 40004 | RAM error 2
+40 | E006 | 40006 | SSCNET communication IC error 1
+40 | E007 | 40007 | SSCNET communication IC error 2
+40 | E008 | 40008 | Board error
+40 | E1?? | 40256..40511 | CPU error
+40 | E200 | 40512 | Interrupt error
+40 | E301 | 40769 | Watchdog error(Note 2)
+40 | E302 | 40770 | DC FAIL
+40 | E400 | 401024 | An axis that has not been mounted exists
+40 | E401 | 401025 | CRC error
+40 | E403 | 401027 | Data ID error
+40 | E405 | 401029 | Driver type code error
+40 | E407 | 401031 | SSCNET time out
+40 | E40B | 401035 | Uncontrollable driver
+40 | E40E | 401038 | Communication cycle error
+40 | E500 | 401280 | Electronic gear setting error
+40 | E503 | 401283 | Exclusive control error
+40 | E510 | 401296 | I/O No. assignment error
+40 | E511 | 401297 | I/O table select error
+40 | E5E0 | 401504 | SSCNET communication system error
+40 | E5E1 | 401505 | SSCNET communication system error 2
+40 | EF01 | 403841 | System command code error
+
+======================================================================
+6. 과거 MES 번호와 현재 FMS 코드 구분
+======================================================================
+FormMain::GetAlarmMsg(1~27)에 과거 메시지 번호가 남아 있습니다.
+이 값은 현재 NGSorterErrors::Local/FMS ErrorNo와 다른 번호체계입니다.
+예를 들어 과거 25는 Door #1이지만 현재 내부번호는 121, 보고값은 50121.
+과거 번호에 무조건 50000을 더해 현재 코드로 변환하면 안 됩니다.
+과거 메시지 목록은 아래와 같습니다. 현재 활성 FMS 보고 매핑으로 사용하지 마십시오.
+
+1~2   : MES Source tray information error / reply timeout
+3~4   : MES Target tray information error / reply timeout
+5~6   : MES Target ID matching error / timeout
+7~8   : MES Source tray transfer-out error / timeout
+9~10  : MES Target tray transfer-out error / timeout
+11~12 : MES send-event error / timeout
+13~14 : MES Source ID matching error / timeout
+15    : Source tray gripper-down timeout
+16    : Source tray gripper-up timeout
+17    : Source tray gripper-down collision
+18    : Target tray gripper-unchuck timeout
+19    : Target tray gripper-up timeout
+20    : Source tray Cell No / Gripper No mismatch
+21    : Target tray gripper-down collision
+22    : Target tray gripper-down timeout
+23    : Target tray Cell No / Gripper No mismatch
+24    : NG count exceeded the configured limit
+25    : DOOR #1 Open
+26    : DOOR #2 Open
+27    : Emergency stop
+
+======================================================================
+7. 소스 확인 위치
+======================================================================
+NGSorterErrors.h
+  Local 열거형, Encode, SystemErrorCode, ActiveAlarms.
+ModMes_OPCUA.cpp
+  SetLocalAlarm, SetEquipmentAlarm, PublishEquipmentStatus, CompleteFmsAlarmStep.
+ModMes_Gateway.cpp
+  SetPcEquipmentStatus: 실제 EquipmentStatus 태그 기록.
+FormMain.cpp
+  UpdateFmsEquipmentStatus, ShowFmsAlarm, ResetTrayLoadTransaction,
+  GetAlarmMsg 및 각 시퀀스 오류 처리.
+Stage_mes.cpp
+  수동 TrayLoad 오류, PollFmsTrouble, AcknowledgeFmsTrouble.
+ModRobostar.cpp
+  이동 오류, 보드 시스템 상태/시스템 알람/축별 서보 및 운전 알람 읽기.
+FormError*.cpp / FormAlarm*.cpp / FormManualComplete.cpp
+  화면별 로컬 알람 등록과 해제.
+FormServoAlarmList.dfm
+  서보/보드 알람 158개 카탈로그 항목.
+FMS_ERROR_REPORTING.md / FMS_SERVO_ERROR_CODES.md
+  기존 보고 규약과 카탈로그 자료. 본 문서는 소스와 대조한 한글 TXT 정리본.
+
+끝.
