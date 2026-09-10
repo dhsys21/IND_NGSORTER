@@ -12,6 +12,8 @@ TteachForm *teachForm;
 //---------------------------------------------------------------------------
 static const int TEACHING_SPEED_MIN = 300;
 static const int TEACHING_SPEED_MAX = 2700;
+static const int Z_FINAL_SPEED_MIN = 100;
+static const int Z_FINAL_SPEED_MAX = 500;
 static const int TEACHING_SPEED_DANGER = 2000;
 
 static int TeachingRampTimeForSpeed(int speed)
@@ -433,7 +435,7 @@ void __fastcall TteachForm::btnJogSpeedClick(TObject *Sender)
 				TryStrToInt(editZ20->Text.Trim(), z20);
 			if(!valuesValid || jog < 1 || jog > 200 ||
 				z80 < TEACHING_SPEED_MIN || z80 > TEACHING_SPEED_MAX ||
-				z20 < TEACHING_SPEED_MIN || z20 > TEACHING_SPEED_MAX || z20 > z80)
+				z20 < Z_FINAL_SPEED_MIN || z20 > Z_FINAL_SPEED_MAX || z20 > z80)
 			{
 				MessageBox(dialog->Handle,
 					BaseForm->GetLangStr("MSG_JOG_Z_SPEED_RANGE").c_str(),

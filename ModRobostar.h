@@ -426,6 +426,7 @@ public:		// User declarations
 	bool __fastcall req_InsertComplete(int toolNo = 1);
 	bool __fastcall PrepareCellRecovery(bool cellHeld);
 	bool IsRecoveryStandby();
+	bool __fastcall IsAtWaitPosition();
 
 	void __fastcall req_Reset();
 	void __fastcall req_WaitPosition();

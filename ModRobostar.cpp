@@ -278,14 +278,13 @@ bool Trobostar::StartBufferRecoveryZUp()
 	// accepted Z target must remain intact so Restart can retry the same step.
 	PNT_DATA_EX recoveryPoint = point[0];
 	recoveryPoint.position = 0;
-	recoveryPoint.speed = zSpeed80;
 	if(!WriteLog(sscSetPointDataEx(board_id, channel_id, Axis_z, 0,
 		&recoveryPoint), "BUFFER RECOVERY Z POINT")) return false;
 	if(!WriteLog(sscAutoStart(board_id, channel_id, Axis_z, 0, 0),
 		"BUFFER RECOVERY Z UP")) return false;
 
 	MainForm->memoRobostarLineAdd("[BUFFER RECOVERY] Z UP started / target=0 / speed=" +
-		IntToStr(zSpeed80));
+		IntToStr((__int64)recoveryPoint.speed));
 	return true;
 }
 //---------------------------------------------------------------------------
@@ -1045,13 +1044,14 @@ int __fastcall Trobostar::GetJogSpeed() const
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::SetZSpeeds(int speed80, int speed20)
 {
-	if(speed80 < 300 || speed80 > 2700 || speed20 < 300 || speed20 > 2700 ||
+	// Z FINAL SPEED RANGE 2026-09-10: allow a slower 100-500 setting for
+	// the last 20% approach. It must still not exceed the first 80% speed.
+	if(speed80 < 300 || speed80 > 2700 || speed20 < 100 || speed20 > 500 ||
 		speed20 > speed80)
 		return false;
 
 	zSpeed80 = speed80;
 	zSpeed20 = speed20;
-	point[0].speed = zSpeed80;
 	point[Axis_z].speed = zSpeed80;
 	return true;
 }
@@ -1177,6 +1177,22 @@ bool __fastcall Trobostar::ContinueZDownProfile()
 	}
 	mr2.pos[Axis_z] = currentZ;
 	if(zDownProfileStage == 1 && currentZ == zDownApproachPosition){
+		// Z DOWN MOTION START GUARD 2026-09-10:
+		// The command position can reach the 80% target before the position board
+		// finishes the first move. Starting the final 20% in that interval causes
+		// SSC error 060010 (motion is still active). Wait for AX_OP OFF and speed 0.
+		int moving = SSC_BIT_ON;
+		long speed = -1;
+		if(sscGetStatusBitSignalEx(board_id, channel_id, Axis_z,
+			SSC_STSBIT_AX_OP, &moving) != SSC_OK ||
+			sscGetCmdSpeedFast(board_id, channel_id, Axis_z, &speed) != SSC_OK)
+		{
+			MotionFault("Z stop status read failed before final descent");
+			return false;
+		}
+		if(moving != SSC_BIT_OFF || speed != 0)
+			return false;
+
 		zDownProfileStage = 2;
 		if(!setZPoint(zDownFinalPosition, zSpeed20)){
 			// Keep the first-stage marker so Restart can retry the final approach.
@@ -2186,8 +2202,8 @@ void __fastcall Trobostar::req_Speed(int speed, int accl, int dccl)
 		point[i].subcmd = 0;
 		point[i].s_curve = 0;
 	}
-	// X/Y use the common setting; Z uses its dedicated approach setting.
-	point[0].speed = zSpeed80;
+	// Z UP SPEED 2026-09-11: point[0] keeps the same common speed as X/Y.
+	// Only Z DOWN uses the dedicated first-80% and final-20% settings.
 	point[Axis_z].speed = zSpeed80;
 }
 //---------------------------------------------------------------------------
@@ -3140,6 +3156,24 @@ bool Trobostar::IsRecoveryStandby()
 		if(sscGetCurrentCmdPositionFast(board_id, channel_id, a, &p) != SSC_OK || p != expected[a]) return false;
 	}
 	return AreAxesStopped();
+}
+//---------------------------------------------------------------------------
+bool __fastcall Trobostar::IsAtWaitPosition()
+{
+	// INIT SEQ WAIT POSITION: verify the live position-board values. No mode,
+	// gripper, tray, PLC, FMS or safety state participates in this check.
+	if(!sscOpened) return false;
+	long x = mr2.pos[Axis_x];
+	long y = mr2.pos[Axis_y];
+	long z = mr2.pos[Axis_z];
+	if(sscGetCurrentCmdPositionFast(board_id, channel_id, Axis_x, &x) != SSC_OK ||
+		sscGetCurrentCmdPositionFast(board_id, channel_id, Axis_y, &y) != SSC_OK ||
+		sscGetCurrentCmdPositionFast(board_id, channel_id, Axis_z, &z) != SSC_OK)
+		return false;
+	mr2.pos[Axis_x] = x;
+	mr2.pos[Axis_y] = y;
+	mr2.pos[Axis_z] = z;
+	return x == Wait_xAxis && y == Wait_yAxis && z == 0 && AreAxesStopped();
 }
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::req_EjectComplete(int toolNo)
