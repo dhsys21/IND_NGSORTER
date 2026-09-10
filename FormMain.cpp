@@ -3680,9 +3680,10 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 		}
 
         // PLC SAFETY ADDRESS: physical EMG input is active-low (EMS_SWITCH=0).
-        // All modes: pressed -> D10160=1; released -> D10160=0.
+        // All modes: EMG pressed OR either door open -> D10160=1.
+        // D10160 returns to 0 only when EMG is released and both doors are closed.
         // Status reporting only; existing hardware stop/pause interlocks remain.
-		PlcBin->CmdPcEmergency(robostar->IsEmergencyStopActive());
+		PlcBin->CmdPcEmergency(robostar->IsEmergencyStopActive() || doorOpen);
 		// D10161=1 when either safety door is open.
 		PlcBin->CmdPcDoorOpen(doorOpen);
 	}

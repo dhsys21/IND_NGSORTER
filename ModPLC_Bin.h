@@ -70,7 +70,7 @@ const int PC_D_TRAY_IN_READY                        =   3;
 const int PC_D_SOURCE_CENTERING_REQ                 =   4;
 const int PC_D_SOURCE_TRAY_OUT 		    			=   5;
 const int PC_D_TARGET_TRAY_OUT                      =   6;
-const int PC_D_EMERGENCY                            =   10; // D10160: emergency pressed=1, released=0
+const int PC_D_EMERGENCY                            =   10; // D10160: emergency OR door open=1
 const int PC_D_DOOR_OPEN                            =   11; // D10161: either safety door open=1
 
 //---------------------------------------------------------------------------

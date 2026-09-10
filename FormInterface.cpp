@@ -92,7 +92,7 @@ void __fastcall TInterfaceForm::SetListViewPC()
         AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_SOURCE_CENTERING_REQ), "SOURCE CENTERING REQ");
         AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_SOURCE_TRAY_OUT), "SOURCE TRAY OUT");
         AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_TARGET_TRAY_OUT), "TARGET TRAY OUT");
-        AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_EMERGENCY), "PC EMERGENCY");
+        AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_EMERGENCY), "PC EMERGENCY / DOOR OPEN");
         AddListView(ListView_PC, "D" + IntToStr(PC_D_INTERFACE_START_DEV_NUM + PC_D_DOOR_OPEN), "PC DOOR OPEN");
     }
     __finally

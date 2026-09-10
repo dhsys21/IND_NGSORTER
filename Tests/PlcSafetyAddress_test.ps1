@@ -3,6 +3,10 @@ $repo = Split-Path $PSScriptRoot -Parent
 $enc = [Text.Encoding]::GetEncoding(949)
 $source = [IO.File]::ReadAllText((Join-Path $repo 'ModPLC_Bin.cpp'), $enc)
 $header = [IO.File]::ReadAllText((Join-Path $repo 'ModPLC_Bin.h'), $enc)
+$main = [IO.File]::ReadAllText((Join-Path $repo 'FormMain.cpp'), $enc)
+if ($main -notmatch 'CmdPcEmergency\(robostar->IsEmergencyStopActive\(\) \|\| doorOpen\)') {
+    throw 'D10160 must be the OR of emergency stop and door open.'
+}
 function ExtractFunction([string]$name) {
     $match = [regex]::Match($source, '(?ms)^void __fastcall TPlcBin::' + $name + '\(.*?^\}')
     if (!$match.Success) { throw "Function missing: $name" }
