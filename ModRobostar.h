@@ -350,8 +350,15 @@ private:	// User declarations
 	PNT_DATA_EX acceptedPoint[AxisCnt];
 	bool acceptedMove[AxisCnt];
 	bool motionFaultLatched;
+	// BUFFER RECOVERY: stop the current move, raise Z without replacing the
+	// interrupted target, then leave the original sequence paused for Restart.
+	int bufferRecoveryState; // 0: idle, 1: wait stop, 2: Z up moving.
+	DWORD bufferRecoveryStarted;
 	bool StopAxes();
 	void MotionFault(const AnsiString &reason);
+	bool StartBufferRecoveryZUp();
+	void ProcessBufferRecovery();
+	void FinishBufferRecovery(bool zRaised, const AnsiString &detail);
 	// Immutable snapshot of the accepted tray move. Z DOWN must match this snapshot.
 	MOVE activeMove;
 	long activeTarget[AxisCnt];
@@ -467,6 +474,7 @@ public:		// User declarations
 	void __fastcall SetCcLinkOpenResult(short result, long openedPath);
 	bool __fastcall IsCcLinkReady() const;
 	bool __fastcall IsHomeRequiredAfterServoOff() const;
+	void __fastcall RequestBufferRecovery();
 	bool m_bInsertSave;
     void __fastcall Y003D(bool bOn);
 	__fastcall Trobostar(TComponent* Owner);

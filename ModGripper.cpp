@@ -301,9 +301,13 @@ void __fastcall Tgripper::stepTimerTimer(TObject *Sender)
 {
 	if(!pauseStatus && IsSortingWorkActive() &&
 		(!robostar->IsCcLinkReady() || robostar->input.GRIPPER1_BUFFER)){
-		robostar->req_Pause(true);
-		req_Pause(true);
-		ShowCommonError("Sorting stopped", "CC-Link unavailable or X0023 BUFFER ON. Correct the condition and use Restart.");
+		if(robostar->IsCcLinkReady() && robostar->input.GRIPPER1_BUFFER)
+			robostar->RequestBufferRecovery();
+		else{
+			robostar->req_Pause(true);
+			req_Pause(true);
+			ShowCommonError("Sorting stopped", "CC-Link unavailable. Correct the condition and use Restart.");
+		}
 		return;
 	}
 	// Reset on step/sequence changes or Pause; FMS wait has its own timeout.

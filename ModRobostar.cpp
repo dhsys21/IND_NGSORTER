@@ -81,6 +81,8 @@ __fastcall Trobostar::Trobostar(TComponent* Owner)
 	keyLockReleasePending = false;
 	previousBypassSwitchOn = false;
 	motionFaultLatched = false;
+	bufferRecoveryState = 0;
+	bufferRecoveryStarted = 0;
 	for(int a = 0; a < AxisCnt; ++a) acceptedMove[a] = false;
 	keyLockSetSafetyBypassOffTick = 0;
 	keyLockReleaseOutputOffTick = 0;
@@ -268,6 +270,107 @@ void Trobostar::MotionFault(const AnsiString &reason)
 	}
 }
 //---------------------------------------------------------------------------
+bool Trobostar::StartBufferRecoveryZUp()
+{
+	if(!sscOpened) return false;
+
+	// Do not call setPoint(): BUFFER intentionally blocks normal moves and the
+	// accepted Z target must remain intact so Restart can retry the same step.
+	PNT_DATA_EX recoveryPoint = point[0];
+	recoveryPoint.position = 0;
+	recoveryPoint.speed = zSpeed80;
+	if(!WriteLog(sscSetPointDataEx(board_id, channel_id, Axis_z, 0,
+		&recoveryPoint), "BUFFER RECOVERY Z POINT")) return false;
+	if(!WriteLog(sscAutoStart(board_id, channel_id, Axis_z, 0, 0),
+		"BUFFER RECOVERY Z UP")) return false;
+
+	MainForm->memoRobostarLineAdd("[BUFFER RECOVERY] Z UP started / target=0 / speed=" +
+		IntToStr(zSpeed80));
+	return true;
+}
+//---------------------------------------------------------------------------
+void Trobostar::FinishBufferRecovery(bool zRaised, const AnsiString &detail)
+{
+	bufferRecoveryState = 0;
+	bufferRecoveryStarted = 0;
+	motionFaultLatched = true;
+	if(!zRaised) StopAxes();
+	if(MesOpc != NULL) MesOpc->SetLocalAlarm(NGSorterErrors::Motion,true);
+
+	AnsiString message;
+	if(zRaised)
+		message = "X0023 BUFFER sensor was detected. Z reached position 0. Correct the cause, then use Restart.";
+	else
+		message = "X0023 BUFFER sensor was detected, but Z could not reach position 0. " + detail;
+	MainForm->memoRobostarLineAdd("[BUFFER RECOVERY] " + message);
+	ShowCommonError("Sorting stopped", message);
+}
+//---------------------------------------------------------------------------
+void Trobostar::ProcessBufferRecovery()
+{
+	if(bufferRecoveryState == 0) return;
+	if(!sscOpened || !IsCcLinkReady() || !IsSafetyReady() ||
+		IsEmergencyStopActive() || MainForm == NULL || !MainForm->m_ServoON)
+	{
+		FinishBufferRecovery(false,
+			"Servo, CC-Link, or safety status is not ready. Recover the equipment manually.");
+		return;
+	}
+	if((DWORD)(GetTickCount() - bufferRecoveryStarted) >= 20000){
+		FinishBufferRecovery(false, "Z UP timeout. Recover the equipment manually.");
+		return;
+	}
+
+	if(bufferRecoveryState == 1){
+		if(!AreAxesStopped()) return;
+		long currentZ = mr2.pos[Axis_z];
+		if(sscGetCurrentCmdPositionFast(board_id, channel_id, Axis_z, &currentZ) != SSC_OK){
+			FinishBufferRecovery(false, "Z position read failed.");
+			return;
+		}
+		mr2.pos[Axis_z] = currentZ;
+		if(currentZ == 0){
+			FinishBufferRecovery(true, "");
+			return;
+		}
+		if(!StartBufferRecoveryZUp()){
+			FinishBufferRecovery(false, "Z UP command failed.");
+			return;
+		}
+		bufferRecoveryState = 2;
+		return;
+	}
+
+	long currentZ = mr2.pos[Axis_z];
+	int moving = SSC_BIT_ON;
+	long speed = -1;
+	if(sscGetCurrentCmdPositionFast(board_id, channel_id, Axis_z, &currentZ) != SSC_OK ||
+		sscGetStatusBitSignalEx(board_id, channel_id, Axis_z,
+			SSC_STSBIT_AX_OP, &moving) != SSC_OK ||
+		sscGetCmdSpeedFast(board_id, channel_id, Axis_z, &speed) != SSC_OK)
+	{
+		FinishBufferRecovery(false, "Z status read failed.");
+		return;
+	}
+	mr2.pos[Axis_z] = currentZ;
+	if(currentZ == 0 && moving == SSC_BIT_OFF && speed == 0)
+		FinishBufferRecovery(true, "");
+}
+//---------------------------------------------------------------------------
+void __fastcall Trobostar::RequestBufferRecovery()
+{
+	if(bufferRecoveryState != 0) return;
+
+	MainForm->memoRobostarLineAdd(
+		"[BUFFER RECOVERY] X0023 ON / stop current motion, then raise Z to position 0");
+	// Preserve the current robot and gripper steps before issuing the recovery.
+	req_Pause(true);
+	if(::gripper != NULL) ::gripper->req_Pause(true);
+	motionFaultLatched = true;
+	bufferRecoveryState = 1;
+	bufferRecoveryStarted = GetTickCount();
+}
+//---------------------------------------------------------------------------
 void __fastcall Trobostar::InitSequence(robotSequence data, robotSequence reserve)
 {
 	//* FMS TROUBLE: allow stop/reset/servo-off, but no new motion while latched.
@@ -277,6 +380,8 @@ void __fastcall Trobostar::InitSequence(robotSequence data, robotSequence reserv
 	// Keep MELSEC I/O alive when the position board cannot be opened, but allow
 	// seqInit so the Servo Open button can retry sscOpen().
 	if(!sscOpened && data != seqIdle && data != seqPause && data != seqInit) return;
+	if(bufferRecoveryState != 0 && data != seqIdle && data != seqPause &&
+		data != seqJogStop && data != seqServoOff && data != seqReset) return;
 
 	// This machine has no gripper vertical cylinder. Always close the moving
 	// overlay when a servo sequence returns to idle, including error/stop paths.
@@ -2090,6 +2195,8 @@ void __fastcall Trobostar::req_Speed(int speed, int accl, int dccl)
 void __fastcall Trobostar::req_Stop()
 {
 	int sts = 0;
+	bufferRecoveryState = 0;
+	bufferRecoveryStarted = 0;
 	for(int a = 1; a <= servoCnt; ++a) acceptedMove[a] = false;
 	motionFaultLatched = false;
 	// req_Stop cancels this motion sequence; physical faults retain their owners.
@@ -2853,12 +2960,20 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 	MainForm->Caption = step.step;
 
 	this->io_Read();
+	if(sscOpened) mr2Sensing();
+	if(bufferRecoveryState != 0){
+		ProcessBufferRecovery();
+		return;
+	}
 	bool productionActive = ::gripper != NULL && !::gripper->pauseStatus &&
 		MainForm->equipMode == modeAuto;
 	bool motionActive = seq != seqIdle && seq != seqPause && seq != seqInit &&
 		seq != seqReset && seq != seqServoOff && seq != seqServoOn;
 	if((motionActive || productionActive) && (!IsCcLinkReady() || input.GRIPPER1_BUFFER)){
-		MotionFault(!IsCcLinkReady() ? "CC-Link input data unavailable" : "X0023 BUFFER sensor ON");
+		if(input.GRIPPER1_BUFFER && IsCcLinkReady())
+			RequestBufferRecovery();
+		else
+			MotionFault("CC-Link input data unavailable");
 		return;
 	}
 	// Clear accepted move records only after fresh stopped/target confirmation.
@@ -2966,8 +3081,6 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 		else
 			MainForm->memoRobostarLineAdd("[SAFETY RESET] Y0032 pulse complete: X002C=0 (NOT READY)");
 	}
-	if(sscOpened) mr2Sensing();
-
 	// Collision prevention: continuously stop EJECT/INSERT/HOME/WAIT POSITION
 	// and manual channel moves when a required centering contact is lost or PLC
 	// status data is stale. Dry Run keeps its dedicated runtime interlock.
