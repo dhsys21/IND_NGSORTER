@@ -1176,7 +1176,6 @@ bool __fastcall Trobostar::ContinueZDownProfile()
 		return false;
 	}
 	mr2.pos[Axis_z] = currentZ;
-
 	if(zDownProfileStage == 1 && currentZ == zDownApproachPosition){
 		zDownProfileStage = 2;
 		if(!setZPoint(zDownFinalPosition, zSpeed20)){
@@ -2960,8 +2959,9 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 	MainForm->Caption = step.step;
 
 	this->io_Read();
-	if(sscOpened) mr2Sensing();
 	if(bufferRecoveryState != 0){
+		// BUFFER recovery needs fresh axis feedback before the normal sequence path.
+		if(sscOpened) mr2Sensing();
 		ProcessBufferRecovery();
 		return;
 	}
@@ -3081,6 +3081,8 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 		else
 			MainForm->memoRobostarLineAdd("[SAFETY RESET] Y0032 pulse complete: X002C=0 (NOT READY)");
 	}
+	// Keep the normal sensing/sequence order identical to the verified 004 build.
+	if(sscOpened) mr2Sensing();
 	// Collision prevention: continuously stop EJECT/INSERT/HOME/WAIT POSITION
 	// and manual channel moves when a required centering contact is lost or PLC
 	// status data is stale. Dry Run keeps its dedicated runtime interlock.
