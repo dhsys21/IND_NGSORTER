@@ -50,6 +50,7 @@ __fastcall TPlcBin::TPlcBin(TComponent* Owner)
 	pc_index = PC_INDEX_INTERFACE;
 	lastPcHeartBeatTick = 0;
 	sourceTrayOutInterlockActive = false;
+    pcPendingWriteResponses = 0;
 
     // Init
     memset(plc_Interface_Data, 0, sizeof(unsigned char) * PLC_D_INTERFACE_LEN * 2);
@@ -184,6 +185,7 @@ void __fastcall TPlcBin::PC_Initialization()
 	pc_Read = "";
 	pc_ReadFlag = true;
 	pc_ReadCount = 0;
+    pcPendingWriteResponses = 0;
 	lastPcHeartBeatTick = 0;
 
 	Timer_PC_WriteMsg->Enabled = true;
@@ -225,8 +227,11 @@ void __fastcall TPlcBin::ClientSocket_PCRead(TObject *Sender, TCustomWinSocket *
 		if(frame.size() != 11 || frame[9] != 0 || frame[10] != 0){
 			Socket->Close(); return;
 		}
-		pc_ReadFlag = true;
-		pc_ReadCount = 0;
+        // PLC SAFETY ADDRESS: wait for BOTH process and safety write replies.
+        if(pcPendingWriteResponses <= 0){ Socket->Close(); return; }
+        --pcPendingWriteResponses;
+        pc_ReadFlag = (pcPendingWriteResponses == 0);
+        if(pc_ReadFlag) pc_ReadCount = 0;
 	}
 	if(result < 0) Socket->Close();
 }
@@ -245,8 +250,6 @@ void __fastcall TPlcBin::Timer_PC_WriteMsgTimer(TObject *Sender)
 		{
 			if(pc_index == PC_INDEX_INTERFACE)
 			{
-				PC_DataChange(0, PC_D_INTERFACE_START_DEV_NUM, DEVCODE_D, PC_D_INTERFACE_LEN);
-
 				// D10150 PC HEART BEAT: toggle once per second. Keep the 200ms
 				// interface transmission cycle so the remaining PLC commands stay responsive.
 				DWORD nowTick = GetTickCount();
@@ -263,10 +266,20 @@ void __fastcall TPlcBin::Timer_PC_WriteMsgTimer(TObject *Sender)
 					if(MainForm != NULL)
 						MainForm->memoMainLineAdd("[PLC SAFETY] ON/ON conflict corrected before PC interface transmission.");
 				}
-                ClientSocket_PC->Socket->SendBuf(&pc_Data, sizeof(pc_Data));        // should comment for emulator
-				ClientSocket_PC->Socket->SendBuf(&pc_Interface_Data, sizeof(pc_Interface_Data));
-
-				pc_ReadFlag = false;
+                // PLC SAFETY ADDRESS 2026-09-10: two complete MC frames in one
+                // send, preserving the 200ms cycle. D10157-D10159 are untouched.
+                PC_DataChange(0, PC_D_INTERFACE_START_DEV_NUM, DEVCODE_D, PC_D_PROCESS_WRITE_LEN);
+                std::string writes(reinterpret_cast<const char*>(&pc_Data), sizeof(pc_Data));
+                writes.append(reinterpret_cast<const char*>(&pc_Interface_Data[0]), PC_D_PROCESS_WRITE_LEN * 2);
+                PC_DataChange(0, PC_D_INTERFACE_START_DEV_NUM + PC_D_EMERGENCY, DEVCODE_D, PC_D_SAFETY_WRITE_LEN);
+                writes.append(reinterpret_cast<const char*>(&pc_Data), sizeof(pc_Data));
+                writes.append(reinterpret_cast<const char*>(&pc_Interface_Data[PC_D_EMERGENCY]), PC_D_SAFETY_WRITE_LEN * 2);
+                pcPendingWriteResponses = 2;
+                pc_ReadFlag = false;
+                if(ClientSocket_PC->Socket->SendBuf(&writes[0], writes.size()) != (int)writes.size()){
+                    ClientSocket_PC->Close();
+                    return;
+                }
 			}
 		}
 		else if(pc_ReadCount > 20) 	//	200ms -> 4초동안 응답확인

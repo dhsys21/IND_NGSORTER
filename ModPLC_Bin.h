@@ -37,7 +37,11 @@ const int PLC_D_INTERFACE_START_DEV_NUM	 			=	10100;
 const int PLC_D_INTERFACE_LEN 						= 	18;
 //---------------------------------------------------------------------------
 const int PC_D_INTERFACE_START_DEV_NUM				=	10150;
-const int PC_D_INTERFACE_LEN	 					= 	9;
+// PLC SAFETY ADDRESS 2026-09-10: buffer spans D10150-D10161.
+// Transmit only D10150-D10156 and D10160-D10161; never write the gap.
+const int PC_D_INTERFACE_LEN = 12;
+const int PC_D_PROCESS_WRITE_LEN = 7;
+const int PC_D_SAFETY_WRITE_LEN = 2;
 
 //---------------------------------------------------------------------------
 //	PLC - PC Interface
@@ -66,8 +70,8 @@ const int PC_D_TRAY_IN_READY                        =   3;
 const int PC_D_SOURCE_CENTERING_REQ                 =   4;
 const int PC_D_SOURCE_TRAY_OUT 		    			=   5;
 const int PC_D_TARGET_TRAY_OUT                      =   6;
-const int PC_D_EMERGENCY                            =   7;
-const int PC_D_DOOR_OPEN                            =   8;
+const int PC_D_EMERGENCY                            =   10; // D10160: emergency pressed=1, released=0
+const int PC_D_DOOR_OPEN                            =   11; // D10161: either safety door open=1
 
 //---------------------------------------------------------------------------
 //	PLC Header
@@ -151,6 +155,7 @@ private:	// User declarations
     void __fastcall PLC_Recv_Interface();
 
     bool pc_ReadFlag;
+    int pcPendingWriteResponses; // Both disjoint MC write frames must be acknowledged.
     AnsiString pc_Read, pc_Read_Temp;
 	int pc_ReadCount, pc_index;
 	DWORD lastPcHeartBeatTick; // D10150 changes once every 1 second; communication remains 200ms.

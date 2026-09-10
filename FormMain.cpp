@@ -3629,7 +3629,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 	psrcOut->Font->Color = clBlack;
 	ptargetOut->Font->Color = clBlack;
 
-	// 2026-08-07: Verify PC word signals D10150-D10158.
+	// PLC SAFETY ADDRESS 2026-09-10: D10150-D10156 and D10160-D10161.
 
 	if(PlcBin != NULL){
 		bool doorOpen = robostar->IsSafetyDoorOpen(1) || robostar->IsSafetyDoorOpen(2);
@@ -3679,7 +3679,11 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 			PlcBin->CmdTargetTrayOut(false);
 		}
 
+        // PLC SAFETY ADDRESS: physical EMG input is active-low (EMS_SWITCH=0).
+        // All modes: pressed -> D10160=1; released -> D10160=0.
+        // Status reporting only; existing hardware stop/pause interlocks remain.
 		PlcBin->CmdPcEmergency(robostar->IsEmergencyStopActive());
+		// D10161=1 when either safety door is open.
 		PlcBin->CmdPcDoorOpen(doorOpen);
 	}
 	ServiceTargetTrayExchange();

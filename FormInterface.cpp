@@ -156,7 +156,9 @@ void __fastcall TInterfaceForm::WritePcValue()
 {
     int address = cbAddress->Text.ToIntDef(10152) - PC_D_INTERFACE_START_DEV_NUM;
     int value = editPcValue->Text.ToIntDef(1);
-    if(address >= 0 && address < PC_D_INTERFACE_LEN)
+    // PLC SAFETY ADDRESS: D10157-D10159 are no longer PC output signals.
+    if((address >= 0 && address < PC_D_PROCESS_WRITE_LEN) ||
+        address == PC_D_EMERGENCY || address == PC_D_DOOR_OPEN)
         PlcBin->SetPcValue(address, value);
 }
 //---------------------------------------------------------------------------

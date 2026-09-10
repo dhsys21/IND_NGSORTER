@@ -231,8 +231,8 @@ object InterfaceForm: TInterfaceForm
           '10154'
           '10155'
           '10156'
-          '10157'
-          '10158'
+          '10160'
+          '10161'
           '')
       end
       object editPcValue: TEdit
