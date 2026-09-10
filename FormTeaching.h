@@ -310,6 +310,7 @@ __published:	// IDE-managed Components
 	TLabel *Label59;
 	TLabel *Label61;
 	TAdvSmoothButton *btnClose;
+	TAdvSmoothButton *btnManualComplete;
 	TPanel *Panel20;
 	TPanel *Panel30;
 	TPanel *Panel44;

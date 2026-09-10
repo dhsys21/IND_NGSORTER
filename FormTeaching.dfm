@@ -1324,7 +1324,7 @@ object teachForm: TteachForm
           Status.Appearance.Font.Name = 'Tahoma'
           Status.Appearance.Font.Style = []
           BevelColor = clBlack
-          Caption = 'JOG '#49549#46020
+          Caption = 'JOG/Z Speed'
           Color = clWhite
           ParentFont = False
           TabOrder = 13
@@ -10859,6 +10859,44 @@ object teachForm: TteachForm
     TabOrder = 5
     Version = '2.1.1.5'
     OnClick = btnCloseClick
+    TMSStyle = 8
+  end
+  object btnManualComplete: TAdvSmoothButton
+    Left = 1016
+    Top = 3
+    Width = 87
+    Height = 54
+    Appearance.GlowPercentage = 50
+    Appearance.PictureAlignment = taCenter
+    Appearance.Font.Charset = DEFAULT_CHARSET
+    Appearance.Font.Color = clBlack
+    Appearance.Font.Height = -13
+    Appearance.Font.Name = 'Tahoma'
+    Appearance.Font.Style = [fsBold]
+    Appearance.Spacing = 0
+    Appearance.Rounding = 3
+    Appearance.WordWrapping = False
+    Status.Caption = '0'
+    Status.Appearance.Fill.Color = clRed
+    Status.Appearance.Fill.ColorMirror = clNone
+    Status.Appearance.Fill.ColorMirrorTo = clNone
+    Status.Appearance.Fill.GradientType = gtSolid
+    Status.Appearance.Fill.GradientMirrorType = gtSolid
+    Status.Appearance.Fill.BorderColor = clGray
+    Status.Appearance.Fill.Rounding = 0
+    Status.Appearance.Fill.ShadowOffset = 0
+    Status.Appearance.Fill.Glow = gmNone
+    Status.Appearance.Font.Charset = DEFAULT_CHARSET
+    Status.Appearance.Font.Color = clWhite
+    Status.Appearance.Font.Height = -11
+    Status.Appearance.Font.Name = 'Tahoma'
+    Status.Appearance.Font.Style = []
+    BevelColor = clBlack
+    Caption = 'Manual work'#13#10'complete'
+    Color = clWhite
+    ParentFont = False
+    TabOrder = 8
+    Version = '2.1.1.5'
     TMSStyle = 8
   end
   object AdvSmoothButton1: TAdvSmoothButton

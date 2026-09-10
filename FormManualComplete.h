@@ -14,7 +14,7 @@ __published:
     TLabel *lblFmsState;
     TEdit *editSource, *editTarget, *editCell, *editChannel;
     TCheckBox *chkInserted;
-    TButton *btnReport, *btnRetry, *btnResume, *btnClose;
+    TButton *btnReport, *btnSourceReturn, *btnRetry, *btnResume, *btnClose;
     TTimer *pollTimer;
     void __fastcall btnReportClick(TObject *Sender);
     void __fastcall btnRetryClick(TObject *Sender);

@@ -3,7 +3,7 @@ object ManualCompleteForm: TManualCompleteForm
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Manual work complete'
-  ClientHeight = 544
+  ClientHeight = 590
   ClientWidth = 660
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -139,31 +139,39 @@ object ManualCompleteForm: TManualCompleteForm
     TabOrder = 6
     OnClick = btnReportClick
   end
-  object btnRetry: TButton
+  object btnSourceReturn: TButton
     Left = 332
     Top = 450
-    Width = 148
+    Width = 308
+    Height = 38
+    Caption = 'Return cell to Source'
+    TabOrder = 7
+  end
+  object btnRetry: TButton
+    Left = 20
+    Top = 496
+    Width = 300
     Height = 38
     Caption = 'Retry'
-    TabOrder = 7
+    TabOrder = 8
     OnClick = btnRetryClick
   end
   object btnClose: TButton
-    Left = 492
-    Top = 450
-    Width = 148
+    Left = 332
+    Top = 496
+    Width = 308
     Height = 38
     Caption = 'Close'
-    TabOrder = 8
+    TabOrder = 9
     OnClick = btnCloseClick
   end
   object btnResume: TButton
     Left = 20
-    Top = 496
+    Top = 542
     Width = 620
     Height = 38
     Caption = 'Return to standby and resume'
-    TabOrder = 9
+    TabOrder = 10
     OnClick = btnResumeClick
   end
   object pollTimer: TTimer

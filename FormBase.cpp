@@ -436,7 +436,8 @@ void __fastcall TBaseForm::ChangeLanguage()
     teachForm->lblOpenClose->Caption = GetLangStr("CAP_OPEN_CLOSE");
     teachForm->AdvSmoothButton_LoadFactorInfo->Caption = GetLangStr("CAP_LOAD_FACTOR");
     teachForm->lblLoadFactorTitle->Caption = GetLangStr("CAP_LOAD");
-	teachForm->btnJogSpeed->Caption = GetLangStr("CAP_JOG_SPEED");
+	teachForm->btnJogSpeed->Caption = GetLangStr("CAP_JOG_Z_SPEED");
+	teachForm->btnManualComplete->Caption = GetLangStr("CAP_MANUAL_COMPLETE");
 	teachForm->btnZAxisDown->Caption = GetLangStr("CAP_Z_DOWN");
 	teachForm->Label57->Caption = GetLangStr("CAP_SERVO_MOVING");
 	teachForm->Label59->Caption = GetLangStr("CAP_SERVO_MOVING");

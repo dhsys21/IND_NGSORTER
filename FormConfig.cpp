@@ -228,6 +228,9 @@ void __fastcall TConfigForm::WriteSystemInfo(AnsiString type)
 		ini->WriteString("SPEED", "SPEED", teachForm->speedEdit->Text);
 		ini->WriteString("SPEED", "ACCL_SPEED", teachForm->acclSpeedEdit->Text);
 		ini->WriteString("SPEED", "DCCL_SPEED", teachForm->dcclSpeedEdit->Text);
+		ini->WriteInteger("SPEED", "JOG_SPEED", robostar->GetJogSpeed());
+		ini->WriteInteger("SPEED", "Z_SPEED_80", robostar->GetZSpeed80());
+		ini->WriteInteger("SPEED", "Z_SPEED_20", robostar->GetZSpeed20());
     }
 	else
 	{
@@ -351,6 +354,11 @@ bool __fastcall TConfigForm::ReadSystemInfo()
 		teachForm->acclSpeedEdit->Text = ini->ReadString("SPEED", "ACCL_SPEED", "300");
 		teachForm->dcclSpeedEdit->Text = ini->ReadString("SPEED", "DCCL_SPEED", "300");
 	}
+	int jogSpeed = ini->ReadInteger("SPEED", "JOG_SPEED", 100);
+	if(!robostar->SetJogSpeed(jogSpeed)) robostar->SetJogSpeed(100);
+	int zSpeed80 = ini->ReadInteger("SPEED", "Z_SPEED_80", 600);
+	int zSpeed20 = ini->ReadInteger("SPEED", "Z_SPEED_20", 300);
+	if(!robostar->SetZSpeeds(zSpeed80, zSpeed20)) robostar->SetZSpeeds(600, 300);
 
 	LoadCommunicationEdits();
 

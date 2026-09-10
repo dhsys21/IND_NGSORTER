@@ -334,28 +334,126 @@ void __fastcall TteachForm::btnJogSpeedClick(TObject *Sender)
 {
 	for(int axis = 1; axis <= servoCnt; ++axis){
 		if(robostar->mr2.running[axis]){
-			MessageBox(Handle, L"JOG 이동을 정지한 후 속도를 변경하세요.",
-				L"JOG 속도", MB_OK|MB_ICONWARNING);
+			MessageBox(Handle, BaseForm->GetLangStr("MSG_STOP_BEFORE_SPEED_CHANGE").c_str(),
+				BaseForm->GetLangStr("CAP_JOG_Z_SPEED").c_str(), MB_OK|MB_ICONWARNING);
 			return;
 		}
 	}
 
-	UnicodeString speedText = IntToStr(robostar->GetJogSpeed());
-	if(!InputQuery(L"JOG 속도", L"JOG 속도(1~200)를 입력하세요.", speedText))
-		return;
+	TForm *dialog = new TForm(this);
+	try{
+		dialog->Caption = BaseForm->GetLangStr("CAP_JOG_Z_SPEED");
+		dialog->BorderStyle = bsDialog;
+		dialog->Position = poOwnerFormCenter;
+		dialog->ClientWidth = 380;
+		dialog->ClientHeight = 210;
+		dialog->Font->Name = "Tahoma";
+		dialog->Font->Size = 10;
 
-	int speed = 0;
-	if(!TryStrToInt(speedText.Trim(), speed) || !robostar->SetJogSpeed(speed)){
-		MessageBox(Handle, L"JOG 속도는 1~200 범위의 정수로 입력하세요.",
-			L"JOG 속도", MB_OK|MB_ICONWARNING);
-		return;
+		TLabel *labelJog = new TLabel(dialog);
+		labelJog->Parent = dialog;
+		labelJog->Left = 20;
+		labelJog->Top = 25;
+		labelJog->Width = 210;
+		labelJog->Height = 24;
+		labelJog->AutoSize = false;
+		labelJog->Caption = BaseForm->GetLangStr("CAP_JOG_SPEED");
+
+		TLabel *labelZ80 = new TLabel(dialog);
+		labelZ80->Parent = dialog;
+		labelZ80->Left = 20;
+		labelZ80->Top = 70;
+		labelZ80->Width = 210;
+		labelZ80->Height = 24;
+		labelZ80->AutoSize = false;
+		labelZ80->Caption = BaseForm->GetLangStr("CAP_Z_SPEED_80");
+
+		TLabel *labelZ20 = new TLabel(dialog);
+		labelZ20->Parent = dialog;
+		labelZ20->Left = 20;
+		labelZ20->Top = 115;
+		labelZ20->Width = 210;
+		labelZ20->Height = 24;
+		labelZ20->AutoSize = false;
+		labelZ20->Caption = BaseForm->GetLangStr("CAP_Z_SPEED_20");
+
+		TEdit *editJog = new TEdit(dialog);
+		editJog->Parent = dialog;
+		editJog->Left = 245;
+		editJog->Top = 20;
+		editJog->Width = 110;
+		editJog->MaxLength = 4;
+		editJog->Alignment = taRightJustify;
+		editJog->Text = IntToStr(robostar->GetJogSpeed());
+
+		TEdit *editZ80 = new TEdit(dialog);
+		editZ80->Parent = dialog;
+		editZ80->Left = 245;
+		editZ80->Top = 65;
+		editZ80->Width = 110;
+		editZ80->MaxLength = 4;
+		editZ80->Alignment = taRightJustify;
+		editZ80->Text = IntToStr(robostar->GetZSpeed80());
+
+		TEdit *editZ20 = new TEdit(dialog);
+		editZ20->Parent = dialog;
+		editZ20->Left = 245;
+		editZ20->Top = 110;
+		editZ20->Width = 110;
+		editZ20->MaxLength = 4;
+		editZ20->Alignment = taRightJustify;
+		editZ20->Text = IntToStr(robostar->GetZSpeed20());
+
+		TButton *saveButton = new TButton(dialog);
+		saveButton->Parent = dialog;
+		saveButton->Left = 190;
+		saveButton->Top = 160;
+		saveButton->Width = 80;
+		saveButton->Height = 30;
+		saveButton->Caption = BaseForm->GetLangStr("CAP_SAVE");
+		saveButton->ModalResult = mrOk;
+		saveButton->Default = true;
+
+		TButton *cancelButton = new TButton(dialog);
+		cancelButton->Parent = dialog;
+		cancelButton->Left = 275;
+		cancelButton->Top = 160;
+		cancelButton->Width = 80;
+		cancelButton->Height = 30;
+		cancelButton->Caption = BaseForm->GetLangStr("CAP_CANCEL");
+		cancelButton->ModalResult = mrCancel;
+		cancelButton->Cancel = true;
+
+		while(dialog->ShowModal() == mrOk){
+			int jog = 0;
+			int z80 = 0;
+			int z20 = 0;
+			bool valuesValid = TryStrToInt(editJog->Text.Trim(), jog) &&
+				TryStrToInt(editZ80->Text.Trim(), z80) &&
+				TryStrToInt(editZ20->Text.Trim(), z20);
+			if(!valuesValid || jog < 1 || jog > 200 ||
+				z80 < TEACHING_SPEED_MIN || z80 > TEACHING_SPEED_MAX ||
+				z20 < TEACHING_SPEED_MIN || z20 > TEACHING_SPEED_MAX || z20 > z80)
+			{
+				MessageBox(dialog->Handle,
+					BaseForm->GetLangStr("MSG_JOG_Z_SPEED_RANGE").c_str(),
+					BaseForm->GetLangStr("CAP_JOG_Z_SPEED").c_str(),
+					MB_OK|MB_ICONWARNING);
+				continue;
+			}
+
+			robostar->SetJogSpeed(jog);
+			robostar->SetZSpeeds(z80, z20);
+			ShowTeachingSpeedDanger(dialog->Handle, z80);
+			if(ConfigForm != NULL) ConfigForm->WriteSystemInfo("speed");
+			MainForm->memoRobostarLineAdd("[JOG/Z SPEED] jog/z80/z20=" +
+				IntToStr(jog) + "/" + IntToStr(z80) + "/" + IntToStr(z20));
+			break;
+		}
 	}
-
-	MainForm->memoRobostarLineAdd("[JOG SPEED] runtime speed=" + IntToStr(speed));
-	UnicodeString message = "JOG 속도를 " + IntToStr(speed) +
-		"(으)로 변경했습니다.\r\n\r\n속도를 변경하면 버튼을 같은 시간 동안 눌러도 "
-		"이동값(이동거리)이 달라집니다.";
-	MessageBox(Handle, message.c_str(), L"JOG 속도", MB_OK|MB_ICONINFORMATION);
+	__finally{
+		delete dialog;
+	}
 }
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::AdvSmoothButton_ServoOnClick(TObject *Sender)

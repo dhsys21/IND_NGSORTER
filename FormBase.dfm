@@ -476,7 +476,7 @@ object BaseForm: TBaseForm
     Top = 52
     Width = 100
     Height = 13
-    Caption = 'Ver. 2026-09-09 008'
+    Caption = 'Ver. 2026-09-10 002'
   end
   object pims: TAdvSmoothPanel
     Left = 1522
@@ -875,7 +875,7 @@ object BaseForm: TBaseForm
   object pstepInfo1: TPanel
     Left = 317
     Top = 18
-    Width = 286
+    Width = 183
     Height = 30
     BevelKind = bkFlat
     BevelOuter = bvNone
@@ -933,6 +933,7 @@ object BaseForm: TBaseForm
       Font.Style = [fsBold]
       ParentFont = False
       TabOrder = 2
+      TabStop = False
       OnClick = RadioButton1Click
     end
   end

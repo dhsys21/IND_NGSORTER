@@ -85,6 +85,11 @@ __fastcall Trobostar::Trobostar(TComponent* Owner)
 	keyLockSetSafetyBypassOffTick = 0;
 	keyLockReleaseOutputOffTick = 0;
 	jogSpeed = 100;
+	zSpeed80 = 600;
+	zSpeed20 = 300;
+	zDownApproachPosition = 0;
+	zDownFinalPosition = 0;
+	zDownProfileStage = 0;
 	safetyResetPulseUntilTick = 0;
 	move.pallet = 0;
 	move.channel = 0;
@@ -933,6 +938,29 @@ int __fastcall Trobostar::GetJogSpeed() const
 	return jogSpeed;
 }
 //---------------------------------------------------------------------------
+bool __fastcall Trobostar::SetZSpeeds(int speed80, int speed20)
+{
+	if(speed80 < 300 || speed80 > 2700 || speed20 < 300 || speed20 > 2700 ||
+		speed20 > speed80)
+		return false;
+
+	zSpeed80 = speed80;
+	zSpeed20 = speed20;
+	point[0].speed = zSpeed80;
+	point[Axis_z].speed = zSpeed80;
+	return true;
+}
+//---------------------------------------------------------------------------
+int __fastcall Trobostar::GetZSpeed80() const
+{
+	return zSpeed80;
+}
+//---------------------------------------------------------------------------
+int __fastcall Trobostar::GetZSpeed20() const
+{
+	return zSpeed20;
+}
+//---------------------------------------------------------------------------
 bool __fastcall Trobostar::IsZLimitActive() const
 {
 	return !(mr2.limit[Axis_z] & SSC_BIT_LSP) ||
@@ -986,6 +1014,82 @@ bool __fastcall Trobostar::setPoint(int axnum_id, unsigned long int pos)
 	acceptedPoint[axis] = candidate;
 	acceptedMove[axis] = true;
 	return true;
+}
+//---------------------------------------------------------------------------
+bool __fastcall Trobostar::setZPoint(long pos, int speed)
+{
+	point[Axis_z].speed = speed;
+	return setPoint(Axis_z, (unsigned long)pos);
+}
+//---------------------------------------------------------------------------
+bool __fastcall Trobostar::StartZDownProfile(long targetPosition)
+{
+	long currentZ = mr2.pos[Axis_z];
+	if(!sscOpened ||
+		sscGetCurrentCmdPositionFast(board_id, channel_id, Axis_z, &currentZ) != SSC_OK)
+	{
+		MotionFault("Z position read failed before two-stage descent");
+		return false;
+	}
+
+	mr2.pos[Axis_z] = currentZ;
+	zDownFinalPosition = targetPosition;
+	__int64 travel = (__int64)targetPosition - (__int64)currentZ;
+	zDownApproachPosition = currentZ + (long)((travel * 80) / 100);
+
+	if(currentZ == targetPosition){
+		zDownProfileStage = 2;
+		return true;
+	}
+
+	if(zDownApproachPosition == currentZ || zDownApproachPosition == targetPosition){
+		zDownProfileStage = 2;
+		return setZPoint(zDownFinalPosition, zSpeed20);
+	}
+
+	zDownProfileStage = 1;
+	if(!setZPoint(zDownApproachPosition, zSpeed80)){
+		zDownProfileStage = 0;
+		return false;
+	}
+
+	MainForm->memoRobostarLineAdd("[Z SPEED] first 80% target/speed=" +
+		IntToStr((__int64)zDownApproachPosition) + "/" + IntToStr(zSpeed80));
+	return true;
+}
+//---------------------------------------------------------------------------
+bool __fastcall Trobostar::ContinueZDownProfile()
+{
+	if(zDownProfileStage == 0)
+		return false;
+
+	long currentZ = mr2.pos[Axis_z];
+	if(!sscOpened ||
+		sscGetCurrentCmdPositionFast(board_id, channel_id, Axis_z, &currentZ) != SSC_OK)
+	{
+		MotionFault("Z position read failed during two-stage descent");
+		return false;
+	}
+	mr2.pos[Axis_z] = currentZ;
+
+	if(zDownProfileStage == 1 && currentZ == zDownApproachPosition){
+		zDownProfileStage = 2;
+		if(!setZPoint(zDownFinalPosition, zSpeed20)){
+			// Keep the first-stage marker so Restart can retry the final approach.
+			zDownProfileStage = 1;
+			return false;
+		}
+		MainForm->memoRobostarLineAdd("[Z SPEED] final 20% target/speed=" +
+			IntToStr((__int64)zDownFinalPosition) + "/" + IntToStr(zSpeed20));
+		return false;
+	}
+
+	if(zDownProfileStage == 2 && currentZ == zDownFinalPosition){
+		zDownProfileStage = 0;
+		return true;
+	}
+
+	return false;
 }
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::rangeCheck(int axnum_id)
@@ -1350,7 +1454,7 @@ void __fastcall Trobostar::AutoMove()
 				MainForm->CompleteProcessStep(10, "Target channel position complete");
 				MainForm->BeginProcessStep(11, "Cell insert / Z DOWN / Gripper UNCHUCK");
 			}
-			if(!setPoint(Axis_z, activeTarget[Axis_z])) return;
+			if(!StartZDownProfile(activeTarget[Axis_z])) return;
 			MainForm->memoRobostarLineAdd("[Z DOWN APPROVED] pallet=" + IntToStr(activeMove.pallet) +
 				", channel=" + IntToStr(activeMove.channel) + ", X/Y/Z=" +
 				IntToStr((__int64)activeTarget[Axis_x]) + "/" +
@@ -1365,16 +1469,8 @@ void __fastcall Trobostar::AutoMove()
 					"Servo Z position", IntToStr((__int64)activeTarget[Axis_z]),
 					IntToStr((__int64)mr2.pos[Axis_z]));
 
-			// Refresh Z on every 100 ms motion scan while waiting for DOWN completion.
-			// The general monitor refreshes each axis less frequently, which added latency.
-			//* max speed mode - need remove
-			if(UseFatOptimizeSequenceDelay() && sscOpened){
-				long currentZ = mr2.pos[Axis_z];
-				if(sscGetCurrentCmdPositionFast(board_id, channel_id, Axis_z, &currentZ) == SSC_OK)
-					mr2.pos[Axis_z] = currentZ;
-			}
-
-			if(rangeCheck(Axis_z)){
+			// Z DOWN uses a full-speed first 80% and a slower final 20% approach.
+			if(ContinueZDownProfile()){
 				robotSequence completedReserve = step.reserve;
 				move = activeMove;
 				for(int i = 0; i < AxisCnt; ++i)
@@ -1601,7 +1697,7 @@ void __fastcall Trobostar::zDown()
 				return;
 			}
 			zUpCount = 0;
-			bSetPoint = setPoint(Axis_z, activeTarget[Axis_z]);
+			bSetPoint = StartZDownProfile(activeTarget[Axis_z]);
 			if(!bSetPoint) return;
 			teachForm->pnlMovingAlarm->Visible = true;
 			teachForm->pnlMovingAlarm->BringToFront();
@@ -1616,7 +1712,11 @@ void __fastcall Trobostar::zDown()
 				return;
 			}
 			zUpCount++;
-			if(rangeCheck(Axis_z)) break;
+			if(ContinueZDownProfile()){
+				zUpCount = 0;
+				step.step += 1;
+				break;
+			}
 			if(zUpCount > 200){
 				AlarmForm->ShowError("Z Axis move timeout", "Check the Z teaching value and servo state.");
 				req_Stop();
@@ -1982,6 +2082,9 @@ void __fastcall Trobostar::req_Speed(int speed, int accl, int dccl)
 		point[i].subcmd = 0;
 		point[i].s_curve = 0;
 	}
+	// X/Y use the common setting; Z uses its dedicated approach setting.
+	point[0].speed = zSpeed80;
+	point[Axis_z].speed = zSpeed80;
 }
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::req_Stop()
@@ -1995,6 +2098,7 @@ void __fastcall Trobostar::req_Stop()
 	seq_save = seqIdle;
 	activeMoveValid = false;
 	directXYPositionReady = false;
+	zDownProfileStage = 0;
 	InitSequence(seqIdle);
 	if(!sscOpened) return;
 

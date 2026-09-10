@@ -361,7 +361,15 @@ private:	// User declarations
 	bool homeRequiredAfterServoOff;
     bool bSetPoint;
 	long jogSpeed;
+	int zSpeed80;
+	int zSpeed20;
+	long zDownApproachPosition;
+	long zDownFinalPosition;
+	int zDownProfileStage; // 0: idle, 1: first 80%, 2: final 20%.
 	bool __fastcall setPoint(int axnum_id, unsigned long int pos);
+	bool __fastcall setZPoint(long pos, int speed);
+	bool __fastcall StartZDownProfile(long targetPosition);
+	bool __fastcall ContinueZDownProfile();
 	bool __fastcall rangeCheck(int axnum_id);
 	void __fastcall mr2Sensing();
 
@@ -420,6 +428,9 @@ public:		// User declarations
 	bool __fastcall req_zDown();
 	bool __fastcall SetJogSpeed(int speed);
 	int __fastcall GetJogSpeed() const;
+	bool __fastcall SetZSpeeds(int speed80, int speed20);
+	int __fastcall GetZSpeed80() const;
+	int __fastcall GetZSpeed20() const;
 
 	void __fastcall GripperChuck(int num, bool open, bool close);
 
