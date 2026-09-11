@@ -370,6 +370,7 @@ private:	// User declarations
 	long jogSpeed;
 	int zSpeed80;
 	int zSpeed20;
+	long targetZSlowStartPosition; // Location2 absolute Z where final slow descent starts.
 	long zDownApproachPosition;
 	long zDownFinalPosition;
 	int zDownProfileStage; // 0: idle, 1: first 80%, 2: final 20%.
@@ -439,6 +440,8 @@ public:		// User declarations
 	bool __fastcall SetZSpeeds(int speed80, int speed20);
 	int __fastcall GetZSpeed80() const;
 	int __fastcall GetZSpeed20() const;
+	bool __fastcall SetTargetZSlowStartPosition(long position);
+	long __fastcall GetTargetZSlowStartPosition() const;
 
 	void __fastcall GripperChuck(int num, bool open, bool close);
 

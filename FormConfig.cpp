@@ -231,6 +231,8 @@ void __fastcall TConfigForm::WriteSystemInfo(AnsiString type)
 		ini->WriteInteger("SPEED", "JOG_SPEED", robostar->GetJogSpeed());
 		ini->WriteInteger("SPEED", "Z_SPEED_80", robostar->GetZSpeed80());
 		ini->WriteInteger("SPEED", "Z_SPEED_20", robostar->GetZSpeed20());
+		ini->WriteInteger("SPEED", "TARGET_Z_SLOW_START_POS",
+			robostar->GetTargetZSlowStartPosition());
     }
 	else
 	{
@@ -359,6 +361,16 @@ bool __fastcall TConfigForm::ReadSystemInfo()
 	int zSpeed80 = ini->ReadInteger("SPEED", "Z_SPEED_80", 600);
 	int zSpeed20 = ini->ReadInteger("SPEED", "Z_SPEED_20", 300);
 	if(!robostar->SetZSpeeds(zSpeed80, zSpeed20)) robostar->SetZSpeeds(600, 300);
+	// TARGET Z ABSOLUTE SPLIT: default preserves the former 80% transition once,
+	// then the operator can register an equipment-specific absolute Z position.
+	long targetFinalZ = teachForm->edit_TZ->Text.ToIntDef(212800);
+	long defaultSlowStart = targetFinalZ != 0 ? (long)(((__int64)targetFinalZ * 80) / 100) : 170240;
+	long targetSlowStart = ini->ReadInteger("SPEED", "TARGET_Z_SLOW_START_POS", defaultSlowStart);
+	bool splitBetween = targetFinalZ > 0 ?
+		(targetSlowStart > 0 && targetSlowStart < targetFinalZ) :
+		(targetSlowStart < 0 && targetSlowStart > targetFinalZ);
+	if(!splitBetween) targetSlowStart = defaultSlowStart;
+	robostar->SetTargetZSlowStartPosition(targetSlowStart);
 
 	LoadCommunicationEdits();
 

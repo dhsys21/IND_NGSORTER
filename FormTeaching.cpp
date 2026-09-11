@@ -347,8 +347,8 @@ void __fastcall TteachForm::btnJogSpeedClick(TObject *Sender)
 		dialog->Caption = BaseForm->GetLangStr("CAP_JOG_Z_SPEED");
 		dialog->BorderStyle = bsDialog;
 		dialog->Position = poOwnerFormCenter;
-		dialog->ClientWidth = 380;
-		dialog->ClientHeight = 210;
+		dialog->ClientWidth = 440;
+		dialog->ClientHeight = 255;
 		dialog->Font->Name = "Tahoma";
 		dialog->Font->Size = 10;
 
@@ -379,6 +379,15 @@ void __fastcall TteachForm::btnJogSpeedClick(TObject *Sender)
 		labelZ20->AutoSize = false;
 		labelZ20->Caption = BaseForm->GetLangStr("CAP_Z_SPEED_20");
 
+		TLabel *labelTargetSlowZ = new TLabel(dialog);
+		labelTargetSlowZ->Parent = dialog;
+		labelTargetSlowZ->Left = 20;
+		labelTargetSlowZ->Top = 160;
+		labelTargetSlowZ->Width = 275;
+		labelTargetSlowZ->Height = 24;
+		labelTargetSlowZ->AutoSize = false;
+		labelTargetSlowZ->Caption = BaseForm->GetLangStr("CAP_TARGET_Z_SLOW_POS");
+
 		TEdit *editJog = new TEdit(dialog);
 		editJog->Parent = dialog;
 		editJog->Left = 245;
@@ -406,10 +415,19 @@ void __fastcall TteachForm::btnJogSpeedClick(TObject *Sender)
 		editZ20->Alignment = taRightJustify;
 		editZ20->Text = IntToStr(robostar->GetZSpeed20());
 
+		TEdit *editTargetSlowZ = new TEdit(dialog);
+		editTargetSlowZ->Parent = dialog;
+		editTargetSlowZ->Left = 305;
+		editTargetSlowZ->Top = 155;
+		editTargetSlowZ->Width = 110;
+		editTargetSlowZ->MaxLength = 10;
+		editTargetSlowZ->Alignment = taRightJustify;
+		editTargetSlowZ->Text = IntToStr((__int64)robostar->GetTargetZSlowStartPosition());
+
 		TButton *saveButton = new TButton(dialog);
 		saveButton->Parent = dialog;
-		saveButton->Left = 190;
-		saveButton->Top = 160;
+		saveButton->Left = 250;
+		saveButton->Top = 205;
 		saveButton->Width = 80;
 		saveButton->Height = 30;
 		saveButton->Caption = BaseForm->GetLangStr("CAP_SAVE");
@@ -418,8 +436,8 @@ void __fastcall TteachForm::btnJogSpeedClick(TObject *Sender)
 
 		TButton *cancelButton = new TButton(dialog);
 		cancelButton->Parent = dialog;
-		cancelButton->Left = 275;
-		cancelButton->Top = 160;
+		cancelButton->Left = 335;
+		cancelButton->Top = 205;
 		cancelButton->Width = 80;
 		cancelButton->Height = 30;
 		cancelButton->Caption = BaseForm->GetLangStr("CAP_CANCEL");
@@ -430,10 +448,11 @@ void __fastcall TteachForm::btnJogSpeedClick(TObject *Sender)
 			int jog = 0;
 			int z80 = 0;
 			int z20 = 0;
-			bool valuesValid = TryStrToInt(editJog->Text.Trim(), jog) &&
+			int targetSlowZ = 0;
+			bool speedValuesValid = TryStrToInt(editJog->Text.Trim(), jog) &&
 				TryStrToInt(editZ80->Text.Trim(), z80) &&
 				TryStrToInt(editZ20->Text.Trim(), z20);
-			if(!valuesValid || jog < 1 || jog > 200 ||
+			if(!speedValuesValid || jog < 1 || jog > 200 ||
 				z80 < TEACHING_SPEED_MIN || z80 > TEACHING_SPEED_MAX ||
 				z20 < Z_FINAL_SPEED_MIN || z20 > Z_FINAL_SPEED_MAX || z20 > z80)
 			{
@@ -443,13 +462,27 @@ void __fastcall TteachForm::btnJogSpeedClick(TObject *Sender)
 					MB_OK|MB_ICONWARNING);
 				continue;
 			}
+			bool targetPositionValid = TryStrToInt(editTargetSlowZ->Text.Trim(), targetSlowZ);
+			long targetFinalZ = edit_TZ->Text.ToIntDef(0);
+			bool splitBetween = targetFinalZ > 0 ?
+				(targetSlowZ > 0 && targetSlowZ < targetFinalZ) :
+				(targetSlowZ < 0 && targetSlowZ > targetFinalZ);
+			if(!targetPositionValid || !splitBetween){
+				MessageBox(dialog->Handle,
+					BaseForm->GetLangStr("MSG_TARGET_Z_SLOW_POS_RANGE").c_str(),
+					BaseForm->GetLangStr("CAP_JOG_Z_SPEED").c_str(),
+					MB_OK|MB_ICONWARNING);
+				continue;
+			}
 
 			robostar->SetJogSpeed(jog);
 			robostar->SetZSpeeds(z80, z20);
+			robostar->SetTargetZSlowStartPosition(targetSlowZ);
 			ShowTeachingSpeedDanger(dialog->Handle, z80);
 			if(ConfigForm != NULL) ConfigForm->WriteSystemInfo("speed");
-			MainForm->memoRobostarLineAdd("[JOG/Z SPEED] jog/z80/z20=" +
-				IntToStr(jog) + "/" + IntToStr(z80) + "/" + IntToStr(z20));
+			MainForm->memoRobostarLineAdd("[JOG/Z SPEED] jog/zFast/zSlow/targetSlowStart=" +
+				IntToStr(jog) + "/" + IntToStr(z80) + "/" + IntToStr(z20) +
+				"/" + IntToStr(targetSlowZ));
 			break;
 		}
 	}

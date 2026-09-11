@@ -89,6 +89,7 @@ __fastcall Trobostar::Trobostar(TComponent* Owner)
 	jogSpeed = 100;
 	zSpeed80 = 600;
 	zSpeed20 = 300;
+	targetZSlowStartPosition = 170240;
 	zDownApproachPosition = 0;
 	zDownFinalPosition = 0;
 	zDownProfileStage = 0;
@@ -1066,6 +1067,19 @@ int __fastcall Trobostar::GetZSpeed20() const
 	return zSpeed20;
 }
 //---------------------------------------------------------------------------
+bool __fastcall Trobostar::SetTargetZSlowStartPosition(long position)
+{
+	// The direction/final-target relationship is validated again at motion start.
+	if(position == 0) return false;
+	targetZSlowStartPosition = position;
+	return true;
+}
+//---------------------------------------------------------------------------
+long __fastcall Trobostar::GetTargetZSlowStartPosition() const
+{
+	return targetZSlowStartPosition;
+}
+//---------------------------------------------------------------------------
 bool __fastcall Trobostar::IsZLimitActive() const
 {
 	return !(mr2.limit[Axis_z] & SSC_BIT_LSP) ||
@@ -1139,17 +1153,41 @@ bool __fastcall Trobostar::StartZDownProfile(long targetPosition)
 
 	mr2.pos[Axis_z] = currentZ;
 	zDownFinalPosition = targetPosition;
-	__int64 travel = (__int64)targetPosition - (__int64)currentZ;
-	zDownApproachPosition = currentZ + (long)((travel * 80) / 100);
 
 	if(currentZ == targetPosition){
 		zDownProfileStage = 2;
 		return true;
 	}
 
-	if(zDownApproachPosition == currentZ || zDownApproachPosition == targetPosition){
+	// TRAY Z DOWN PROFILE 2026-09-11:
+	// Location1(Source) descends to the final Z in one command at the fast Z speed.
+	if(activeMove.pallet == 1){
+		zDownApproachPosition = targetPosition;
 		zDownProfileStage = 2;
-		return setZPoint(zDownFinalPosition, zSpeed20);
+		if(!setZPoint(zDownFinalPosition, zSpeed80)){
+			zDownProfileStage = 0;
+			return false;
+		}
+		MainForm->memoRobostarLineAdd("[Z SPEED] Source full descent target/speed=" +
+			IntToStr((__int64)zDownFinalPosition) + "/" + IntToStr(zSpeed80));
+		return true;
+	}
+
+	// Location2(Target) uses the registered absolute Z as the slow-start point.
+	if(activeMove.pallet != 2){
+		MotionFault("Z descent has no valid Source/Target tray selection");
+		return false;
+	}
+	zDownApproachPosition = targetZSlowStartPosition;
+	bool splitBetween = targetPosition > currentZ ?
+		(zDownApproachPosition > currentZ && zDownApproachPosition < targetPosition) :
+		(zDownApproachPosition < currentZ && zDownApproachPosition > targetPosition);
+	if(!splitBetween){
+		MotionFault("Target Z slow-start absolute position is outside the descent range: current=" +
+			IntToStr((__int64)currentZ) + " slow-start=" +
+			IntToStr((__int64)zDownApproachPosition) + " final=" +
+			IntToStr((__int64)targetPosition));
+		return false;
 	}
 
 	zDownProfileStage = 1;
@@ -1158,7 +1196,7 @@ bool __fastcall Trobostar::StartZDownProfile(long targetPosition)
 		return false;
 	}
 
-	MainForm->memoRobostarLineAdd("[Z SPEED] first 80% target/speed=" +
+	MainForm->memoRobostarLineAdd("[Z SPEED] Target fast segment absolute target/speed=" +
 		IntToStr((__int64)zDownApproachPosition) + "/" + IntToStr(zSpeed80));
 	return true;
 }
@@ -1178,7 +1216,7 @@ bool __fastcall Trobostar::ContinueZDownProfile()
 	mr2.pos[Axis_z] = currentZ;
 	if(zDownProfileStage == 1 && currentZ == zDownApproachPosition){
 		// Z DOWN MOTION START GUARD 2026-09-10:
-		// The command position can reach the 80% target before the position board
+		// The command position can reach the registered slow-start target before the position board
 		// finishes the first move. Starting the final 20% in that interval causes
 		// SSC error 060010 (motion is still active). Wait for AX_OP OFF and speed 0.
 		int moving = SSC_BIT_ON;
@@ -1199,7 +1237,7 @@ bool __fastcall Trobostar::ContinueZDownProfile()
 			zDownProfileStage = 1;
 			return false;
 		}
-		MainForm->memoRobostarLineAdd("[Z SPEED] final 20% target/speed=" +
+		MainForm->memoRobostarLineAdd("[Z SPEED] Target final slow segment target/speed=" +
 			IntToStr((__int64)zDownFinalPosition) + "/" + IntToStr(zSpeed20));
 		return false;
 	}
