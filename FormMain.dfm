@@ -2041,7 +2041,7 @@ object MainForm: TMainForm
       Caption = 'I/O Monitoring'
       Color = clWhite
       ParentFont = False
-      TabOrder = 15
+      TabOrder = 18
       Version = '2.1.1.5'
       OnClick = btnIOMonitoringClick
       TMSStyle = 8
@@ -2085,10 +2085,10 @@ object MainForm: TMainForm
       TMSStyle = 8
     end
     object btnTrayStepInit: TAdvSmoothButton
-      Left = 294
-      Top = 56
-      Width = 54
-      Height = 30
+      Left = 414
+      Top = 2
+      Width = 88
+      Height = 22
       Appearance.Font.Charset = DEFAULT_CHARSET
       Appearance.Font.Color = clWindowText
       Appearance.Font.Height = -11
@@ -2117,7 +2117,6 @@ object MainForm: TMainForm
       Color = clWhite
       ParentFont = False
       TabOrder = 17
-      Visible = False
       Version = '2.1.1.5'
       OnClick = btnTrayStepInitClick
       TMSStyle = 8
@@ -2542,7 +2541,6 @@ object MainForm: TMainForm
       Appearance.Font.Style = [fsBold]
       Appearance.Spacing = 0
       Appearance.FocusColor = clWhite
-      Appearance.WordWrapping = True
       Caption = 'RESUME WORK'
       Version = '1.5.1.1'
       Status.Caption = '0'
@@ -2561,7 +2559,7 @@ object MainForm: TMainForm
       Status.Appearance.Font.Name = 'Tahoma'
       Status.Appearance.Font.Style = []
       ParentFont = False
-      TabOrder = 14
+      TabOrder = 19
       TMSStyle = 0
     end
     object btnResetWork: TAdvSmoothToggleButton
@@ -2583,7 +2581,6 @@ object MainForm: TMainForm
       Appearance.Font.Style = [fsBold]
       Appearance.Spacing = 0
       Appearance.FocusColor = clWhite
-      Appearance.WordWrapping = True
       Caption = 'RESET WORK'
       Version = '1.5.1.1'
       Status.Caption = '0'
@@ -2603,6 +2600,7 @@ object MainForm: TMainForm
       Status.Appearance.Font.Style = []
       ParentFont = False
       TabOrder = 15
+      OnClick = AdvSmoothToggleButton_InitWorkClick
       TMSStyle = 0
     end
     object pause_startBtn: TAdvSmoothToggleButton
@@ -4834,7 +4832,7 @@ object MainForm: TMainForm
       Left = 5
       Top = 37
       Width = 967
-      Height = 350
+      Height = 254
       Margins.Left = 5
       Margins.Top = 5
       Margins.Right = 5

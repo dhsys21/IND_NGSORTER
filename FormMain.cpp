@@ -4045,7 +4045,7 @@ void __fastcall TMainForm::lblTitleClick(TObject *Sender)
 
 	//* DRY RUN : Use the same hidden commissioning access as Door/Auto and Cycle Test.
 	btnDryRun->Visible = showTestOptions;
-	btnTrayStepInit->Visible = showTestOptions;
+	btnTrayStepInit->Visible = true;
 	if(showTestOptions){
 		btnTrayStepInit->Enabled = true;
 		btnTrayStepInit->BringToFront();
