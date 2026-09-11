@@ -299,11 +299,31 @@ void Trobostar::FinishBufferRecovery(bool zRaised, const AnsiString &detail)
 
 	AnsiString message;
 	if(zRaised)
-		message = "X0023 BUFFER sensor was detected. Z reached position 0. Correct the cause, then use Restart.";
+		message = "X0023 BUFFER detected. Z=0; servo sequence canceled.\r\n"
+			"Clear BUFFER, then select the required recovery command.";
 	else
-		message = "X0023 BUFFER sensor was detected, but Z could not reach position 0. " + detail;
+		message = "X0023 BUFFER detected, but Z could not reach position 0.\r\n" + detail;
 	MainForm->memoRobostarLineAdd("[BUFFER RECOVERY] " + message);
 	ShowCommonError("Sorting stopped", message);
+
+	if(zRaised){
+		// BUFFER RECOVERY COMPLETION 2026-09-11:
+		// ShowCommonError pauses the robot again while displaying the alarm. Once
+		// physical Z=0 is confirmed, discard that interrupted robot sequence so it
+		// cannot block a later manual command as "another servo sequence". The
+		// gripper/production sequence deliberately remains paused for Restart.
+		for(int a = 1; a <= servoCnt; ++a)
+			acceptedMove[a] = false;
+		zDownProfileStage = 0;
+		bSetPoint = false;
+		seq_save = seqIdle;
+		pauseStatus = false;
+		motionFaultLatched = false;
+		centeringMotionMonitorActive = false;
+		InitSequence(seqIdle);
+		MainForm->memoRobostarLineAdd(
+			"[BUFFER RECOVERY] Z=0 confirmed / interrupted robot sequence cleared / waiting for a new command");
+	}
 }
 //---------------------------------------------------------------------------
 void Trobostar::ProcessBufferRecovery()

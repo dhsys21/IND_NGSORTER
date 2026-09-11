@@ -17,7 +17,9 @@ __published:	// IDE-managed Components
 	TStaticText *SubErr;
 	TStaticText *pTrayId;
 	TAdvSmoothButton *manualBtn;
+	TAdvSmoothButton *buzzerStopBtn;
 	void __fastcall manualBtnClick(TObject *Sender);
+	void __fastcall buzzerStopBtnClick(TObject *Sender);
 private:	// User declarations
 
 public:		// User declarations

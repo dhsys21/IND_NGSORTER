@@ -4,7 +4,6 @@
 #pragma hdrstop
 
 #include "FormBase.h"
-#pragma link "wininet.lib"
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.dfm"
