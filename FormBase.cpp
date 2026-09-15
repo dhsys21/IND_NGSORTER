@@ -19,6 +19,8 @@ __fastcall TBaseForm::TBaseForm(TComponent* Owner)
 	// the normal production sequence and the physical barcode readers.
 	config.maximumSpeedMode = false;
 	config.targetTrayUnloadCount = 0;
+	//* 비상정지후 취출/삽입 계속작업.
+	config.emergencyAutoRestart = false;
 	config.optimizeSequenceDelay = false;
 	config.skipGripStabilization = false;
 	config.useFatTestBarcodes = false;
@@ -435,6 +437,7 @@ void __fastcall TBaseForm::ChangeLanguage()
     teachForm->lblOpenClose->Caption = GetLangStr("CAP_OPEN_CLOSE");
     teachForm->AdvSmoothButton_LoadFactorInfo->Caption = GetLangStr("CAP_LOAD_FACTOR");
     teachForm->lblLoadFactorTitle->Caption = GetLangStr("CAP_LOAD");
+	//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 	teachForm->btnJogSpeed->Caption = GetLangStr("CAP_JOG_Z_SPEED");
 	teachForm->btnManualComplete->Caption = GetLangStr("CAP_MANUAL_COMPLETE");
 	teachForm->btnZAxisDown->Caption = GetLangStr("CAP_Z_DOWN");
@@ -551,6 +554,8 @@ void __fastcall TBaseForm::ChangeLanguage()
 	ConfigForm->GroupBox2->Caption = GetLangStr("CAP_Z_UP_ON_MOVE");
 	ConfigForm->chkZAxisUp->Caption = GetLangStr("CAP_Z_UP");
 	ConfigForm->GroupBoxTargetUnload->Caption = GetLangStr("CAP_TARGET_UNLOAD_SETTING");
+	//* 비상정지후 취출/삽입 계속작업.
+	ConfigForm->chkEmergencyAutoRestart->Caption = GetLangStr("CAP_EMG_AUTO_RESTART");
 	ConfigForm->lblTargetUnloadCount->Caption = GetLangStr("CAP_TARGET_UNLOAD_COUNT");
 	ConfigForm->lblTargetUnloadDisabled->Caption = GetLangStr("CAP_TARGET_UNLOAD_DISABLED");
 	MainForm->UpdateTargetTrayExchangePanel();

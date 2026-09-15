@@ -18,6 +18,8 @@ __fastcall TConfigForm::TConfigForm(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall TConfigForm::ApplyConfig()
 {
+	//* 비상정지후 취출/삽입 계속작업.
+	BaseForm->config.emergencyAutoRestart = chkEmergencyAutoRestart->Checked;
 	int unloadCount = editTargetUnloadCount->Text.ToIntDef(BaseForm->config.targetTrayUnloadCount);
 	if(unloadCount >= 0 && unloadCount <= 96)
 		BaseForm->config.targetTrayUnloadCount = unloadCount;
@@ -229,6 +231,7 @@ void __fastcall TConfigForm::WriteSystemInfo(AnsiString type)
 		ini->WriteString("SPEED", "ACCL_SPEED", teachForm->acclSpeedEdit->Text);
 		ini->WriteString("SPEED", "DCCL_SPEED", teachForm->dcclSpeedEdit->Text);
 		ini->WriteInteger("SPEED", "JOG_SPEED", robostar->GetJogSpeed());
+		//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 		ini->WriteInteger("SPEED", "Z_SPEED_80", robostar->GetZSpeed80());
 		ini->WriteInteger("SPEED", "Z_SPEED_20", robostar->GetZSpeed20());
 		ini->WriteInteger("SPEED", "TARGET_Z_SLOW_START_POS",
@@ -278,6 +281,8 @@ void __fastcall TConfigForm::WriteSystemInfo(AnsiString type)
 	ini->WriteString("FAT_TEST", "TARGET_BCR",
 		editFatTargetBcr->Text.Trim());
 	ini->WriteInteger("TARGET_TRAY", "UNLOAD_CELL_COUNT", BaseForm->config.targetTrayUnloadCount);
+	//* 비상정지후 취출/삽입 계속작업.
+	ini->WriteBool("RECOVERY", "EMERGENCY_AUTO_RESTART", BaseForm->config.emergencyAutoRestart);
 
 	delete ini;
 
@@ -318,6 +323,8 @@ bool __fastcall TConfigForm::ReadSystemInfo()
 	int unloadCount = ini->ReadInteger("TARGET_TRAY", "UNLOAD_CELL_COUNT", 0);
 	if(unloadCount < 0 || unloadCount > 96) unloadCount = 0;
 	editTargetUnloadCount->Text = IntToStr(unloadCount);
+	//* 비상정지후 취출/삽입 계속작업.
+	chkEmergencyAutoRestart->Checked = ini->ReadBool("RECOVERY", "EMERGENCY_AUTO_RESTART", false);
 
     // Stage Info
 	pcEdit->Text = ini->ReadString("INFO", "PC", "H1DIF01A");
@@ -358,9 +365,11 @@ bool __fastcall TConfigForm::ReadSystemInfo()
 	}
 	int jogSpeed = ini->ReadInteger("SPEED", "JOG_SPEED", 100);
 	if(!robostar->SetJogSpeed(jogSpeed)) robostar->SetJogSpeed(100);
+	//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 	int zSpeed80 = ini->ReadInteger("SPEED", "Z_SPEED_80", 600);
 	int zSpeed20 = ini->ReadInteger("SPEED", "Z_SPEED_20", 300);
 	if(!robostar->SetZSpeeds(zSpeed80, zSpeed20)) robostar->SetZSpeeds(600, 300);
+	//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 	// TARGET Z ABSOLUTE SPLIT: default preserves the former 80% transition once,
 	// then the operator can register an equipment-specific absolute Z position.
 	long targetFinalZ = teachForm->edit_TZ->Text.ToIntDef(212800);

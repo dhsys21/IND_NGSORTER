@@ -28,6 +28,9 @@ __fastcall Tgripper::Tgripper(TComponent* Owner)
 	: TDataModule(Owner)
 {
 	seq = seqIdle;
+	emgWasActive = false;
+	//* 비상정지후 취출/삽입 계속작업.
+	ClearEmergencyRecovery();
 	ccLinkNotReadyReported = false;
 	tool[gripCnt].disable = false;	// 7번 그리퍼는 항상 false로 마지막 지점 체크로 사용한다.
 	pauseStatus = false;
@@ -43,6 +46,209 @@ __fastcall Tgripper::Tgripper(TComponent* Owner)
 	ResetTransferResult();
 }
 //---------------------------------------------------------------------------
+//* 비상정지후 취출/삽입 계속작업.
+void Tgripper::ClearEmergencyRecovery()
+{
+	emgPending = false;
+	emgHomeDone = false;
+	emgCheckpoint = erBlocked;
+	emgInvalidReason = "";
+}
+
+//* 비상정지후 취출/삽입 계속작업.
+void Tgripper::ObserveEmergency()
+{
+	if(robostar == NULL || MainForm == NULL || !robostar->IsCcLinkReady()) return;
+	bool active = robostar->IsEmergencyStopActive();
+	bool rising = active && !emgWasActive;
+	emgWasActive = active;
+	if(rising && emgPending) emgHomeDone = false;
+	if(emgPending){
+		if(PlcBin != NULL && PlcBin->IsPlcStatusFresh(1000) &&
+			(!PlcBin->IsSourceTrayIn() || !PlcBin->IsTargetTrayIn()))
+			emgInvalidReason = "A tray was removed after EMG. Use manual recovery.";
+		return;
+	}
+	if(!rising || !BaseForm->config.emergencyAutoRestart ||
+		MainForm->equipMode != modeAuto || !IsSortingWorkActive()) return;
+	emgPending = true;
+	emgHomeDone = false;
+	emgCheckpoint = erBlocked;
+	emgInvalidReason = "";
+	emgSource = tool[0].source_ch.ToIntDef(0);
+	emgTarget = tool[0].target_ch.ToIntDef(0);
+	emgSourceTray = MainForm->pTrayid_source->Caption.Trim();
+	emgTargetTray = MainForm->pTrayid_target->Caption.Trim();
+	emgCell = robostar->getCellDetectStatus();
+	emgChuck = robostar->input.GRIPPER1_CHUCK;
+	emgOpen = robostar->input.GRIPPER1_UNCHUCK;
+	emgEjectDone = tool[0].eject_end;
+	emgInsertDone = tool[0].insert_end;
+	if(emgSource < 1 || emgSource > 96 || emgTarget < 1 || emgTarget > 96 ||
+		emgSource > MainForm->tray_source.SLOT_COUNT || emgTarget > MainForm->tray_target.SLOT_COUNT){
+		emgInvalidReason = "No complete Source/Target assignment at EMG.";
+	}else{
+		int s = emgSource - 1, t = emgTarget - 1;
+		emgCellId = MainForm->tray_source.SLOT_ID[s];
+		emgLotId = MainForm->tray_source.CELL_LOT_ID[s];
+		emgNgCode = MainForm->tray_source.LOSS_CD[s];
+		emgGrade = MainForm->tray_source.RANK[s];
+		emgWorkFlag = MainForm->tray_source.WORK_FLAG[s];
+		emgTargetCellId = MainForm->tray_target.SLOT_ID[t];
+		emgSourceExist = MainForm->tray_source.CELL_EXIST[s];
+		emgTargetExist = MainForm->tray_target.CELL_EXIST[t];
+		emgSourcePick = MainForm->tray_source.PICK[s];
+		emgTargetPick = MainForm->tray_target.PICK[t];
+		robotSequence rs = robostar->pauseStatus ? robostar->seq_save : robostar->seq;
+		int rstep = robostar->InterruptedStep();
+		gripperSequence gs = pauseStatus ? seq_save : seq;
+		bool pickup = emgEjectDone || (rs == seqAutoEject && rstep >= 4);
+		bool released = rs == seqAutoInsert && rstep >= 4 &&
+			robostar->gripper.GRIPPER1_UNCHUCK && !robostar->gripper.GRIPPER1_CHUCK;
+		emgCheckpoint = SelectEmergencyCheckpoint(gs == seqSorting,
+			pickup, released, !emgSourceExist, emgTargetExist && emgInsertDone,
+			emgCell, emgChuck, emgOpen, robostar->gripper.GRIPPER1_UNCHUCK);
+		if(HasPendingCompletion() || pendingTransferResultValid ||
+			(gs == seqInserting && step.step >= 4))
+			emgInvalidReason = "A previous completion/report is pending. Finish manual recovery first.";
+		if(emgCellId.IsEmpty() || emgSourceTray.IsEmpty() || emgTargetTray.IsEmpty())
+			emgInvalidReason = "Tray ID or Cell ID is missing.";
+		if(emgCheckpoint == erReport && (!emgEjectDone || emgSourceExist))
+			emgInvalidReason = "Source pickup was not committed before Target release.";
+	}
+	if(emgCheckpoint == erBlocked && emgInvalidReason.IsEmpty())
+		emgInvalidReason = "Gripper transition was incomplete at EMG. Confirm the cell manually.";
+	MainForm->memoMainLineAdd("[EMG RECOVERY] CAPTURE " + EmergencyStatus());
+	MainForm->memoMainLineAdd("[EMG RECOVERY] CellId=" + emgCellId +
+		" / X0020=" + IntToStr((int)emgChuck) + " X0021=" + IntToStr((int)emgOpen) +
+		" Held=" + IntToStr((int)emgCell) + " / RobotSeq=" + IntToStr((int)robostar->seq) +
+		" RobotStep=" + IntToStr(robostar->InterruptedStep()) + " GripperStep=" + IntToStr(step.step));
+}
+
+//* 비상정지후 취출/삽입 계속작업.
+bool Tgripper::ProtectEmergencyCell() const
+{
+	return emgPending && BaseForm->config.emergencyAutoRestart &&
+		robostar != NULL && (emgCheckpoint == erTarget ||
+		!robostar->IsCcLinkReady() || robostar->getCellDetectStatus());
+}
+
+//* 비상정지후 취출/삽입 계속작업.
+void Tgripper::EmergencyHomeCompleted()
+{
+	if(emgPending){
+		emgHomeDone = true;
+		MainForm->memoMainLineAdd("[EMG RECOVERY] HOME completed; AUTO -> START/Restart required.");
+	}
+}
+
+//* 비상정지후 취출/삽입 계속작업.
+AnsiString Tgripper::EmergencyStatus() const
+{
+	AnsiString state = emgCheckpoint == erSource ? "Retry Source pickup" :
+		(emgCheckpoint == erTarget ? "Cell held / move to Target" :
+		(emgCheckpoint == erReport ? "Released / save and report" : "Manual confirmation required"));
+	return "EMG RECOVERY PENDING / " + state + " / Source CH " + IntToStr(emgSource) +
+		" -> Target CH " + IntToStr(emgTarget) + " / " +
+		(emgHomeDone ? AnsiString("AUTO -> START/Restart") : AnsiString("HOME required")) +
+		(emgInvalidReason.IsEmpty() ? AnsiString("") : " / " + emgInvalidReason);
+}
+
+//* 비상정지후 취출/삽입 계속작업.
+bool Tgripper::ValidateEmergencyRecord(AnsiString &reason) const
+{
+	reason = emgInvalidReason;
+	if(!emgPending || emgCheckpoint == erBlocked){
+		if(reason.IsEmpty()) reason = "No valid EMG checkpoint.";
+		return false;
+	}
+	if(!reason.IsEmpty()) return false;
+	int s = emgSource - 1, t = emgTarget - 1;
+	if(s < 0 || s >= MainForm->tray_source.SLOT_COUNT || s >= 96 ||
+		t < 0 || t >= MainForm->tray_target.SLOT_COUNT || t >= 96){
+		reason = "Tray channel count changed after EMG.";
+		return false;
+	}
+	if(MainForm->pTrayid_source->Caption.Trim() != emgSourceTray ||
+		MainForm->pTrayid_target->Caption.Trim() != emgTargetTray ||
+		tool[0].source_ch.ToIntDef(0) != emgSource || tool[0].target_ch.ToIntDef(0) != emgTarget ||
+		MainForm->tray_source.SLOT_ID[s] != emgCellId ||
+		MainForm->tray_source.CELL_LOT_ID[s] != emgLotId ||
+		MainForm->tray_source.LOSS_CD[s] != emgNgCode ||
+		MainForm->tray_source.RANK[s] != emgGrade ||
+		MainForm->tray_source.WORK_FLAG[s] != emgWorkFlag ||
+		MainForm->tray_target.SLOT_ID[t] != emgTargetCellId ||
+		MainForm->tray_source.CELL_EXIST[s] != emgSourceExist ||
+		MainForm->tray_source.PICK[s] != emgSourcePick ||
+		MainForm->tray_target.CELL_EXIST[t] != emgTargetExist ||
+		MainForm->tray_target.PICK[t] != emgTargetPick ||
+		(emgTargetExist && MainForm->tray_target.SLOT_ID[t] != emgCellId)){
+		reason = "Tray/cell/assignment differs from the EMG snapshot.";
+		return false;
+	}
+	if(emgCheckpoint != erReport && emgTargetExist){
+		reason = "Reserved Target channel is already occupied.";
+		return false;
+	}
+	if(emgCheckpoint == erTarget){
+		if(!robostar->getCellDetectStatus() || !robostar->input.GRIPPER1_CHUCK ||
+			robostar->input.GRIPPER1_UNCHUCK || robostar->gripper.GRIPPER1_UNCHUCK || emgTargetExist){
+			reason = "Held cell/CHUCK confirmation changed, or Target is occupied.";
+			return false;
+		}
+	}else if(robostar->getCellDetectStatus() || !robostar->getGripperOpenStatus()){
+		reason = "Checkpoint requires OPEN and no held cell after HOME.";
+		return false;
+	}
+	if(HasPendingCompletion() || pendingTransferResultValid){
+		reason = "Previous completion/report still pending.";
+		return false;
+	}
+	return true;
+}
+
+//* 비상정지후 취출/삽입 계속작업.
+bool Tgripper::ResumeEmergencyCheckpoint()
+{
+	AnsiString reason;
+	if(!ValidateEmergencyRecord(reason)) return false;
+	// Persist only checkpoints proved by the snapshot and fresh post-HOME sensors.
+	if(emgCheckpoint == erTarget || emgCheckpoint == erReport){
+		bool saved = CommitEjectTrayState(1);
+		emgSourceExist = MainForm->tray_source.CELL_EXIST[emgSource - 1];
+		emgSourcePick = MainForm->tray_source.PICK[emgSource - 1];
+		if(!saved) return false;
+	}
+	if(emgCheckpoint == erReport){
+		bool saved = CommitInsertTrayState(1);
+		emgTargetExist = MainForm->tray_target.CELL_EXIST[emgTarget - 1];
+		emgTargetPick = MainForm->tray_target.PICK[emgTarget - 1];
+		emgTargetCellId = MainForm->tray_target.SLOT_ID[emgTarget - 1];
+		if(!saved) return false;
+	}
+	robostar->req_Stop(); // Discard pre-HOME accepted axis targets, never replay them.
+	if(emgCheckpoint == erSource){
+		tool[0].eject_end = false;
+		tool[0].insert_end = false;
+		InitSequence(seqSorting);
+	}else if(emgCheckpoint == erTarget){
+		tool[0].insert_end = false;
+		InitSequence(seqInserting);
+	}else{
+		// Resume at the existing report handshake; never reinsert or use FAT overlap here.
+		InitSequence(seqInserting);
+		step.step = 4;
+		cellTrackOutRequestStarted = false;
+		pendingCellTrackOutSourceChannel = emgSource;
+		pendingCellTrackOutTargetChannel = emgTarget;
+		pendingCellTrackOutCellId = emgCellId;
+	}
+	MainForm->memoMainLineAdd("[EMG RECOVERY] RESUME " + EmergencyStatus());
+	ClearEmergencyRecovery();
+	pauseStatus = false;
+	return true;
+}
+
 void __fastcall Tgripper::ResetTransferResult()
 {
 	transferResult.active = false;
@@ -247,6 +453,8 @@ bool __fastcall Tgripper::PrepareNextAfterManualCompletion()
 	// The operator may have used a different empty Target channel.
 	if(transferResult.active) transferResult.targetChannel = tool[0].target_ch.ToIntDef(0);
 	if(!SaveTransferResult(true)) return false;
+	//* 비상정지후 취출/삽입 계속작업.
+	ClearEmergencyRecovery();
 	// Retain tray maps; only abandon the completed cell's motion bookkeeping.
 	InitSequence(seqInit, seqSorting);
 	pauseStatus = false;
@@ -267,6 +475,8 @@ void __fastcall Tgripper::InitSequence(gripperSequence data, gripperSequence res
 //---------------------------------------------------------------------------
 void __fastcall Tgripper::req_Pause(bool stop)
 {
+	//* 비상정지후 취출/삽입 계속작업.
+	if(!stop && emgPending && BaseForm->config.emergencyAutoRestart) return;
 	//* FMS TROUBLE: no alternate caller may release the independent alarm Pause.
 	if(!stop && MainForm != NULL && MainForm->IsFmsTroubleBlocking()) return;
 	if(stop != pauseStatus){
@@ -299,6 +509,10 @@ bool __fastcall Tgripper::IsTargetTrayExchangeBoundary() const
 //---------------------------------------------------------------------------
 void __fastcall Tgripper::stepTimerTimer(TObject *Sender)
 {
+	//* 비상정지후 취출/삽입 계속작업.
+	ObserveEmergency();
+	if(emgPending && BaseForm->config.emergencyAutoRestart) return;
+	//* BUFFER OVERFLOW 오류시 Z축 상승 후 대기.
 	if(!pauseStatus && IsSortingWorkActive() &&
 		(!robostar->IsCcLinkReady() || robostar->input.GRIPPER1_BUFFER)){
 		if(robostar->IsCcLinkReady() && robostar->input.GRIPPER1_BUFFER)

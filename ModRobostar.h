@@ -350,12 +350,14 @@ private:	// User declarations
 	PNT_DATA_EX acceptedPoint[AxisCnt];
 	bool acceptedMove[AxisCnt];
 	bool motionFaultLatched;
+	//* BUFFER OVERFLOW 오류시 Z축 상승 후 대기.
 	// BUFFER RECOVERY: stop the current move, raise Z without replacing the
 	// interrupted target, then leave the original sequence paused for Restart.
 	int bufferRecoveryState; // 0: idle, 1: wait stop, 2: Z up moving.
 	DWORD bufferRecoveryStarted;
 	bool StopAxes();
 	void MotionFault(const AnsiString &reason);
+	//* BUFFER OVERFLOW 오류시 Z축 상승 후 대기.
 	bool StartBufferRecoveryZUp();
 	void ProcessBufferRecovery();
 	void FinishBufferRecovery(bool zRaised, const AnsiString &detail);
@@ -366,8 +368,11 @@ private:	// User declarations
 	bool directXYPositionReady;
 	// Explicit Servo OFF invalidates HOME until a new home-return completes.
 	bool homeRequiredAfterServoOff;
+	//* 비상정지후 취출/삽입 계속작업.
+	bool homeWatchdogResetPending; // Set by req_Home; consumed by senTimerTimer.
     bool bSetPoint;
 	long jogSpeed;
+	//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 	int zSpeed80;
 	int zSpeed20;
 	long targetZSlowStartPosition; // Location2 absolute Z where final slow descent starts.
@@ -375,6 +380,7 @@ private:	// User declarations
 	long zDownFinalPosition;
 	int zDownProfileStage; // 0: idle, 1: first 80%, 2: final 20%.
 	bool __fastcall setPoint(int axnum_id, unsigned long int pos);
+	//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 	bool __fastcall setZPoint(long pos, int speed);
 	bool __fastcall StartZDownProfile(long targetPosition);
 	bool __fastcall ContinueZDownProfile();
@@ -394,6 +400,8 @@ private:	// User declarations
 
 
 public:		// User declarations
+	//* 비상정지후 취출/삽입 계속작업.
+	int InterruptedStep() const { return pauseStatus ? step_save.step : step.step; }
 
 	MOVE move;
 	robotSequence seq;
@@ -437,6 +445,7 @@ public:		// User declarations
 	bool __fastcall req_zDown();
 	bool __fastcall SetJogSpeed(int speed);
 	int __fastcall GetJogSpeed() const;
+	//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 	bool __fastcall SetZSpeeds(int speed80, int speed20);
 	int __fastcall GetZSpeed80() const;
 	int __fastcall GetZSpeed20() const;
@@ -478,6 +487,7 @@ public:		// User declarations
 	void __fastcall SetCcLinkOpenResult(short result, long openedPath);
 	bool __fastcall IsCcLinkReady() const;
 	bool __fastcall IsHomeRequiredAfterServoOff() const;
+	//* BUFFER OVERFLOW 오류시 Z축 상승 후 대기.
 	void __fastcall RequestBufferRecovery();
 	bool m_bInsertSave;
     void __fastcall Y003D(bool bOn);

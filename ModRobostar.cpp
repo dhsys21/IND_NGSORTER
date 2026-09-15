@@ -81,12 +81,14 @@ __fastcall Trobostar::Trobostar(TComponent* Owner)
 	keyLockReleasePending = false;
 	previousBypassSwitchOn = false;
 	motionFaultLatched = false;
+	//* BUFFER OVERFLOW 오류시 Z축 상승 후 대기.
 	bufferRecoveryState = 0;
 	bufferRecoveryStarted = 0;
 	for(int a = 0; a < AxisCnt; ++a) acceptedMove[a] = false;
 	keyLockSetSafetyBypassOffTick = 0;
 	keyLockReleaseOutputOffTick = 0;
 	jogSpeed = 100;
+	//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 	zSpeed80 = 600;
 	zSpeed20 = 300;
 	targetZSlowStartPosition = 170240;
@@ -99,6 +101,8 @@ __fastcall Trobostar::Trobostar(TComponent* Owner)
 	activeMoveValid = false;
 	directXYPositionReady = false;
 	homeRequiredAfterServoOff = false;
+	//* 비상정지후 취출/삽입 계속작업.
+	homeWatchdogResetPending = false;
 	centeringMotionMonitorActive = false;
 	centeringMotionMonitorSeq = seqIdle;
 	centeringRequireSource = false;
@@ -186,6 +190,10 @@ int __fastcall Trobostar::io_WriteGripper()
 
 void __fastcall Trobostar::req_Pause(bool stop)
 {
+	//* 비상정지후 취출/삽입 계속작업.
+	if(stop && ::gripper != NULL) ::gripper->ObserveEmergency();
+	if(!stop && ::gripper != NULL && ::gripper->EmergencyPending() &&
+		BaseForm->config.emergencyAutoRestart) return;
 	if(stop != pauseStatus){
 		if(stop){
 			seq_save = seq;
@@ -260,17 +268,39 @@ bool Trobostar::CanResumeMotion()
 void Trobostar::MotionFault(const AnsiString &reason)
 {
 	bool first = !motionFaultLatched;
+	//* 비상정지후 취출/삽입 계속작업.
+	bool emergencyHomeFault = seq == seqHome && ::gripper != NULL &&
+		::gripper->EmergencyPending();
 	req_Pause(true);
 	StopAxes();
+	//* 비상정지후 취출/삽입 계속작업.
+	if(emergencyHomeFault){
+		// Production Pause may already be true while a new HOME is running.
+		// Cancel that HOME explicitly; Restart must never replay its old step.
+		::gripper->EmergencyHomeStarting();
+		homeRequiredAfterServoOff = true;
+		for(int a = 1; a <= servoCnt; ++a) acceptedMove[a] = false;
+		zDownProfileStage = 0;
+		activeMoveValid = false;
+		directXYPositionReady = false;
+		InitSequence(seqIdle);
+		seq_save = seqIdle;
+		step_save = step;
+		seq = seqPause;
+		pauseStatus = true;
+	}
 	motionFaultLatched = true;
 	if(MesOpc != NULL) MesOpc->SetLocalAlarm(NGSorterErrors::Motion,true);
 	if(::gripper != NULL) ::gripper->req_Pause(true);
-	if(first){
+	if(first || emergencyHomeFault){
 		MainForm->memoRobostarLineAdd("[MOTION STOP] " + reason);
-		ShowCommonError("Motion stopped", reason + ". Correct the cause, then use Restart.");
+		ShowCommonError("Motion stopped", reason + (emergencyHomeFault ?
+			". HOME cancelled. Correct the cause and press HOME again, then AUTO -> START." :
+			". Correct the cause, then use Restart."));
 	}
 }
 //---------------------------------------------------------------------------
+//* BUFFER OVERFLOW 오류시 Z축 상승 후 대기.
 bool Trobostar::StartBufferRecoveryZUp()
 {
 	if(!sscOpened) return false;
@@ -289,6 +319,7 @@ bool Trobostar::StartBufferRecoveryZUp()
 	return true;
 }
 //---------------------------------------------------------------------------
+//* BUFFER OVERFLOW 오류시 Z축 상승 후 대기.
 void Trobostar::FinishBufferRecovery(bool zRaised, const AnsiString &detail)
 {
 	bufferRecoveryState = 0;
@@ -307,6 +338,7 @@ void Trobostar::FinishBufferRecovery(bool zRaised, const AnsiString &detail)
 	ShowCommonError("Sorting stopped", message);
 
 	if(zRaised){
+		//* BUFFER OVERFLOW 오류시 Z축 상승 후 대기.
 		// BUFFER RECOVERY COMPLETION 2026-09-11:
 		// ShowCommonError pauses the robot again while displaying the alarm. Once
 		// physical Z=0 is confirmed, discard that interrupted robot sequence so it
@@ -326,6 +358,7 @@ void Trobostar::FinishBufferRecovery(bool zRaised, const AnsiString &detail)
 	}
 }
 //---------------------------------------------------------------------------
+//* BUFFER OVERFLOW 오류시 Z축 상승 후 대기.
 void Trobostar::ProcessBufferRecovery()
 {
 	if(bufferRecoveryState == 0) return;
@@ -377,6 +410,7 @@ void Trobostar::ProcessBufferRecovery()
 		FinishBufferRecovery(true, "");
 }
 //---------------------------------------------------------------------------
+//* BUFFER OVERFLOW 오류시 Z축 상승 후 대기.
 void __fastcall Trobostar::RequestBufferRecovery()
 {
 	if(bufferRecoveryState != 0) return;
@@ -400,6 +434,7 @@ void __fastcall Trobostar::InitSequence(robotSequence data, robotSequence reserv
 	// Keep MELSEC I/O alive when the position board cannot be opened, but allow
 	// seqInit so the Servo Open button can retry sscOpen().
 	if(!sscOpened && data != seqIdle && data != seqPause && data != seqInit) return;
+	//* BUFFER OVERFLOW 오류시 Z축 상승 후 대기.
 	if(bufferRecoveryState != 0 && data != seqIdle && data != seqPause &&
 		data != seqJogStop && data != seqServoOff && data != seqReset) return;
 
@@ -859,11 +894,19 @@ void __fastcall Trobostar::Home()
 			teachForm->pnlMovingAlarm2->Visible = true;
 			teachForm->pnlMovingAlarm2->BringToFront();
 			sts = sscHomeReturnStart(board_id, channel_id, Axis_z);
+			//* 비상정지후 취출/삽입 계속작업.
+			if(sts != SSC_OK && ::gripper != NULL && ::gripper->EmergencyPending()){
+				MotionFault("EMG recovery Z HOME start failed"); return;
+			}
 			WriteLog(sts, "Z Axis Servo Home - Request");
 			step.step = 3;
 			break;
 		case 3: // Z축 완료 확인
 			sts = sscGetStatusBitSignalEx(board_id, channel_id, Axis_z, SSC_STSBIT_AX_ZREQ, &bitInfo);
+			//* 비상정지후 취출/삽입 계속작업.
+			if(sts != SSC_OK && ::gripper != NULL && ::gripper->EmergencyPending()){
+				MotionFault("EMG recovery Z HOME status read failed"); return;
+			}
 			if(bitInfo){
 				MainForm->memoRobostarLineAdd("[C_Maint] Z Axis Servo Home - Moving");
 			}
@@ -874,16 +917,28 @@ void __fastcall Trobostar::Home()
 			break;
 		case 4: // X축 원점
 			sts = sscHomeReturnStart(board_id, channel_id, Axis_x);
+			//* 비상정지후 취출/삽입 계속작업.
+			if(sts != SSC_OK && ::gripper != NULL && ::gripper->EmergencyPending()){
+				MotionFault("EMG recovery X HOME start failed"); return;
+			}
 			WriteLog(sts, "X Axis Servo Home - Request");
 			step.step += 1;
 			break;
 		case 5: // Y축 원점
 			sts = sscHomeReturnStart(board_id, channel_id, Axis_y);
+			//* 비상정지후 취출/삽입 계속작업.
+			if(sts != SSC_OK && ::gripper != NULL && ::gripper->EmergencyPending()){
+				MotionFault("EMG recovery Y HOME start failed"); return;
+			}
 			WriteLog(sts, "Y Axis Servo Home - Request");
 			step.step += 1;
 			break;
 		case 6:
 			sts = sscGetStatusBitSignalEx(board_id, channel_id, Axis_y, SSC_STSBIT_AX_ZREQ, &bitInfo);
+			//* 비상정지후 취출/삽입 계속작업.
+			if(sts != SSC_OK && ::gripper != NULL && ::gripper->EmergencyPending()){
+				MotionFault("EMG recovery Y HOME status read failed"); return;
+			}
 			if(bitInfo){
 				MainForm->memoRobostarLineAdd("Y Axis Servo Home - Moving");
 			}
@@ -894,6 +949,10 @@ void __fastcall Trobostar::Home()
 			break;
 		case 7:
 			sts = sscGetStatusBitSignalEx(board_id, channel_id, Axis_x, SSC_STSBIT_AX_ZREQ, &bitInfo);
+			//* 비상정지후 취출/삽입 계속작업.
+			if(sts != SSC_OK && ::gripper != NULL && ::gripper->EmergencyPending()){
+				MotionFault("EMG recovery X HOME status read failed"); return;
+			}
 			if(bitInfo){
 				MainForm->memoRobostarLineAdd("X Axis Servo Home - Moving");
 			}
@@ -917,6 +976,8 @@ void __fastcall Trobostar::Home()
 			step.step = 99;
 			break;
 		default:
+			//* 비상정지후 취출/삽입 계속작업.
+			if(::gripper != NULL) ::gripper->EmergencyHomeCompleted();
 			InitSequence(seqIdle);
 			break;
 	}
@@ -1063,6 +1124,7 @@ int __fastcall Trobostar::GetJogSpeed() const
 	return jogSpeed;
 }
 //---------------------------------------------------------------------------
+//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 bool __fastcall Trobostar::SetZSpeeds(int speed80, int speed20)
 {
 	// Z FINAL SPEED RANGE 2026-09-10: allow a slower 100-500 setting for
@@ -1077,16 +1139,19 @@ bool __fastcall Trobostar::SetZSpeeds(int speed80, int speed20)
 	return true;
 }
 //---------------------------------------------------------------------------
+//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 int __fastcall Trobostar::GetZSpeed80() const
 {
 	return zSpeed80;
 }
 //---------------------------------------------------------------------------
+//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 int __fastcall Trobostar::GetZSpeed20() const
 {
 	return zSpeed20;
 }
 //---------------------------------------------------------------------------
+//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 bool __fastcall Trobostar::SetTargetZSlowStartPosition(long position)
 {
 	// The direction/final-target relationship is validated again at motion start.
@@ -1095,6 +1160,7 @@ bool __fastcall Trobostar::SetTargetZSlowStartPosition(long position)
 	return true;
 }
 //---------------------------------------------------------------------------
+//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 long __fastcall Trobostar::GetTargetZSlowStartPosition() const
 {
 	return targetZSlowStartPosition;
@@ -1155,12 +1221,14 @@ bool __fastcall Trobostar::setPoint(int axnum_id, unsigned long int pos)
 	return true;
 }
 //---------------------------------------------------------------------------
+//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 bool __fastcall Trobostar::setZPoint(long pos, int speed)
 {
 	point[Axis_z].speed = speed;
 	return setPoint(Axis_z, (unsigned long)pos);
 }
 //---------------------------------------------------------------------------
+//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 bool __fastcall Trobostar::StartZDownProfile(long targetPosition)
 {
 	long currentZ = mr2.pos[Axis_z];
@@ -1179,6 +1247,7 @@ bool __fastcall Trobostar::StartZDownProfile(long targetPosition)
 		return true;
 	}
 
+	//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 	// TRAY Z DOWN PROFILE 2026-09-11:
 	// Location1(Source) descends to the final Z in one command at the fast Z speed.
 	if(activeMove.pallet == 1){
@@ -1193,6 +1262,7 @@ bool __fastcall Trobostar::StartZDownProfile(long targetPosition)
 		return true;
 	}
 
+	//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 	// Location2(Target) uses the registered absolute Z as the slow-start point.
 	if(activeMove.pallet != 2){
 		MotionFault("Z descent has no valid Source/Target tray selection");
@@ -1221,6 +1291,7 @@ bool __fastcall Trobostar::StartZDownProfile(long targetPosition)
 	return true;
 }
 //---------------------------------------------------------------------------
+//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 bool __fastcall Trobostar::ContinueZDownProfile()
 {
 	if(zDownProfileStage == 0)
@@ -1235,6 +1306,7 @@ bool __fastcall Trobostar::ContinueZDownProfile()
 	}
 	mr2.pos[Axis_z] = currentZ;
 	if(zDownProfileStage == 1 && currentZ == zDownApproachPosition){
+		//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 		// Z DOWN MOTION START GUARD 2026-09-10:
 		// The command position can reach the registered slow-start target before the position board
 		// finishes the first move. Starting the final 20% in that interval causes
@@ -1632,6 +1704,7 @@ void __fastcall Trobostar::AutoMove()
 				MainForm->CompleteProcessStep(10, "Target channel position complete");
 				MainForm->BeginProcessStep(11, "Cell insert / Z DOWN / Gripper UNCHUCK");
 			}
+			//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 			if(!StartZDownProfile(activeTarget[Axis_z])) return;
 			MainForm->memoRobostarLineAdd("[Z DOWN APPROVED] pallet=" + IntToStr(activeMove.pallet) +
 				", channel=" + IntToStr(activeMove.channel) + ", X/Y/Z=" +
@@ -1648,6 +1721,7 @@ void __fastcall Trobostar::AutoMove()
 					IntToStr((__int64)mr2.pos[Axis_z]));
 
 			// Z DOWN uses a full-speed first 80% and a slower final 20% approach.
+			//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 			if(ContinueZDownProfile()){
 				robotSequence completedReserve = step.reserve;
 				move = activeMove;
@@ -1875,6 +1949,7 @@ void __fastcall Trobostar::zDown()
 				return;
 			}
 			zUpCount = 0;
+			//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 			bSetPoint = StartZDownProfile(activeTarget[Axis_z]);
 			if(!bSetPoint) return;
 			teachForm->pnlMovingAlarm->Visible = true;
@@ -1890,6 +1965,7 @@ void __fastcall Trobostar::zDown()
 				return;
 			}
 			zUpCount++;
+			//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 			if(ContinueZDownProfile()){
 				zUpCount = 0;
 				step.step += 1;
@@ -1927,6 +2003,9 @@ void __fastcall Trobostar::req_Init()
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::req_Home()
 {
+	//* 비상정지후 취출/삽입 계속작업.
+	if(::gripper != NULL && ::gripper->EmergencyPending()) ::gripper->EmergencyHomeStarting();
+	homeWatchdogResetPending = true;
 	directXYPositionReady = false;
 	InitSequence(seqHome);
 }
@@ -2260,6 +2339,7 @@ void __fastcall Trobostar::req_Speed(int speed, int accl, int dccl)
 		point[i].subcmd = 0;
 		point[i].s_curve = 0;
 	}
+	//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 	// Z UP SPEED 2026-09-11: point[0] keeps the same common speed as X/Y.
 	// Only Z DOWN uses the dedicated first-80% and final-20% settings.
 	point[Axis_z].speed = zSpeed80;
@@ -2268,6 +2348,7 @@ void __fastcall Trobostar::req_Speed(int speed, int accl, int dccl)
 void __fastcall Trobostar::req_Stop()
 {
 	int sts = 0;
+	//* BUFFER OVERFLOW 오류시 Z축 상승 후 대기.
 	bufferRecoveryState = 0;
 	bufferRecoveryStarted = 0;
 	for(int a = 1; a <= servoCnt; ++a) acceptedMove[a] = false;
@@ -2278,6 +2359,7 @@ void __fastcall Trobostar::req_Stop()
 	seq_save = seqIdle;
 	activeMoveValid = false;
 	directXYPositionReady = false;
+	//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 	zDownProfileStage = 0;
 	InitSequence(seqIdle);
 	if(!sscOpened) return;
@@ -2290,6 +2372,11 @@ void __fastcall Trobostar::req_Stop()
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::GripperChuck(int num, bool open, bool close)
 {
+	//* 비상정지후 취출/삽입 계속작업.
+	if(open && ::gripper != NULL && ::gripper->ProtectEmergencyCell()){
+		MainForm->memoRobostarLineAdd("[EMG RECOVERY] OPEN blocked while holding cell. Disable recovery for manual cell handling.");
+		return;
+	}
 	switch(num){
 		case 1:
 			gripper.GRIPPER1_CHUCK = close;
@@ -3033,6 +3120,16 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 	MainForm->Caption = step.step;
 
 	this->io_Read();
+	//* 비상정지후 취출/삽입 계속작업.
+	if(::gripper != NULL) ::gripper->ObserveEmergency();
+	if(IsCcLinkReady() && IsEmergencyStopActive()){
+		// HOME can run while the production Pause is retained; a second EMG must abort it.
+		if(pauseStatus && seq != seqPause) pauseStatus = false;
+		req_Pause(true);
+		if(::gripper != NULL) ::gripper->req_Pause(true);
+		return;
+	}
+	//* BUFFER OVERFLOW 오류시 Z축 상승 후 대기.
 	if(bufferRecoveryState != 0){
 		// BUFFER recovery needs fresh axis feedback before the normal sequence path.
 		if(sscOpened) mr2Sensing();
@@ -3043,6 +3140,7 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 		MainForm->equipMode == modeAuto;
 	bool motionActive = seq != seqIdle && seq != seqPause && seq != seqInit &&
 		seq != seqReset && seq != seqServoOff && seq != seqServoOn;
+	//* BUFFER OVERFLOW 오류시 Z축 상승 후 대기.
 	if((motionActive || productionActive) && (!IsCcLinkReady() || input.GRIPPER1_BUFFER)){
 		if(input.GRIPPER1_BUFFER && IsCcLinkReady())
 			RequestBufferRecovery();
@@ -3065,8 +3163,10 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 	static robotSequence watchedSeq = seqIdle;
 	static int watchedStep = -1;
 	static DWORD waitStarted = 0;
-	if(seq != watchedSeq || step.step != watchedStep || !motionActive){
+	//* 비상정지후 취출/삽입 계속작업.
+	if(seq != watchedSeq || step.step != watchedStep || !motionActive || homeWatchdogResetPending){
 		watchedSeq = seq; watchedStep = step.step; waitStarted = GetTickCount();
+		homeWatchdogResetPending = false;
 	}else if(GetTickCount() - waitStarted > 120000){
 		MotionFault("Motion/sensor wait timeout: sequence=" + IntToStr((int)seq) +
 			" step=" + IntToStr(step.step));
@@ -3310,6 +3410,8 @@ bool __fastcall Trobostar::CheckEjectCell_before(int pos)
 
 bool __fastcall Trobostar::CheckEjectUnchuck(int pos)
 {
+	//* 비상정지후 취출/삽입 계속작업.
+	if(::gripper != NULL && ::gripper->ProtectEmergencyCell()) return false;
 	// 언척 센서 확인 후 언척 출력
 	bool bresult = false;
 	switch(pos){
@@ -3344,6 +3446,8 @@ bool __fastcall Trobostar::CheckEjectChuck(int pos)
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::CheckInsertUnchuck(int pos)
 {
+	//* 비상정지후 취출/삽입 계속작업.
+	if(::gripper != NULL && ::gripper->ProtectEmergencyCell()) return false;
 	// 언척 센서 확인 후 언척 출력
 	bool bresult = false;
 	switch(pos){

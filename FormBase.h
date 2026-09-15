@@ -53,6 +53,8 @@ typedef struct{
 	AnsiString fmsIp;
 	int gatewayPort;
 	int targetTrayUnloadCount; // 0: full trays only; otherwise checked at Source completion.
+	//* 비상정지후 취출/삽입 계속작업.
+	bool emergencyAutoRestart; // Opt-in, memory-only EMG checkpoint recovery.
 	//* max speed mode - need remove
 	// FAT maximum-speed mode changes only the timing of non-critical work:
 	// start the next motion first, then write logs/results and report CellTrackOut.

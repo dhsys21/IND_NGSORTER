@@ -12,6 +12,7 @@ TteachForm *teachForm;
 //---------------------------------------------------------------------------
 static const int TEACHING_SPEED_MIN = 300;
 static const int TEACHING_SPEED_MAX = 2700;
+//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 static const int Z_FINAL_SPEED_MIN = 100;
 static const int Z_FINAL_SPEED_MAX = 500;
 static const int TEACHING_SPEED_DANGER = 2000;
@@ -332,6 +333,7 @@ void __fastcall TteachForm::btnZAxisDownClick(TObject *Sender)
 	}
 }
 //---------------------------------------------------------------------------
+//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 void __fastcall TteachForm::btnJogSpeedClick(TObject *Sender)
 {
 	for(int axis = 1; axis <= servoCnt; ++axis){
@@ -361,6 +363,7 @@ void __fastcall TteachForm::btnJogSpeedClick(TObject *Sender)
 		labelJog->AutoSize = false;
 		labelJog->Caption = BaseForm->GetLangStr("CAP_JOG_SPEED");
 
+		//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 		TLabel *labelZ80 = new TLabel(dialog);
 		labelZ80->Parent = dialog;
 		labelZ80->Left = 20;
@@ -379,6 +382,7 @@ void __fastcall TteachForm::btnJogSpeedClick(TObject *Sender)
 		labelZ20->AutoSize = false;
 		labelZ20->Caption = BaseForm->GetLangStr("CAP_Z_SPEED_20");
 
+		//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 		TLabel *labelTargetSlowZ = new TLabel(dialog);
 		labelTargetSlowZ->Parent = dialog;
 		labelTargetSlowZ->Left = 20;
@@ -397,6 +401,7 @@ void __fastcall TteachForm::btnJogSpeedClick(TObject *Sender)
 		editJog->Alignment = taRightJustify;
 		editJog->Text = IntToStr(robostar->GetJogSpeed());
 
+		//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 		TEdit *editZ80 = new TEdit(dialog);
 		editZ80->Parent = dialog;
 		editZ80->Left = 245;
@@ -415,6 +420,7 @@ void __fastcall TteachForm::btnJogSpeedClick(TObject *Sender)
 		editZ20->Alignment = taRightJustify;
 		editZ20->Text = IntToStr(robostar->GetZSpeed20());
 
+		//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 		TEdit *editTargetSlowZ = new TEdit(dialog);
 		editTargetSlowZ->Parent = dialog;
 		editTargetSlowZ->Left = 305;
@@ -449,6 +455,7 @@ void __fastcall TteachForm::btnJogSpeedClick(TObject *Sender)
 			int z80 = 0;
 			int z20 = 0;
 			int targetSlowZ = 0;
+			//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 			bool speedValuesValid = TryStrToInt(editJog->Text.Trim(), jog) &&
 				TryStrToInt(editZ80->Text.Trim(), z80) &&
 				TryStrToInt(editZ20->Text.Trim(), z20);
@@ -462,6 +469,7 @@ void __fastcall TteachForm::btnJogSpeedClick(TObject *Sender)
 					MB_OK|MB_ICONWARNING);
 				continue;
 			}
+			//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 			bool targetPositionValid = TryStrToInt(editTargetSlowZ->Text.Trim(), targetSlowZ);
 			long targetFinalZ = edit_TZ->Text.ToIntDef(0);
 			bool splitBetween = targetFinalZ > 0 ?
@@ -476,6 +484,7 @@ void __fastcall TteachForm::btnJogSpeedClick(TObject *Sender)
 			}
 
 			robostar->SetJogSpeed(jog);
+			//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 			robostar->SetZSpeeds(z80, z20);
 			robostar->SetTargetZSlowStartPosition(targetSlowZ);
 			ShowTeachingSpeedDanger(dialog->Handle, z80);

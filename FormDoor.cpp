@@ -117,6 +117,8 @@ void __fastcall TdoorForm::ShowError(AnsiString MainStr, AnsiString SubStr, int 
 	}
 
 	if(newError){
+		//* 비상정지후 취출/삽입 계속작업.
+		if(gripper != NULL) gripper->ObserveEmergency();
 		MainForm->pause_stopBtnClick(this);
 		m_errCode = errCode + 25;
 		if(errCode == 4 || errCode == 5) m_errCode -= 3;

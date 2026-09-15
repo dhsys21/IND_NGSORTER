@@ -384,6 +384,7 @@ __published:	// IDE-managed Components
 	void __fastcall FormShow(TObject *Sender);
 	void __fastcall AdvSmoothButton_ZupClick(TObject *Sender);
 	void __fastcall btnZAxisDownClick(TObject *Sender);
+	//* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 	void __fastcall btnJogSpeedClick(TObject *Sender);
 	void __fastcall homeBtnClick(TObject *Sender);
 	void __fastcall stopBtnClick(TObject *Sender);

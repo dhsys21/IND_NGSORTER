@@ -2,6 +2,7 @@
 
 #ifndef ModGripperH
 #define ModGripperH
+#include "EmergencyWorkRecovery.h"
 //---------------------------------------------------------------------------
 #include <Classes.hpp>
 #include <Controls.hpp>
@@ -59,6 +60,17 @@ private:	// User declarations
 
 	TIniFile *ini;
 	bool ccLinkNotReadyReported;
+	//* 비상정지후 취출/삽입 계속작업.
+	// EMG snapshot: set by ObserveEmergency, cleared by recovery/reset/manual completion.
+	bool emgPending, emgWasActive, emgHomeDone;
+	EmergencyCheckpoint emgCheckpoint;
+	int emgSource, emgTarget;
+	AnsiString emgSourceTray, emgTargetTray, emgCellId;
+	AnsiString emgLotId, emgNgCode, emgGrade, emgTargetCellId;
+	bool emgWorkFlag;
+	AnsiString emgSourcePick, emgTargetPick, emgInvalidReason;
+	bool emgSourceExist, emgTargetExist, emgEjectDone, emgInsertDone;
+	bool emgCell, emgChuck, emgOpen;
 
 	//* CELL TRANSFER RESULT : One CSV row is written after each completed transfer.
 	typedef enum{
@@ -115,6 +127,17 @@ private:	// User declarations
 
 	void __fastcall InitSequence(gripperSequence data, gripperSequence reserve = seqIdle);
 public:		// User declarations
+	//* 비상정지후 취출/삽입 계속작업.
+	void ObserveEmergency();
+	void ClearEmergencyRecovery();
+	void EmergencyHomeCompleted();
+	void EmergencyHomeStarting() { emgHomeDone = false; }
+	bool EmergencyPending() const { return emgPending; }
+	bool EmergencyHomeDone() const { return emgHomeDone; }
+	bool ProtectEmergencyCell() const;
+	bool ValidateEmergencyRecord(AnsiString &reason) const;
+	bool ResumeEmergencyCheckpoint();
+	AnsiString EmergencyStatus() const;
 
 	bool disable_gripper[gripCnt+1];	// 그리퍼 사용여부
 	TOOL tool[gripCnt];

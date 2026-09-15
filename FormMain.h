@@ -591,6 +591,10 @@ private:	// User declarations
 	int ioOutputCount;
 
 public:		// User declarations
+	//* 비상정지후 취출/삽입 계속작업.
+	bool CheckEmergencyRecoveryReady(bool showError);
+	bool HandleEmergencyFmsAcknowledgement();
+	bool StartEmergencyRecovery();
 	bool __fastcall IsFmsTroubleBlocking() const;
 	bool __fastcall IsManualTrayLoadBusy() const;
 	bool CanStartManualCellCompletion() const;

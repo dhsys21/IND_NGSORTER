@@ -623,6 +623,14 @@ object ConfigForm: TConfigForm
       Text = '0'
     end
   end
+  object chkEmergencyAutoRestart: TCheckBox
+    Left = 500
+    Top = 489
+    Width = 390
+    Height = 22
+    Caption = 'Emergency automatic restart'
+    TabOrder = 13
+  end
   object AdvSmoothButton2: TAdvSmoothButton
     Left = 686
     Top = 18

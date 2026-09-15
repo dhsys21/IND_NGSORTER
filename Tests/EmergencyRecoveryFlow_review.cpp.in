@@ -1,0 +1,261 @@
+// Offline regression harness: real production bodies are inserted by the PS1 runner.
+// Hardware, persistence, FMS transport and UI are doubles. No equipment is opened.
+#include <string>
+#include <cstring>
+#include <cstdlib>
+#include <cstdio>
+#include <cassert>
+#include "EmergencyWorkRecovery.h"
+class AnsiString : public std::string {
+public:
+    AnsiString() {}
+    AnsiString(const char* p):std::string(p){}
+    AnsiString(const std::string& p):std::string(p){}
+    bool IsEmpty() const {return empty();}
+    AnsiString Trim() const {return *this;}
+    int ToIntDef(int fallback) const {return empty()?fallback:std::atoi(c_str());}
+};
+AnsiString operator+(const AnsiString&a,const AnsiString&b){return AnsiString(std::string(a)+std::string(b));}
+AnsiString operator+(const AnsiString&a,const char*b){return a+AnsiString(b);}
+AnsiString operator+(const char*a,const AnsiString&b){return AnsiString(a)+b;}
+AnsiString IntToStr(int n){char b[32];sprintf(b,"%d",n);return b;}
+typedef unsigned long DWORD;
+struct TObject {};
+const int clLime=1, LampAuto=2, seqIdle=0, seqPause=4, seqHome=5,
+    seqSorting=10, seqInserting=11, seqAutoMove=12, seqAutoEject=13,
+    seqAutoInsert=14, seqInit=15, seqJogStop=16, seqServoOff=17, seqReset=18,
+    seqAutoRun=19, seqEmgAutoRun=20, seqJOGx_Plus=21;
+const int modeManual=1, modeAuto=2, modeAutoStop=3, fmsAlarmNone=0, SSC_OK=0;
+const int Axis_x=1, Axis_y=2, Axis_z=3, SSC_STSBIT_AX_ZREQ=1;
+typedef int robotSequence;
+typedef int gripperSequence;
+DWORD tickNow=1000;
+DWORD GetTickCount(){return tickNow;}
+int driveStops=0, homeCalls[4]={0}, homeError=0, homeReadError=0;
+bool homeBusy=false;
+int sscDriveStop(int,int,int,int){++driveStops;return 0;}
+int sscHomeReturnStart(int,int,int axis){++homeCalls[axis];return homeError;}
+int sscGetStatusBitSignalEx(int,int,int,int,int* v){*v=homeBusy?1:0;return homeReadError;}
+struct Step {int step,delay,timeout,reserve,chCnt,badCnt,ejectCnt; Step(){memset(this,0,sizeof(*this));}};
+struct PNT_DATA_EX {long position;};
+struct Panel {AnsiString Caption; bool Down,Visible,Enabled,Checked; int Color;
+    Panel():Down(false),Visible(false),Enabled(false),Checked(false),Color(clLime){}
+    void BringToFront(){}
+};
+struct Config {bool emergencyAutoRestart;Config():emergencyAutoRestart(true){}};
+struct Base {Config config; AnsiString GetLangStr(const char*p){return p;}} base;
+Base* BaseForm=&base;
+struct Plc {bool fresh,source,target,sc,tc;Plc():fresh(true),source(true),target(true),sc(true),tc(true){}
+    bool IsPlcStatusFresh(int){return fresh;} bool IsSourceTrayIn(){return source;}
+    bool IsTargetTrayIn(){return target;} bool IsSourceCentering(){return sc;}
+    bool IsTargetCentering(){return tc;} void CmdSourceCenteringRequest(bool){}
+} plc;
+Plc* PlcBin=&plc;
+struct Gateway {bool SnapshotReceived,connected;Gateway():SnapshotReceived(true),connected(true){}
+    bool IsGatewayConnected(){return connected;}
+} gateway;
+Gateway* Mod_Fms=&gateway;
+struct Manual {bool blocking;Manual():blocking(false){} bool IsBlocking(){return blocking;}} manual;
+Manual* ManualCompleteForm=&manual;
+namespace NGSorterErrors {const int Motion=1;}
+struct Mes {void SetLocalAlarm(int,bool){} void CLEAR_CELL_TRACK_OUT_DATA(){}
+    void CLEAR_TRACK_OUT_CELL_INFORMATION(){} } mes;
+Mes* MesOpc=&mes;
+struct Teach {Panel a,b; Panel *pnlMovingAlarm,*pnlMovingAlarm2;
+    Teach():pnlMovingAlarm(&a),pnlMovingAlarm2(&b){}
+} teach;
+Teach* teachForm=&teach;
+struct Alarm {void ShowError(AnsiString,AnsiString){}} alarm;
+Alarm* AlarmForm=&alarm;
+struct Tray {bool CELL_EXIST[96]; AnsiString PICK[96],SLOT_ID[96];
+    Tray(){memset(CELL_EXIST,0,sizeof(CELL_EXIST));}
+};
+struct TMainForm;
+struct Tgripper;
+struct Trobostar {
+    int seq,seq_save,bufferRecoveryState,bufferRecoveryStarted,zDownProfileStage;
+    int board_id,channel_id,servoCnt;
+    bool acceptedMove[4],motionFaultLatched,pauseStatus,activeMoveValid,directXYPositionReady,sscOpened;
+    bool homeRequiredAfterServoOff,held,homeWatchdogResetPending;
+    struct {bool GRIPPER1_BUFFER;} input;
+    Step step,step_save;
+    PNT_DATA_EX point[4],acceptedPoint[4];
+    Trobostar():seq(seqPause),seq_save(seqAutoMove),bufferRecoveryState(0),bufferRecoveryStarted(0),
+        zDownProfileStage(1),board_id(0),channel_id(0),servoCnt(3),motionFaultLatched(true),pauseStatus(true),
+        activeMoveValid(true),directXYPositionReady(true),sscOpened(true),homeRequiredAfterServoOff(true),held(true),homeWatchdogResetPending(false)
+        {input.GRIPPER1_BUFFER=false;for(int i=0;i<4;++i)acceptedMove[i]=true;}
+    void RestoreServoState(){} bool AreAxesStopped(){return true;} bool IsCcLinkReady(){return true;}
+    bool IsSafetyReady(){return true;} bool IsEmergencyStopActive(){return false;}
+    bool IsKeyLockActive(){return true;} bool IsSafetyDoorOpen(int){return false;}
+    bool IsZLimitActive(){return false;} bool getCellDetectStatus(){return held;}
+    bool WriteLog(int,const char*){return true;} void MotionFault(const AnsiString&);
+    bool StopAxes();bool CanResumeMotion(){return true;}bool setPoint(int,long){return true;}
+    void __fastcall req_Stop();
+    void __fastcall req_Pause(bool);
+    void __fastcall InitSequence(robotSequence,robotSequence reserve=seqIdle);
+    void __fastcall req_Home(); void __fastcall Home();
+    void TickHomeWatchdog();
+};
+struct Tgripper {
+    bool emgPending,emgHomeDone,pauseStatus,cellTrackOutRequestStarted;
+    bool emgSourceExist,emgTargetExist;
+    int seq,seq_save,emgSource,emgTarget,pendingCellTrackOutSourceChannel,pendingCellTrackOutTargetChannel;
+    AnsiString emgInvalidReason,emgSourcePick,emgTargetPick,emgTargetCellId,emgCellId,pendingCellTrackOutCellId;
+    EmergencyCheckpoint emgCheckpoint;
+    struct {bool eject_end,insert_end;} tool[1];
+    Step step;
+    int pickupSaves,insertSaves,nextCalls,reportStarts;
+    Tgripper():emgPending(true),emgHomeDone(false),pauseStatus(true),cellTrackOutRequestStarted(false),
+        emgSourceExist(true),emgTargetExist(false),seq(seqPause),seq_save(seqSorting),emgSource(4),emgTarget(7),
+        pendingCellTrackOutSourceChannel(0),pendingCellTrackOutTargetChannel(0),emgCellId("CELL4"),
+        emgCheckpoint(erTarget),pickupSaves(0),insertSaves(0),nextCalls(0),reportStarts(0){tool[0].eject_end=tool[0].insert_end=false;}
+    bool EmergencyPending(){return emgPending;} bool EmergencyHomeDone(){return emgHomeDone;}
+    void ObserveEmergency(){}
+    void EmergencyHomeStarting(){emgHomeDone=false;}
+    void EmergencyHomeCompleted(); void ClearEmergencyRecovery();
+    bool ValidateEmergencyRecord(AnsiString& reason){reason=emgInvalidReason;return emgPending&&reason.IsEmpty();}
+    AnsiString EmergencyStatus(){return "snapshot";}
+    bool CommitEjectTrayState(int); bool CommitInsertTrayState(int);
+    bool ResumeEmergencyCheckpoint(); void __fastcall InitSequence(gripperSequence,gripperSequence reserve=seqIdle);
+    void __fastcall req_Pause(bool);
+    bool __fastcall StartPendingCellTrackOutReport();
+    bool SaveTransferResult(bool){return true;} bool SavePendingTransferResult(bool){return true;}
+    void StartNextCycleOrWait(){++nextCalls;InitSequence(seqInit);}
+    void TickReport();
+};
+struct TMainForm {
+    bool m_ServoOpen,m_ServoON,m_ServoHome,opcProcessStarted,opcTrayLoaded[2],manualTraySessionUsed,manualFmsPolling;
+    bool opcTrayLoadPending[2],opcProcessStartPending,opcCellTrackOutPending,opcProcessEndPending,opcTargetUnloadPending;
+    bool sourceTrayOutPending,opcFmsSuspendedByManual,opcCellTrackOutMoveReleased,fmsTrouble,manualBusy;
+    int fmsAlarmTransaction,equipMode,nowLampMode,currentProcessStep,barcodeReads,errorCalls,resumes,ackCalls;
+    Panel play,stop,sourceId,targetId,sourceId2,targetId2,pw1,bypass,opcTimer;
+    Panel *playBtn,*stopBtn,*pTrayid_source,*pTrayid_target,*pTrayid_source2,*pTrayid_target2,*pwork1,*chkBypass,*opcMesTimer;
+    Tray tray_source,tray_target;
+    Step step[2]; bool sourceTrackOutResetArmed,sourceTrayCycleAdmitted,sourceCenteringCompleted;
+    bool opcTrayAdvanceDeferred[2],opcTrayDisplayed[2];AnsiString opcDeferredTrayId[2],lastProcessWaitStatus[16];
+    TMainForm():m_ServoOpen(true),m_ServoON(true),m_ServoHome(true),opcProcessStarted(true),manualTraySessionUsed(false),manualFmsPolling(false),
+        opcProcessStartPending(false),opcCellTrackOutPending(false),opcProcessEndPending(false),opcTargetUnloadPending(false),sourceTrayOutPending(false),
+        opcFmsSuspendedByManual(true),opcCellTrackOutMoveReleased(false),fmsTrouble(false),manualBusy(false),fmsAlarmTransaction(0),equipMode(modeManual),
+        nowLampMode(0),currentProcessStep(9),barcodeReads(0),errorCalls(0),resumes(0),ackCalls(0),
+        playBtn(&play),stopBtn(&stop),pTrayid_source(&sourceId),pTrayid_target(&targetId),pTrayid_source2(&sourceId2),pTrayid_target2(&targetId2),
+        pwork1(&pw1),chkBypass(&bypass),opcMesTimer(&opcTimer),sourceTrackOutResetArmed(false),sourceTrayCycleAdmitted(true),sourceCenteringCompleted(true)
+        {for(int i=0;i<2;++i){opcTrayLoaded[i]=opcTrayDisplayed[i]=true;opcTrayLoadPending[i]=opcTrayAdvanceDeferred[i]=false;}
+        sourceId.Caption="SRC";targetId.Caption="TGT";step[0].step=3;step[1].step=1;}
+    bool CheckEmergencyRecoveryReady(bool);bool StartEmergencyRecovery();
+    bool HandleEmergencyFmsAcknowledgement();
+    void RecoveryStartClick();
+    void PollFmsTrouble(){} bool AcknowledgeFmsTrouble(){++ackCalls;fmsTrouble=false;return true;}
+    bool IsManualTrayLoadBusy(){return manualBusy;} bool IsTargetTrayExchangeActive(){return false;}
+    bool IsFmsTroubleBlocking(){return fmsTrouble;} bool RetryPendingTraySaves(){return true;}
+    void ResumeAutomaticFmsSequence(){++resumes;opcFmsSuspendedByManual=false;}
+    bool setTrayInfo(int){return true;} void memoMainLineAdd(AnsiString){} void memoRobostarLineAdd(AnsiString){}
+    void memoGripperLineAdd(AnsiString){}
+    bool ReportCellTrackOut(int,int,AnsiString){opcCellTrackOutPending=true;opcMesTimer->Enabled=true;return true;}
+    bool __fastcall ConsumeCellTrackOutMoveRelease();
+    bool IsSourceTrayInSignal(){return plc.source;} bool IsTargetTrayInSignal(){return plc.target;}
+    bool IsTargetCenteringSignal(){return plc.tc;} void InitStep(Step*p){*p=Step();}
+    void ResetProcessFlow(){} void ProcessStepLog(int,AnsiString){} bool UpdateSourceTrayAdmission(){return true;}
+    void ResumeDeferredTrayLoads(){} void CaptureSourceTrayInTime(){} void BeginProcessStep(int,AnsiString){}
+    void NotifyEquipStatus(const char*){} void ReadSourceTrayBarcode(){} void ReadTargetTrayBarcode(){++barcodeReads;}
+    void CmdTrayOut(int){} bool CompleteSourceCenteringStep(){return true;} void TryStartOpcProcess(){}
+    void SetProcessOperationStatus(int,const char*,const char*,const char*,AnsiString){}
+    void __fastcall stepTimerTimer(TObject*);
+};
+TMainForm mainForm;
+Trobostar robot;
+Tgripper grip;
+TMainForm* MainForm=&mainForm;
+Trobostar* robostar=&robot;
+Tgripper* gripper=&grip;
+void ShowCommonError(AnsiString,AnsiString){++MainForm->errorCalls;}
+bool Tgripper::CommitEjectTrayState(int){++pickupSaves;MainForm->tray_source.CELL_EXIST[emgSource-1]=false;
+    MainForm->tray_source.PICK[emgSource-1]="N";tool[0].eject_end=true;return true;}
+bool Tgripper::CommitInsertTrayState(int){++insertSaves;MainForm->tray_target.CELL_EXIST[emgTarget-1]=true;
+    MainForm->tray_target.PICK[emgTarget-1]="Y";MainForm->tray_target.SLOT_ID[emgTarget-1]=emgCellId;tool[0].insert_end=true;return true;}
+@@PRODUCTION_BODIES@@
+void TMainForm::RecoveryStartClick(){
+@@EMG_START_BRANCH@@
+}
+void Trobostar::TickHomeWatchdog(){bool motionActive=seq==seqHome;
+@@HOME_WATCHDOG@@
+if(seq==seqHome)Home();}
+void Tgripper::TickReport(){switch(step.step){
+@@REPORT_STEPS@@
+default:break;}}
+void reset(EmergencyCheckpoint cp){
+    // Reconstruct in place; Panel pointers in MainForm must continue to point to its members.
+    mainForm.~TMainForm();new(&mainForm) TMainForm;
+    robot=Trobostar();grip=Tgripper();plc=Plc();gateway=Gateway();manual=Manual();
+    grip.emgCheckpoint=cp;driveStops=0;homeError=0;homeReadError=0;homeBusy=false;tickNow=1000;memset(homeCalls,0,sizeof(homeCalls));
+}
+void home(){robot.req_Home();for(int i=0;i<20 && robot.seq==seqHome;++i)robot.Home();
+    assert(robot.seq==seqIdle && grip.EmergencyHomeDone());
+    assert(homeCalls[1]==1 && homeCalls[2]==1 && homeCalls[3]==1);
+}
+void start(){assert(mainForm.CheckEmergencyRecoveryReady(false));mainForm.equipMode=modeAutoStop;
+    assert(mainForm.StartEmergencyRecovery());assert(mainForm.equipMode==modeAuto);
+    assert(!robot.pauseStatus && !grip.pauseStatus && !grip.emgPending);
+    assert(robot.seq==seqIdle && robot.seq_save==seqIdle && robot.zDownProfileStage==0);
+    for(int i=1;i<=3;++i)assert(!robot.acceptedMove[i]);
+}
+int main(){
+    reset(erSource);home();start();assert(grip.seq==seqSorting && grip.step.step==0);
+    puts("PASS: HOME -> source checkpoint; old robot targets/Pause cleared");
+    reset(erTarget);home();start();assert(grip.seq==seqInserting && grip.step.step==0 && grip.pickupSaves==1);
+    mainForm.stepTimerTimer(0);assert(mainForm.barcodeReads==0 && mainForm.pTrayid_target->Caption=="TGT");
+    puts("PASS: HOME -> held-cell target checkpoint; normal main timer does not reload tray");
+    reset(erReport);home();start();assert(grip.seq==seqInserting && grip.step.step==4 && grip.insertSaves==1);
+    grip.TickReport();assert(grip.cellTrackOutRequestStarted && mainForm.opcMesTimer->Enabled);
+    for(int i=0;i<5;++i)grip.TickReport();assert(grip.step.step==4 && grip.nextCalls==0);
+    // Transport double delivers the completed 1 -> request OFF -> response 0 handshake.
+    mainForm.opcCellTrackOutPending=false;mainForm.opcCellTrackOutMoveReleased=true;
+    grip.TickReport();assert(grip.step.step==7);grip.TickReport();assert(grip.nextCalls==1 && grip.seq==seqInit);
+    puts("PASS: report checkpoint waits in step 4, then exits step 7 after FMS release (no repeated insert)");
+    reset(erTarget);mainForm.equipMode=modeAuto;plc.tc=false;
+    mainForm.stepTimerTimer(0);assert(grip.pauseStatus && mainForm.step[1].step==1);
+    plc.tc=true;mainForm.equipMode=modeManual;home();start();mainForm.stepTimerTimer(0);
+    assert(mainForm.barcodeReads==0 && mainForm.pTrayid_target->Caption=="TGT");
+    puts("PASS: Target Centering OFF during EMG/Pause preserves admitted main step and Tray ID; restart does not read barcode again");
+    reset(erTarget);mainForm.fmsTrouble=true;mainForm.RecoveryStartClick();
+    assert(mainForm.ackCalls==1 && !mainForm.fmsTrouble && grip.emgPending && !grip.emgHomeDone);
+    assert(mainForm.equipMode==modeManual && mainForm.resumes==0 && grip.pauseStatus && robot.pauseStatus);
+    assert(!mainForm.CheckEmergencyRecoveryReady(false)); // Acknowledgement is not HOME.
+    home();mainForm.equipMode=modeAutoStop;mainForm.RecoveryStartClick();
+    assert(mainForm.resumes==1 && !grip.emgPending && !grip.pauseStatus && !robot.pauseStatus);
+    puts("PASS: FMS acknowledgement in MANUAL does not move; subsequent HOME/AUTO/START resumes");
+    reset(erTarget);home();mainForm.equipMode=modeAutoStop;mainForm.fmsTrouble=true;
+    mainForm.RecoveryStartClick();assert(grip.emgPending && mainForm.resumes==0 && mainForm.ackCalls==1);
+    mainForm.RecoveryStartClick();assert(!grip.emgPending && mainForm.resumes==1);
+    puts("PASS: first START acknowledges overlapping FMS Trouble only, second START revalidates recovery");
+    reset(erTarget);robot.req_Home();homeError=-1;
+    for(int i=0;i<5;++i)robot.TickHomeWatchdog();
+    assert(robot.seq==seqPause && robot.pauseStatus && !grip.EmergencyHomeDone());
+    assert(homeCalls[Axis_z]==1 && driveStops>=3);
+    assert(!mainForm.CheckEmergencyRecoveryReady(false));
+    homeError=0;robot.TickHomeWatchdog();assert(robot.seq==seqPause && homeCalls[Axis_z]==1);
+    robot.req_Home();for(int i=0;i<20 && robot.seq==seqHome;++i)robot.TickHomeWatchdog();
+    assert(robot.seq==seqIdle && grip.emgHomeDone);
+    puts("PASS: HOME start error cancels to Pause; no automatic command retry; explicit HOME succeeds");
+    reset(erTarget);robot.req_Home();robot.TickHomeWatchdog();homeReadError=-1;robot.TickHomeWatchdog();
+    assert(robot.seq==seqPause && !grip.emgHomeDone && driveStops>=3);
+    homeReadError=0;robot.req_Home();for(int i=0;i<20 && robot.seq==seqHome;++i)robot.TickHomeWatchdog();
+    assert(robot.seq==seqIdle && grip.emgHomeDone);
+    puts("PASS: HOME status read failure cancels to Pause and explicit HOME can retry");
+    reset(erTarget);robot.req_Home();homeBusy=true;
+    robot.TickHomeWatchdog();robot.TickHomeWatchdog();assert(robot.step.step==3);
+    tickNow+=120001;robot.TickHomeWatchdog();homeBusy=false;
+    for(int i=0;i<5;++i){tickNow+=200;robot.TickHomeWatchdog();}
+    assert(robot.seq==seqPause && !grip.emgHomeDone);
+    robot.req_Home();for(int i=0;i<20 && robot.seq==seqHome;++i)robot.TickHomeWatchdog();
+    assert(robot.seq==seqIdle && grip.emgHomeDone);
+    puts("PASS: HOME watchdog cancels to Pause; explicit retry has fresh timeout budget and completes");
+    reset(erTarget);home();plc.target=false;assert(!mainForm.CheckEmergencyRecoveryReady(false));
+    plc.target=true;plc.tc=false;assert(!mainForm.CheckEmergencyRecoveryReady(false));
+    plc.tc=true;robot.input.GRIPPER1_BUFFER=true;assert(!mainForm.CheckEmergencyRecoveryReady(false));
+    puts("PASS: tray presence/centering/BUFFER interlocks still block after HOME");
+    reset(erTarget);BaseForm->config.emergencyAutoRestart=false;mainForm.equipMode=modeAuto;plc.tc=false;
+    mainForm.stepTimerTimer(0);assert(mainForm.step[1].step==0);BaseForm->config.emergencyAutoRestart=true;
+    puts("PASS: option OFF retains the existing main-timer behavior");
+    puts("Offline scope: production recovery/HOME/main-timer/report-step bodies; hardware, file saving and FMS transport are doubles.");
+    return 0;
+}

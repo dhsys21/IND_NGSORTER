@@ -958,6 +958,13 @@ void __fastcall TMainForm::targetGridDrawCell(TObject *Sender, int ACol,
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::pause_startBtnClick(TObject *Sender)
 {
+	//* 비상정지후 취출/삽입 계속작업.
+	if(gripper->EmergencyPending() && BaseForm->config.emergencyAutoRestart){
+		if(HandleEmergencyFmsAcknowledgement()) return;
+		if(equipMode == modeAuto || equipMode == modeAutoStop) StartEmergencyRecovery();
+		else ShowCommonError("EMG recovery", "Complete HOME, then select AUTO before Restart.");
+		return;
+	}
 	//* FMS TROUBLE: START/Restart can accept the current ON alarm; physical checks still apply.
 	if(!AcknowledgeFmsTrouble()) return;
 	if(IsManualTrayLoadBusy()){
@@ -2387,8 +2394,77 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
+//* 비상정지후 취출/삽입 계속작업.
+bool TMainForm::HandleEmergencyFmsAcknowledgement()
+{
+	// START/Restart (including popup Retry) may acknowledge FMS in MANUAL.
+	// This click never releases motion or bypasses the HOME/safety checks.
+	PollFmsTrouble();
+	if(!IsFmsTroubleBlocking()) return false;
+	if(AcknowledgeFmsTrouble())
+		memoMainLineAdd("[EMG RECOVERY] FMS Trouble acknowledged only. Complete HOME, then select AUTO and press START/Restart.");
+	return true;
+}
+
+//* 비상정지후 취출/삽입 계속작업.
+bool TMainForm::CheckEmergencyRecoveryReady(bool showError)
+{
+	AnsiString reason;
+	robostar->RestoreServoState();
+	if(!BaseForm->config.emergencyAutoRestart)
+		reason = "Emergency automatic restart is disabled.";
+	else if(!gripper->EmergencyHomeDone() || !m_ServoOpen || !m_ServoON || !m_ServoHome ||
+		(robostar->seq != seqIdle && !(robostar->seq == seqPause && robostar->seq_save == seqIdle)) ||
+		!robostar->AreAxesStopped())
+		reason = "Complete Servo OPEN/ON and a new HOME after EMG; wait for all axes to stop.";
+	else if(!robostar->IsCcLinkReady() || !robostar->IsSafetyReady() ||
+		robostar->IsEmergencyStopActive() || !robostar->IsKeyLockActive() ||
+		robostar->IsSafetyDoorOpen(1) || robostar->IsSafetyDoorOpen(2) || robostar->input.GRIPPER1_BUFFER)
+		reason = "Check CC-Link, safety reset, EMG, keylock, doors and BUFFER.";
+	else if(PlcBin == NULL || !PlcBin->IsPlcStatusFresh(1000) ||
+		!PlcBin->IsSourceTrayIn() || !PlcBin->IsTargetTrayIn() ||
+		!PlcBin->IsSourceCentering() || !PlcBin->IsTargetCentering())
+		reason = "Both original trays must be present and centered with fresh PLC data.";
+	else if(Mod_Fms == NULL || !Mod_Fms->IsGatewayConnected() || !Mod_Fms->SnapshotReceived)
+		reason = "Reconnect FMS Gateway and receive its snapshot before EMG recovery.";
+	else if(!opcProcessStarted || !opcTrayLoaded[0] || !opcTrayLoaded[1] ||
+		IsManualTrayLoadBusy() || manualTraySessionUsed || manualFmsPolling ||
+		opcTrayLoadPending[0] || opcTrayLoadPending[1] || opcProcessStartPending ||
+		opcCellTrackOutPending || opcProcessEndPending || opcTargetUnloadPending ||
+		sourceTrayOutPending || IsTargetTrayExchangeActive() ||
+		fmsAlarmTransaction != fmsAlarmNone || IsFmsTroubleBlocking() ||
+		(ManualCompleteForm != NULL && ManualCompleteForm->IsBlocking()))
+		reason = "Original FMS process must remain valid; finish conflicting reports/manual recovery first.";
+	else if(!gripper->ValidateEmergencyRecord(reason)){
+		// Keep the precise snapshot mismatch supplied by the gripper owner.
+	}
+	if(reason.IsEmpty()) return true;
+	if(showError){
+		memoMainLineAdd("[EMG RECOVERY] BLOCKED / " + reason);
+		ShowCommonError("EMG recovery blocked", reason + "\r\n" + gripper->EmergencyStatus());
+	}
+	return false;
+}
+
+//* 비상정지후 취출/삽입 계속작업.
+bool TMainForm::StartEmergencyRecovery()
+{
+	if(!CheckEmergencyRecoveryReady(true)) return false;
+	if(!RetryPendingTraySaves()) return false;
+	if(!gripper->ResumeEmergencyCheckpoint()) return false;
+	equipMode = modeAuto;
+	nowLampMode = LampAuto;
+	playBtn->Down = true;
+	stopBtn->Down = false;
+	ResumeAutomaticFmsSequence();
+	return true;
+}
+
 bool __fastcall TMainForm::CheckServoAutoReady(bool showError)
 {
+	//* 비상정지후 취출/삽입 계속작업.
+	if(gripper != NULL && gripper->EmergencyPending() && BaseForm->config.emergencyAutoRestart)
+		return CheckEmergencyRecoveryReady(showError);
 	if(ManualCompleteForm != NULL && ManualCompleteForm->IsBlocking()){
 		if(showError) ManualCompleteForm->OpenRecovery(0);
 		return false;
@@ -2448,7 +2524,10 @@ void __fastcall TMainForm::autoBtnClick(TObject *Sender)
 	}
 	//* MANUAL -> AUTO: discard only manual data-service state, then start at STEP 01.
 	// Selecting AUTO is not START/Restart; never release a physical safety Pause here.
-	if(equipMode == modeManual && !ResetManualTrayLoadForAuto()){
+	//* 비상정지후 취출/삽입 계속작업.
+	if(equipMode == modeManual &&
+		!(gripper->EmergencyPending() && BaseForm->config.emergencyAutoRestart) &&
+		!ResetManualTrayLoadForAuto()){
 		autoBtn->Down = false;
 		return;
 	}
@@ -2512,6 +2591,13 @@ void __fastcall TMainForm::manualBtnClick(TObject *Sender)
 
 void __fastcall TMainForm::playBtnClick(TObject *Sender)
 {
+	//* 비상정지후 취출/삽입 계속작업.
+	if(gripper->EmergencyPending() && BaseForm->config.emergencyAutoRestart){
+		if(HandleEmergencyFmsAcknowledgement()) return;
+		if(equipMode == modeAuto || equipMode == modeAutoStop) StartEmergencyRecovery();
+		else ShowCommonError("EMG recovery", "Complete HOME, then select AUTO before START.");
+		return;
+	}
 	if(IsManualTrayLoadBusy()){
 		ShowCommonError("START blocked", "Select AUTO to initialize the manual TrayLoad session first.");
 		return;
@@ -2871,6 +2957,13 @@ void __fastcall TMainForm::InitStep(STEP *data)
 // Automatic equipment sequence.
 void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 {
+	//* 비상정지후 취출/삽입 계속작업.
+	if(gripper != NULL){
+		gripper->ObserveEmergency();
+		// Preserve both admitted tray steps until the explicit EMG restart.
+		// ObserveEmergency still invalidates the record if a physical tray leaves.
+		if(gripper->EmergencyPending() && BaseForm->config.emergencyAutoRestart) return;
+	}
 	if(IsFmsTroubleBlocking()) return;
 	if(equipMode != modeAuto){
 		memoMainLineAdd(BaseForm->GetLangStr("MSG_AUTOMODE_WARNING"));
@@ -3303,6 +3396,21 @@ void __fastcall TMainForm::UpdateFmsEquipmentStatus()
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 {
+	//* 비상정지후 취출/삽입 계속작업.
+	if(gripper != NULL){
+		gripper->ObserveEmergency();
+		if(gripper->EmergencyPending()){
+			probostarMsg->Caption = !BaseForm->config.emergencyAutoRestart ?
+				"EMG RECOVERY / Disabled" : (gripper->EmergencyHomeDone() ?
+				"EMG RECOVERY / AUTO -> START" : "EMG RECOVERY / HOME required");
+			probostarMsg->Hint = gripper->EmergencyStatus();
+			probostarMsg->ShowHint = true;
+		}else if(probostarMsg->Caption.Pos("EMG RECOVERY /") == 1){
+			probostarMsg->Caption = "";
+			probostarMsg->Hint = "";
+			probostarMsg->ShowHint = false;
+		}
+	}
 	UpdateFmsEquipmentStatus();
 	// Also invalidate removed trays during MANUAL/Pause while opcMesTimer is stopped.
 	for(int i = 0; i < 2; ++i){
@@ -4026,6 +4134,8 @@ void __fastcall TMainForm::AdvSmoothToggleButton_InitWorkClick(TObject *Sender)
 			InitStep(&step[1]);
 
 			pwork1->Color = clSilver;
+			//* 비상정지후 취출/삽입 계속작업.
+			gripper->ClearEmergencyRecovery();
 			pwork2->Color = clSilver;
 		}
 	}else ShowMessage(BaseForm->GetLangStr("MSG_INIT_WORK_ALARM"));
@@ -4082,6 +4192,8 @@ void __fastcall TMainForm::btnTrayStepInitClick(TObject *Sender)
 	// The hidden button is the explicit reset command; all guards precede writes.
 	int sourceStep = step[0].step;
 	int targetStep = step[1].step;
+	//* 비상정지후 취출/삽입 계속작업.
+	gripper->ClearEmergencyRecovery();
 	if(sourceTrayOutTimer != NULL) sourceTrayOutTimer->Enabled = false;
 	sourceTrayOutPending = false;
 	if(opcMesTimer != NULL) opcMesTimer->Enabled = false;

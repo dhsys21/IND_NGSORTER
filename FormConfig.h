@@ -46,6 +46,8 @@ __published:	// IDE-managed Components
 	TLabel *lblTargetUnloadCount;
 	TLabel *lblTargetUnloadDisabled;
 	TEdit *editTargetUnloadCount;
+	//* 비상정지후 취출/삽입 계속작업.
+	TCheckBox *chkEmergencyAutoRestart;
 	TEdit *editFatSourceBcr;
 	TEdit *editFatTargetBcr;
 	TPanel *pnlFatSourceBcr;
