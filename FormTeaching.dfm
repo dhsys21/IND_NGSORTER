@@ -293,6 +293,22 @@ object teachForm: TteachForm
       Height = 13
       Caption = #8251' '#52292#45328#51012' '#53364#47533#54616#47732'  '#52292#45328' '#50948#52824#47196' '#47196#48391#51060' '#51060#46041#54633#45768#45796'.'
     end
+    object lblManualMotionStatus: TLabel
+      Left = 925
+      Top = 298
+      Width = 290
+      Height = 16
+      Alignment = taRightJustify
+      AutoSize = False
+      Caption = 'Motion stopped'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clRed
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentFont = False
+      Visible = False
+    end
     object pnlManualControl: TAdvSmoothPanel
       Left = 9
       Top = 4
@@ -1563,7 +1579,7 @@ object teachForm: TteachForm
         Left = 390
         Top = 105
         Width = 252
-        Height = 180
+        Height = 140
         Cursor = crDefault
         Caption.HTMLFont.Charset = DEFAULT_CHARSET
         Caption.HTMLFont.Color = clWindowText
@@ -1605,39 +1621,6 @@ object teachForm: TteachForm
           ParentShowHint = False
           ShowHint = False
           Transparent = True
-        end
-        object lblJogControl: TLabel
-          Left = 7
-          Top = 10
-          Width = 49
-          Height = 16
-          Caption = 'JOG '#51228#50612
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = 13204573
-          Font.Height = -13
-          Font.Name = 'Tahoma'
-          Font.Style = [fsBold]
-          ParentFont = False
-          ParentShowHint = False
-          ShowHint = False
-          Transparent = True
-        end
-        object Label60: TLabel
-          Left = 142
-          Top = -255
-          Width = 13
-          Height = 13
-          Caption = '%'
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = 13204573
-          Font.Height = -11
-          Font.Name = 'Tahoma'
-          Font.Style = [fsBold]
-          ParentFont = False
-          ParentShowHint = False
-          ShowHint = False
-          Transparent = True
-          Visible = False
         end
         object lblXAxis: TLabel
           Left = 27
@@ -1741,11 +1724,44 @@ object teachForm: TteachForm
           ShowHint = False
           Transparent = True
         end
+        object Label60: TLabel
+          Left = 142
+          Top = -255
+          Width = 13
+          Height = 13
+          Caption = '%'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = 13204573
+          Font.Height = -11
+          Font.Name = 'Tahoma'
+          Font.Style = [fsBold]
+          ParentFont = False
+          ParentShowHint = False
+          ShowHint = False
+          Transparent = True
+          Visible = False
+        end
+        object lblJogControl: TLabel
+          Left = 7
+          Top = 10
+          Width = 49
+          Height = 16
+          Caption = 'JOG '#51228#50612
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = 13204573
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = [fsBold]
+          ParentFont = False
+          ParentShowHint = False
+          ShowHint = False
+          Transparent = True
+        end
         object pnlMovingAlarm: TAdvSmoothPanel
-          Left = 87
-          Top = 6
-          Width = 72
-          Height = 21
+          Left = -1000
+          Top = 0
+          Width = 252
+          Height = 140
           Cursor = crDefault
           Caption.HTMLFont.Charset = DEFAULT_CHARSET
           Caption.HTMLFont.Color = clWindowText
@@ -1769,15 +1785,18 @@ object teachForm: TteachForm
           Fill.ShadowOffset = 0
           Fill.Glow = gmNone
           Version = '1.5.2.1'
+          Align = alNone
           Visible = False
           TabOrder = 6
           TMSStyle = 0
           object Label57: TLabel
-            Left = 60
-            Top = 100
-            Width = 96
-            Height = 16
-            Caption = #49436#48372' '#51060#46041#51473#51077#45768#45796'.'
+            Left = 8
+            Top = 24
+            Width = 236
+            Height = 32
+            Alignment = taCenter
+            AutoSize = False
+            Caption = 'Servo moving'
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clRed
             Font.Height = -13
@@ -1787,6 +1806,7 @@ object teachForm: TteachForm
             ParentShowHint = False
             ShowHint = False
             Transparent = True
+            WordWrap = True
           end
           object Label69: TLabel
             Left = 142
@@ -1804,6 +1824,21 @@ object teachForm: TteachForm
             ShowHint = False
             Transparent = True
             Visible = False
+          end
+          object btnStopMoving: TButton
+            Left = 36
+            Top = 76
+            Width = 180
+            Height = 38
+            Caption = 'STOP MOVING'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clRed
+            Font.Height = -13
+            Font.Name = 'Tahoma'
+            Font.Style = [fsBold]
+            ParentFont = False
+            TabOrder = 0
+            OnClick = stopBtnClick
           end
         end
         object Button1: TButton
@@ -1907,82 +1942,82 @@ object teachForm: TteachForm
           OnMouseDown = Button1MouseDown
           OnMouseUp = Button1MouseUp
         end
-        object AdvSmoothButton_Zup: TAdvSmoothButton
-          Left = 25
-          Top = 141
-          Width = 100
-          Height = 28
-          Appearance.PictureAlignment = taCenter
-          Appearance.Font.Charset = DEFAULT_CHARSET
-          Appearance.Font.Color = clBlack
-          Appearance.Font.Height = -12
-          Appearance.Font.Name = 'Tahoma'
-          Appearance.Font.Style = [fsBold]
-          Appearance.Spacing = 0
-          Appearance.Rounding = 3
-          Appearance.WordWrapping = False
-          Status.Caption = '0'
-          Status.Appearance.Fill.Color = 16744448
-          Status.Appearance.Fill.ColorMirror = clNone
-          Status.Appearance.Fill.ColorMirrorTo = clNone
-          Status.Appearance.Fill.GradientType = gtSolid
-          Status.Appearance.Fill.GradientMirrorType = gtSolid
-          Status.Appearance.Fill.BorderColor = clGray
-          Status.Appearance.Fill.Rounding = 8
-          Status.Appearance.Fill.ShadowOffset = 0
-          Status.Appearance.Fill.Glow = gmNone
-          Status.Appearance.Font.Charset = DEFAULT_CHARSET
-          Status.Appearance.Font.Color = clWhite
-          Status.Appearance.Font.Height = -11
-          Status.Appearance.Font.Name = 'Tahoma'
-          Status.Appearance.Font.Style = []
-          BevelColor = clBlack
-          Caption = 'Z'#52629' '#49345#49849
-          Color = clWhite
-          ParentFont = False
-          TabOrder = 7
-          Version = '2.1.1.5'
-          OnClick = AdvSmoothButton_ZupClick
-          TMSStyle = 8
-        end
-        object btnZAxisDown: TAdvSmoothButton
-          Left = 128
-          Top = 141
-          Width = 100
-          Height = 28
-          Appearance.PictureAlignment = taCenter
-          Appearance.Font.Charset = DEFAULT_CHARSET
-          Appearance.Font.Color = clBlack
-          Appearance.Font.Height = -12
-          Appearance.Font.Name = 'Tahoma'
-          Appearance.Font.Style = [fsBold]
-          Appearance.Spacing = 0
-          Appearance.Rounding = 3
-          Appearance.WordWrapping = False
-          Status.Caption = '0'
-          Status.Appearance.Fill.Color = 16744448
-          Status.Appearance.Fill.ColorMirror = clNone
-          Status.Appearance.Fill.ColorMirrorTo = clNone
-          Status.Appearance.Fill.GradientType = gtSolid
-          Status.Appearance.Fill.GradientMirrorType = gtSolid
-          Status.Appearance.Fill.BorderColor = clGray
-          Status.Appearance.Fill.Rounding = 8
-          Status.Appearance.Fill.ShadowOffset = 0
-          Status.Appearance.Fill.Glow = gmNone
-          Status.Appearance.Font.Charset = DEFAULT_CHARSET
-          Status.Appearance.Font.Color = clWhite
-          Status.Appearance.Font.Height = -11
-          Status.Appearance.Font.Name = 'Tahoma'
-          Status.Appearance.Font.Style = []
-          BevelColor = clBlack
-          Caption = 'Z'#52629' '#54616#44053
-          Color = clWhite
-          ParentFont = False
-          TabOrder = 8
-          Version = '2.1.1.5'
-          OnClick = btnZAxisDownClick
-          TMSStyle = 8
-        end
+      end
+      object AdvSmoothButton_Zup: TAdvSmoothButton
+        Left = 415
+        Top = 251
+        Width = 100
+        Height = 28
+        Appearance.PictureAlignment = taCenter
+        Appearance.Font.Charset = DEFAULT_CHARSET
+        Appearance.Font.Color = clBlack
+        Appearance.Font.Height = -12
+        Appearance.Font.Name = 'Tahoma'
+        Appearance.Font.Style = [fsBold]
+        Appearance.Spacing = 0
+        Appearance.Rounding = 3
+        Appearance.WordWrapping = False
+        Status.Caption = '0'
+        Status.Appearance.Fill.Color = 16744448
+        Status.Appearance.Fill.ColorMirror = clNone
+        Status.Appearance.Fill.ColorMirrorTo = clNone
+        Status.Appearance.Fill.GradientType = gtSolid
+        Status.Appearance.Fill.GradientMirrorType = gtSolid
+        Status.Appearance.Fill.BorderColor = clGray
+        Status.Appearance.Fill.Rounding = 8
+        Status.Appearance.Fill.ShadowOffset = 0
+        Status.Appearance.Fill.Glow = gmNone
+        Status.Appearance.Font.Charset = DEFAULT_CHARSET
+        Status.Appearance.Font.Color = clWhite
+        Status.Appearance.Font.Height = -11
+        Status.Appearance.Font.Name = 'Tahoma'
+        Status.Appearance.Font.Style = []
+        BevelColor = clBlack
+        Caption = 'Z'#52629' '#49345#49849
+        Color = clWhite
+        ParentFont = False
+        TabOrder = 5
+        Version = '2.1.1.5'
+        OnClick = AdvSmoothButton_ZupClick
+        TMSStyle = 8
+      end
+      object btnZAxisDown: TAdvSmoothButton
+        Left = 518
+        Top = 251
+        Width = 100
+        Height = 28
+        Appearance.PictureAlignment = taCenter
+        Appearance.Font.Charset = DEFAULT_CHARSET
+        Appearance.Font.Color = clBlack
+        Appearance.Font.Height = -12
+        Appearance.Font.Name = 'Tahoma'
+        Appearance.Font.Style = [fsBold]
+        Appearance.Spacing = 0
+        Appearance.Rounding = 3
+        Appearance.WordWrapping = False
+        Status.Caption = '0'
+        Status.Appearance.Fill.Color = 16744448
+        Status.Appearance.Fill.ColorMirror = clNone
+        Status.Appearance.Fill.ColorMirrorTo = clNone
+        Status.Appearance.Fill.GradientType = gtSolid
+        Status.Appearance.Fill.GradientMirrorType = gtSolid
+        Status.Appearance.Fill.BorderColor = clGray
+        Status.Appearance.Fill.Rounding = 8
+        Status.Appearance.Fill.ShadowOffset = 0
+        Status.Appearance.Fill.Glow = gmNone
+        Status.Appearance.Font.Charset = DEFAULT_CHARSET
+        Status.Appearance.Font.Color = clWhite
+        Status.Appearance.Font.Height = -11
+        Status.Appearance.Font.Name = 'Tahoma'
+        Status.Appearance.Font.Style = []
+        BevelColor = clBlack
+        Caption = 'Z'#52629' '#54616#44053
+        Color = clWhite
+        ParentFont = False
+        TabOrder = 6
+        Version = '2.1.1.5'
+        OnClick = btnZAxisDownClick
+        TMSStyle = 8
       end
       object pnlGripperControl: TAdvSmoothPanel
         Left = 1007
@@ -8369,10 +8404,10 @@ object teachForm: TteachForm
           TMSStyle = 8
         end
         object pnlMovingAlarm2: TAdvSmoothPanel
-          Left = 103
-          Top = 19
-          Width = 80
-          Height = 27
+          Left = -1000
+          Top = 5
+          Width = 193
+          Height = 270
           Cursor = crDefault
           Caption.HTMLFont.Charset = DEFAULT_CHARSET
           Caption.HTMLFont.Color = clWindowText
@@ -8396,15 +8431,18 @@ object teachForm: TteachForm
           Fill.ShadowOffset = 0
           Fill.Glow = gmNone
           Version = '1.5.2.1'
+          Align = alNone
           Visible = False
           TabOrder = 10
           TMSStyle = 0
           object Label59: TLabel
-            Left = 220
-            Top = 139
-            Width = 96
-            Height = 16
-            Caption = #49436#48372' '#51060#46041#51473#51077#45768#45796'.'
+            Left = 8
+            Top = 70
+            Width = 187
+            Height = 40
+            Alignment = taCenter
+            AutoSize = False
+            Caption = 'Servo moving'
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clRed
             Font.Height = -13
@@ -8414,6 +8452,7 @@ object teachForm: TteachForm
             ParentShowHint = False
             ShowHint = False
             Transparent = True
+            WordWrap = True
           end
           object Label61: TLabel
             Left = 142
@@ -10941,7 +10980,8 @@ object teachForm: TteachForm
   end
   object teachingTimer: TTimer
     Enabled = False
-    Interval = 300
+    Interval = 100
+    OnTimer = teachingTimerTimer
     Left = 336
     Top = 19
   end

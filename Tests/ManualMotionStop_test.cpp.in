@@ -1,0 +1,108 @@
+// Offline test: actual stop/cancel bodies, mocked hardware and UI. No board is opened.
+#include <assert.h>
+#include <stdio.h>
+#include <string.h>
+typedef unsigned long DWORD;
+typedef int robotSequence;
+enum { seqIdle, seqPause, seqHome, seqAutoMove, seqServoOff, seqJogStop, seqReset, seqInit };
+enum { modeManual, modeAuto, SSC_OK=0, SSC_BIT_ON=1, SSC_BIT_OFF=0, SSC_STSBIT_AX_OP=10 };
+const int servoCnt=3;
+DWORD tick=1000;
+DWORD GetTickCount(){ return tick; }
+bool moving[4], readFailure=false, stopFailure=false;
+int driveStops=0;
+int sscDriveStop(int,int,int,int){ ++driveStops; return stopFailure ? 5 : 0; }
+int sscGetStatusBitSignalEx(int,int,int axis,int,int* value){ *value=moving[axis]?1:0; return readFailure?5:0; }
+int sscGetCmdSpeedFast(int,int,int axis,long* value){ *value=moving[axis]?100:0; return readFailure?5:0; }
+namespace NGSorterErrors { const int Motion=1; }
+struct Mes { bool alarm; void SetLocalAlarm(int,bool on){alarm=on;} } mes, *MesOpc=&mes;
+struct Main {
+    int equipMode, logs;
+    bool m_ServoHome, m_ServoHomeEmg, fmsTrouble;
+    int sourceRecord, targetRecord, pendingReport;
+    bool IsFmsTroubleBlocking(){return fmsTrouble;}
+    void memoRobostarLineAdd(const char*){++logs;}
+} mainForm, *MainForm=&mainForm;
+struct Grip {
+    bool paused, emgPending, emgHomeDone, chuck;
+    int sourceChannel, targetChannel;
+    bool EmergencyPending(){return emgPending;}
+    void EmergencyHomeStarting(){emgHomeDone=false;}
+} grip, *gripper=&grip;
+struct Panel { bool Visible; } panel1, panel2;
+struct Teaching { Panel *pnlMovingAlarm,*pnlMovingAlarm2; } teaching, *teachForm=&teaching;
+struct Timer {bool Enabled;} timer;
+struct Step {int step,delay,timeout,reserve;};
+class Trobostar {
+public:
+    int manualMotionStopState;
+    DWORD manualMotionStopStarted,manualMotionStopLastRetry;
+    bool pauseStatus,sscOpened,homeRequiredAfterServoOff;
+    bool acceptedMove[4],activeMoveValid,directXYPositionReady,bSetPoint;
+    bool centeringMotionMonitorActive,motionFaultLatched;
+    int bufferRecoveryState,zDownProfileStage,seq,seq_save,board_id,channel_id;
+    DWORD bufferRecoveryStarted;
+    Step step,step_save;
+    Timer *senTimer;
+    Trobostar(){memset(this,0,sizeof(*this));sscOpened=true;senTimer=&timer;seq=seqAutoMove;seq_save=seqAutoMove;
+        activeMoveValid=directXYPositionReady=bSetPoint=true;zDownProfileStage=1;step.step=6;
+        for(int i=1;i<=3;++i)acceptedMove[i]=true;}
+    bool IsManualMotionStopPending() const {return manualMotionStopState==1||manualMotionStopState==2;}
+    bool WriteLog(int sts,const char*){return sts==0;}
+    void ServoOff(){sscOpened=false;InitSequence(seqIdle);}
+    bool StopAxes(); bool AreAxesStopped();
+    bool RequestManualMotionStop();void ProcessManualMotionStop();
+    void __fastcall req_Stop();
+    void __fastcall InitSequence(robotSequence data, robotSequence reserve=seqIdle);
+};
+@@BODIES@@
+void reset(){
+    tick=1000;readFailure=stopFailure=false;driveStops=0;
+    for(int i=1;i<=3;++i)moving[i]=true;
+    mainForm.equipMode=modeManual;mainForm.logs=0;mainForm.m_ServoHome=mainForm.m_ServoHomeEmg=true;mainForm.fmsTrouble=false;
+    mainForm.sourceRecord=41;mainForm.targetRecord=72;mainForm.pendingReport=1;
+    grip.paused=true;grip.chuck=true;grip.emgPending=false;grip.emgHomeDone=true;grip.sourceChannel=4;grip.targetChannel=7;
+    teaching.pnlMovingAlarm=&panel1;teaching.pnlMovingAlarm2=&panel2;panel1.Visible=panel2.Visible=true;timer.Enabled=false;
+}
+void stopped(){for(int i=1;i<=3;++i)moving[i]=false;}
+int main(){
+    reset();Trobostar automatic;mainForm.equipMode=modeAuto;
+    assert(!automatic.RequestManualMotionStop());assert(driveStops==0&&automatic.seq==seqAutoMove);
+    puts("PASS: automatic mode cannot enter Teaching cancellation");
+
+    reset();Trobostar r;
+    assert(r.RequestManualMotionStop());assert(driveStops==3&&r.seq==seqPause&&timer.Enabled);
+    assert(r.activeMoveValid&&r.acceptedMove[1]&&panel1.Visible);
+    r.ProcessManualMotionStop();assert(r.IsManualMotionStopPending()&&r.activeMoveValid);
+    r.InitSequence(seqHome);assert(r.seq==seqPause);
+    r.req_Stop();assert(r.IsManualMotionStopPending()&&r.activeMoveValid);
+    tick+=11000;r.ProcessManualMotionStop();assert(r.manualMotionStopState==2&&panel1.Visible);
+    DWORD started=r.manualMotionStopStarted;r.RequestManualMotionStop();assert(r.manualMotionStopStarted==started);
+    stopped();readFailure=true;r.ProcessManualMotionStop();assert(r.manualMotionStopState==2);
+    readFailure=false;r.ProcessManualMotionStop();
+    assert(r.manualMotionStopState==3&&r.seq==seqIdle&&!r.pauseStatus);
+    assert(!r.activeMoveValid&&!r.directXYPositionReady&&!r.acceptedMove[1]&&r.zDownProfileStage==0);
+    assert(!panel1.Visible&&!panel2.Visible);
+    assert(grip.paused&&grip.chuck&&grip.sourceChannel==4&&grip.targetChannel==7);
+    assert(mainForm.sourceRecord==41&&mainForm.targetRecord==72&&mainForm.pendingReport==1);
+    assert(mainForm.m_ServoHome&&mainForm.m_ServoHomeEmg);
+    r.InitSequence(seqAutoMove);assert(r.manualMotionStopState==0&&r.seq==seqAutoMove);
+    puts("PASS: stop/moving/read-error/timeout/retry, preserved work records, fresh manual command");
+
+    reset();Trobostar home;home.seq=seqHome;grip.emgPending=true;
+    assert(home.RequestManualMotionStop());assert(home.homeRequiredAfterServoOff&&!grip.emgHomeDone);
+    assert(!mainForm.m_ServoHome&&!mainForm.m_ServoHomeEmg);
+    stopped();home.ProcessManualMotionStop();assert(home.seq==seqIdle&&grip.emgPending&&grip.chuck);
+    puts("PASS: interrupted HOME needs a new HOME; EMG snapshot and CHUCK preserved");
+
+    reset();Trobostar failed;stopFailure=true;failed.RequestManualMotionStop();
+    tick+=1000;failed.ProcessManualMotionStop();assert(failed.IsManualMotionStopPending());
+    stopped();failed.ProcessManualMotionStop();assert(failed.manualMotionStopState==3);
+    puts("PASS: stop-command failure never implies completion; fresh feedback is authoritative");
+
+    reset();Trobostar off;off.RequestManualMotionStop();off.InitSequence(seqServoOff);off.ProcessManualMotionStop();
+    assert(!off.sscOpened&&off.IsManualMotionStopPending());
+    off.sscOpened=true;stopped();off.ProcessManualMotionStop();assert(off.manualMotionStopState==3);
+    puts("PASS: unavailable axis feedback stays blocked, including after Servo OFF");
+    return 0;
+}

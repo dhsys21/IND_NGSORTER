@@ -5,7 +5,7 @@ $robot = [IO.File]::ReadAllText((Join-Path $repo 'ModRobostar.cpp'), $cp)
 $body = [regex]::Match($robot, '(?ms)^int __fastcall Trobostar::UpdateEmergencyLamp\(\).*?^\}').Value
 if (!$body) { throw 'Missing lamp updater.' }
 $timer = [regex]::Match($robot, '(?ms)^void __fastcall Trobostar::senTimerTimer\(.*?^\}').Value
-if ($timer -notmatch '(?s)if\(IsCcLinkReady\(\) && IsEmergencyStopActive\(\)\)\{.*?req_Pause\(true\);.*?UpdateEmergencyLamp\(\);\s*return;\s*\}\s*UpdateEmergencyLamp\(\);') {
+if ($timer -notmatch '(?s)if\(IsCcLinkReady\(\) && IsEmergencyStopActive\(\)\)\{.*?req_Pause\(true\);.*?UpdateEmergencyLamp\(\);\s*(?:if\(IsManualMotionStopPending\(\)\) ProcessManualMotionStop\(\);\s*)?return;\s*\}\s*UpdateEmergencyLamp\(\);') {
     throw 'Lamp must be updated after emergency stop and before other timer early returns.'
 }
 $fixture = @'

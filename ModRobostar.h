@@ -353,6 +353,11 @@ private:	// User declarations
 	PNT_DATA_EX acceptedPoint[AxisCnt];
 	bool acceptedMove[AxisCnt];
 	bool motionFaultLatched;
+	// MANUAL MOVE CANCEL: requested by Teaching Stop; cleared only after axis-stop feedback.
+	int manualMotionStopState; // 0: none, 1: stopping, 2: unconfirmed, 3: stopped.
+	DWORD manualMotionStopStarted;
+	DWORD manualMotionStopLastRetry;
+	void ProcessManualMotionStop();
 	//* BUFFER OVERFLOW 오류시 Z축 상승 후 대기.
 	// BUFFER RECOVERY: stop the current move, raise Z without replacing the
 	// interrupted target, then leave the original sequence paused for Restart.
@@ -424,6 +429,9 @@ public:		// User declarations
 	void __fastcall req_Home();
 	void __fastcall req_Speed(int speed, int accl, int dccl);
 	void __fastcall req_Stop();
+	bool RequestManualMotionStop();
+	bool IsManualMotionStopPending() const { return manualMotionStopState == 1 || manualMotionStopState == 2; }
+	int ManualMotionStopState() const { return manualMotionStopState; }
 	//* Z LIMIT RECOVERY: LSN active permits only Z DOWN(+) jog until the limit clears.
 	bool __fastcall IsZLimitActive() const;
 	bool __fastcall IsZDownLimitRecoveryAllowed() const;

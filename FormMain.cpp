@@ -2462,6 +2462,10 @@ bool TMainForm::StartEmergencyRecovery()
 
 bool __fastcall TMainForm::CheckServoAutoReady(bool showError)
 {
+	if(robostar != NULL && robostar->IsManualMotionStopPending()){
+		if(showError) ShowMessage(BaseForm->GetLangStr("CAP_STOP_UNCONFIRMED"));
+		return false;
+	}
 	//* 비상정지후 취출/삽입 계속작업.
 	if(gripper != NULL && gripper->EmergencyPending() && BaseForm->config.emergencyAutoRestart)
 		return CheckEmergencyRecoveryReady(showError);

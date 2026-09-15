@@ -49,6 +49,7 @@ static int ReadRequiredTeachingInt(TIniFile *ini, const UnicodeString &section,
 __fastcall TteachForm::TteachForm(TComponent* Owner)
 	: TForm(Owner)
 {
+	manualStopOverlayHidden = false;
 }
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::FormCreate(TObject *Sender)
@@ -72,6 +73,8 @@ void __fastcall TteachForm::FormShow(TObject *Sender)
 
     pnlMovingAlarm2->Align = alClient;
     pnlMovingAlarm->Align = alClient;
+	teachingTimer->Enabled = true;
+	teachingTimerTimer(Sender);
 
     robostar->io_Init();
 
@@ -732,10 +735,48 @@ void __fastcall TteachForm::waitBtnClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::stopBtnClick(TObject *Sender)
 {
-	robostar->req_Stop();
-
-	teachForm->pnlMovingAlarm->Visible = false;
-	teachForm->pnlMovingAlarm2->Visible = false;
+	// Repeated clicks toggle only the overlay; stop confirmation/interlocks remain active.
+	if(robostar->IsManualMotionStopPending()){
+		manualStopOverlayHidden = !manualStopOverlayHidden;
+		teachingTimerTimer(Sender);
+		return;
+	}
+	if(!robostar->RequestManualMotionStop()){
+		ShowMessage(BaseForm->GetLangStr("MSG_MANUAL_STOP_MODE"));
+		return;
+	}
+	manualStopOverlayHidden = false;
+	teachingTimerTimer(Sender);
+}
+//---------------------------------------------------------------------------
+void __fastcall TteachForm::teachingTimerTimer(TObject *Sender)
+{
+	if(!Visible || robostar == NULL) return;
+	int state = robostar->ManualMotionStopState();
+	bool pending = robostar->IsManualMotionStopPending();
+	if(!pending) manualStopOverlayHidden = false;
+	AdvSmoothButton_Zup->Enabled = !pending;
+	btnZAxisDown->Enabled = !pending;
+	lblManualMotionStatus->Visible = state != 0;
+	if(state == 0) return;
+	UnicodeString caption = BaseForm->GetLangStr(state == 3 ? "CAP_MOTION_STOPPED" :
+		(state == 2 ? "CAP_STOP_UNCONFIRMED" : "CAP_MOTION_STOPPING"));
+	lblManualMotionStatus->Caption = caption;
+	if(pending){
+		Label57->Caption = caption;
+		Label59->Caption = caption;
+		pnlMovingAlarm->Visible = !manualStopOverlayHidden;
+		pnlMovingAlarm2->Visible = !manualStopOverlayHidden;
+		if(!manualStopOverlayHidden){
+			pnlMovingAlarm->BringToFront();
+			pnlMovingAlarm2->BringToFront();
+		}
+	}else{
+		pnlMovingAlarm->Visible = false;
+		pnlMovingAlarm2->Visible = false;
+		Label57->Caption = BaseForm->GetLangStr("CAP_SERVO_MOVING");
+		Label59->Caption = BaseForm->GetLangStr("CAP_SERVO_MOVING");
+	}
 }
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------

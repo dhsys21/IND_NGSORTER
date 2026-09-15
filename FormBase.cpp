@@ -431,6 +431,7 @@ void __fastcall TBaseForm::ChangeLanguage()
 		+ "\r\n" + GetLangStr("CAP_WAIT_POS_LINE2");
     teachForm->AdvSmoothButton_Zup->Caption = GetLangStr("CAP_Z_UP");
     teachForm->stopBtn->Caption = GetLangStr("CAP_STOP_MOVING");
+	teachForm->btnStopMoving->Caption = GetLangStr("CAP_STOP_MOVING");
     teachForm->pnlSpeed->Caption = GetLangStr("CAP_SPEED");
     teachForm->pnlSettingSpeed->Caption = GetLangStr("CAP_SETTING_SPEED");
     teachForm->lblJogControl->Caption = GetLangStr("CAP_JOG_CONTROL");

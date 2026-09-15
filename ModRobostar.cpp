@@ -81,6 +81,8 @@ __fastcall Trobostar::Trobostar(TComponent* Owner)
 	keyLockReleasePending = false;
 	previousBypassSwitchOn = false;
 	motionFaultLatched = false;
+	manualMotionStopState = 0;
+	manualMotionStopStarted = manualMotionStopLastRetry = 0;
 	//* BUFFER OVERFLOW 오류시 Z축 상승 후 대기.
 	bufferRecoveryState = 0;
 	bufferRecoveryStarted = 0;
@@ -201,6 +203,10 @@ int __fastcall Trobostar::UpdateEmergencyLamp()
 
 void __fastcall Trobostar::req_Pause(bool stop)
 {
+	if(IsManualMotionStopPending()){
+		if(stop) StopAxes();
+		return;
+	}
 	//* 비상정지후 취출/삽입 계속작업.
 	if(stop && ::gripper != NULL) ::gripper->ObserveEmergency();
 	if(!stop && ::gripper != NULL && ::gripper->EmergencyPending() &&
@@ -265,6 +271,7 @@ bool Trobostar::AreAxesStopped()
 }
 bool Trobostar::CanResumeMotion()
 {
+	if(IsManualMotionStopPending()) return false;
 	//* FMS TROUBLE: independent mode-wide latch, checked before any resumed target.
 	if(MainForm != NULL && MainForm->IsFmsTroubleBlocking()) return false;
 	if(!pauseStatus) return true;
@@ -438,6 +445,8 @@ void __fastcall Trobostar::RequestBufferRecovery()
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::InitSequence(robotSequence data, robotSequence reserve)
 {
+	// MANUAL MOVE CANCEL: no new motion while stop feedback is pending.
+	if(IsManualMotionStopPending() && data != seqIdle && data != seqPause && data != seqServoOff) return;
 	//* FMS TROUBLE: allow stop/reset/servo-off, but no new motion while latched.
 	if(MainForm != NULL && MainForm->IsFmsTroubleBlocking() &&
 		data != seqIdle && data != seqPause && data != seqJogStop &&
@@ -451,12 +460,14 @@ void __fastcall Trobostar::InitSequence(robotSequence data, robotSequence reserv
 
 	// This machine has no gripper vertical cylinder. Always close the moving
 	// overlay when a servo sequence returns to idle, including error/stop paths.
-	if(data == seqIdle && teachForm != NULL){
+	if(data == seqIdle && teachForm != NULL && !IsManualMotionStopPending()){
 		teachForm->pnlMovingAlarm->Visible = false;
 		teachForm->pnlMovingAlarm2->Visible = false;
 	}
 
 	seq = data;
+	if(manualMotionStopState == 3 && data != seqIdle && data != seqPause)
+		manualMotionStopState = 0;
 	step.step = 0;
 	step.delay = 0;
 	step.timeout = 0;
@@ -1208,6 +1219,7 @@ void __fastcall Trobostar::Reset()
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::setPoint(int axnum_id, unsigned long int pos)
 {
+	if(IsManualMotionStopPending()) return false;
 	if(MainForm != NULL && MainForm->IsFmsTroubleBlocking()) return false;
 	int axis = axnum_id == Axis_zUp ? Axis_z : axnum_id;
 	if(axis < 1 || axis > servoCnt || motionFaultLatched) return false;
@@ -2358,6 +2370,10 @@ void __fastcall Trobostar::req_Speed(int speed, int accl, int dccl)
 //---------------------------------------------------------------------------
 void __fastcall Trobostar::req_Stop()
 {
+	if(IsManualMotionStopPending()){
+		StopAxes();
+		return;
+	}
 	int sts = 0;
 	//* BUFFER OVERFLOW 오류시 Z축 상승 후 대기.
 	bufferRecoveryState = 0;
@@ -2381,8 +2397,70 @@ void __fastcall Trobostar::req_Stop()
 	}
 }
 //---------------------------------------------------------------------------
+// MANUAL MOVE CANCEL: preserve tray/FMS/gripper records; discard only the robot move.
+bool Trobostar::RequestManualMotionStop()
+{
+	if(MainForm == NULL || MainForm->equipMode != modeManual) return false;
+	if(IsManualMotionStopPending()){
+		StopAxes();
+		return true;
+	}
+	robotSequence interrupted = pauseStatus ? seq_save : seq;
+	if(seq == seqHome || interrupted == seqHome){
+		homeRequiredAfterServoOff = true;
+		MainForm->m_ServoHome = false;
+		MainForm->m_ServoHomeEmg = false;
+		if(::gripper != NULL && ::gripper->EmergencyPending()) ::gripper->EmergencyHomeStarting();
+	}
+	manualMotionStopState = 1;
+	manualMotionStopStarted = manualMotionStopLastRetry = GetTickCount();
+	// Freeze first. Neither Idle nor completion is reported until fresh feedback confirms stop.
+	seq = seqPause;
+	pauseStatus = true;
+	StopAxes();
+	senTimer->Enabled = true;
+	MainForm->memoRobostarLineAdd("[MANUAL STOP] Stop requested; waiting for all axes.");
+	return true;
+}
+//---------------------------------------------------------------------------
+void Trobostar::ProcessManualMotionStop()
+{
+	if(!IsManualMotionStopPending()) return;
+	// Servo OFF remains available while an uncertain stop is being diagnosed.
+	if(seq == seqServoOff) ServoOff();
+	if(AreAxesStopped()){
+		for(int a = 1; a <= servoCnt; ++a) acceptedMove[a] = false;
+		activeMoveValid = false;
+		directXYPositionReady = false;
+		zDownProfileStage = 0;
+		bSetPoint = false;
+		bufferRecoveryState = 0;
+		bufferRecoveryStarted = 0;
+		centeringMotionMonitorActive = false;
+		motionFaultLatched = false;
+		if(MesOpc != NULL) MesOpc->SetLocalAlarm(NGSorterErrors::Motion, false);
+		manualMotionStopState = 3;
+		pauseStatus = false;
+		InitSequence(seqIdle);
+		seq_save = seqIdle;
+		step_save = step;
+		MainForm->memoRobostarLineAdd("[MANUAL STOP] All axes stopped; current move cancelled. Tray/FMS records retained.");
+		return;
+	}
+	DWORD now = GetTickCount();
+	if((DWORD)(now - manualMotionStopLastRetry) >= 1000){
+		manualMotionStopLastRetry = now;
+		StopAxes();
+	}
+	if(manualMotionStopState == 1 && (DWORD)(now - manualMotionStopStarted) >= 10000){
+		manualMotionStopState = 2;
+		MainForm->memoRobostarLineAdd("[MANUAL STOP] Stop not confirmed; motion remains blocked. Check servo communication.");
+	}
+}
+//---------------------------------------------------------------------------
 void __fastcall Trobostar::GripperChuck(int num, bool open, bool close)
 {
+	if(IsManualMotionStopPending()) return;
 	//* 비상정지후 취출/삽입 계속작업.
 	if(open && ::gripper != NULL && ::gripper->ProtectEmergencyCell()){
 		MainForm->memoRobostarLineAdd("[EMG RECOVERY] OPEN blocked while holding cell. Disable recovery for manual cell handling.");
@@ -3139,9 +3217,14 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 		req_Pause(true);
 		if(::gripper != NULL) ::gripper->req_Pause(true);
 		UpdateEmergencyLamp();
+		if(IsManualMotionStopPending()) ProcessManualMotionStop();
 		return;
 	}
 	UpdateEmergencyLamp();
+	if(IsManualMotionStopPending()){
+		ProcessManualMotionStop();
+		return;
+	}
 	//* BUFFER OVERFLOW 오류시 Z축 상승 후 대기.
 	if(bufferRecoveryState != 0){
 		// BUFFER recovery needs fresh axis feedback before the normal sequence path.
@@ -3183,6 +3266,9 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 	}else if(GetTickCount() - waitStarted > 120000){
 		MotionFault("Motion/sensor wait timeout: sequence=" + IntToStr((int)seq) +
 			" step=" + IntToStr(step.step));
+		// Teaching timeouts use the same confirmed-stop path, never a timed overlay hide.
+		if(teachForm != NULL && teachForm->Visible && MainForm->equipMode == modeManual)
+			RequestManualMotionStop();
 		return;
 	}
 

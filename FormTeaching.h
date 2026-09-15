@@ -304,6 +304,8 @@ __published:	// IDE-managed Components
 	TTimer *unchuckTimer;
 	TTimer *unchuckAllTimer;
 	TAdvSmoothPanel *pnlMovingAlarm;
+	TButton *btnStopMoving;
+	TLabel *lblManualMotionStatus;
 	TLabel *Label57;
 	TLabel *Label69;
 	TAdvSmoothPanel *pnlMovingAlarm2;
@@ -388,6 +390,7 @@ __published:	// IDE-managed Components
 	void __fastcall btnJogSpeedClick(TObject *Sender);
 	void __fastcall homeBtnClick(TObject *Sender);
 	void __fastcall stopBtnClick(TObject *Sender);
+	void __fastcall teachingTimerTimer(TObject *Sender);
 	void __fastcall AdvSmoothButton_LoadFactorInfoClick(TObject *Sender);
 	void __fastcall btnApplyTeachingClick(TObject *Sender);
 	void __fastcall btnCenteringReqClick(TObject *Sender);
@@ -415,6 +418,7 @@ __published:	// IDE-managed Components
 	void __fastcall btnCloseClick(TObject *Sender);
 	void __fastcall AdvSmoothButton1Click(TObject *Sender);
 private:	// User declarations
+    bool manualStopOverlayHidden; // UI only; cleared for a new stop request or completed stop.
     TListItem	*ITEM;
 	TAdvSmoothPanel *sTray[96];
 	TAdvSmoothPanel *tTray[96];

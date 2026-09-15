@@ -61,8 +61,8 @@ namespace NGSorterErrors {const int Motion=1;}
 struct Mes {void SetLocalAlarm(int,bool){} void CLEAR_CELL_TRACK_OUT_DATA(){}
     void CLEAR_TRACK_OUT_CELL_INFORMATION(){} } mes;
 Mes* MesOpc=&mes;
-struct Teach {Panel a,b; Panel *pnlMovingAlarm,*pnlMovingAlarm2;
-    Teach():pnlMovingAlarm(&a),pnlMovingAlarm2(&b){}
+struct Teach {Panel a,b; Panel *pnlMovingAlarm,*pnlMovingAlarm2; bool Visible;
+    Teach():pnlMovingAlarm(&a),pnlMovingAlarm2(&b),Visible(false){}
 } teach;
 Teach* teachForm=&teach;
 struct Alarm {void ShowError(AnsiString,AnsiString){}} alarm;
@@ -74,14 +74,14 @@ struct TMainForm;
 struct Tgripper;
 struct Trobostar {
     int seq,seq_save,bufferRecoveryState,bufferRecoveryStarted,zDownProfileStage;
-    int board_id,channel_id,servoCnt;
+    int board_id,channel_id,servoCnt,manualMotionStopState;
     bool acceptedMove[4],motionFaultLatched,pauseStatus,activeMoveValid,directXYPositionReady,sscOpened;
     bool homeRequiredAfterServoOff,held,homeWatchdogResetPending;
     struct {bool GRIPPER1_BUFFER;} input;
     Step step,step_save;
     PNT_DATA_EX point[4],acceptedPoint[4];
     Trobostar():seq(seqPause),seq_save(seqAutoMove),bufferRecoveryState(0),bufferRecoveryStarted(0),
-        zDownProfileStage(1),board_id(0),channel_id(0),servoCnt(3),motionFaultLatched(true),pauseStatus(true),
+        zDownProfileStage(1),board_id(0),channel_id(0),servoCnt(3),manualMotionStopState(0),motionFaultLatched(true),pauseStatus(true),
         activeMoveValid(true),directXYPositionReady(true),sscOpened(true),homeRequiredAfterServoOff(true),held(true),homeWatchdogResetPending(false)
         {input.GRIPPER1_BUFFER=false;for(int i=0;i<4;++i)acceptedMove[i]=true;}
     void RestoreServoState(){} bool AreAxesStopped(){return true;} bool IsCcLinkReady(){return true;}
@@ -90,6 +90,8 @@ struct Trobostar {
     bool IsZLimitActive(){return false;} bool getCellDetectStatus(){return held;}
     bool WriteLog(int,const char*){return true;} void MotionFault(const AnsiString&);
     bool StopAxes();bool CanResumeMotion(){return true;}bool setPoint(int,long){return true;}
+    bool IsManualMotionStopPending(){return manualMotionStopState==1||manualMotionStopState==2;}
+    bool RequestManualMotionStop(){manualMotionStopState=1;return true;}
     void __fastcall req_Stop();
     void __fastcall req_Pause(bool);
     void __fastcall InitSequence(robotSequence,robotSequence reserve=seqIdle);
