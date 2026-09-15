@@ -56,22 +56,23 @@ typedef struct{
 	uint8_t X001E:1; //X001E
 	uint8_t X001F:1; //X001F
 //--------------------------
-	uint8_t GRIPPER1_CHUCK:1; //X0020 GRIPPER1 CHUCK
-	uint8_t GRIPPER1_UNCHUCK:1; //X0021 GRIPPER1 UNCHUCK
-	uint8_t GRIPPER1_CELL_DETECT:1; //X0022 active-low: ON=no cell, OFF=cell detected
-	uint8_t GRIPPER1_BUFFER:1; //X0023 GRIPPER1 BUFFER
-	uint8_t EMS_SWITCH:1; //X0024 ON: normal, OFF: emergency stop
-	uint8_t OPBOX_RESET_SWITCH:1; //X0025 OPBOX RESET SWITCH
-	uint8_t SAFETY_DOOR_1:1; //X0026 ON: unlocked/open, OFF: keylock locked
-	uint8_t SAFETY_DOOR_2:1; //X0027 ON: unlocked/open, OFF: keylock locked
-	uint8_t SAFETY_RESET_SW_ON:1; //X0028 SAFETY RESET SW ON
-	uint8_t BYPASS_SW_OFF:1; //X0029 contact ON: actual hardware BY-PASS OFF confirmation
-	uint8_t BYPASS_SW_ON:1; //X002A contact ON: actual hardware BY-PASS ON confirmation
-	uint8_t SAFETY_EMG_READY:1; //X002B ON: emergency safety circuit ready
-	uint8_t SAFETY_DOOR_READY:1; //X002C ON: door safety circuit ready
-	uint8_t SAFETY_DOOR_3:1; //X002D not used
-	uint8_t X002E:1; //X002E
-	uint8_t X002F:1; //X002F
+	// Inputs require valid CC-Link data.
+	uint8_t GRIPPER1_CHUCK:1; //X0020 ON: chuck confirmed, OFF: not confirmed
+	uint8_t GRIPPER1_UNCHUCK:1; //X0021 ON: open confirmed, OFF: not confirmed
+	uint8_t GRIPPER1_CELL_DETECT:1; //X0022 ON: no cell, OFF: cell detected
+	uint8_t GRIPPER1_BUFFER:1; //X0023 ON: buffer fault, OFF: no buffer fault
+	uint8_t EMS_SWITCH_01:1; //X0024 ON: normal, OFF: emergency stop
+	uint8_t OPBOX_RESET_SWITCH:1; //X0025 ON: reset request, OFF: no request
+	uint8_t SAFETY_DOOR_1:1; //X0026 ON: unlocked/open, OFF: closed/locked
+	uint8_t SAFETY_DOOR_2:1; //X0027 ON: unlocked/open, OFF: closed/locked
+	uint8_t SAFETY_RESET_SW_ON:1; //X0028 ON: reset request, OFF: no request
+	uint8_t BYPASS_SW_OFF:1; //X0029 ON: bypass OFF confirmed, OFF: not confirmed
+	uint8_t BYPASS_SW_ON:1; //X002A ON: bypass ON confirmed, OFF: not confirmed
+	uint8_t SAFETY_EMG_READY:1; //X002B ON: EMG circuit ready, OFF: not ready
+	uint8_t SAFETY_DOOR_READY:1; //X002C ON: door circuit ready, OFF: not ready
+	uint8_t EMS_SWITCH_02:1; //X002D ON: normal, OFF: emergency stop
+	uint8_t X002E:1; //X002E reserved
+	uint8_t X002F:1; //X002F reserved
 //--------------------------
 	uint8_t X0030:1; //X0030
 	uint8_t X0031:1; //X0031
@@ -198,22 +199,23 @@ typedef struct{
 	uint8_t Y002E:1; //Y002E
 	uint8_t Y002F:1; //Y002F
 //--------------------------
-	uint8_t GRIPPER1_CHUCK:1; //Y0030 GRIPPER CHUCK SOL
-	uint8_t GRIPPER1_UNCHUCK:1; //Y0031 GRIPPER UNCHUCK SOL
-	uint8_t SAFETY_RESET:1; //Y0032 SAFETY RESET
-	uint8_t DOOR_LEFT_CLOSE:1; //Y0033 KEYLOCK LEFT
-	uint8_t DOOR_RIGHT_CLOSE:1; //Y0034 KEYLOCK RIGHT
-	uint8_t OPBOX_RESET_LAMP:1; //Y0035 OPBOX RESET LAMP
-	uint8_t SAFETY_RESET_SW_LAMP:1; //Y0036 SAFETY RESET SW LAMP
-	uint8_t OPBOX_EMERGENCY_LAMP:1; //Y0037 OPBOX EMERGENCY LAMP
-	uint8_t TOWER_LAMP_RED:1; //Y0038 TOWER LAMP RED
-	uint8_t TOWER_LAMP_YELLOW:1; //Y0039 TOWER LAMP YELLOW
-	uint8_t TOWER_LAMP_GREEN:1; //Y003A TOWER LAMP GREEN
-	uint8_t TOWER_LAMP_BUZZER:1; //Y003B TOWER LAMP BUZZER
-	uint8_t DOOR_OPEN_SELECT:1; //Y003C BYPASS SOL: OFF=lock key ON, ON=allow key OFF after KEYLOCK set
-	uint8_t SAFETY_BYPASS_ON:1; //Y003D servo on when door open and keylock off
-	uint8_t Y003E:1; //Y003E
-	uint8_t Y003F:1; //Y003F
+	// Outputs are commands, not feedback.
+	uint8_t GRIPPER1_CHUCK:1; //Y0030 ON: chuck solenoid on, OFF: solenoid off
+	uint8_t GRIPPER1_UNCHUCK:1; //Y0031 ON: open solenoid on, OFF: solenoid off
+	uint8_t SAFETY_RESET:1; //Y0032 ON: reset request, OFF: request released
+	uint8_t DOOR_LEFT_CLOSE:1; //Y0033 ON: left door lock, OFF: lock released
+	uint8_t DOOR_RIGHT_CLOSE:1; //Y0034 ON: right door lock, OFF: lock released
+	uint8_t OPBOX_RESET_LAMP:1; //Y0035 ON: lamp on, OFF: lamp off
+	uint8_t SAFETY_RESET_SW_LAMP:1; //Y0036 ON: lamp on, OFF: lamp off
+	uint8_t OPBOX_EMERGENCY_LAMP:1; //Y0037 ON: lamp on, OFF: lamp off
+	uint8_t TOWER_LAMP_RED:1; //Y0038 ON: lamp on, OFF: lamp off
+	uint8_t TOWER_LAMP_YELLOW:1; //Y0039 ON: lamp on, OFF: lamp off
+	uint8_t TOWER_LAMP_GREEN:1; //Y003A ON: lamp on, OFF: lamp off
+	uint8_t TOWER_LAMP_BUZZER:1; //Y003B ON: buzzer on, OFF: buzzer off
+	uint8_t DOOR_OPEN_SELECT:1; //Y003C ON: bypass key unlocked, OFF: key locked
+	uint8_t SAFETY_BYPASS_ON:1; //Y003D ON: safety bypass request, OFF: request released
+	uint8_t EMS_LAMP:1; //Y003E ON: lamp on, OFF: lamp off
+	uint8_t Y003F:1; //Y003F reserved
 }OUTPUT_IO;
 //---------------------------------------------------------------------------
 typedef enum Sequence
@@ -298,6 +300,7 @@ private:	// User declarations
 	int __fastcall io_Read();
 	int __fastcall io_Write();
 	int __fastcall io_WriteGripper();
+	int __fastcall UpdateEmergencyLamp();
 
 	void __fastcall Init();
 	void __fastcall Home();

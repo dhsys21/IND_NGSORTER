@@ -3227,8 +3227,8 @@ void __fastcall TMainForm::CreateIoMonitoringPanel()
 		"CP09 TRIP", "CP10 SERVO1 TRIP", "CP11 SERVO2 TRIP", "CP12 SERVO3 TRIP", "CP13 BCR01 TRIP", "CP14 BCR02 TRIP", "MS01 TRIP", "",
 		"SERVO01 INPOS", "SERVO01 ALARM", "SERVO01 OK HOME", "SERVO02 INPOS", "SERVO02 ALARM", "SERVO02 OK HOME", "SERVO03 INPOS", "SERVO03 ALARM",
 		"SERVO03 OK HOME", "", "", "", "", "", "", "",
-		"GRIPPER1 CHUCK", "GRIPPER1 UNCHUCK", "GRIPPER1 CELL DETECT", "GRIPPER1 BUFFER", "EMS NORMAL", "OPBOX RESET SWITCH", "SAFETY DOOR #1 UNLOCKED", "SAFETY DOOR #2 UNLOCKED",
-		"SAFETY RESET SW ON", "BY-PASS S/W OFF", "BY-PASS S/W ON", "SAFETY EMG READY", "SAFETY DOOR READY", "", "", ""
+		"GRIPPER1 CHUCK", "GRIPPER1 UNCHUCK", "GRIPPER1 CELL DETECT", "GRIPPER1 BUFFER", "EMS Switch 01", "OPBOX RESET SWITCH", "SAFETY DOOR #1 UNLOCKED", "SAFETY DOOR #2 UNLOCKED",
+		"SAFETY RESET SW ON", "BY-PASS S/W OFF", "BY-PASS S/W ON", "SAFETY EMG READY", "SAFETY DOOR READY", "EMS Switch 02", "", ""
 	};
 	for(int i = 0; i < 48; ++i){
 		AnsiString address = "X" + IntToHex(i, 4);
@@ -3269,7 +3269,7 @@ void __fastcall TMainForm::CreateIoMonitoringPanel()
 		"GRIPPER CHUCK SOL", "GRIPPER UNCHUCK SOL", "SAFETY RESET", "KEYLOCK LEFT",
 		"KEYLOCK RIGHT", "OPBOX RESET LAMP", "SAFETY RESET SW LAMP", "OPBOX EMERGENCY LAMP",
 		"TOWER LAMP RED", "TOWER LAMP YELLOW", "TOWER LAMP GREEN", "TOWER LAMP BUZZER",
-		"BYPASS", "SAFETY BYPASS ON", "", ""
+		"BYPASS", "SAFETY BYPASS ON", "EMS LAMP", ""
 	};
 	for(int i = 0; i < 16; ++i){
 		AnsiString address = "Y" + IntToHex(0x0030 + i, 4);
@@ -3292,16 +3292,16 @@ void __fastcall TMainForm::UpdateIoMonitoringPanel()
 		robostar->input.SERVO03_OK_HOME, robostar->input.X0019, robostar->input.X001A, robostar->input.X001B,
 		robostar->input.X001C, robostar->input.X001D, robostar->input.X001E, robostar->input.X001F,
 		robostar->input.GRIPPER1_CHUCK, robostar->input.GRIPPER1_UNCHUCK, robostar->input.GRIPPER1_CELL_DETECT, robostar->input.GRIPPER1_BUFFER,
-		robostar->input.EMS_SWITCH, robostar->input.OPBOX_RESET_SWITCH, robostar->input.SAFETY_DOOR_1, robostar->input.SAFETY_DOOR_2,
+		robostar->input.EMS_SWITCH_01, robostar->input.OPBOX_RESET_SWITCH, robostar->input.SAFETY_DOOR_1, robostar->input.SAFETY_DOOR_2,
 		robostar->input.SAFETY_RESET_SW_ON, robostar->input.BYPASS_SW_OFF, robostar->input.BYPASS_SW_ON, robostar->input.SAFETY_EMG_READY,
-		robostar->input.SAFETY_DOOR_READY, robostar->input.SAFETY_DOOR_3, robostar->input.X002E, robostar->input.X002F
+		robostar->input.SAFETY_DOOR_READY, robostar->input.EMS_SWITCH_02, robostar->input.X002E, robostar->input.X002F
 	};
 
 	bool outputValue[16] = {
 		robostar->gripper.GRIPPER1_CHUCK, robostar->gripper.GRIPPER1_UNCHUCK, robostar->gripper.SAFETY_RESET, robostar->gripper.DOOR_LEFT_CLOSE,
 		robostar->gripper.DOOR_RIGHT_CLOSE, robostar->gripper.OPBOX_RESET_LAMP, robostar->gripper.SAFETY_RESET_SW_LAMP, robostar->gripper.OPBOX_EMERGENCY_LAMP,
 		robostar->gripper.TOWER_LAMP_RED, robostar->gripper.TOWER_LAMP_YELLOW, robostar->gripper.TOWER_LAMP_GREEN, robostar->gripper.TOWER_LAMP_BUZZER,
-		robostar->gripper.DOOR_OPEN_SELECT, robostar->gripper.SAFETY_BYPASS_ON, robostar->gripper.Y003E, robostar->gripper.Y003F
+		robostar->gripper.DOOR_OPEN_SELECT, robostar->gripper.SAFETY_BYPASS_ON, robostar->gripper.EMS_LAMP, robostar->gripper.Y003F
 	};
 
 	for(int i = 0; i < ioInputCount; ++i){
@@ -3787,7 +3787,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 			PlcBin->CmdTargetTrayOut(false);
 		}
 
-        // PLC SAFETY ADDRESS: physical EMG input is active-low (EMS_SWITCH=0).
+        // PLC SAFETY ADDRESS: physical EMG input is active-low (EMS_SWITCH_01=0).
         // All modes: EMG pressed OR either door open -> D10160=1.
         // D10160 returns to 0 only when EMG is released and both doors are closed.
         // Status reporting only; existing hardware stop/pause interlocks remain.

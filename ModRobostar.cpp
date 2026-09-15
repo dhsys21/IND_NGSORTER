@@ -187,6 +187,17 @@ int __fastcall Trobostar::io_WriteGripper()
 	return mdSend(config.path, config.stno, DevY, 0x0020, &size, &gripper);
 }
 //---------------------------------------------------------------------------
+int __fastcall Trobostar::UpdateEmergencyLamp()
+{
+	if(!IsCcLinkReady()) return -1;
+	// EMS LAMP: either active-low switch turns Y003E ON; both normal turn it OFF.
+	gripper.EMS_LAMP = !input.EMS_SWITCH_01 || !input.EMS_SWITCH_02;
+	// Write only the lamp bit, including during Pause; retry on every valid scan.
+	return gripper.EMS_LAMP
+		? mdDevSet(config.path, config.stno, DevY, 0x003E)
+		: mdDevRst(config.path, config.stno, DevY, 0x003E);
+}
+//---------------------------------------------------------------------------
 
 void __fastcall Trobostar::req_Pause(bool stop)
 {
@@ -3127,8 +3138,10 @@ void __fastcall Trobostar::senTimerTimer(TObject *Sender)
 		if(pauseStatus && seq != seqPause) pauseStatus = false;
 		req_Pause(true);
 		if(::gripper != NULL) ::gripper->req_Pause(true);
+		UpdateEmergencyLamp();
 		return;
 	}
+	UpdateEmergencyLamp();
 	//* BUFFER OVERFLOW 오류시 Z축 상승 후 대기.
 	if(bufferRecoveryState != 0){
 		// BUFFER recovery needs fresh axis feedback before the normal sequence path.
@@ -3595,7 +3608,7 @@ bool __fastcall Trobostar::IsSoftwareSafetyResetActive() const
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::IsEmergencyStopActive() const
 {
-	return !input.EMS_SWITCH;
+	return !input.EMS_SWITCH_01;
 }
 //---------------------------------------------------------------------------
 bool __fastcall Trobostar::IsSafetyReady() const
