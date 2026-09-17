@@ -1,0 +1,693 @@
+
+=== PAGE 1 ===
+1
+Temperature & Smoke Detector 
+TSD- V50
+Print V6.2 
+
+=== PAGE 2 ===
+Temperature & Smoke Detector                         TSD - V50 
+2
+▣ 제품 사양 
+• 사용 전압 : DC 24V 
+• 소비 전류 :  100mA 
+• 사용 온도 : -10℃ ~ 50℃
+• 크기 : 106mm(W) * 78mm(D) * 39mm(H) 
+• 케이스 재질 : ABS 난연 
+• 알람 경고등 : 적색(연기 알람), 황색(온도 알람) / Two Color LED 
+• 연기 감지 방식 : 광전식 
+• 온도 검출 방식 : NTC-10KD-5 써미스터(온도 센서) 
+• 출력 형태 : NPN Open Collector & RS485 
+• 프로토콜 : HumanAutomation Protocol 
+• 프로토콜 : Modbus RTU (Remote Terminal Unit) Protocol 
+• 출력 최대 전류 : DC30V   MAX. 50mA 
+• 외부 인터페이스 : PC, 산업용 제어기, PLC 등 DIGITAL I/O & SERIAL 통신 
+• 규격 승인 : CE 승인 (승인 검사서 요청 시 별도 발송)
+• 신뢰성 시험 : 환경 신뢰성 검사 ( 신뢰성 검사서 요청 시 별도 발송)
+
+
+=== PAGE 3 ===
+3
+▣ 제품 특징 
+• 상위 제어기와 연결하여 모니터링 / 파라미터 설정이 가능합니다.
+- 조기 경보 온도 설정이 가능.
+- 외부 제어기와 연결이 용이 합니다.
+- 우수한 신뢰성을 확보하고 있습니다.
+- 정확하고 신속한 검출력을 가지고 있습니다.
+• RS485 통신 지원.
+- 파라미터 설정 가능 
+- 온도 데이터 상위 보고 
+- 알람 관련 상위 보고 
+• 동작, 경고, 위험 신호 출력 기능 ( 출력 타입 : NPN Open Collector ) 
+- Run, Temperature Warning, Temperature Danger, Smoke Alarm 
+Temperature & Smoke Detector                         TSD - V50 
+▣ 상위제어기와 인터페이스 
+PLC 
+산업용 PC 
+I/O Interface 
+- Run 
+- Temperature Warning 
+- Temperature Danger 
+- Smoke Alarm 
+Serial Interface 
+- RS 485 
+Temperature & Smoke Detector 
+
+
+=== PAGE 4 ===
+4
+▣ 제품 연결 방식 (감지기 ⇔ 감지기)
+Temperature & Smoke Detector                         TSD - V50 
+ADDR. 
+#01 
+상위 제어기 연결 
+참조 케이블 (결선도2) 
+참조 케이블 (결선도1)
+▣ 제품 연결 방식 (감지기 ⇔ Indicator) 
+ADDR. 
+#02 
+ADDR. 
+#15 
+TSD-V50 INDICATOR 연결 
+결선도3 참조 
+TSD-V50 INDICATOR TSD-V50 
+(케이스 컬러는 이미지와 다름)
+
+=== PAGE 5 ===
+Temperature & Smoke Detector                         TSD - V50 
+5
+▣ 외형사진 ( TSD-V50) 
+사진1 사진2
+사진3 사진4
+사진5 사진6
+
+
+=== PAGE 6 ===
+Temperature & Smoke Detector                         TSD - V50 
+6
+▣ 외형사진 ( TSD-V50 INDICATOR ) 
+사진1 사진2
+사진3 사진4
+사진5
+
+
+=== PAGE 7 ===
+Temperature & Smoke Detector                         TSD - V50 
+7
+▣ 구성품 
+볼트 M4 X 6mm 2개
+온도 & 연기 감지기 1개
+Molex5557-6P Housing 2개 Molex 5264-6P Housing 1개
+Molex457501111 12개 Molex08701039 6개
+▣ 구매품 
+
+
+=== PAGE 8 ===
+8
+▣ 각부의 명칭 
+No Name Function 
+1 메인 커넥터 DC 전원 
+RS485 통신 케이블 연결합니다.
+2 출력 커넥터 Run, Temperature Warning, Temperature Danger, 
+Smoke Alarm 을 출력합니다.
+3 알람 경고등 연기 알람 시 적색, 온도 알람 시 황색 표시합니다.
+평상시에는 꺼져 있습니다.
+4 연기 챔버 연기 감지하는 부분입니다. 
+적외선 발광, 수광 소자가 내장되어 있습니다.
+5 스위치 UP , DOWN, SET, MODE 스위치로 
+상태 표시, 진단, 알람, 파라미터를 조작합니다.
+6 로터리 스위치 RS485 통신 감지기 주소 설정합니다.
+7 표시부 4자릿수 7세그먼트 LED에 의해 감지기 상태를 
+표시합니다.
+Temperature & Smoke Detector                         TSD - V50 
+①
+②
+③ ④
+⑤
+⑥ ⑤
+③
+⑦
+
+
+=== PAGE 9 ===
+9
+Temperature & Smoke Detector                         TSD - V50 
+로터리 스위치 RS485 통신 감지기 주소 설정합니다.
+메인 커넥터 전원, RS485 통신 케이블 연결합니다.
+출력 커넥터 Run, Temperature Warning, Temperature Danger, Smoke 
+Alarm 을 출력합니다.
+알람 경고등 연기 알람 시 적색, 온도 알람 시 황색 표시합니다.
+평상시에는 꺼져 있습니다.
+연기 챔버 연기 감지하는 부분입니다. 
+적외선 발광, 수광 소자가 내장되어 있습니다 
+표시부 4자릿수 7세그먼트 LED에 의해 감지기 상태를 
+표시합니다.
+스위치 UP, DOWN, SET, MODE 스위치로 
+상태 표시, 진단, 알람, 파라미터를 조작합니다.
+▣ SILK PANEL 명칭 
+LED Function 
+RUN 초기화 완료 후 ON  (a 접점)
+AL1 온도 경고 알람 발생시 ON (b 접점)
+AL2 온도 위험 알람 발생시 ON (b 접점)
+AL3 연기 알람 발생시 ON (b 접점)
+
+
+=== PAGE 10 ===
+10 
+▣ 신호 배선 
+(1) 메인 커넥터 (PCB Molex 5569-06A2) 
+PCB Part : Molex 5569-06A2 
+PIN No. Name 
+1 P24 
+2 RS485 A 
+3 N24 
+4 P24 
+5 RS485 B 
+6 N24 
+Temperature & Smoke Detector                         TSD - V50 
+3
+12
+5 4
+6
+3
+12
+5 4
+6
+CABLE Molex 5557-6P 
+123
+456
+CABLE Molex 5557-6P 
+PCB Molex 5569-6P 
+
+
+=== PAGE 11 ===
+11 
+(2) 출력 커넥터 (PCB Molex 5268-6P) 
+PCB Part : Molex 5268-6P 
+No Name Description 
+1 DC Power +(Max.30v) 전원 +
+2 Run 초기화 완료 시 ON 
+3 Temperature Warning 경고 온도 설정, 설정 온도 보다 높으면 출력 OFF 
+4 Temperature Danger 위험 온도 설정, 위험 설정 온도 보다 높으면 출력 OFF 
+5 Smoke Alarm Smoke Alarm 감지 시 출력 OFF 
+6 DO_Com 디지털 출력 Common 
+Temperature & Smoke Detector                         TSD - V50 
+Cable Molex 5264-6P 
+PCB Molex 5268-6P 
+1
+6
+16
+Cable Molex 5264-6P 
+Cable Molex 5268-6P 
+
+
+=== PAGE 12 ===
+12 
+▣ Indicator ( TSD-V50 INDICATOR ) 
+(1) 메인 커넥터 (PCB Molex 53259-04) 
+PCB Part : Molex 53259-04P 
+PIN No. Name 
+1 P24 
+2 RS485 A 
+3 RS485 B 
+4 N24 
+Temperature & Smoke Detector                         TSD - V50 
+CABLE Molex 51067-04P 
+PCB Molex 53259-04 
+12 34
+1 234
+CABLE Molex 51067-04P 
+1 234
+
+=== PAGE 13 ===
+13 
+▣ 소스 출력 인터페이스 
+(1) 신호 배선 연결 방법 
+< 감지기 출력 내부 회로 > < 상위 제어기 입력 내부 회로 >
+(2) 릴레이 배선 연결 방법 
+< 감지기 출력 내부 회로 >
+Temperature & Smoke Detector                         TSD - V50 
+
+
+=== PAGE 14 ===
+14 
+▣ 결선도1 (감지기 ⇔ 감지기 연결 케이블)
+Temperature & Smoke Detector                         TSD - V50 
+▣ 결선도2 (감지기 ⇔ PLC & PC & 상위 제어기기 연결 케이블)
+
+
+=== PAGE 15 ===
+15 
+▣ 결선도3 (감지기 ⇔ Indicator 연결 케이블)
+Temperature & Smoke Detector                         TSD - V50 
+
+
+=== PAGE 16 ===
+16 
+▣ 외형도 TSD-V50 ( 단위 : mm ) 
+▣ 외형 치수도 TSD-V50 
+Temperature & Smoke Detector                         TSD - V50 
+
+
+=== PAGE 17 ===
+17 
+▣ 외형도 TSD-V50 INDICATOR ( 단위 : mm ) 
+▣ 외형 치수도 TSD-V50 INDICATOR 
+Temperature & Smoke Detector                         TSD - V50 
+
+
+=== PAGE 18 ===
+18 
+▣ 판넬 취부도 TSD-V50 (단위:mm) 
+Temperature & Smoke Detector                         TSD - V50 
+▣ 판넬 취부도 TSD-V50 INDICATOR 
+
+=== PAGE 19 ===
+19 
+Temperature & Smoke Detector                         TSD - V50 
+▣ 조작 설명 
+• 감지기는 표시부(4 자릿수의 7세그먼트LED)와 조작부(4개의 푸시버튼)에 의해 상태, 
+파라미터 설정 등을 실행합니다.
+Switch Function 
+UP 표시, 데이터 이동 
+DOW 
+N
+표시, 데이터 이동 
+Switch Function 
+MODE 표시 모드 변경.
+메뉴 이동.
+SET 표시, 데이터 확정.
+LED Function 
+RUN 초기화 완료 후 ON 
+AL1 온도 경고 알람 발생시 ON 
+AL2 온도 위험 알람 발생시 ON 
+AL3 연기 알람 발생시 ON 
+Switch Function 
+x10 국번의 10의 자리 
+선택 
+x1 국번의 1의 자리 
+선택 
+Pin No. Function 
+1 P24V 
+2 RUN 
+3 Temperature 
+Warning 
+4 Temperature 
+Danger 
+5 Smoke Alarm 
+6 DO_Com 
+▣ SIGNAL CONNECTOR. 
+▣ PUSH BUTTON SWITCH. ▣ PUSH BUTTON SWITCH. ▣ LED DISPLAY 
+▣ ROTARY SWITCH 
+
+
+=== PAGE 20 ===
+20 
+Temperature & Smoke Detector                         TSD - V50 
+▣ 화면 흐름 
+▣ 알람 수동 해제 방법 
+- UP 스위치를 5초간 누르고 있으면 알람이 해제됩니다.
+경고온도 설정(PA 1) 
+위험온도 설정(PA 2) 
+온도 오프셋 설정 
+(PA3) 
+DOWN UP 
+UP DOWN 
+설정 화면 메인 화면 
+SET 
+MODE 
+현재 온도 
+현재 연기 감도 
+통신 주소 
+MODE 
+MODE 
+MODE 
+통신 모드 설정 
+(PA4) 
+UP DOWN 
+
+
+=== PAGE 21 ===
+21 
+Temperature & Smoke Detector                         TSD - V50 
+▣ 설정 방법 
+- 파라미터 번호를 표시합니다. UP , DOWN 버튼을 누르면 
+번호가 바뀝니다.
+- SET 버튼을 누르면 해당 파라미터의 설정된 값이 표시 
+됩니다.
+- UP , DOWN 버튼을 누르면 지정된 파라미터 설정값이 
+변경 됩니다.
+- SET 버튼을 3초 이상 누르면 저장 후, 3회 점멸합니다.
+- 저장 후 파라미터 번호 표시 화면으로 이동합니다.
+★ 저장된 설정값은 전원을 OFF로 하고 재 투입하면 유효하게 됩니다.
+▣ 모드 표시 
+(1) 현재 온도 
+- 현재 온도를 소수점 한 자릿수까지 표시합니다.
+(2) 연기 감도값 
+- 현재 연기 감도를 세 자릿수로 표시합니다.
+(3) 통신 주소값 
+- 통신 주소값을 두 자릿수로 표시합니다.
+
+
+=== PAGE 22 ===
+22 
+▣ 통신 모드 설정 
+- UP, DOWN 버튼을 누르면 지정된 설정값이 변경 됩니다.
+- SET 버튼을 3초 이상 누르면 저장 후, 3회 점멸합니다.
+- 저장 후 이전 화면으로 이동합니다.
+(1) 조작 방법 
+(2) 모드 설정값 설명 
+- 기본값 : 0 ( Human Automation Protocol ) 
+Human Automation Protocol 
+Modbus RTU Protocol 
+★ 저장된 설정값은 전원 Reset 후에도 유효하게 됩니다.
+Temperature & Smoke Detector                         TSD - V50 
+
+
+=== PAGE 23 ===
+23 
+▣ 통신 사양 ( 휴먼오토메이션 Protocol ) 
+- 통신 방식 : RS-485 
+- Baud rate : 115200 bps 
+- Data bit : 8 bit / Stop bit : 1 bit / Parity bit : None 
+- 프로토콜 : 자사 Protocol 
+Temperature & Smoke Detector                         TSD - V50 
+▣ 통신 프레임 
+- Address : 어드레스 십진수 + 0x40 값. Ex) 1 => 0x41, 2 => 0x42 
+- Length : Command ~ Data N 까지 바이트 수
+- Command : 통신 명령 
+- Sum Check :  Command ~ Data N 까지 xor 한 값
+Form 
+at 
+STX Addres 
+s
+Lengt 
+h
+Comman 
+d
+Data 
+0
+. . . 
+. . 
+Data 
+N
+Sum 
+Check 
+ETX 
+Hex 0x02 0x03 
+▣ 통신 프로토콜 
+
+
+=== PAGE 24 ===
+24 
+Temperature & Smoke Detector                         TSD - V50 
+
+
+=== PAGE 25 ===
+25 
+Temperature & Smoke Detector                         TSD - V50 
+
+
+=== PAGE 26 ===
+26 
+▣ 통신 사양 (Modbus RTU (Remote Terminal Unit)) 
+- 통신 방식 : RS-485 
+- Baud rate : 115200 bps 
+- Data bit : 8 bit / Stop bit : 1 bit / Parity bit : None 
+- 프로토콜 : Modbus RTU (Remote Terminal Unit) Protocol 
+Temperature & Smoke Detector                         TSD - V50 
+▣ 통신 순서 
+▣ 송신 포맷 
+Slave address 
+Function code 
+Data 
+CRC 
+통신 포맷은 Slave address, Function code, Data, CRC 네 부분 
+으로 이루어졌으며, 반드시 이 순서대로 송신합니다.
+■ Slave address 
+RS-485 통신으로 N개의 디바이스와 연결할 때 각 디바이스의 주소를 설정 합니다.
+■ Function code 
+Master는 Function code를 통해 Slave가 실행할 기능을 지정합니다.
+
+
+=== PAGE 27 ===
+27 
+Temperature & Smoke Detector                         TSD - V50 
+■ Function code 
+Master는 Function code를 통해 Slave가 실행할 기능을 지정합니다.
+Function code (HEX) 설명 
+03 Read Holding Registers 
+06 Write Single Register 
+10 Write Multiple Registers 
+■ Data 
+Function code 다음에는 Slave가 그 기능을 수행하는 데 필요한 데이터를 보냅니다. 
+각 기능에 따라 필요한 데이터가 다르기 때문에 각각의 메시지 포맷 설명을 참조해 
+주십시오.
+■ CRC 
+메시지 끝에는 신호 전송에 의한 오류 검출을 하기 위하여 CRC-16 데이터를 
+붙입니다. CRC-16 계산법은 [■ CRC-16의 사용 예] 를 참조해 주십시오.
+▣ 응답 포맷 
+메시지를 수신 받으면 메시지를 체크한 후 명령을 해석하여 해당 명령을 수행 
+한 후에 응답 메시지를 전송합니다. 만약, 수신 메시지의 내용에 이상이 있으면
+이상 메시지를 응답합니다.
+■ 정상 시 응답 
+레지스터 쓰기 명령인 경우, 수신 받은 메시지의 일부(Slave address, Function code,
+Start address, Register count)를 응답 메시지로 전송합니다.
+레지스터 읽기 명령인 경우, Slave address, Function code와 읽은 데이터를 첨가하 
+여 전송합니다.
+
+
+=== PAGE 28 ===
+28 
+Temperature & Smoke Detector                         TSD - V50 
+■ 이상 시 응답 
+Slave address 
+Function code + 
+80h 
+Error code 
+CRC 
+수신 메시지의 내용에 이상이 있을 때는 수신측은 아무것도 
+실행하지 않고 좌측과 같은 에러 메시지를 전송합니다.
+< 표1 에러 코드 >
+Error 
+code 
+Description 
+01h Invalid Function code Function code 03h, 06h, 10h 이외의 코드가 수신 .
+02h Invalid Register number 
+존재하지 않는 레지스터 주소 또는 허용하지 않는 레지 
+스터 주소 
+03h Invalid Register count 
+읽기 또는 입력 데이터가 1 ~ 6이 아님 .
+입력 모드에서 메시지의 데이터 수가 개수 x 2가 아님 .
+04h Invalid Data 제어 데이터 또는 입력 데이터의 범위가 벗어남 .
+05h Invalid CRC CRC 가 일치하지 않음 
+
+
+=== PAGE 29 ===
+29 
+Temperature & Smoke Detector                         TSD - V50 
+▣ 메세지 포맷 
+메시지는 그 기능에 따라서 데이터 부분의 길이(개수)와 내용이 틀립니다. 
+표1 의 기능별 메시지의 길이를 참조해 주십시오. 
+■ Read Holding Registers [ 03h ]
+Salve 장치의 holding register 1 - 65536 데이터를 읽는다. Request 메시지는 읽기 
+시작할 register와 읽을 register 수량으로 기술된다. Register는 0부터 출발하는 주소 
+로 접근되기 때문에 Register 1-16은 0-15 주소로 접근된다 
+송신 메시지 응답 메시지 (정상 시) 응답 메시지 (이상 시)
+Field Name Hex Field Name Hex Field Name Hex 
+Slave address 01 Slave address 01 Slave address 01 
+Function code 03 Function code 03 Function code 83 
+Start 
+Register 
+상위 10 Data count 08 Error code 03 
+하위 00 최초 
+레지스터 
+상위 00 
+CRC-16 
+상위 -- 
+Register 
+Count 
+상위 00 하위 01 하위 -- 
+하위 04 다음 
+레지스터 
+상위 00 
+CRC-16 
+상위 -- 하위 02 
+하위 -- 다음 
+레지스터 
+상위 00 
+하위 03 
+다음 
+레지스터 
+상위 00 
+하위 04 
+CRC-16 
+상위 -- 
+하위 -- 
+예) Slave address : 1, Register 1000h ~ 1003h를 읽는다.
+※ 실제의 에러 코드는 이예와 
+다를 수 있습니다.
+<표1> 
+
+
+=== PAGE 30 ===
+30 
+Temperature & Smoke Detector                         TSD - V50 
+■ Write Single Register [ 06h ]
+1-65535의 holding register 중 하나의 레지스터에 값을 기록한다. Request 메시지 
+는 기록할 holding register와 데이터로 기술된다. Register는 0부터 출발하는 주소 
+로 접근되기 때문에 Register 1은 주소 0으로 접근된다 
+송신 메시지 응답 메시지 (정상 시) 응답 메시지 (이상 시)
+Field Name Hex Field Name Hex Field Name Hex 
+Slave address 01 Slave address 01 Slave address 01 
+Function code 06 Function code 06 Function code 88 
+Register 
+Address 
+상위 10 Register 
+Address 
+상위 10 Error code 01 
+하위 03 하위 03 
+CRC-16 
+상위 -- 
+Data 
+상위 12 
+Data 
+상위 12 하위 -- 
+하위 34 하위 34 
+CRC-16 
+상위 -- 
+CRC-16 
+상위 -- 
+하위 -- 하위 -- 
+예) Slave address : 1, 1003h에 데이터 1234h를 쓴다.
+※ 실제의 에러 코드는 이예와 
+다를 수 있습니다.
+
+
+=== PAGE 31 ===
+31 
+Temperature & Smoke Detector                         TSD - V50 
+송신 메시지 응답 메시지 (정상 시) 응답 메시지 (이상 시)
+Field Name Hex Field Name Hex Field Name Hex 
+Slave address 01 Slave address 01 Slave address 01 
+Function code 10 Function code 10 Function code 90 
+Start 
+Register 
+상위 10 Start 
+Register 
+상위 10 Error code 02 
+하위 03 하위 03 
+CRC-16 
+상위 -- 
+Register 
+Count 
+상위 00 Register 
+Count 
+상위 00 하위 -- 
+하위 02 하위 02 
+Data count 04 
+CRC-16 
+상위 -
+최초 
+데이터 
+상위 02 하위 -
+하위 58 
+다음 
+데이터 
+상위 01 
+하위 F4 
+CRC-16 
+상위 -
+하위 -
+예) Slave address : 1, Register 1003h ~ 1004h를 읽는다.
+■ 레지스터 내용 쓰기 [ 10h ] 
+지정된 번호부터 지정된 개수의 레지스터에 각각 지정된 데이터를 입력합니다. 
+입력되는 데이터는 레지스터의 번호순으로 각각 상위 1바이트, 하위 1바이트의 순
+서로 명령 메시지의 데이터로 배열해야 합니다.
+※ 실제의 에러 코드는 이예와 
+다를 수 있습니다.
+
+
+=== PAGE 32 ===
+32 
+Temperature & Smoke Detector                         TSD - V50 
+■ CRC-16의 사용 예
+■ Read Holding Registers [03h] 레지스터 읽기 명령 송신을 예를 들면 다음과 
+같습니다.
+전송 메시지 0x01 0x03 0x10 0x00 0x00 0x04 CRC 
+CRC 계산은 Slave address 부터 Register count까지 계산해서 마지막에 붙이면 됩니다.
+//////////////////////////////////////////////////////////////////////////////////////// 
+unsigned short get_crc16( unsigned char* pbuf, int len )
+{
+unsigned short crc=0xFFFF; 
+while (len--)
+{
+crc ^= *pbuf++; 
+for (int i=0; i<8; i++) 
+{
+if (crc & 0x01) 
+{
+crc >>= 1; 
+crc ^= 0xA001; 
+}
+else 
+{
+crc >>= 1; 
+}
+}
+}
+return crc;
+}
+//////////////////////////////////////////////////////////////////////////////////////// 
+void main(void) 
+{
+unsigned char pTxBuf[] = { 0x01, 0x03, 0x10, 0x00, 0x00, 0x04, 0, 0 }; 
+unsigned short crc16; 
+crc16 = get_crc16(pTxBuf, 6); 
+pTxBuf[6] = (unsigned char)((crc16) & 0x00FF); 
+pTxBuf[7] = (unsigned char)((crc16 >> 8) & 0x00FF);
+// WriteComm(pTxBuf, 8) 
+}
+
+
+=== PAGE 33 ===
+33 
+Temperature & Smoke Detector                         TSD - V50 
+■ Register Table 
+레지스터 
+번호 레지스터 이름 설 명 단위 데이터 
+타입 scale 속성 
+1000h Status UINT16 R
+1001h Temperature PV 현재 온도 ℃ UINT16 10 R
+1002h Temperature offset 현재 온도 오프셋 ℃ SINT16 10 R/W 
+1003h Temp warning SV 경보 온도 설정 값 ℃ UINT16 10 R/W 
+1004h Temp danger SV 위험 온도 설정 값 ℃ UINT16 10 R/W 
+1005h Alarm Clear 알람 해제 UINT16 W
+■ Register description 
+1) Status 
+2) Temperature PV 
+- 읽기만 가능합니다.
+- 데이터가 300이면, 30.0℃을 나타냅니다.
+3) Temperature offset 
+- 읽기 / 쓰기가 가능합니다.
+- 쓰기 데이터 범위 : -999 ~ +999 ( -99.9℃ ~ +99.9℃ ) 
+- 데이터가 300이면, 30.0℃을 나타냅니다.
+4) Temp warning SV 
+- 읽기 / 쓰기가 가능합니다.
+- 쓰기 데이터 범위 : 0 ~ 1000 ( 0 ℃ ~ +100.0℃ )
+- 경고 온도는 위험 온도보다 클 수 없습니다. 유효한 값이 아닌 경우 에러 코드 04h를
+전송합니다.
+
+
+=== PAGE 34 ===
+34 
+Temperature & Smoke Detector                         TSD - V50 
+5) Temp danger SV 
+- 읽기 / 쓰기가 가능합니다.
+- 쓰기 데이터 범위 : 0 ~ 1000 ( 0 ℃ ~ +100.0℃ )
+- 위험 온도는 경보 온도보다 작을 수 없습니다. 유효한 값이 아닌 경우 에러 코드 04h 
+를 전송합니다.
+6) Alarm Clear 
+- 쓰기만 가능합니다.
+- 알람 코드 0x1234를 쓸 경우, 알람 리셋 후 값을 0을 초기화 합니다.
+- 알람 코드가 잘 못 쓸 경우, 에러 코드 04h를 전송합니다.

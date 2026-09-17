@@ -1,0 +1,1033 @@
+빌드 시작: 2026-09-16 오후 12:02:46
+"C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Common.Targets" 프로젝트의 "ResolveFiles" 대상을 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 프로젝트의 "ResolveFiles" 대상으로 재정의하고 있습니다.
+"C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Common.Targets" 프로젝트의 "Build" 대상을 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 프로젝트의 "Build" 대상으로 재정의하고 있습니다.
+"C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Common.Targets" 프로젝트의 "Clean" 대상을 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 프로젝트의 "Clean" 대상으로 재정의하고 있습니다.
+"C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Common.Targets" 프로젝트의 "default" 대상을 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 프로젝트의 "Default" 대상으로 재정의하고 있습니다.
+1 노드의 "D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트(Build 대상)입니다.
+도구 버전 "2.0"(을)를 사용하여 빌드하고 있습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_ForceRebuild" 대상("Build" 대상이 종속됨):
+"Microsoft.Build.Tasks, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" 어셈블리에서 "CreateProperty" 작업을 사용합니다.
+"CreateProperty" 작업
+"CreateProperty" 작업을 실행했습니다.
+"CreateProperty" 작업
+"CreateProperty" 작업을 실행했습니다.
+"NGSORTER.cbproj" 프로젝트에 "_ForceRebuild" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Common.Targets" 파일에 있는 "__CreateVerOutputName" 대상("BuildShouldBuildVersion" 대상이 종속됨):
+"Microsoft.Build.Tasks, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" 어셈블리에서 "CreateItem" 작업을 사용합니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"NGSORTER.cbproj" 프로젝트에 "__CreateVerOutputName" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Common.Targets" 파일에 있는 "__SetVersionResourceFileName" 대상("__ResourceVersionResDepCheck" 대상이 종속됨):
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"NGSORTER.cbproj" 프로젝트에 "__SetVersionResourceFileName" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Common.Targets" 파일에 있는 "__ResourceVersionResDepCheck" 대상("__BuildShouldBuildVersion" 대상이 종속됨):
+"C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\Borland.Build.Tasks.Shared.dll" 어셈블리에서 "DependencyCheck" 작업을 사용합니다.
+"DependencyCheck" 작업
+"DependencyCheck" 작업을 실행했습니다.
+"NGSORTER.cbproj" 프로젝트에 "__ResourceVersionResDepCheck" 대상을 빌드했습니다.
+조건이 잘못되어 "__AndroidManifestDepCheck" 대상을 건너뜁니다. ('$(Platform)'=='$(cAndroidPlatform)')이(가) ('Win32'=='Android')(으)로 확인되었습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Common.Targets" 파일에 있는 "__BuildShouldBuildVersion" 대상("BuildShouldBuildVersion" 대상이 종속됨):
+"NGSORTER.cbproj" 프로젝트에 "__BuildShouldBuildVersion" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Common.Targets" 파일에 있는 "BuildShouldBuildVersion" 대상("_ResolveOutput" 대상이 종속됨):
+"NGSORTER.cbproj" 프로젝트에 "BuildShouldBuildVersion" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Common.Targets" 파일에 있는 "_ResolveIcons" 대상("_ResolveOutput" 대상이 종속됨):
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"NGSORTER.cbproj" 프로젝트에 "_ResolveIcons" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_ExcludeFilesFromBuild" 대상("_ResolveCompiledOutput" 대상이 종속됨):
+"NGSORTER.cbproj" 프로젝트에 "_ExcludeFilesFromBuild" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_ResolveCompiledOutput" 대상("_ResolveOutput" 대상이 종속됨):
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+조건이 잘못되어 "CreateItem" 작업을 건너뜁니다. ('@(RidlCompile)'!='')이(가) (''!='')(으)로 확인되었습니다.
+조건이 잘못되어 "CreateItem" 작업을 건너뜁니다. ('@(RcItem)'!='')이(가) (''!='')(으)로 확인되었습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"NGSORTER.cbproj" 프로젝트에 "_ResolveCompiledOutput" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "__SetProjectResourceFileName" 대상("_ResolveOther" 대상이 종속됨):
+조건이 잘못되어 "CreateItem" 작업을 건너뜁니다. ('@(RcItem)'!='')이(가) (''!='')(으)로 확인되었습니다.
+조건이 잘못되어 "CreateItem" 작업을 건너뜁니다. ('@(RcItem)'!='')이(가) (''!='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "__SetProjectResourceFileName" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_ResolveOther" 대상("_ResolveOutput" 대상이 종속됨):
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+조건이 잘못되어 "CreateItem" 작업을 건너뜁니다. ('$(AppType)'=='Package' And '$(ILINK_GenerateImportLibrary)'=='true')이(가) ('Application'=='Package' And ''=='true')(으)로 확인되었습니다.
+조건이 잘못되어 "CreateItem" 작업을 건너뜁니다. ('$(AppType)'!='Package' And '$(ILINK_GenerateImportLibrary)'=='true')이(가) ('Application'!='Package' And ''=='true')(으)로 확인되었습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+조건이 잘못되어 "CreateItem" 작업을 건너뜁니다. ('$(TASM_GenerateListingFile)'=='true')이(가) (''=='true')(으)로 확인되었습니다.
+조건이 잘못되어 "CreateItem" 작업을 건너뜁니다. ('$(TASM_GenerateCrossRefFile)'=='true')이(가) (''=='true')(으)로 확인되었습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+조건이 잘못되어 "CreateItem" 작업을 건너뜁니다. ('$(Platform)'=='$(cAndroidPlatform)')이(가) ('Win32'=='Android')(으)로 확인되었습니다.
+조건이 잘못되어 "CreateItem" 작업을 건너뜁니다. ('$(Platform)'=='$(cAndroidPlatform)')이(가) ('Win32'=='Android')(으)로 확인되었습니다.
+조건이 잘못되어 "CreateItem" 작업을 건너뜁니다. ('$(Platform)'=='$(cAndroidPlatform)')이(가) ('Win32'=='Android')(으)로 확인되었습니다.
+조건이 잘못되어 "CreateItem" 작업을 건너뜁니다. ('$(Platform)'=='$(cAndroidPlatform)')이(가) ('Win32'=='Android')(으)로 확인되었습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"NGSORTER.cbproj" 프로젝트에 "_ResolveOther" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_ResolveOutput" 대상("CleanLinkerStateFiles" 대상이 종속됨):
+"NGSORTER.cbproj" 프로젝트에 "_ResolveOutput" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "CleanLinkerStateFiles" 대상("Build" 대상이 종속됨):
+"Microsoft.Build.Tasks, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" 어셈블리에서 "Delete" 작업을 사용합니다.
+"Delete" 작업
+  "tmp\NGSManual\capture-build\binNGSORTER.ilc" 파일이 없습니다. 건너뜁니다.
+  "tmp\NGSManual\capture-build\binNGSORTER.ild" 파일이 없습니다. 건너뜁니다.
+  "tmp\NGSManual\capture-build\binNGSORTER.ilf" 파일이 없습니다. 건너뜁니다.
+  "tmp\NGSManual\capture-build\binNGSORTER.ils" 파일이 없습니다. 건너뜁니다.
+  "tmp\NGSManual\capture-build\binNGSORTER.pdi" 파일이 없습니다. 건너뜁니다.
+  "tmp\NGSManual\capture-build\binNGSORTER.ilr" 파일이 없습니다. 건너뜁니다.
+"Delete" 작업을 실행했습니다.
+"NGSORTER.cbproj" 프로젝트에 "CleanLinkerStateFiles" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Profiles.Targets" 파일에 있는 "_VerifyProfileFile" 대상("Build" 대상이 종속됨):
+조건이 잘못되어 "Error" 작업을 건너뜁니다. ('$(Profile)'!='' And !Exists('$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(ProductVersion)\$(Profile).profile'))이(가) (''!='' And !Exists('C:\Users\gsinm\AppData\Roaming\Embarcadero\BDS\18.0\.profile'))(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_VerifyProfileFile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Profiles.Targets" 파일에 있는 "_VerifyPlatformSDKFile" 대상("_CheckPlatformSDK" 대상이 종속됨):
+조건이 잘못되어 "Error" 작업을 건너뜁니다. ('$(PlatformSDK)'!='' And !Exists('$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(ProductVersion)\$(PlatformSDK)'))이(가) (''!='' And !Exists('C:\Users\gsinm\AppData\Roaming\Embarcadero\BDS\18.0\'))(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_VerifyPlatformSDKFile" 대상을 빌드했습니다.
+조건이 잘못되어 "_PlatformExists" 대상을 건너뜁니다. ('$(Profile_platform)'!='')이(가) (''!='')(으)로 확인되었습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Profiles.Targets" 파일에 있는 "_CheckPlatformSDK" 대상("Build" 대상이 종속됨):
+조건이 잘못되어 "Error" 작업을 건너뜁니다. ('$(PlatformSDK)'!='' And '$(PlatformExists)'=='true' And !Exists('$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(ProductVersion)\$(PlatformSDK)'))이(가) (''!='' And ''=='true' And !Exists('C:\Users\gsinm\AppData\Roaming\Embarcadero\BDS\18.0\'))(으)로 확인되었습니다.
+조건이 잘못되어 "CallTarget" 작업을 건너뜁니다. ('$(PlatformSDK)'!='' And '$(PlatformExists)'=='true' And Exists('$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(ProductVersion)\$(PlatformSDK)'))이(가) (''!='' And ''=='true' And Exists('C:\Users\gsinm\AppData\Roaming\Embarcadero\BDS\18.0\'))(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_CheckPlatformSDK" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Common.Targets" 파일에 있는 "_CheckPlatformVariable" 대상("Build" 대상이 종속됨):
+조건이 잘못되어 "Error" 작업을 건너뜁니다. (!( ('$(Platform)'=='$(cWin32Platform)')
+        Or ('$(Platform)'=='$(cWinNX32Platform)')
+        Or ('$(Platform)'=='$(cWinIoT32Platform)')
+        Or ('$(Platform)'=='$(cWinARMPlatform)')
+        Or ('$(Platform)'=='$(cWin64Platform)')
+        Or ('$(Platform)'=='$(cOSX32Platform)')
+        Or ('$(Platform)'=='$(cAndroidPlatform)')
+        Or ('$(Platform)'=='$(ciOSSimulatorPlatform)')
+        Or ('$(Platform)'=='$(ciOSDevice32Platform)')
+        Or ('$(Platform)'=='$(ciOSDevice64Platform)')
+        Or ('$(Platform)'=='$(cLinux64Platform)') ))이(가) (!( ('Win32'=='Win32')
+        Or ('Win32'=='WinNX32')
+        Or ('Win32'=='WinIoT32')
+        Or ('Win32'=='WinARM')
+        Or ('Win32'=='Win64')
+        Or ('Win32'=='OSX32')
+        Or ('Win32'=='Android')
+        Or ('Win32'=='iOSSimulator')
+        Or ('Win32'=='iOSDevice32')
+        Or ('Win32'=='iOSDevice64')
+        Or ('Win32'=='Linux64') ))(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_CheckPlatformVariable" 대상을 빌드했습니다.
+조건이 잘못되어 "_CheckGetItPackageDependencies" 대상을 건너뜁니다. (('$(GetItPackages)'!=''))이(가) ((''!=''))(으)로 확인되었습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_MakePreReq" 대상("Build" 대상이 종속됨):
+조건이 잘못되어 "Error" 작업을 건너뜁니다. ('$(FileToCompile)'!='')이(가) (''!='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_MakePreReq" 대상을 빌드했습니다.
+"_ResolveOutput" 대상을 건너뜁니다. 이전에 빌드되었습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Common.Targets" 파일에 있는 "CreateProjectDirectories" 대상("CreateDirectories" 대상이 종속됨):
+"Microsoft.Build.Tasks, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" 어셈블리에서 "MakeDir" 작업을 사용합니다.
+"MakeDir" 작업
+  "tmp\NGSManual\capture-build\obj\" 디렉터리를 만들고 있습니다.
+  명령:
+  md "tmp\NGSManual\capture-build\obj\"
+  "tmp\NGSManual\capture-build\bin" 디렉터리를 만들고 있습니다.
+  명령:
+  md "tmp\NGSManual\capture-build\bin"
+"MakeDir" 작업을 실행했습니다.
+"NGSORTER.cbproj" 프로젝트에 "CreateProjectDirectories" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Common.Targets" 파일에 있는 "CreateLocalDirectories" 대상("CreateDirectories" 대상이 종속됨):
+"NGSORTER.cbproj" 프로젝트에 "CreateLocalDirectories" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Common.Targets" 파일에 있는 "CreateDirectories" 대상("Build" 대상이 종속됨):
+"NGSORTER.cbproj" 프로젝트에 "CreateDirectories" 대상을 빌드했습니다.
+조건이 잘못되어 "BuildClassesDex" 대상을 건너뜁니다. ($(Platform)=='$(cAndroidPlatform)' And (('$(AppType)'=='Application') Or ('$(AppType)'=='Console')))이(가) (Win32=='Android' And (('Application'=='Application') Or ('Application'=='Console')))(으)로 확인되었습니다.
+조건이 잘못되어 "BuildAndroidServiceJarFile" 대상을 건너뜁니다. (('$(Platform)'=='$(cAndroidPlatform)' And '$(AndroidServiceType)'!=''))이(가) (('Win32'=='Android' And ''!=''))(으)로 확인되었습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Common.Targets" 파일에 있는 "_RunUserTools" 대상("Build" 대상이 종속됨):
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. ('%(UserTool.ToolName)'!='' And '$(FileToCompile)'=='')이(가) (''!='' And ''=='')(으)로 확인되었습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. ('@(InputFile)'!='' And '%(InputFile.ToolName)'!='')이(가) (''!='' And ''!='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_RunUserTools" 대상을 빌드했습니다.
+조건이 잘못되어 "PreBuildEvent" 대상을 건너뜁니다. ( '$(PreBuildEvent)'!='' And '$(KibitzCompile)'=='')이(가) ( ''!='' And ''=='')(으)로 확인되었습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Common.Targets" 파일에 있는 "_PreOutputTimeStamp" 대상("Build" 대상이 종속됨):
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"NGSORTER.cbproj" 프로젝트에 "_PreOutputTimeStamp" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "MakeObjs" 대상("Build" 대상이 종속됨):
+"Microsoft.Build.Tasks, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" 어셈블리에서 "CallTarget" 작업을 사용합니다.
+"CallTarget" 작업
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Common.Targets" 파일에 있는 "_RidlDepCheck" 대상("RidlCompile" 대상이 종속됨):
+"DependencyCheck" 작업
+"DependencyCheck" 작업을 실행했습니다.
+조건이 잘못되어 "MessageMap" 작업을 건너뜁니다. ('@(SkippedRidlFiles)'!='')이(가) (''!='')(으)로 확인되었습니다.
+조건이 잘못되어 "MessageMap" 작업을 건너뜁니다. ('@(RidlFiles)'!='' And '$(ForceRebuild)'!='true')이(가) (''!='' And 'true'!='true')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_RidlDepCheck" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Common.Targets" 파일에 있는 "RidlCompile" 대상("_CoreCompile" 대상이 종속됨):
+"CallTarget" 작업
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_ResolveGENTLBBindings" 대상("_RidlCoreCompile" 대상이 종속됨):
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"NGSORTER.cbproj" 프로젝트에 "_ResolveGENTLBBindings" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Common.Targets" 파일에 있는 "_RidlCoreCompile" 대상("RidlCompile" 대상이 종속됨):
+조건이 잘못되어 "GenTLB" 작업을 건너뜁니다. ('@(RidlFiles)'!='')이(가) (''!='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_RidlCoreCompile" 대상을 빌드했습니다.
+"CallTarget" 작업을 실행했습니다.
+"NGSORTER.cbproj" 프로젝트에 "RidlCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_PasDepCheck" 대상("PasCompile" 대상이 종속됨):
+"DependencyCheck" 작업
+"DependencyCheck" 작업을 실행했습니다.
+"C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\Borland.Build.Tasks.Shared.dll" 어셈블리에서 "ItemSort" 작업을 사용합니다.
+"ItemSort" 작업
+"ItemSort" 작업을 실행했습니다.
+조건이 잘못되어 "MessageMap" 작업을 건너뜁니다. ('@(SkippedPasFiles)'!='')이(가) (''!='')(으)로 확인되었습니다.
+조건이 잘못되어 "MessageMap" 작업을 건너뜁니다. ('@(PasFiles)'!='' And '$(ForceRebuild)'!='true')이(가) (''!='' And 'true'!='true')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_PasDepCheck" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "PasCompile" 대상("_CoreCompile" 대상이 종속됨):
+조건이 잘못되어 "CallTarget" 작업을 건너뜁니다. ('$(ForceRebuild)'=='true' And '@(PasFiles)'!='')이(가) ('true'=='true' And ''!='')(으)로 확인되었습니다.
+조건이 잘못되어 "CallTarget" 작업을 건너뜁니다. ('$(ForceRebuild)'!='true' And '@(PasFiles)'!='')이(가) ('true'!='true' And ''!='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "PasCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_CppDepCheck" 대상("CppCompile" 대상이 종속됨):
+"C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\Borland.Build.Tasks.Cpp.dll" 어셈블리에서 "BccDependencyCheck" 작업을 사용합니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"BccDependencyCheck" 작업
+"BccDependencyCheck" 작업을 실행했습니다.
+"ItemSort" 작업
+"ItemSort" 작업을 실행했습니다.
+조건이 잘못되어 "MessageMap" 작업을 건너뜁니다. ('@(SkippedCppFiles)'!='')이(가) (''!='')(으)로 확인되었습니다.
+조건이 잘못되어 "MessageMap" 작업을 건너뜁니다. ('@(_CppFiles)'!='' And '$(ForceRebuild)'!='true')이(가) ('NGSORTER.cpp;Barcode_comm.cpp;FormAlarm.cpp;FormBase.cpp;FormConfig.cpp;FormDoor.cpp;FormError.cpp;FormError_bcr.cpp;FormError_eject.cpp;FormError_insert.cpp;FormError_limit.cpp;FormError_mes.cpp;FormMain.cpp;FormTeaching.cpp;ModGripper.cpp;Modmes.cpp;ModRobostar.cpp;Stage_Form.cpp;Stage_mes.cpp;FormServoAlarmList.cpp;FormAlarm_LoadFactor.cpp;FormLoadFactor.cpp;FormAlarm_TrayInfo.cpp;Stage_Log.cpp;ModPLC_Bin.cpp;FormInterface.cpp;SmokeDetector_comm.cpp;Mod_SRX100W.cpp;ModMes_Gateway.cpp;ModMes_OPCUA.cpp;FormAlarm_fms.cpp;FormDryRun.cpp;FormManualComplete.cpp'!='' And 'true'!='true')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_CppDepCheck" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_PCHDepCheck" 대상("CppCompile" 대상이 종속됨):
+조건이 잘못되어 "BccDependencyCheck" 작업을 건너뜁니다. ((('$(Platform)'=='$(cWin32Platform)' And '$(USING_CLANG_WIN32)'=='true')
+        Or '$(Platform)'=='$(cWin64Platform)'
+        Or '$(Platform)'=='$(ciOSDevice32Platform)'
+        Or '$(Platform)'=='$(ciOSDevice64Platform)'
+        Or '$(Platform)'=='$(cAndroidPlatform)') And '$(BCC_PCHUsage)'=='GenerateAndUse')이(가) ((('Win32'=='Win32' And ''=='true')
+        Or 'Win32'=='Win64'
+        Or 'Win32'=='iOSDevice32'
+        Or 'Win32'=='iOSDevice64'
+        Or 'Win32'=='Android') And ''=='GenerateAndUse')(으)로 확인되었습니다.
+조건이 잘못되어 "MessageMap" 작업을 건너뜁니다. ('@(SkippedPCHFiles)'!='')이(가) (''!='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_PCHDepCheck" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "CppCompile" 대상("_CoreCompile" 대상이 종속됨):
+"CallTarget" 작업
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_CppCoreCompile" 대상("CppCompile" 대상이 종속됨):
+조건이 잘못되어 "CallTarget" 작업을 건너뜁니다. ($(USING_CLANG))이(가) (false)(으)로 확인되었습니다.
+"CallTarget" 작업
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\Borland.Build.Tasks.Cpp.dll" 어셈블리에서 "BCC32" 작업을 사용합니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\NGSORTER.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H NGSORTER.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  NGSORTER.cpp:
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\Barcode_comm.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H Barcode_comm.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  Barcode_comm.cpp:
+  Loaded pre-compiled headers.
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\FormAlarm.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H FormAlarm.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  FormAlarm.cpp:
+  Loaded pre-compiled headers.
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\FormBase.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H FormBase.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  FormBase.cpp:
+  Loaded pre-compiled headers.
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\FormConfig.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H FormConfig.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  FormConfig.cpp:
+  Loaded pre-compiled headers.
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\FormDoor.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H FormDoor.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  FormDoor.cpp:
+  Loaded pre-compiled headers.
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\FormError.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H FormError.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  FormError.cpp:
+  Loaded pre-compiled headers.
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\FormError_bcr.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H FormError_bcr.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  FormError_bcr.cpp:
+  Loaded pre-compiled headers.
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\FormError_eject.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H FormError_eject.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  FormError_eject.cpp:
+  Loaded pre-compiled headers.
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\FormError_insert.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H FormError_insert.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  FormError_insert.cpp:
+  Loaded pre-compiled headers.
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\FormError_limit.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H FormError_limit.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  FormError_limit.cpp:
+  Loaded pre-compiled headers.
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\FormError_mes.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H FormError_mes.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  FormError_mes.cpp:
+  Loaded pre-compiled headers.
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\FormMain.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H FormMain.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  FormMain.cpp:
+  Loaded pre-compiled headers.
+FormMain.cpp(4099): warning W8018: Assigning Sequence to Tgripper::Sequence in function _fastcall TMainForm::AdvSmoothToggleButton_InitWorkClick(TObject *) [D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj]
+   + Full parser context
+   + FormMain.cpp, line 4034: parsing: void _fastcall TMainForm::AdvSmoothToggleButton_InitWorkClick(TObject *)
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\FormTeaching.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H FormTeaching.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  FormTeaching.cpp:
+  Loaded pre-compiled headers.
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\ModGripper.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H ModGripper.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  ModGripper.cpp:
+  Loaded pre-compiled headers.
+ModGripper.cpp(596): warning W8070: Function should return a value in function _fastcall Tgripper::GetZoneCode(int,AnsiString) [D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj]
+   + Full parser context
+   + ModGripper.cpp, line 577: parsing: bool _fastcall Tgripper::GetZoneCode(int,AnsiString)
+ModGripper.cpp(827): warning W8004: 'bcheck' is assigned a value that is never used in function _fastcall Tgripper::Initialize() [D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj]
+   + Full parser context
+   + ModGripper.cpp, line 599: parsing: void _fastcall Tgripper::Initialize()
+ModGripper.cpp(920): warning W8004: 'bfind' is assigned a value that is never used in function _fastcall Tgripper::Sorting() [D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj]
+   + Full parser context
+   + ModGripper.cpp, line 830: parsing: void _fastcall Tgripper::Sorting()
+ModGripper.cpp(920): warning W8004: 'div2' is assigned a value that is never used in function _fastcall Tgripper::Sorting() [D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj]
+   + Full parser context
+   + ModGripper.cpp, line 830: parsing: void _fastcall Tgripper::Sorting()
+ModGripper.cpp(920): warning W8004: 'div1' is assigned a value that is never used in function _fastcall Tgripper::Sorting() [D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj]
+   + Full parser context
+   + ModGripper.cpp, line 830: parsing: void _fastcall Tgripper::Sorting()
+ModGripper.cpp(920): warning W8004: 'pos2' is assigned a value that is never used in function _fastcall Tgripper::Sorting() [D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj]
+   + Full parser context
+   + ModGripper.cpp, line 830: parsing: void _fastcall Tgripper::Sorting()
+ModGripper.cpp(1246): warning W8004: 'div2' is assigned a value that is never used in function _fastcall Tgripper::Inserting() [D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj]
+   + Full parser context
+   + ModGripper.cpp, line 1025: parsing: void _fastcall Tgripper::Inserting()
+ModGripper.cpp(1246): warning W8004: 'div1' is assigned a value that is never used in function _fastcall Tgripper::Inserting() [D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj]
+   + Full parser context
+   + ModGripper.cpp, line 1025: parsing: void _fastcall Tgripper::Inserting()
+ModGripper.cpp(1246): warning W8004: 'pos2' is assigned a value that is never used in function _fastcall Tgripper::Inserting() [D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj]
+   + Full parser context
+   + ModGripper.cpp, line 1025: parsing: void _fastcall Tgripper::Inserting()
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\Modmes.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H Modmes.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  Modmes.cpp:
+  Loaded pre-compiled headers.
+Modmes.cpp(152): warning W8004: 'a' is assigned a value that is never used in function __stdcall TxThread(void *) [D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj]
+   + Full parser context
+   + Modmes.cpp, line 135: parsing: unsigned long __stdcall TxThread(void *)
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\ModRobostar.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H ModRobostar.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  ModRobostar.cpp:
+  Loaded pre-compiled headers.
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\Stage_Form.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H Stage_Form.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  Stage_Form.cpp:
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\Stage_mes.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H Stage_mes.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  Stage_mes.cpp:
+  Loaded pre-compiled headers.
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\FormServoAlarmList.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H FormServoAlarmList.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  FormServoAlarmList.cpp:
+  Loaded pre-compiled headers.
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\FormAlarm_LoadFactor.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H FormAlarm_LoadFactor.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  FormAlarm_LoadFactor.cpp:
+  Loaded pre-compiled headers.
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\FormLoadFactor.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H FormLoadFactor.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  FormLoadFactor.cpp:
+  Loaded pre-compiled headers.
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\FormAlarm_TrayInfo.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H FormAlarm_TrayInfo.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  FormAlarm_TrayInfo.cpp:
+  Loaded pre-compiled headers.
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\Stage_Log.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H Stage_Log.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  Stage_Log.cpp:
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\ModPLC_Bin.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H ModPLC_Bin.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  ModPLC_Bin.cpp:
+  Loaded pre-compiled headers.
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\FormInterface.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H FormInterface.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  FormInterface.cpp:
+  Loaded pre-compiled headers.
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\SmokeDetector_comm.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H SmokeDetector_comm.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  SmokeDetector_comm.cpp:
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\Mod_SRX100W.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H Mod_SRX100W.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  Mod_SRX100W.cpp:
+  Loaded pre-compiled headers.
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\ModMes_Gateway.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H ModMes_Gateway.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  ModMes_Gateway.cpp:
+  Loaded pre-compiled headers.
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\ModMes_OPCUA.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H ModMes_OPCUA.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  ModMes_OPCUA.cpp:
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\FormAlarm_fms.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H FormAlarm_fms.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  FormAlarm_fms.cpp:
+  Loaded pre-compiled headers.
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\FormDryRun.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H FormDryRun.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  FormDryRun.cpp:
+  Loaded pre-compiled headers.
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_BCC32CoreCompile" 대상("_CppCoreCompile" 대상이 종속됨):
+"_BCC32CoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe -D_DEBUG -ntmp\NGSManual\capture-build\obj -I"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\dinkumware";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\crtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\sdk";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\rtl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl";"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\fmx";C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32;"C:\Program Files (x86)\FastReports\LibD24";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";"C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240" -y -Q -k -r- -c -tM -tU -tW -C8 -otmp\NGSManual\capture-build\obj\FormManualComplete.obj -w-par -Od -v -vi- -H=tmp\NGSManual\capture-build\objNGSORTER.pch -H FormManualComplete.cpp 
+  The "BCC32" task is using "bcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\bcc32.exe".
+  Embarcadero C++ 7.20 for Win32 Copyright (c) 1993-2016 Embarcadero Technologies, Inc.
+  Warning W8123: Path 'C:\Users\Public\Documents\Embarcadero\Studio\18.0\hpp\Win32' not found - path ignored in option '-I'
+  Warning W8123: Path 'C:\Program Files (x86)\ProsysOPC\Sentrol790DC101Eval\lib240' not found - path ignored in option '-I'
+  FormManualComplete.cpp:
+  Loaded pre-compiled headers.
+"BCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(CppFiles.OptionOverrides)'=='true' Or '%(CppFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BCC32CoreCompile" 대상을 빌드했습니다.
+"CallTarget" 작업을 실행했습니다.
+"NGSORTER.cbproj" 프로젝트에 "_CppCoreCompile" 대상을 빌드했습니다.
+"CallTarget" 작업을 실행했습니다.
+"NGSORTER.cbproj" 프로젝트에 "CppCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_AsmDepCheck" 대상("AsmCompile" 대상이 종속됨):
+"DependencyCheck" 작업
+"DependencyCheck" 작업을 실행했습니다.
+"ItemSort" 작업
+"ItemSort" 작업을 실행했습니다.
+조건이 잘못되어 "MessageMap" 작업을 건너뜁니다. ('@(SkippedAsmFiles)'!='')이(가) (''!='')(으)로 확인되었습니다.
+조건이 잘못되어 "MessageMap" 작업을 건너뜁니다. ('@(AsmFiles)'!='' And '$(ForceRebuild)'!='true')이(가) (''!='' And 'true'!='true')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_AsmDepCheck" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "AsmCompile" 대상("_CoreCompile" 대상이 종속됨):
+"CallTarget" 작업
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_AsmCoreCompile" 대상("AsmCompile" 대상이 종속됨):
+조건이 잘못되어 "TASM32" 작업을 건너뜁니다. (('@(AsmFiles)'!='' And ('%(AsmFiles.OptionOverrides)'!='true' And '%(AsmFiles.HasBuildEvent)'!='true')) Or '$(FileToCompile)'!='')이(가) ((''!='' And (''!='true' And ''!='true')) Or ''!='')(으)로 확인되었습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(AsmFiles.OptionOverrides)'=='true' Or '%(AsmFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_AsmCoreCompile" 대상을 빌드했습니다.
+"CallTarget" 작업을 실행했습니다.
+"NGSORTER.cbproj" 프로젝트에 "AsmCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_RcDepCheck" 대상("RcCompile" 대상이 종속됨):
+"DependencyCheck" 작업
+"DependencyCheck" 작업을 실행했습니다.
+"ItemSort" 작업
+"ItemSort" 작업을 실행했습니다.
+조건이 잘못되어 "MessageMap" 작업을 건너뜁니다. ('@(SkippedRcFiles)'!='')이(가) (''!='')(으)로 확인되었습니다.
+조건이 잘못되어 "MessageMap" 작업을 건너뜁니다. ('@(RcFiles)'!='' And '$(ForceRebuild)'!='true')이(가) ('myres.rc'!='' And 'true'!='true')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_RcDepCheck" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "RcCompile" 대상("_CoreCompile" 대상이 종속됨):
+"CallTarget" 작업
+"__CreateVerOutputName" 대상을 건너뜁니다. 이전에 빌드되었습니다.
+"__BuildShouldBuildVersion" 대상을 건너뜁니다. 이전에 빌드되었습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Common.Targets" 파일에 있는 "__BuildRCFile" 대상("BuildVersionResource" 대상이 종속됨):
+"CallTarget" 작업
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Common.Targets" 파일에 있는 "_BuildRCFile" 대상("__BuildRCFile" 대상이 종속됨):
+"C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\Borland.Build.Tasks.Shared.dll" 어셈블리에서 "CreateRcFile" 작업을 사용합니다.
+"CreateRcFile" 작업
+"CreateRcFile" 작업을 실행했습니다.
+"NGSORTER.cbproj" 프로젝트에 "_BuildRCFile" 대상을 빌드했습니다.
+"CallTarget" 작업을 실행했습니다.
+"NGSORTER.cbproj" 프로젝트에 "__BuildRCFile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Common.Targets" 파일에 있는 "BuildVersionResource" 대상("RcCompile" 대상이 종속됨):
+"C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\Borland.Build.Tasks.Shared.dll" 어셈블리에서 "BRCC32" 작업을 사용합니다.
+"BRCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\cgrc.exe -c65001 "NGSORTER.vrc" -foNGSORTER.res 
+  The "BRCC32" task is using "brcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\cgrc.exe".
+  CodeGear Resource Compiler/Binder
+  Version 1.2.2 Copyright (c) 2008-2012 Embarcadero Technologies Inc.
+  
+  Microsoft (R) Windows (R) Resource Compiler Version 6.0.5724.0
+  
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  
+  
+"BRCC32" 작업을 실행했습니다.
+"Delete" 작업
+  "NGSORTER.vrc" 파일을 삭제하고 있습니다.
+  명령:
+  del "NGSORTER.vrc"
+"Delete" 작업을 실행했습니다.
+"Delete" 작업
+  "NGSORTER.$manifest" 파일을 삭제하고 있습니다.
+  명령:
+  del "NGSORTER.$manifest"
+"Delete" 작업을 실행했습니다.
+"NGSORTER.cbproj" 프로젝트에 "BuildVersionResource" 대상을 빌드했습니다.
+"CallTarget" 작업을 실행했습니다.
+"CallTarget" 작업
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Common.Targets" 파일에 있는 "__SetAndroidManifestSettings" 대상("BuildAndroidManifestList" 대상이 종속됨):
+"NGSORTER.cbproj" 프로젝트에 "__SetAndroidManifestSettings" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Common.Targets" 파일에 있는 "BuildAndroidManifestList" 대상("RcCompile" 대상이 종속됨):
+조건이 잘못되어 "CreateAndroidManifestFile" 작업을 건너뜁니다. ('$(ShouldCreateManifestFile)'=='true')이(가) (''=='true')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "BuildAndroidManifestList" 대상을 빌드했습니다.
+"CallTarget" 작업을 실행했습니다.
+"CallTarget" 작업
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_RcCoreCompile" 대상("RcCompile" 대상이 종속됨):
+"_RcCoreCompile" 대상을 모두 빌드하고 있습니다.
+입력 파일을 지정하지 않았습니다.
+"BRCC32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\brcc32.exe -d_DEBUG -i"C:\Program Files (x86)\Embarcadero\Studio\18.0\include\windows\vcl" "myres.rc" -fotmp\NGSManual\capture-build\obj\myres.res 
+  The "BRCC32" task is using "brcc32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\brcc32.exe".
+  Borland Resource Compiler  Version 5.40
+  Copyright (c) 1990, 1999 Inprise Corporation.  All rights reserved.
+"BRCC32" 작업을 실행했습니다.
+조건이 잘못되어 "InvokeMSBuild" 작업을 건너뜁니다. (('%(RcFiles.OptionOverrides)'=='true' Or '%(RcFiles.HasBuildEvent)'=='true') And '$(FileToCompile)'=='')이(가) ((''=='true' Or ''=='true') And ''=='')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_RcCoreCompile" 대상을 빌드했습니다.
+"CallTarget" 작업을 실행했습니다.
+"CallTarget" 작업
+조건이 잘못되어 "BuildProjectResourceFile" 대상을 건너뜁니다. ('@(RcItem)'!='')이(가) (''!='')(으)로 확인되었습니다.
+"CallTarget" 작업을 실행했습니다.
+"NGSORTER.cbproj" 프로젝트에 "RcCompile" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_CoreCompile" 대상("MakeObjs" 대상이 종속됨):
+"NGSORTER.cbproj" 프로젝트에 "_CoreCompile" 대상을 빌드했습니다.
+"CallTarget" 작업을 실행했습니다.
+"NGSORTER.cbproj" 프로젝트에 "MakeObjs" 대상을 빌드했습니다.
+"_VerifyProfileFile" 대상을 건너뜁니다. 이전에 빌드되었습니다.
+"_CheckPlatformSDK" 대상을 건너뜁니다. 이전에 빌드되었습니다.
+"_ResolveOutput" 대상을 건너뜁니다. 이전에 빌드되었습니다.
+"CreateDirectories" 대상을 건너뜁니다. 이전에 빌드되었습니다.
+조건이 잘못되어 "PreLinkEvent" 대상을 건너뜁니다. ( '$(PreLinkEvent)'!='' And '$(KibitzCompile)'=='')이(가) ( ''!='' And ''=='')(으)로 확인되었습니다.
+"_ResolveOutput" 대상을 건너뜁니다. 이전에 빌드되었습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_ResolveUserObjNames" 대상("_CheckLinkDependencies" 대상이 종속됨):
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+조건이 잘못되어 "CreateItem" 작업을 건너뜁니다. ('%(ObjFiles.IgnorePath)'=='true')이(가) (''=='true')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_ResolveUserObjNames" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_ResolveUserLibNames" 대상("_CheckLinkDependencies" 대상이 종속됨):
+조건이 잘못되어 "CreateItem" 작업을 건너뜁니다. ('%(LibFiles.IgnorePath)'!='true')이(가) ('true'!='true')(으)로 확인되었습니다.
+조건이 잘못되어 "CreateItem" 작업을 건너뜁니다. ('%(LibFiles.IgnorePath)'!='true')이(가) ('true'!='true')(으)로 확인되었습니다.
+조건이 잘못되어 "CreateItem" 작업을 건너뜁니다. ('%(LibFiles.IgnorePath)'!='true')이(가) ('true'!='true')(으)로 확인되었습니다.
+조건이 잘못되어 "CreateItem" 작업을 건너뜁니다. ('%(LibFiles.IgnorePath)'!='true')이(가) ('true'!='true')(으)로 확인되었습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"NGSORTER.cbproj" 프로젝트에 "_ResolveUserLibNames" 대상을 빌드했습니다.
+"_ResolveOutput" 대상을 건너뜁니다. 이전에 빌드되었습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_CopyPackageLibs" 대상("_CheckLinkDependencies" 대상이 종속됨):
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"NGSORTER.cbproj" 프로젝트에 "_CopyPackageLibs" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_CheckLinkDependencies" 대상("_PerformLink" 대상이 종속됨):
+조건이 잘못되어 "DependencyCheck" 작업을 건너뜁니다. ('$(TLibLink)'!='true' And '$(ForceLink)'!='true')이(가) (''!='true' And 'true'!='true')(으)로 확인되었습니다.
+조건이 잘못되어 "DependencyCheck" 작업을 건너뜁니다. ('$(TLibLink)'=='true' And '$(ForceLink)'!='true')이(가) (''=='true' And 'true'!='true')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_CheckLinkDependencies" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_PerformLink" 대상("Link" 대상이 종속됨):
+"CallTarget" 작업
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "_PerformBCCILink" 대상("_PerformLink" 대상이 종속됨):
+"C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\Borland.Build.Tasks.Cpp.dll" 어셈블리에서 "ILINK32" 작업을 사용합니다.
+"ILINK32" 작업
+  Command:
+  C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\ilink32.exe -G8 -L"tmp\NGSManual\capture-build\obj";\Win32\debug;C:\Users\guseh\Desktop;"D:\01. Daeheung\07. 2017\01. [IRHU] Hungary\02. Program\03.SORTER";D:\00.HyunDo\01.Daeheung\2017\03.SORTER;"c:\program files (x86)\embarcadero\studio\18.0\lib\win32\release";"c:\program files (x86)\embarcadero\studio\18.0\lib\win32\release\psdk";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";C:\Users\Public\Documents\Embarcadero\Studio\18.0\DCP -j"tmp\NGSManual\capture-build\obj";\Win32\debug;C:\Users\guseh\Desktop;"D:\01. Daeheung\07. 2017\01. [IRHU] Hungary\02. Program\03.SORTER";D:\00.HyunDo\01.Daeheung\2017\03.SORTER;"c:\program files (x86)\embarcadero\studio\18.0\lib\win32\release";"c:\program files (x86)\embarcadero\studio\18.0\lib\win32\release\psdk";"C:\Program Files (x86)\FastReports\LibD24";D:\7.comport_6.1\comport411f\Source;"C:\Users\gsinm\Documents\TMS Smooth Controls";"C:\Users\gsinm\Documents\TMS Smooth Controls\Delphi101Berlin\Win32\Release";C:\Users\Public\Documents\Embarcadero\Studio\18.0\DCP -l"tmp\NGSManual\capture-build\bin" -v -aa -V5.0 -Tpe  c0w32w memmgr.lib sysinit.obj "tmp\NGSManual\capture-build\obj\NGSORTER.obj" "tmp\NGSManual\capture-build\obj\Barcode_comm.obj" "tmp\NGSManual\capture-build\obj\FormAlarm.obj" "tmp\NGSManual\capture-build\obj\FormAlarm_fms.obj" "tmp\NGSManual\capture-build\obj\FormAlarm_LoadFactor.obj" "tmp\NGSManual\capture-build\obj\FormAlarm_TrayInfo.obj" "tmp\NGSManual\capture-build\obj\FormBase.obj" "tmp\NGSManual\capture-build\obj\FormConfig.obj" "tmp\NGSManual\capture-build\obj\FormDoor.obj" "tmp\NGSManual\capture-build\obj\FormDryRun.obj" "tmp\NGSManual\capture-build\obj\FormError.obj" "tmp\NGSManual\capture-build\obj\FormError_bcr.obj" "tmp\NGSManual\capture-build\obj\FormError_eject.obj" "tmp\NGSManual\capture-build\obj\FormError_insert.obj" "tmp\NGSManual\capture-build\obj\FormError_limit.obj" "tmp\NGSManual\capture-build\obj\FormError_mes.obj" "tmp\NGSManual\capture-build\obj\FormInterface.obj" "tmp\NGSManual\capture-build\obj\FormLoadFactor.obj" "tmp\NGSManual\capture-build\obj\FormMain.obj" "tmp\NGSManual\capture-build\obj\FormManualComplete.obj" "tmp\NGSManual\capture-build\obj\FormServoAlarmList.obj" "tmp\NGSManual\capture-build\obj\FormTeaching.obj" "tmp\NGSManual\capture-build\obj\ModGripper.obj" "tmp\NGSManual\capture-build\obj\Modmes.obj" "tmp\NGSManual\capture-build\obj\ModMes_Gateway.obj" "tmp\NGSManual\capture-build\obj\ModMes_OPCUA.obj" "tmp\NGSManual\capture-build\obj\ModPLC_Bin.obj" "tmp\NGSManual\capture-build\obj\ModRobostar.obj" "tmp\NGSManual\capture-build\obj\Mod_SRX100W.obj" "tmp\NGSManual\capture-build\obj\SmokeDetector_comm.obj" "tmp\NGSManual\capture-build\obj\Stage_Form.obj" "tmp\NGSManual\capture-build\obj\Stage_Log.obj" "tmp\NGSManual\capture-build\obj\Stage_mes.obj" , "tmp\NGSManual\capture-build\binNGSORTER.exe" , "tmp\NGSManual\capture-build\binNGSORTER.map" , rtl.lib vcl.lib vclx.lib vcldb.lib dbrtl.lib vclimg.lib xmlrtl.lib vclactnband.lib DbxCommonDriver.lib dsnap.lib adortl.lib soaprtl.lib inet.lib VclSmp.lib TMSSmoothControlsPackPkgDXE10.lib IndySystem.lib IndyCore.lib DsgnCPortDXE.lib mc2xxstd.lib MdFunc32_bor.lib mmscl32_bor.lib import32.lib cp32mt.lib , , "tmp\NGSManual\capture-build\obj\myres.res" NGSORTER.res 
+  The "ILINK32" task is using "ilink32" from "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\ilink32.exe".
+  Turbo Incremental Link 6.75 Copyright (c) 1997-2016 Embarcadero Technologies, Inc.
+"ILINK32" 작업을 실행했습니다.
+조건이 잘못되어 "Delete" 작업을 건너뜁니다. ('$(TLibLink)'=='true' And ('@(OutputOutOfDate)'!='' Or '$(ForceLink)'=='true'))이(가) (''=='true' And (''!='' Or 'true'=='true'))(으)로 확인되었습니다.
+조건이 잘못되어 "TLIB" 작업을 건너뜁니다. ('$(TLibLink)'=='true' And ('@(OutputOutOfDate)'!='' Or '$(ForceLink)'=='true'))이(가) (''=='true' And (''!='' Or 'true'=='true'))(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_PerformBCCILink" 대상을 빌드했습니다.
+"CallTarget" 작업을 실행했습니다.
+조건이 잘못되어 "CallTarget" 작업을 건너뜁니다. ('$(USING_LD)'=='true' And '$(NO_LINK)'=='false')이(가) ('false'=='true' And 'false'=='false')(으)로 확인되었습니다.
+조건이 잘못되어 "CallTarget" 작업을 건너뜁니다. ('$(USING_LD)'=='true' And '$(NO_LINK)'=='false' And '$(TLibLink)'!='true')이(가) ('false'=='true' And 'false'=='false' And ''!='true')(으)로 확인되었습니다.
+조건이 잘못되어 "CallTarget" 작업을 건너뜁니다. ('$(USING_LD)'=='true')이(가) ('false'=='true')(으)로 확인되었습니다.
+조건이 잘못되어 "Message" 작업을 건너뜁니다. ('$(NO_LINK)'=='true')이(가) ('false'=='true')(으)로 확인되었습니다.
+조건이 잘못되어 "MessageMap" 작업을 건너뜁니다. ('$(NO_LINK)'=='true')이(가) ('false'=='true')(으)로 확인되었습니다.
+"NGSORTER.cbproj" 프로젝트에 "_PerformLink" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "Link" 대상("Build" 대상이 종속됨):
+"NGSORTER.cbproj" 프로젝트에 "Link" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\bin\CodeGear.Common.Targets" 파일에 있는 "_PostOutputTimeStamp" 대상("Build" 대상이 종속됨):
+"CreateItem" 작업
+"CreateItem" 작업을 실행했습니다.
+"NGSORTER.cbproj" 프로젝트에 "_PostOutputTimeStamp" 대상을 빌드했습니다.
+조건이 잘못되어 "MakeStaticPackage" 대상을 건너뜁니다. ('$(ProjectType)'=='CppPackage' And '$(ILINK_GenerateLibFile)'=='true' and '$(_DoingStaticPackageBuild)'!='true')이(가) ('CppVCLApplication'=='CppPackage' And ''=='true' and ''!='true')(으)로 확인되었습니다.
+조건이 잘못되어 "PostBuildEvent" 대상을 건너뜁니다. ( '$(PostBuildEvent)'!=''  And '$(KibitzCompile)'==''
+      and ( '$(PostBuildEventExecuteWhen)'=='Always' or '$(PostBuildEventExecuteWhen)'=='' or '$(PreOutputTimeStamp)'!='$(PostOutputTimeStamp)' ))이(가) ( ''!=''  And ''==''
+      and ( ''=='Always' or ''=='' or ''!='2026-09-16 12:03:29.0801794' ))(으)로 확인되었습니다.
+조건이 잘못되어 "GeniOSDevice32Outputs" 대상을 건너뜁니다. ('$(Platform)'=='$(ciOSDevice64Platform)' And ('$(DCC_GenerateUniversalBinaryFile)'=='true' Or '$(BCC_GenerateUniversalBinaryFile)'=='true'))이(가) ('Win32'=='iOSDevice64' And (''=='true' Or ''=='true'))(으)로 확인되었습니다.
+조건이 잘못되어 "AutoIncBuildNumber" 대상을 건너뜁니다. ('$(VerInfo_AutoIncVersion)'=='true' And ('$(Platform)'!='$(cAndroidPlatform)' Or ('$(Platform)'=='$(cAndroidPlatform)' And '$(BT_BuildType)'=='AppStore')))이(가) (''=='true' And ('Win32'!='Android' Or ('Win32'=='Android' And 'Debug'=='AppStore')))(으)로 확인되었습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트의 "C:\Program Files (x86)\Embarcadero\Studio\18.0\Bin\CodeGear.Cpp.Targets" 파일에 있는 "Build" 대상(진입점):
+"NGSORTER.cbproj" 프로젝트에 "Build" 대상을 빌드했습니다.
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj" 프로젝트를 빌드했습니다(Build 대상).
+
+빌드했습니다.
+
+"D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj"(Build 대상)(1) ->
+(_BCC32CoreCompile 대상) -> 
+  FormMain.cpp(4099): warning W8018: Assigning Sequence to Tgripper::Sequence in function _fastcall TMainForm::AdvSmoothToggleButton_InitWorkClick(TObject *) [D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj]
+  ModGripper.cpp(596): warning W8070: Function should return a value in function _fastcall Tgripper::GetZoneCode(int,AnsiString) [D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj]
+  ModGripper.cpp(827): warning W8004: 'bcheck' is assigned a value that is never used in function _fastcall Tgripper::Initialize() [D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj]
+  ModGripper.cpp(920): warning W8004: 'bfind' is assigned a value that is never used in function _fastcall Tgripper::Sorting() [D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj]
+  ModGripper.cpp(920): warning W8004: 'div2' is assigned a value that is never used in function _fastcall Tgripper::Sorting() [D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj]
+  ModGripper.cpp(920): warning W8004: 'div1' is assigned a value that is never used in function _fastcall Tgripper::Sorting() [D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj]
+  ModGripper.cpp(920): warning W8004: 'pos2' is assigned a value that is never used in function _fastcall Tgripper::Sorting() [D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj]
+  ModGripper.cpp(1246): warning W8004: 'div2' is assigned a value that is never used in function _fastcall Tgripper::Inserting() [D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj]
+  ModGripper.cpp(1246): warning W8004: 'div1' is assigned a value that is never used in function _fastcall Tgripper::Inserting() [D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj]
+  ModGripper.cpp(1246): warning W8004: 'pos2' is assigned a value that is never used in function _fastcall Tgripper::Inserting() [D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj]
+  Modmes.cpp(152): warning W8004: 'a' is assigned a value that is never used in function __stdcall TxThread(void *) [D:\Project\2026\03.Jeng(India)\02.Program\02.NGSORTER\NGSORTER.cbproj]
+
+    경고 11개
+    오류 0개
+
+경과 시간: 00:00:42.22

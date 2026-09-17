@@ -31,7 +31,11 @@ enum Local {
     NgLimit=206, LoadFactor=207, ManualRecovery=209,
     FmsSourceLoad=301, FmsTargetLoad=302, FmsProcessStart=303,
     FmsCellTrackOut=304, FmsProcessEnd=305, FmsTrayUnload=306,
-    FmsTrouble=307, ManualSourceLoad=308, ManualTargetLoad=309
+    FmsTrouble=307, ManualSourceLoad=308, ManualTargetLoad=309,
+    // Peripheral FMS reporting: preserve existing BCR 181/182 and PLC 152/153.
+    PowerMeterData=401,
+    SmokeCommunication=411, SmokeProtocol=412, SmokeNotRunning=413,
+    SmokeDetected=414, SmokeTempWarning=415, SmokeTempDanger=416
 };
 inline int TransactionStep(int transaction) {
     const int steps[]={0,2,5,6,12,14,16};

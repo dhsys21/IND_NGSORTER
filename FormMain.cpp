@@ -3376,7 +3376,13 @@ void __fastcall TMainForm::UpdateFmsEquipmentStatus()
 	bool plcReady=PlcBin != NULL && PlcBin->IsPlcStatusFresh(1000);
 	if(plcReady) plcWasReady=true;
 	if(plcWasReady) MesOpc->SetLocalAlarm(NGSorterErrors::PlcCommunication,!plcReady);
+	// Peripheral FMS: meter words share the validated D10100-D10117 response.
+	// Set on stale/lost data after first good read; clear on a fresh response.
+	// No meter fault bit is supplied by PLC; zero/unchanged values are not faults.
+	if(plcWasReady) MesOpc->SetLocalAlarm(NGSorterErrors::PowerMeterData,!plcReady);
 	if(plcReady) MesOpc->SetLocalAlarm(NGSorterErrors::PlcError,PlcBin->IsPlcError());
+	// Publish detector state from the main timer, not the serial callback.
+	if(comSmoke[0] != NULL) comSmoke[0]->PublishFmsAlarms();
 	if(robostar != NULL && robostar->IsSscOpened() && loadfactorForm != NULL){
 		bool overload=false;
 		for(int axis=1;axis<=servoCnt;++axis)

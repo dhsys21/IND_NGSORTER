@@ -1,0 +1,456 @@
+
+=== PAGE 1 ===
+1
+한국 미쓰비시전기 오토메이션㈜
+2015년 05월 27일
+3. MR-MC2XX POSITION BOARD – 기동편
+MR-MC240/MR-MC241
+PCI Express
+MR-MC210/MR-MC211
+PCI 버스
+
+=== PAGE 2 ===
+2
+교안 보는 방법
+본 교안은 크게 한가지 기능에 2가지 설명으로 구성되어
+있습니다. 각 기능에 PB-TEST를 사용하여 구동하는
+방법과 API-Library의 사용방법입니다.
+사용자 프로그램에서 그림②와 같이 API Library를
+사용하시기 전에 정상적인 동작 및 요구하는 기능인지를
+확인하기 위하여 ①방법 교안을 참고하여 TEST하시기를
+권장드립니다.
+예를 들어 시스템 리부트를 하기 위해서는 아래와 같은
+방법이 있습니다.
+그림①과 같이 PB-TEST 프로그램을 사용하여 시스템
+리부트 기능을 TEST하여 원하는 기능인지, 정상적으로
+동작하는지를 확인합니다.
+그림②와 같이 API Library를 사용자가 만든 프로그램(C, 
+C++, VB etc.)에 사용하여 시스템 리부트 기능을 사용할
+수 있습니다.
+①
+②
+
+=== PAGE 3 ===
+3
+기 동
+
+=== PAGE 4 ===
+4
+PB Test 기동 – JOG 운전
+① SON 
+클릭
+② Speed, Acc, Dec 입력
+Ex) Speed(500), Acc(1000), Dec(1000)
+③ JOG 모드 전환
+④ DIR : 방향 선택
+⑤ ST : 기동
+① 매뉴얼 5장 운전 기능 → 5. 1 JOG 운전 Page 5 – 2 참조
+
+=== PAGE 5 ===
+(1) sscSetCommandBitSignalEx
+지정된 지령 비트를 ON 또는 OFF 합니다.
+<인수>
+board_id[in] : 보드 ID번호(0 ~ 3)
+channel[in] : 채널번호(1)
+axnum[in] : 축 번호(0: 시스템 지령 비트, 1 ~ 32 : 각 축 지령 비트)
+bitnum[in] : 지령 비트 번호(토크 제한 : SSC_CMDBIT_AX_SON)
+(API라이브러리 매뉴얼 6장 비트 정의 일람 참고)
+bitdata[in] : 지령 비트 데이터(SSC_BIT_OFF or SSC_BIT_ON 입력)
+int sscSetCommandBitSignalEx(
+int board_id,
+int channel,
+int axnum,
+int bitnum,
+int bitdata,
+);
+5
+API Library – SERVO ON/OFF
+
+=== PAGE 6 ===
+(1) sscJogStart (2) sscJogStop
+JOG운전의 기동을 실시 합니다.         JOG운전의 정지를 실시 합니다.
+<인수>
+board_id[in] : 보드 ID번호(0 ~ 3)
+channel[in] : 채널번호(1)
+axnum[in] : 축 번호(0 : 시스템 파라미터, 1 ~ 32 : 각 축 파라미터)
+speed[in] : JOG 이송 속도[속도 단위](0 ~ 2147483647)
+actime[in] : JOG 이송 가속 시정수[ms](0 ~ 20000)
+dctime[in] : JOG 이송 감속 시정수[ms](0 ~ 20000)
+dir[in] : 이동방향(+방향 : SSC_DIR_PLUS, -방향 : SSC_DIR_MINUS)
+int sscJogStart(
+int board_id,
+int channel,
+int axnum,
+long speed,
+short actime,
+short dctime,
+char dir
+);
+6
+API Library – JOG 운전
+int sscJogStop(
+int board_id,
+int channel,
+int axnum,
+);
+
+=== PAGE 7 ===
+7
+PB Test 기동 – 원점복귀
+① SON 
+클릭
+② 원점복귀 모드 전환
+③ 원점 복귀 기동
+① 매뉴얼 5장 운전 기능 → 5. 5 원점 복귀 Page 5 – 23 참조(파라미터No.0240에 설정)
+
+=== PAGE 8 ===
+8
+API Library – 원점복귀
+(1) sscHomeReturnStart
+원점복귀의 기동을 실시 합니다.
+<인수>
+board_id[in] : 보드 ID번호(0 ~ 3)
+channel[in] : 채널번호(1)
+axnum[in] : 축 번호(1 ~ 32)
+int sscHomeReturnStart(
+int board_id,
+int channel,
+int axnum
+);
+
+=== PAGE 9 ===
+9
+① SON 
+클릭 ② Speed, Acc, Dec, Inc 입력
+Ex) Speed(500), Acc(1000), Dec(1000), Inc(100000)
+③ INC 모드 전환
+④ DIR : 방향 선택
+⑤ ST : 기동
+① 매뉴얼 5장 운전 기능 → 5. 2 인크리멘털 이송 Page 5 – 4 참조
+PB Test 기동 – Inc.feed 운전
+
+=== PAGE 10 ===
+(1) sscIncStart
+인크리멘탈 이송의 기동을 실시 합니다.
+<인수>
+board_id[in] : 보드 ID번호(0 ~ 3)
+channel[in] : 채널번호(1)
+axnum[in] : 축 번호(0 : 시스템 파라미터, 1 ~ 32 : 각 축 파라미터)
+distance[in] : 인크리멘탈 이송 이동량[지령단위](-2147483647 ~ 2147483647)
+speed[in] : 이송 속도[속도 단위](0 ~ 2147483647)
+actime[in] : 이송 가속 시정수[ms](0 ~ 20000)
+dctime[in] : 이송 감속 시정수[ms](0 ~ 20000)
+int sscIncStart(
+int board_id,
+int channel,
+int axnum,
+long distance,
+long speed,
+short actime,
+short dctime,
+);
+10
+API Library – Inc.feed 운전
+
+=== PAGE 11 ===
+11
+PB Test 기동 – 위치결정 운전
+① Point No. Offset : 각 축에 포인트 테이블 시작 점을 설정할 수 있습니다. 위 그림에서 보는 것과 같이
+Axis 1은 0000으로 시작되고, Axis 2는 0008부터 시작합니다. 마찬가지로 Axis 3은 0010부터 위치결정
+데이터를 입력하시면 됩니다.
+② Point Data : 총 32축을 최대 319개 포인트 테이블에 입력할 수 있습니다. Offset에 Default값은 기본적으로
+1축당 8개의 포인트 테이블이 할당 되어 있습니다. 또한 Point View Type은 본 교재는 편의를 위해
+Sequential No. 모드로 설정하였습니다. 각 모드에 관해서는 Next Page에서 설명하겠습니다.
+① ②
+1Axis : 0000 ~ 0007
+2Axis : 0008 ~ 000F
+
+=== PAGE 12 ===
+12
+PB Test 기동 – 위치결정 운전
+① Sequential no. 모드는 총 319개의 포인트 테이블을 나열하여 보여주는 방식입니다.
+① Sequential No. 모드
+1Axis : 0000 ~ 0007
+2Axis : 0008 ~ 000F
+
+=== PAGE 13 ===
+13
+PB Test 기동 – 위치결정 운전
+① Each Axis 모드는 각 축을 선택하여 포인트 테이블을 입력할 수 있습니다. 주의 하실 점은 1축을 선택하여
+보았을 경우 0008번이 2축의 첫번째 포인트 테이블이므로 Sel.Axis:Axis□를 2축을 선택하면
+방금 0008에 입력했던 포인트 테이블이 0000번에 들어가 있음을 확인 하실 수 있습니다.
+이런 식으로 1축의 기준으로 3축은 0010이고 2축을 선택했을 경우 1축 기준의 0010의 포인트 테이블은
+0008에 표시됩니다. 이런 점을 주의하여 각 축의 포인트 테이블을 입력하시기 바랍니다.
+② Each Axis 모드
+2Axis1Axis
+
+=== PAGE 14 ===
+14
+PB Test 기동 – 위치결정 운전
+① 1축에 대한 위치결정 데이터 설정 후 Offset을 확인하여 원하는 □ Axis을 선택하여
+위치결정 데이터 설정
+Ex : 1Axis(0000 ~ 0007), 2Axis(0008 ~ 000F), 3Axis(0010 ~ 001F) ……..
+② 매뉴얼 5장 운전 기능 → 5. 3 자동 운전 Page 5 – 6 참조
+
+=== PAGE 15 ===
+(1) sscSetPointDataEx
+포인터로 지정된 구조체 변수에 저장된 포인트 데이터를 설정합니다.
+<인수>
+board_id[in] : 보드 ID번호(0 ~ 3)
+channel[in] : 채널번호(1)
+axnum[in] : 축 번호(1 ~ 32 : 각 축 파라미터)
+pnt_num[in] : 포인트 번호(0 ~ 319)
+pPntDataEx[in] : 포인트 데이터를 저장하는 32바이트 구조체(32바이트×1)로의 포인터
+int sscSetPointDataEx(
+int board_id,
+int channel,
+int axnum,
+int pnt_num,
+PNT_DATA_EX *pPntDataEx
+);
+15
+API Library – 포인트 테이블 설정
+
+=== PAGE 16 ===
+(2) PNT_DATA_EX 구조체
+자동 운전·직선 보간으로 사용하는 포인트 데이터 구조체입니다.
+typedef struct {
+/*0000h*/
+long   position ;
+unsigned long   speed ;
+unsigned short  actime ;
+unsigned short  dctime ;
+unsigned short  dwell ;
+unsigned short  subcmd;
+/*0010h*/
+unsigned char   oas_num[2] ;
+unsigned char   reserve2[2] ;
+………
+………
+} PNT_DATA_EX ;
+16
+API Library – 포인트 테이블 설정
+
+=== PAGE 17 ===
+<인수>
+position : 위치데이터
+speed : 전송속도(0 ~ 2147483647)
+actime : 이송 가속 시정수[ms](0 ~ 20000)
+dctime : 이송 감속 시정수[ms](0 ~ 20000)
+dwell : 드웰[ms]
+subcmd : 보조지령
+oas_num[2] : 타축 기동 지정(0 ~ 32)
+s_curve : S자 비율[%](0  ~ 100)
+17
+API Library – 포인트 테이블 설정
+
+
+=== PAGE 18 ===
+18
+① SON 클릭
+② Start / End point입력
+Ex) Start point number,Axis1(0)
+End point number,Axis1(5)
+③ 자동운전모드 전환
+④ ST : 기동
+① 매뉴얼 5장 운전 기능 → 5. 3 자동 운전 Page 5 – 6 참조
+PB Test 기동 – 위치결정 운전
+
+=== PAGE 19 ===
+(1) sscAutoStart
+자동 운전의 기동을 실시합니다.
+운전에 필요한 설정을 실시하고 자동 운전 모드로 변경 후,
+고속 운전 기동 신호(FST)를 ON 합니다.
+<인수>
+board_id[in] : 보드 ID번호(0 ~ 3)
+channel[in] : 채널번호(1)
+axnum[in] : 축 번호(1 ~ 32 : 각 축 파라미터)
+point_s[in] : 개시포인트 번호(0 ~ 319)
+point_e[in] : 종료포인트 번호(0 ~ 319)
+int sscAutoStart(
+int board_id,
+int channel,
+int axnum,
+int point_s,
+int point_e
+);
+19
+API Library – 위치결정 운전
+
+=== PAGE 20 ===
+20
+PB Test 기동 – 직선 보간 기동
+① 매뉴얼 5장 운전 기능 → 5. 4 직선 보간 Page 5 – 16 참조
+
+=== PAGE 21 ===
+21
+① 매뉴얼 5장 운전 기능 → 5. 4 직선 보간 Page 5 – 16 참조
+PB Test 기동 – 직선 보간 기동
+1Axis : Master축
+2Axis : Slave축
+
+=== PAGE 22 ===
+22
+① SON 클릭
+② Start / End point입력
+Ex) Start point number,Axis1(0)
+End point number,Axis1(0)
+③ 보간 모드 전환
+④ ST : 기동
+① Axis.1은 Master, Axis.2는 Slave 축으로 설정되었기 때문에 1축에 포인트 테이블 0번을 Start와 End에
+입력하고 보간모드로 전환하여 위치결정을 기동하면 1축과 2축의 직선 보간 운전 기동
+② 매뉴얼 3장 운전 기능 → 3. 4 직선 보간 Page 3 – 14 참조
+PB Test 기동 – 직선 보간 기동
+
+=== PAGE 23 ===
+(1) sscLinearStart
+직선 보간을 기동합니다.
+운전에 필요한 설정을 실시하고 직선 보간 모드로 변경 후,
+고속 운전 기동 신호(FST)를 ON 합니다. 자동 운전의 기동을 실시합니다.
+<인수>
+board_id[in] : 보드 ID번호(0 ~ 3)
+channel[in] : 채널번호(1)
+axnum[in] : 축 번호(1 ~ 32 : 각 축 파라미터)
+grpnum[in] : 그룹 번호(1 ~ 8)
+point_s[in] : 개시포인트 번호(0 ~ 319)
+point_e[in] : 종료포인트 번호(0 ~ 319)
+int sscLinearStart(
+int board_id,
+int channel,
+int axnum,
+int grpnum,
+int point_s,
+int point_e
+);
+23
+API Library – 직선 보간 기동
+
+=== PAGE 24 ===
+24
+에러 모니터 및 리셋
+
+=== PAGE 25 ===
+25
+PB Test – 시스템 에러 모니터
+① 매뉴얼 10장 테이블 맵 → 10. 3 시스템 지령/상태 테이블 Page 10 – 5 참조
+② 매뉴얼 13장 알람 번호 → 13. 4 시스템 에러 Page 13 – 11 참조
+① Reset of Control Alarm
+
+=== PAGE 26 ===
+26
+PB Test – 시스템 에러 모니터
+① 매뉴얼 13장 알람 번호 → 13. 1 시스템 에러 Page 13 – 1 참조
+① Reset of Control Alarm
+
+=== PAGE 27 ===
+27
+PB Test – 시스템 에러 모니터
+① Operation Alarm Reset
+① 매뉴얼 13장 알람 번호 → 13. 3 운전 알람 Page 13 – 4 참조
+② Operation Alarm 번호 확인
+
+=== PAGE 28 ===
+28
+PB Test – 시스템 에러 모니터
+① Servo Alarm Reset
+① 매뉴얼 13장 알람 번호 → 13. 2 서보 알람 Page 13 – 2 참조
+② MR-J4 서보앰프 기술자료집 (트러블 슈팅편) 참조
+② Servo Alarm 번호 확인
+
+=== PAGE 29 ===
+(1) sscGetAlarm
+알람 번호 및 알람 상세 번호를 취득합니다.
+<인수>
+board_id[in] : 보드 ID번호(0 ~ 3)
+channel[in] : 채널번호(1)
+axnum[in] : 축 번호(0: 시스템 알람, 1 ~ 32 : 각 축 알람)
+alarm_type[in]
+- 시스템 알람 : SSC_ALARM_SYSTEM
+- 서보 알람 : SSC_ALARM_SERVO
+- 운전 알람 : SSC_ALARM_OPERATION
+code[out] : 알람 번호 변수를 저장하는 2바이트 변수(2바이트 × 1)로의 포인터
+detail_code[out] : 알람 상세 번호 변수를 저장하는 2바이트 변수(2바이트 × 1)로의 포인터
+int sscGetAlarm(
+int board_id,
+int channel,
+int axnum,
+int alarm_type,
+unsigned short *code,
+unsigned short *detail_code,
+);
+29
+API Library – 에러 코드 취득
+
+=== PAGE 30 ===
+(1) sscResetAlarm
+알람을 리셋 합니다.
+<인수>
+board_id[in] : 보드 ID번호(0 ~ 3)
+channel[in] : 채널번호(1)
+axnum[in] : 축 번호(0: 시스템 알람, 1 ~ 32 : 각 축 알람)
+alarm_type[in]
+- 시스템 알람 : SSC_ALARM_SYSTEM
+- 서보 알람 : SSC_ALARM_SERVO
+- 운전 알람 : SSC_ALARM_OPERATION
+int sscResetAlarm(
+int board_id,
+int channel,
+int axnum,
+int alarm_type,
+);
+30
+API Library – 에러 리셋
+
+=== PAGE 31 ===
+31
+① 매뉴얼 12장 모니터 번호 Page 12 – 1 참조
+PB Test 기동 – MONITOR
+① 1040에 모니터No. 기입
+ex) 024E : 실효 부하율
+- sscSetMonitor 사용
+② MON 클릭
+③ DATA 모니터링
+- sscGetMonitor 사용
+※ 부하율 참고 모니터No.
+- 020B : 모터 실시간 토크
+- 024E : 모터 실효 부하율
+- 024F : 모터 피크 부하율
+
+=== PAGE 32 ===
+(1) sscSetMonitor
+모니터를 개시 합니다.
+<인수>
+board_id[in] : 보드 ID번호(0 ~ 3)
+channel[in] : 채널번호(1)
+axnum[in] : 축 번호(0 : 시스템 파라미터, 1 ~ 32 : 각 축 파라미터)
+monnum[in] : 모니터 번호(4점분)를 저장하는 8바이트 배열(2바이트 X 4)로의 포인터
+int sscSetMonitor(
+int board_id,
+int channel,
+int axnum,
+short *monnum
+);
+32
+API Library – MONITOR①
+
+=== PAGE 33 ===
+(2) sscGetMonitor
+모니터 DATA를 취득 합니다.
+<인수>
+board_id[in] : 보드 ID번호(0 ~ 3)
+channel[in] : 채널번호(1)
+axnum[in] : 축 번호(0 : 시스템 파라미터, 1 ~ 32 : 각 축 파라미터)
+monnum[out] : 모니터 번호를 저장하는 8바이트 배열(2바이트 X 4)로의 포인터
+mondata[out] : 모니터 데이터를 저장하는 8바이트 배열(2바이트 X 4)로의 포인터
+int sscGetMonitor(
+int board_id,
+int channel,
+int axnum,
+short *monnum
+short *mondata
+);
+33
+API Library – MONITOR②
+
+=== PAGE 34 ===
+34

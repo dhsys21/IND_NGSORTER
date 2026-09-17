@@ -1,0 +1,45 @@
+[
+  {
+    "heading": "3.1 메인 화면 전체",
+    "path": "D:\\Project\\2026\\03.Jeng(India)\\02.Program\\02.NGSORTER\\tmp\\NGSManual\\rev002\\captures\\main.png",
+    "caption": "그림 3-1. NG SORTER 메인 화면 실제 캡처",
+    "table_new_page": false
+  },
+  {
+    "heading": "3.2 운전 모드 및 Tray 정보",
+    "path": "D:\\Project\\2026\\03.Jeng(India)\\02.Program\\02.NGSORTER\\tmp\\NGSManual\\rev002\\captures\\tray-info.png",
+    "caption": "그림 3-2. 운전 조작부와 Target 및 Source Tray 정보",
+    "table_new_page": true
+  },
+  {
+    "heading": "3.3 96채널 선별 화면",
+    "path": "D:\\Project\\2026\\03.Jeng(India)\\02.Program\\02.NGSORTER\\tmp\\NGSManual\\rev002\\captures\\sorting.png",
+    "caption": "그림 3-3. 좌측 Target와 우측 Source의 96채널 표시",
+    "table_new_page": false
+  },
+  {
+    "heading": "3.4 Teaching 및 수동 조작 화면",
+    "path": "D:\\Project\\2026\\03.Jeng(India)\\02.Program\\02.NGSORTER\\tmp\\NGSManual\\rev002\\captures\\teaching.png",
+    "caption": "그림 3-4. Teaching 및 수동 조작 화면 실제 캡처",
+    "table_new_page": true
+  },
+  {
+    "heading": "3.5 Configuration",
+    "path": "D:\\Project\\2026\\03.Jeng(India)\\02.Program\\02.NGSORTER\\tmp\\NGSManual\\rev002\\captures\\config.png",
+    "caption": "그림 3-5. Configuration 화면 실제 캡처",
+    "table_new_page": true
+  },
+  {
+    "heading": "3.6 PLC FMS Interface 및 I/O Monitoring",
+    "path": "D:\\Project\\2026\\03.Jeng(India)\\02.Program\\02.NGSORTER\\tmp\\NGSManual\\rev002\\captures\\interface.png",
+    "caption": "그림 3-6. PLC 및 MES 통신 데이터 확인 화면",
+    "table_new_page": true
+  },
+  {
+    "heading": "6.2 JOG 및 Z축 속도 설정",
+    "path": "D:\\Project\\2026\\03.Jeng(India)\\02.Program\\02.NGSORTER\\tmp\\NGSManual\\rev002\\captures\\jog.png",
+    "caption": "그림 6-1. JOG 및 Z축 조작부 확대",
+    "table_new_page": false,
+    "width": 5.5
+  }
+]

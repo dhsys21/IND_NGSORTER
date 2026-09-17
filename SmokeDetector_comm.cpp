@@ -46,6 +46,18 @@ void __fastcall TSmokeDetector::UpdateFmsEnvStatus(double Temperature,
 			TempDanger, Running);
 }
 //---------------------------------------------------------------------------
+void __fastcall TSmokeDetector::PublishFmsAlarms()
+{
+	// FMS EnvStatus alarms: only the main status timer updates the alarm registry.
+	if(MesOpc == NULL) return;
+	MesOpc->SetLocalAlarm(NGSorterErrors::SmokeCommunication, m_fmsAlarms.Communication);
+	MesOpc->SetLocalAlarm(NGSorterErrors::SmokeProtocol, m_fmsAlarms.ProtocolError());
+	MesOpc->SetLocalAlarm(NGSorterErrors::SmokeNotRunning, m_fmsAlarms.NotRunning);
+	MesOpc->SetLocalAlarm(NGSorterErrors::SmokeDetected, m_fmsAlarms.Smoke);
+	MesOpc->SetLocalAlarm(NGSorterErrors::SmokeTempWarning, m_fmsAlarms.TempWarning);
+	MesOpc->SetLocalAlarm(NGSorterErrors::SmokeTempDanger, m_fmsAlarms.TempDanger);
+}
+//---------------------------------------------------------------------------
 unsigned short __fastcall TSmokeDetector::get_crc16(unsigned char *pBuf, int nLen)
 {
 	int i, j;
@@ -89,6 +101,8 @@ void __fastcall TSmokeDetector::CommOpen(AnsiString port, int sep, int id, int m
 	m_savedMode = mode;
 	m_savedBaudRate = baudRate;
 	m_communicationSettingsApplied = true;
+	// FMS EnvStatus: explicit empty port disables communication monitoring only.
+	m_fmsAlarms.SetEnabled(!port.IsEmpty());
 	// An empty port disables this device without reopening the previous port.
 	if(port.IsEmpty()){
 		CommClose();
@@ -144,6 +158,7 @@ void __fastcall TSmokeDetector::CommOpen(AnsiString port, int sep, int id, int m
 		chkTimer->Enabled = true;
 	}
 	catch(...){
+		m_fmsAlarms.TransportFailure();
 		Comm->Close();
         chkTimer->Enabled = false; // 실패 시 타이머 중지
 		UpdateFmsEnvStatus(m_temperature, m_smokeDetected, m_tempWarning,
@@ -154,6 +169,8 @@ void __fastcall TSmokeDetector::CommOpen(AnsiString port, int sep, int id, int m
 //---------------------------------------------------------------------------
 void __fastcall TSmokeDetector::CommClose()
 {
+	// FMS EnvStatus: retain device alarms until a valid measurement clears them.
+	m_fmsAlarms.TransportFailure();
 	chkTimer->Enabled = false;
 	bWaitingResponse = false;
     if(Comm->Connected)
@@ -165,6 +182,7 @@ void __fastcall TSmokeDetector::CommClose()
 // Reopen the serial port after the detector connection is lost.
 void __fastcall TSmokeDetector::Reconnect()
 {
+	m_fmsAlarms.TransportFailure();
 	UpdateFmsEnvStatus(m_temperature, m_smokeDetected, m_tempWarning,
 		m_tempDanger, false);
     BaseForm->Memo1->Lines->Clear();
@@ -205,6 +223,7 @@ void __fastcall TSmokeDetector::Reconnect()
 void __fastcall TSmokeDetector::GetTsdData()
 {
     if(!Comm->Connected) {
+		m_fmsAlarms.TransportFailure();
 		AlarmForm->ShowError("TSD-V50 COM Port", "Can not open " + Comm->Port + " port.");
 		return;
 	}
@@ -447,6 +466,7 @@ void __fastcall TSmokeDetector::Parse_Modbus(unsigned char* rxBuf, int cnt)
 
 		// FMS EnvStatus Modbus mapping: Temperature=1001h PV,
 		// Smoke/Warning/Danger=alarm bits 2/0/1, Running=output bit 4.
+		m_fmsAlarms.Measurement(true, outRun, alarmSmoke, alarmTempW, alarmTempD);
 		UpdateFmsEnvStatus(finalTemperature, alarmSmoke, alarmTempW,
 			alarmTempD, outRun);
 
@@ -504,6 +524,8 @@ void __fastcall TSmokeDetector::Parse_Modbus(unsigned char* rxBuf, int cnt)
     else if (funcCode == 0x06)
     {
         if (cnt < 8) return;
+		// FMS EnvStatus: only a valid write response clears a write exception.
+		m_fmsAlarms.WriteSucceeded();
 
         unsigned short echoedAddr = (rxBuf[2] << 8) | rxBuf[3];
         short echoedData          = (rxBuf[4] << 8) | rxBuf[5];
@@ -522,6 +544,8 @@ void __fastcall TSmokeDetector::Parse_Modbus(unsigned char* rxBuf, int cnt)
     else if (funcCode == 0x88 || funcCode == 0x86 || funcCode == 0x83)
     {
         if (cnt < 5) return;
+		// FMS EnvStatus: read and write failures have independent clear sources.
+		m_fmsAlarms.ExceptionResponse(funcCode == 0x86);
 
         unsigned char errorCode = rxBuf[2]; // 3번째 바이트가 에러 코드
 
@@ -577,6 +601,9 @@ void __fastcall TSmokeDetector::Parse_HumanAuto(unsigned char* rxBuf, int cnt)
 
 					// FMS EnvStatus HumanAutomation mapping: this protocol has no
 					// individual alarm bits, so report temperature and Running=true.
+					bWaitingResponse = false;
+					failCount = 0;
+					m_fmsAlarms.Measurement(false, true, false, false, false);
 					UpdateFmsEnvStatus(finalTemperature, false, false, false, true);
 
 					if(ErrorForm_bcr->Visible) {
@@ -647,8 +674,17 @@ void __fastcall TSmokeDetector::chkTimerTimer(TObject *Sender)
     if (Comm->Connected)
     {
         bWaitingResponse = true; // 응답 대기 상태로 전환
-        GetTsdData();
+        try {
+            GetTsdData();
+        } catch(...) {
+            // FMS EnvStatus: polling send failures must be reported as lost
+            // communication, not a fabricated zero temperature/normal alarm.
+            m_fmsAlarms.TransportFailure();
+            UpdateFmsEnvStatus(m_temperature, m_smokeDetected, m_tempWarning,
+                m_tempDanger, false);
+        }
     }else{
+        m_fmsAlarms.TransportFailure();
         bWaitingResponse = true;
     }
 

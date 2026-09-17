@@ -1,0 +1,4907 @@
+
+=== PAGE 1 ===
+Revision 2.60 [Korean]
+2025/12/11
+스마트 분전반 디지털전력미터
+전력/누전 계측모듈
+Smart Digital Power Meter/
+Power Measuring Module
+Provide the Best Multi-Functional Smart Device Solution
+ACCURA 
+2500/2550
+인간과 자연을 위한 
+에너지 솔루션
+
+
+=== PAGE 2 ===
+
+
+=== PAGE 3 ===
+04 요약
+06 전사적 에너지관리시스템
+08 디스플레이
+19 정밀도
+22 전력품질 / 통신
+23 누설전류 계측
+24 설치 예
+25 내부 통신결합
+26 외부 통신결합
+27 제품특징
+35 제품사양
+43
+44
+표준규격
+주문정보
+48 제품 이미지
+58 제품설치
+68 제품치수
+CONTENTS
+
+=== PAGE 4 ===
+Smart Digital Power Meter/
+Power Measuring Module
+4
+요약
+AC/DC 분전반 전압/전류/전력계측
+Dip(Sag)/Swell, PQ Curve 전력품질정보 제공
+누설전류 정밀 계측
+Accura 2500M 모듈은 AC 및 DC 전압을 모두 계측할 수 있고, Accura 
+2550 모듈은 AC 전류를 계측하는 모듈과 DC 전류를 계측하는 모듈로 
+구분된다. 따라서 분전반의 AC/DC 전압 사양에 따라 적절한 Accura 2550 
+계측모듈을 사용하여 구성해야 한다.
+ZCT(Zero-sequence Current Transformer)를 내장하는 Accura 2550CMZ 
+전력/누전 계측모듈과 Accura 2550CMMZ MCB용 삼상 전력/누전 계측모듈은 
+누설전류를 직접 계측하여 정밀한 누설전류 계측값 (RMS 및 기본파)을 
+제공한다. Accura 2550CMS 스플릿코어 전력계측모듈은 ZCT를 내장한 
+Accura 2550ZM 누전계측모듈을 연결함으로써 누설전류를 정밀하게 
+계측한다. 또한, 외부 ZCT를 연결할 수 있는 Accura 2550CM-3P 모듈은 
+외부에 설치된 전압형 ZCT를 ZCT 연결 단자에 연결하여 누설전류를 계측한다.
+Accura 2500/2550은 Dip, Swell, PQ Curve와 고조파 (50차까지), Crest 
+factor, K-factor, 불평형률 등의 다양한 전력품질 정보를 제공한다. 이는 
+에너지관리 책임자가 전력설비 내 다양한 분전반별 전력품질 변화를 쉽게 
+파악할 수 있게 하므로 실제적인 전력품질 관리가 가능하다.
+AC SUMMARY DC SUMMARY
+누설전류
+PQ Curve
+ 고조파
+Accura 2550CMS-2P
+Accura 2550
+CMMZ
+Accura 2550
+CMZ
+Accura 2550CMS Accura 2550ZM
+ Accura 2550CM-3P
+   ZCT 내장모듈  외부 ZCT 연결모듈
+다양한 계측 기능을 갖춘 분리형(Split-Core) 구조의 
+CMS-2P 전력계측모듈
+스플릿코어 CMS-2P 전력계측모듈은 전류 센서가 내장된 두 개의 관통 홀을 
+통해 전류를 센싱하며, 부하모드 설정에 따라 삼상3선, 단상2선, 단상2피더의 
+전력을 계측한다. 분리형(Split-core) 구조로 모듈 상·하단의 분리가 가능하여, 
+전원이 공급된 상태에서도 설치 및 유지보수가 가능하다. 사용자는 모듈 ID, 
+부하모드 등의 설정항목을 Accura 2500D 통합 HMI 모듈을 통해 설정할 
+수 있으며, 모듈 동작 상태를 전면의 LED로 시각적으로 확인할 수 있다.  
+
+
+=== PAGE 5 ===
+5
+전압/전류/유효전력/유효전력량 IEC 61557-12 Class 0.5  
+정밀계측
+최근 플랜트, 공장, 빌딩 등의 현장에서는 효율적인 에너지 사용 및 
+예방관리를 위해 전사적 에너지관리시스템 구축이 필수가 되고 있다. 
+이 에너지관리시스템의 신뢰성을 결정하는 핵심요소가 미터의 계측 
+정밀도이다. Accura 2500/2550은 전압/전류/유효전력/유효전력량에 
+대하여 IEC 61557-12 Class 0.5 정밀도를 만족하므로 에너지관리와 
+전력설비의 다양한 문제에 대하여 정확한 분석과 진단을 가능하게 한다.
+Aggregation 구간 내 최대/최소/평균 통계정보 제공
+전류 관통형 (Through hole) 구조로 설치 안전성 확보
+CE/UL/KC 인증으로 안전성 및 신뢰성 확보
+다양한 정격의 MCCB와 일체형 설치/Compact 사이즈
+Accura 2500/2550은 전압, 전류, 전력 등을 포함한 여러 계측값에 대하여 
+subframe (AC 계측의 경우 cycle에 해당) 단위의 계측으로부터 매 0.2초 
+frame 구간에 해당하는 값을 연산한다. 0.2초 frame 계측값으로부터 
+0.2초보다 긴 1초, 5초, 1분, 5분, 1시간 및 6시간 등과 같은 여러 aggregation 
+구간에 대하여 최대/최소/평균값 및 최대/최소값에 대한 시간정보를 제공한다. 
+이는 aggregation 구간 내 순시적으로 변동하는 계측값의 정보를 포함하므로 
+전압, 전류, 전력의 정확한 트렌드 분석을 가능하게 하고, 또한 상위시스템의 
+데이터 수집과 연산에 대한 부하를 줄일 수 있다.
+Accura 2550 모듈은 전선 (버스바 포함)과 전기적 접촉이 없는 관통형 
+전류센싱 구조를 갖추고 있어 전기사고에 대한 안전성이 확보되고 
+제품설치가 간편하다. TM-CM[Z/S]-3P/1P 단자대는 현장의 전선연결 
+작업을 용이하게 한다. 
+Accura 2500/2550의 내/외부 구조 (기구설계, 회로설계)는 CE (EN 55011, 
+EN IEC 61326-1, EN IEC 61326-2-1, EN IEC 61000-3-2, EN 61000-3-3), UL 
+(UL 61010-1 3rd Edition, UL 61010-2-030 2nd Edition), KC (EN 55011, EN 
+IEC 61326-1, EN IEC 61326-2-1)의 안전도 및 신뢰성 규격을 만족한다.
+Accura 2550 모듈은 다양한 정격에 대하여 MCCB와 설치규격, 배선홀 
+위치가 일치하므로 분전반 내 기존 MCCB와 일체형 설치가 가능하다. 또한 
+계측모듈의 폭을 최소화하였기 때문에 compact한 설치가 가능하다.
+Accura 2550CM
+25.0mm 45.0mm
+Accura 2550CMZ MCCB
+TM-CM
+Accura 2550CM
+MCCB
+
+=== PAGE 6 ===
+Smart Digital Power Meter/
+Power Measuring Module
+6
+Switching Hub
+ 
+DC POWER
+AC POWER
+전력변환장치
+전사적 에너지관리시스템
+DC 분전반
+DC 분전반
+AC 분전반
+AC 분전반
+
+=== PAGE 7 ===
+7
+화학플랜트
+반도체플랜트
+데이터센터
+DC 분전반
+AC 분전반
+
+=== PAGE 8 ===
+Smart Digital Power Meter/
+Power Measuring Module
+8
+디스플레이(HOME) 모드
+Accura 2500D는 5" Color TFT LCD를 통하여 Accura 2500M이 수집한 다수의 Accura 
+2550의 계측, 이벤트, 상태정보를 표시하고 설정변경 기능을 제공한다. LCD 하단 버튼에 
+의하여 HOME, SETUP, EVENT 모드가 선택된다.
+Accura 2500D 
+분전반 통합 HMI 모듈
+디스플레이
+AC SUMMARY
+전류
+DC SUMMARY
+ 전압
+설정(SETUP) 모드
+ SUMMARY
+ Chain View *
+ 계측설정
+ 이벤트 설정
+이벤트(EVENT) 모드
+ SUMMARY
+ PQ Curve이벤트 리스트
+ 1-Cycle RMS 트렌드
+전력
+Chain View *
+전력량
+ 페이저
+ * Accura 2500M-PWM 모듈 사용 시, Accura 2500D의 Chain View에
+    Accura 2500M-PWM 모듈을 나타내는 아이콘이 표시된다.
+
+=== PAGE 9 ===
+9
+Accura 2550CM
+전력계측모듈
+아래의 순서로 화면을 표시한다. SET 버튼을 짧게 누르면 자동표시화면을 수동으로 
+변경할 수 있으며, SET 버튼을 길게 누르면 설정 모드로 이동한다.
+Accura 2550CM-3P 
+삼상 전력계측모듈
+ID
+ A상 전류/전력
+C상 전류/전력평균전류/합전력
+B상 전류/전력
+모델
+Accura 2550CM - 3P - 800A - 210
+Accura 2550CM - 3P - 800A - 210 - ZCT 1
+Accura 2550CM - 3P - 630A - 145
+Accura 2550CM - 3P - 630A - 145 - ZCT 1
+Accura 2550CM - 3P - 400A - 140
+Accura 2550CM - 3P - 400A - 140 - ZCT 1
+Accura 2550CM - 3P - 250A
+Accura 2550CM - 3P - 125A
+Accura 2550CM - 3P - 100A
+Accura 2550CM - 3P - 60A
+Accura 2550CM - 3P - 5A
+Accura 2550CM - 3P - 5A - ZCT 1
+1. 외부에 설치된 전압형 ZCT를 ZCT 연결 단자에 연결하여
+   누설전류를 계측한다. 사용자는 ZCT 제조사로부터 ZCT를
+   별도로 구매해야 한다.
+2. 누설전류 디스플레이는 외부 ZCT 연결 설정을 활성화하면, 
+    외부 ZCT 연결 가능한 CM-3P 모듈에서 표시된다.
+누설전류 2   
+
+=== PAGE 10 ===
+Smart Digital Power Meter/
+Power Measuring Module
+10
+Accura 2550CM-1P
+단상 전력계측모듈
+전력
+전류 
+ID
+전류/전력 
+ID
+모델
+Accura 2550CM - 1P - 250A
+Accura 2550CM - 1P - 125A
+Accura 2550CM - 1P - 100A
+Accura 2550CM - 1P - 60A
+
+=== PAGE 11 ===
+11
+Accura 2550CMZ 
+전력/누전 계측모듈 (ZCT 내장)
+아래의 순서로 화면을 표시한다. SET 버튼을 짧게 누르면 자동표시화면을 수동으로 
+변경할 수 있으며, SET 버튼을 길게 누르면 설정 모드로 이동한다.
+Accura 2550CMZ-3P4W
+삼상4선 전력/누전 계측모듈
+Accura 2550CMZ-3P
+삼상 전력/누전 계측모듈
+ID
+누설전류
+A상 전류/전력
+평균전류/합전력
+B상 전류/전력
+C상 전류/전력
+모델
+Accura 2550CMZ - 3P4W - 250A - 145
+모델
+Accura 2550CMZ - 3P - 800A - 220
+Accura 2550CMZ - 3P - 630A - 155
+Accura 2550CMZ - 3P - 400A - 155
+Accura 2550CMZ - 3P - 250A
+Accura 2550CMZ - 3P - 125A
+Accura 2550CMZ - 3P - 100A
+Accura 2550CMZ - 3P - 60A
+
+=== PAGE 12 ===
+Smart Digital Power Meter/
+Power Measuring Module
+12
+Accura 2550CMZ-1P 
+단상 전력/누전 계측모듈
+누설전류전류/전력ID
+ID
+ 전류 
+ 전력
+ 누설전류
+모델
+Accura 2550CMZ - 1P - 250A
+Accura 2550CMZ - 1P - 125A
+Accura 2550CMZ - 1P - 100A
+Accura 2550CMZ - 1P - 60A
+
+=== PAGE 13 ===
+13
+  
+Accura 2550CMS-2P 
+스플릿코어 2P 
+전력계측모듈
+CMS-2P 전력계측모듈의 모듈 ID, 부하모드 등 설정항목은 Accura 2500D 통합 HMI 
+모듈을 통해 설정할 수 있으며, 모듈의 동작 상태는 전면 LED를 통해 시각적으로 확인할 
+수 있다.
+모델 옵션
+Accura 2550CMS - 2P - 800A - 70 - ZCT 1 - TEMP(n) 2
+Accura 2550CMS - 2P - 630A - 70 - ZCT 1 - TEMP(n) 2
+Accura 2550CMS - 2P - 630A - 52 - ZCT 1 - TEMP(n) 2
+Accura 2550CMS - 2P - 630A - 44 - ZCT 1 - TEMP(n) 2
+Accura 2550CMS - 2P - 400A - 70 - ZCT 1 - TEMP(n) 2
+Accura 2550CMS - 2P - 400A - 52 - ZCT 1 - TEMP(n) 2
+Accura 2550CMS - 2P - 400A - 44 - ZCT 1 - TEMP(n) 2
+Accura 2550CMS - 2P - 250A - 35 - ZCT 1 - TEMP(n) 2
+Accura 2550CMS - 2P - 125A - 30 - ZCT 1 - TEMP(n) 2
+Accura 2550CMS - 2P - 60A - 25 - ZCT 1 - TEMP(n) 2
+RedGreenOrange 
+점등: ID 3 중복 또는 Standby ID 4 상태 알림
+점멸: 이벤트 발생 상태 알림
+점등: CMS-2P 모듈 선택된 상태 알림점등: 정상 통신 상태 알림
+점멸: 펌웨어 업데이트 진행 상태 알림
+1. ZCT 및 Accura ETM 옵션 모듈은 차후 출시 예정이다.
+2. TEMP(n) 옵션은 Accura ETM 모듈의 추가 수량을 의미하며, 결선 방식에 따라 n=0(1P2W), n=1(3P3W) 또는 n=2(1P2F)로 선택할 수 있다.
+3. CMS-2P 모듈의 ID는 Accura 2500D 모듈의 「SETUP > 모듈 선택창 > Chain View」 에서 ID Setup 버튼으로 설정할 수 있다.
+4. Standby ID는 공장 출하 시의 초기 ID를 의미한다.
+ 
+
+=== PAGE 14 ===
+Smart Digital Power Meter/
+Power Measuring Module
+14
+Accura 2550CMS/ZM-3P4W 
+스플릿코어 3P4W
+전력/누전 계측모듈 (ZCT 내장)
+아래의 순서로 화면을 표시한다. SET 버튼을 짧게 누르면 자동표시화면을 수동으로 
+변경할 수 있으며, SET 버튼을 길게 누르면 설정 모드로 이동한다.
+모델
+Accura 2550CMS - 3P4W - 60A
+Accura 2550ZM - 3P4W - 60A - DI 1
+  1. 누설전류를 계측하는 ZM 모듈은 CMS 모듈에 연결된다.
+2. 누설전류 디스플레이는 ZM 모듈 연결시 표시된다.
+ID
+ A상 전류/전력
+B상 전류/전력
+C상 전류/전력
+평균전류/합전력
+누설전류 2
+
+=== PAGE 15 ===
+15
+1. 누설전류를 계측하는 ZM 모듈은 CMS 모듈에 연결된다.
+2. 피더1/피더2/피더3 은 LCD 디스플레이 좌측의 A/B/C 로 
+   구별한다.
+3. 누설전류 디스플레이는 ZM 모듈 연결시 표시된다.
+모델
+Accura 2550CMS - 1P3F - 60A
+Accura 2550ZM - 1P3F - 60A - DI 1
+Accura 2550CMS/ZM-1P3F
+스플릿코어 1P3F
+전력/누전 계측모듈 (ZCT 내장)
+아래의 순서로 화면을 표시한다. SET 버튼을 짧게 누르면 자동표시화면을 수동으로 
+변경할 수 있으며, SET 버튼을 길게 누르면 설정 모드로 이동한다.
+ID
+누설전류 3 피더3 전류/전력 2 피더2 전류/전력 2
+피더1 전류/전력 2
+
+=== PAGE 16 ===
+Smart Digital Power Meter/
+Power Measuring Module
+16
+ID
+누설전류 3 피더2 전류/전력 2
+ 피더1 전류/전력 2
+1. 누설전류를 계측하는 ZM 모듈은 CMS 모듈에 연결된다.
+2. 피더1/피더2 는 LCD 디스플레이 좌측의 A/B 로 구별한다.     
+3. 누설전류 디스플레이는 ZM 모듈 연결시 표시된다.
+모델
+Accura 2550CMS - 1P2F - 60A
+Accura 2550ZM - 1P2F - 60A - DI 1
+Accura 2550CMS/ZM-1P2F
+스플릿코어 1P2F
+전력/누전 계측모듈 (ZCT 내장)
+아래의 순서로 화면을 표시한다. SET 버튼을 짧게 누르면 자동표시화면을 수동으로 
+변경할 수 있으며, SET 버튼을 길게 누르면 설정 모드로 이동한다.
+
+=== PAGE 17 ===
+17
+Accura 2550CMM
+MCB용 
+삼상 전력계측모듈
+모델
+Accura 2550CMM - 3P - 60A
+Accura 2550CMM[Z]
+MCB용
+삼상 계측모듈
+아래의 순서로 화면을 표시한다. SET 버튼을 짧게 누르면 자동표시화면을 수동으로 
+변경할 수 있으며, SET 버튼을 길게 누르면 설정 모드로 이동한다.
+ID
+ 전류 전력
+Accura 2550CMMZ
+MCB용
+삼상 전력/누전 계측모듈
+모델
+Accura 2550CMMZ - 3P - 60A 1
+ID
+ 전류 
+전력
+누설전류
+ 1. CMMZ 모듈은 단상 멀티피더 동작을 지원하지 않는다.
+
+=== PAGE 18 ===
+Smart Digital Power Meter/
+Power Measuring Module
+18
+Accura 2550CMD 
+DC 전력계측모듈
+아래의 순서로 화면을 표시한다. SET 버튼을 짧게 누르면 자동표시화면을 수동으로 
+변경할 수 있으며, SET 버튼을 길게 누르면 설정 모드로 이동한다.
+전력
+전류 
+ID
+ID 전류/전력
+모델
+Accura 2550CMD - 1P - 1500A
+Accura 2550CMD - 1P - 750A
+Accura 2550CMD - 1P - 250A
+Accura 2550CMD - 1P - 125A
+Accura 2550CMD - 1P - 100A
+Accura 2550CMD - 1P - 60A
+
+=== PAGE 19 ===
+19
+Accura 2500M
+AC/DC 계측
+항목 모델/ 계측항목 정밀도 계측범위 (정밀도 보장) / 최소 계측
+AC 계측
+주파수 Accura 2500M IEC 61557-12 Class 0.02 (±10 mHz)42 − 65 Hz
+Accura 2500M-PWM 10 − 65 Hz 1
+전압 상전압 IEC 61557-12 Class 0.5 35 − 347 V L-N / 5 V L-N
+선간전압 IEC 61557-12 Class 0.5 60 − 600 V L-L
+잔류전압 ±0.5 %Un 2 최대 347 V L-N
+DC 계측
+전압 Accura 2500M ±0.5 % Reading ± 0.05 %Un 3
+최대 300 Vdc / 5 Vdc 
+Accura 2500M-VD 4 ±0.5 % Reading ± 0.05 %Un 5
+최대 1,000 Vdc / 10 Vdc
+1. Accura 2500M-PWM 모듈은 42 Hz 이하의 주파수 영역에서 계측 정밀도가 약 20 % 저하되며, 이때 정밀도는 ±0.6 % Reading 이다.
+2. Un은 기본전압 277 V 이다.
+3. Un은 기본전압 277 Vdc 이다.
+4. 정밀계측을 위하여 결합되는 VD 모듈의 P/N (제품 일련번호)은 Accura 2500M 제품의 P/N과 일치해야 한다. 
+5. Accura 2500M-VD 모듈의 기본전압 Un 은 560 Vdc 이다.
+정밀도 
+Accura 2550CM[Z]
+AC 계측
+항목 모델/ 계측항목 정밀도 계측범위 (정밀도 보장) / 최소 계측
+전류 IEC 61557-12 Class 0.5 2 %Ib − 120 %Ib / 0.1 %Ib 1
+누설전류 2 CM-3P 3
+CM-3P-800A-210-ZCT  ±2 % Reading ± 2 mA 20 mA − 2 A / 10 mA
+CM-3P-630A-145-ZCT
+CM-3P-400A-140-ZCT
+CM-3P-5A-ZCT
+CMZ-3P
+CMZ-3P-800A-220 ±0.5 % Reading ± 60 mA 60 mA − 2 A / 1 mA
+CMZ-3P-630A/400A-155 ±0.5 % Reading ± 30 mA 30 mA − 2 A / 1 mA
+CMZ-3P-250A ±0.5 % Reading ± 30 mA 30 mA − 2 A / 1 mA
+CMZ-3P-125A ±0.5 % Reading ± 20 mA 20 mA − 2 A / 1 mA
+CMZ-3P-100A ±0.5 % Reading ± 20 mA 20 mA − 2 A / 1 mA
+CMZ-3P-60A ±0.5 % Reading ± 20 mA 20 mA − 2 A / 1 mA
+CMZ-3P4W
+CMZ-3P4W-250A-145 ±0.5 % Reading ± 30 mA 30 mA − 2 A / 1 mA
+CMZ-1P
+CMZ-1P-250A ±0.5 % Reading ± 30 mA 30 mA − 2 A / 1 mA
+CMZ-1P-125A ±0.5 % Reading ± 20 mA 20 mA − 2 A / 1 mA
+CMZ-1P-100A ±0.5 % Reading ± 20 mA 20 mA − 2 A / 1 mA
+CMZ-1P-60A ±0.5% Reading ± 20 mA 20 mA − 2 A / 1 mA
+전력 유효전력 IEC 61557-12 Class 0.5 2 %Ib − 120 %Ib 
+무효전력 IEC 61557-12 Class 1 2 %Ib − 120 %Ib
+피상전력 IEC 61557-12 Class 0.5 2 %Ib − 120 %Ib
+전력량 유효전력량 IEC 62053-21 Class 0.5 2 %Ib − 120 %Ib
+무효전력량 IEC 62053-24 Class 1  2 %Ib − 120 %Ib
+피상전력량 IEC 61557-12 Class 0.5 2 %Ib − 120 %Ib
+역률 IEC 61557-12 Class 0.5 (±0.005) 2 %Ib − 120 %Ib
+1. Ib는 각 모델의 기본전류를 의미한다. 
+2. Accura 2550CMZ 모듈과 외부 ZCT 연결 가능한 Accura 2550CM-3P 모듈에서 지원되며, 누설전류의 기본파 성분에 대한 정밀도이다.
+3. 외부 ZCT 연결 가능한 Accura 2550CM-3P 모듈의 계측 정밀도는 외부 ZCT 오차가 0인 경우의 정밀도이다.
+
+=== PAGE 20 ===
+Smart Digital Power Meter/
+Power Measuring Module
+20
+Accura 2550CMS/ZM 
+AC 계측
+항목 모델/ 계측항목 정밀도 계측범위 (정밀도 보장) / 최소 계측
+전류 1 IEC 61557-12 Class 0.5 3.0 A − 72 A / 0.24 A 
+누설전류 2 CMS/ZM
+CMS/ZM-3P4W-60A 3
+±0.5 % Reading ± 10 mA 10 mA − 2 A / 1 mA
+CMS/ZM-1P3F-60A ±0.5 % Reading ± 5 mA 5 mA − 2 A / 1 mA
+CMS/ZM-1P2F-60A ±0.5 % Reading ± 5 mA 5 mA − 2 A / 1 mA
+전력 1 유효전력 IEC 61557-12 Class 0.5 3.0 A − 72 A
+무효전력 IEC 61557-12 Class 1 3.0 A − 72 A
+피상전력 IEC 61557-12 Class 0.5 3.0 A − 72 A
+전력량 1 유효전력량 IEC 62053-21 Class 0.5 3.0 A − 72 A
+무효전력량 IEC 62053-24 Class 1  3.0 A − 72 A
+피상전력량 IEC 61557-12 Class 0.5 3.0 A − 72 A
+역률 IEC 61557-12 Class 0.5 (±0.005) 3.0 A − 72 A
+1. 스플릿코어 CMS 모듈은 전력선이 홀의 상단부 중앙을 관통하는 조건에서 교정되었으며, 관통하는 위치가 상단부 중앙에서 벗어날수록 
+   전류, 전력 및 전력량의 오차는 증가하며 최대 1 % 까지 증가할 수 있다.
+2. 누설전류는 CMS 모듈에 ZM 모듈을 연결한 경우에 지원되며 기본파 성분에 대한 정밀도이다. 
+3. Accura 2550ZM-3P4W 모듈 결선 시 정확한 누설전류 계측을 위하여 4개의 전력선을 모아 홀 중앙을 관통하도록 연결해야 한다.
+Accura 2550CMS-2P 
+AC 계측
+항목 계측항목 정밀도 계측범위 (정밀도 보장) / 최소 계측
+전류 IEC 61557-12 Class 0.5 2 %Ib − 120 %Ib / 0.1 %Ib 1 
+전력 유효전력 IEC 61557-12 Class 0.5 2 %Ib − 120 %Ib 
+무효전력 IEC 61557-12 Class 1 2 %Ib − 120 %Ib
+피상전력 IEC 61557-12 Class 0.5 2 %Ib − 120 %Ib
+전력량 유효전력량 IEC 62053-21 Class 0.5 2 %Ib − 120 %Ib
+무효전력량 IEC 62053-24 Class 1  2 %Ib − 120 %Ib
+피상전력량 IEC 61557-12 Class 0.5 2 %Ib − 120 %Ib
+역률 IEC 61557-12 Class 0.5 (±0.005) 2 %Ib − 120 %Ib
+1. Ib는 각 모델의 기본전류를 의미한다. 
+
+=== PAGE 21 ===
+21
+Accura 2550CMD 
+DC 계측
+항목 모델 정밀도 계측범위 (정밀도 보장) / 최소 계측
+전류 CMD-1P -1500A ±1.0 % Reading ± 0.1 %Ib 1 최대 2,200 Adc / 1.5 Adc
+-750A ±1.0 % Reading ± 0.1 %Ib 1
+최대 120 %Ib / 0.1 %Ib
+-250A
+-125A
+-100A
+-60A
+전력 ±1.5 % Reading ± 0.15 %Un*Ib 최대 120 %Ib 
+전력량 ±1.5 % Reading ± 0.15 %Un*Ib 최대 120 %Ib 
+1. Ib는 각 모델의 기본전류를 의미한다.
+Accura 2550CMM[Z]
+AC 계측
+항목 모델/ 계측항목 정밀도 계측범위 (정밀도 보장) / 최소 계측
+전류 CMM-3P-60A IEC 61557-12 Class 0.5 1.2 A − 72 A / 0.06 A 
+누설전류 1
+CMMZ-3P-60A ±0.5 % Reading ± 10 mA 10 mA − 2 A / 1 mA
+전력 유효전력 IEC 61557-12 Class 0.5 1.2 A − 72 A
+무효전력 IEC 61557-12 Class 1 1.2 A − 72 A
+피상전력 IEC 61557-12 Class 0.5 1.2 A − 72 A
+전력량 유효전력량 IEC 62053-21 Class 0.5 1.2 A − 72 A
+무효전력량 IEC 62053-24 Class 1  1.2 A − 72 A
+피상전력량 IEC 61557-12 Class 0.5 1.2 A − 72 A
+역률 IEC 61557-12 Class 0.5 (±0.005) 1.2 A − 72 A
+1. Accura 2550CMMZ 모듈에서 지원되며, 누설전류의 기본파 성분에 대한 정밀도이다.
+
+=== PAGE 22 ===
+Smart Digital Power Meter/
+Power Measuring Module
+22
+DC 전력품질 항목 정밀도 조건
+전압 Dip(Sag)/Swell ±0.5 %Un 1 매 subframe 갱신되는 DC 전압 계측                        
+(20 ms @ 50 Hz mode, 16.7 ms @ 60 Hz mode)
+1. Un은 기본전압을 의미하며 277 Vdc 이다. 단, Accura 2500M-VD 모듈의 경우 560 Vdc 이다.
+AC 전력품질 항목 정밀도 조건
+전압 Dip(Sag)/Swell ±0.5 %Un 1 매 cycle 갱신되는 RMS 전압 계측
+PQ Curve SEMI F47-0706 ±0.5 %Un 매 cycle 갱신되는 RMS 전압 계측
+IEC 61000-4-11/34 Class 3
+ITIC
+전압/전류 고조파 ±0.5 %Un/Ib 2 50차까지
+전압/전류 불평형 ±0.5 %Un/Ib Symmetrical sequence unbalance, 
+NEMA MG1 unbalance
+전압/전류 페이저 ±0.5 %Un/Ib 128-point FFT
+THD [%] 3 전압 ±0.5 % @기본파 상전압 Un 1 조건 
+전류 ±0.5 % @기본파 전류 Ib 2 조건
+TDD [%] 3 전류 ±0.5 % @기본파 전류 Ib  조건
+  
+1. Un은 기본전압 277 V 이다.    2. Ib는 각 모델의 기본전류를 의미한다.                 3. 50차까지의 고조파를 포함한다.
+전력품질
+Accura 2500M은 상위 시스템과의 외부 통신을 
+위하여 이더넷 포트 2개와 RS-485 포트 1개를 
+지원하며, 내부 통신선을 이용하여 다수의 Accura 
+2550 모듈로부터 계측 데이터를 수신한다.
+모델 통신 포트(단자명) 사양
+Accura 2500M 외부전용 이더넷 포트 2개 Modbus TCP 프로토콜
+(ETHERNET1,ETHERNET2) 100 Base-TX (100 Mbps/ Full Duplex)
+이더넷스위칭 1, RSTP 2 , 
+Ring 결선에 의한 통신이중화 지원 
+스타 (Star), 데이지체인 (Daisy-Chain)
+링 (Ring) 결선
+RS-485 포트 1개 (Ta, Tb) Modbus RTU 프로토콜
+내부전용 포트 1개 (DISPLAY) Accura 2500D와 전용통신
+그룹 1 (RJ45-1, RJ45-2) 
+그룹 2 (RJ45-3, RJ45-4)
+Accura 2550과 전용통신
+Accura 2500D 내부전용 포트 1개 (DISPLAY) Accura 2500M과 전용통신
+Accura 2550 내부전용 포트 2개 (RJ45A, RJ45B) 3 Accura 2500M과 전용통신
+1. 이더넷 스위치가 내장되어 있으므로, 별도의 외부스위치 없이 Accura 2500M간 이더넷 데이지체인 연결이 가능하다.
+2. RSTP(Rapid Spanning Tree Protocol), IEEE 802.1D-2004.
+3. RJ45A, RJ45B에서 A, B 타입의 기능은 동일하다.
+통신
+
+=== PAGE 23 ===
+23
+누설전류 계측
+AC 삼상 부하 부하전류 모듈 비고
+삼상4선 삼상3선
+800 A A2550CM-3P-800A-210-ZCT + 외부 ZCT A2550CMZ-3P-800A-220 주의사항 1
+630 A A2550CM-3P-630A-145-ZCT + 외부 ZCT A2550CMZ-3P-630A-155
+400 A A2550CM-3P-400A-140-ZCT + 외부 ZCT A2550CMZ-3P-400A-155
+250 A A2550CMZ-3P4W-250A-145 A2550CMZ-3P-250A 주의사항 2
+125 A A2550CMZ-3P-125A
+100 A A2550CMZ-3P-100A
+60 A - A2550CMZ-3P-60A 일반용
+A2550CMMZ-3P-60A MCB용
+A2550CMS-3P4W-60A + A2550ZM-3P4W-60A-DI (누전계측모듈 연결) 스플릿코어
+5 A A2550CM-3P-5A-ZCT + 외부 ZCT 주의사항 1, 3
+AC 단상 부하 부하전류 모듈 비고
+250 A A2550CMZ-1P-250A -
+125 A A2550CMZ-1P-125A
+100 A A2550CMZ-1P-100A
+60 A A2550CMZ-1P-60A 일반용
+A2550CMS-1P2F-60A + A2550ZM-1P2F-60A-DI (누전계측모듈 연결) 스플릿코어, 2피더용
+A2550CMS-1P3F-60A + A2550ZM-1P3F-60A-DI (누전계측모듈 연결) 스플릿코어, 3피더용
+1. 외부 ZCT 연결 가능한 CM-3P 모듈은 외부에 설치된 전압형 ZCT를 ZCT 연결 단자에 연결하여 누설전류를 계측한다. 
+   사용자는 ZCT 제조사로부터 ZCT를 별도로 구매해야 한다.
+2. 250A 누전계측모듈을 125A 또는 100A MCCB에 적용하는 경우, MCCB 폭과 모듈의 폭이 일치하지 않기 때문에 설치 시 주의해야 한다.
+3. 누설전류 계측 시 삼상4선 누설전류 계측모듈은 삼상3선에도 적용 가능하다.
+누설전류를 계측할 경우, 각 부하의 전류 크기와 부하 상태를 고려하여 적합한 모듈을 선택해야 한다.
+아래 표는 현장 요구 사항에 따른 누설전류 계측모듈 선택 시 참고용으로 제공된다.
+
+=== PAGE 24 ===
+Smart Digital Power Meter/
+Power Measuring Module
+24
+Accura 2550CMZ-3P
+Accura 2550CMZ-3P-800A-220
+Accura 2550CMZ-1P
+Accura 2500D
+Internal Cable 
+for the Display 
+Module
+Internal Cable
+Ethernet
+RJ45-1
+RJ45-2
+TM-CMZ-3P
+TM-CMZ-1P
+•결합 설치 예•
+Internal Cable
+Accura 2500D + Accura 2500M
+Accura 2500M
+RJ45-1
+RJ45-2
+Accura 2500D/2500M 
+설치 예
+설치
+전면패널 Accura 2500D 분전반 통합 HMI 모듈
+내부패널 Accura 2500M 분전반 통합모듈
+인입선로 Accura 2550CMZ-3P-800A-220 삼상 전력/누전 계측모듈
+분기선로 Accura 2550CMZ-3P 삼상 전력/누전 계측모듈
+Accura 2550CMZ-1P 단상 전력/누전 계측모듈
+내부통신 디스플레이용 내부통신선 (Cat 5e 24 AWG FTP) 1 HMI 모듈과 통신
+내부통신선 2 계측모듈과 통신
+외부통신 Ethernet Cable 상위 이더넷 통신
+1. 제품과 함께 기본으로 제공된다.
+2. Accura 2550 모듈 종류에 따라 내부통신선의 제공 여부가 다르므로, 제공 여부를 사전에 확인해야 한다. 링 구성을 위한 추가적인
+    내부통신선은 제품 주문 시 별매이다. 통신선의 도선은 최소 0.205 mm2 (24 AWG)가 되어야 하며, 노이즈가 많은 전력선과의 이격거리를
+    5 mm  이상으로 권장한다.
+설치 예
+
+=== PAGE 25 ===
+25
+통신연결 1
+그룹 내 연결대수 최대 30대 (Ring 결선)
+전체 연결대수 총 40대 (두 그룹 모두 사용)
+그룹당 통신선 길이 Ring 전체 길이 최대 50 m (개별 통신선 최대 10 m)
+1. 모듈 연결에 있어서 통신선 길이 제약과 소비전력에 따른 연결대수 제약이 있기 때문에 
+    Accura 2500/2550 전원 통신선 시뮬레이터를 사용하여 모듈 연결에 대하여 미리 점검
+   하고, 만약 Accura 2500M 의 공급전력이 부족한 경우에는 Accura 2550PS 모듈을 
+   추가로 연결해야 한다. 모듈 연결에 대한 자세한 사항은 사용자 매뉴얼의 
+    「Appendix B 모듈 연결」 을 참조한다. 
+•통신포트 그룹•
+그룹 2
+ 그룹 1
+Accura 2550CM-3P-5A
+Internal Cable RJ45-2
+RJ45-1
+RJ45-3
+RJ45-4
+Ethernet
+Accura 2500M
+Accura 2550CMZ-3P
+TM-CMZ-3P
+Accura 2550CMZ-1PTM-CMZ-1P
+그룹 2
+그룹 1
+내부 통신결합
+
+=== PAGE 26 ===
+Smart Digital Power Meter/
+Power Measuring Module
+26
+외부 통신결합
+*
+STP (Braided Shielded Twisted Pairs)
+SFTP (Braided Foiled Shielded Twisted Pairs)
+**
+RSTP (Rapid Spanning Tree Protocol)
+*
+UL 2919 RS-485 1P/2P 24 AWG, 
+Braided Shielded Twisted Pairs
+주의사항
+1.
+2.
+RS-485 통신선의 실드선은 루프전류로 
+인한 노이즈를 최소화하기 위하여 한  
+포인트에서만 접지되어야 한다.
+실드선 양쪽을 Accura 2500 장치의 
+그라운드 단자에 연결하여 접지 시,  
+실드선이 여러 포인트에서 접지된다. 이는 
+Accura 2500 장치의 그라운드 단자가 
+보호접지와 내부적으로 연결되어 있기 
+때문이다. 따라서 실드선 한쪽만 그라운드 
+단자에 연결해야 한다. 
+**
+통신속도 115,200 bps 에서는 600 m 거리 내에서 
+최대 16대까지 통신이 가능하다.
+STP/SFTP*
+STP/SFTP*
+Switching Hub
+Backbone Network
+링(Ring) 결선, RSTP** 지원
+이더넷 케이블 최대 100m
+Switching Hub
+데이지체인으로 최대 20대의 Accura 2500M 연결가능
+Ethernet/RS-485 Converter
+Ethernet/RS-485 Converter
+RS-485 Cable*
+RS-485 Cable*
+버스당 최대 32대까지 연결가능**
+버스당 최대 32대까지 연결가능**
+Switching Hub
+Switching Hub
+Shield Wire
+Shield Wire
+실드선 접지 
+- 장치 외부에서 접지선 연결
+실드선 접지
+- Accura 2500 마지막 장치의
+  그라운드 단자 사용하여 접지
+이더넷
+RS-485
+
+=== PAGE 27 ===
+27
+인입단 전압계측
+Accura 2500M 분전반 인입단의 AC 또는 DC 전압을 센싱하여 전압 계측
+Accura 2500M-PWM PWM 타입의 AC 전압(10 − 65 Hz 1 )을 센싱하여 전압 계측
+계측항목
+AC 전압 상전압, 선간전압, 주파수
+기본파, 벡터 다이어그램 (페이저)
+고조파 2, THD
+대칭좌표 성분 (정상분, 역상분, 영상분)
+대칭좌표 불평형률, NEMA 불평형률
+잔류전압 3
+DC 전압 DC 전압, RMS 전압
+전력품질 (Power Quality)
+Dip/Swell 2 매 cycle 갱신되는 RMS 전압 계측
+PQ Curve 2 매 cycle 갱신되는 RMS 전압 계측, SEMI F47-0706, IEC 61000-4-11/34 Class 3, ITIC 지원
+고조파 2 50차까지 고조파 크기, THD
+불평형률 상전압/선간전압 불평형, 대칭좌표 성분에 의한 불평형
+이벤트
+전력품질 이벤트 Dip/Swell 이벤트, PQ Curve 이벤트
+100개 전력품질 이벤트 저장
+계측 이벤트 전압연결 이벤트 4 전압개방 전압 연결 실패에 대한 이벤트
+퓨즈소손 전압 계측라인에 있는 퓨즈의 소손에 대한 이벤트
+전류 이벤트 Accura 2550 모듈의 전류 계측값에 대한 이벤트
+각 모듈에 대한 Accura 2500D 화면에서 설정 가능
+누설전류 이벤트 5 누설전류 계측값에 대한 이벤트
+각 모듈에 대한 Accura 2500D 화면에서 설정 가능
+전압 이벤트 Accura 2550DCM의 전압 계측값에 대한 이벤트
+각 모듈에 대한 Accura 2500D 화면에서 설정 가능
+사용자 정의 이벤트 사용자가 이벤트 입력 데이터와 이벤트 동작 등을 설정하는 이벤트
+통신으로 40개의 이벤트까지 설정 가능
+100개 계측 이벤트 저장
+시스템 이벤트 모듈 관리, 통신 상태, 설정 및 기타 이벤트
+1,000개 시스템 이벤트 저장
+Accura 2500D 모듈과 내부 통신
+전용 통신 자체 프로토콜을 통한 데이터 송수신
+Accura 2550 전력계측모듈과 내부 통신
+전용 통신 인입단의 AC 또는 DC 전압 샘플링 정보를 다수의 Accura 2550으로 전송
+다수의 Accura 2550으로부터 계측 및 상태정보 수집
+내부 전용 프로토콜
+연결가능한
+모듈 대수 6
+단일 그룹 최대 30대
+두 그룹 최대 40대
+그룹 내 (그룹1, 그룹2)의 2개의 포트를 이용한 Ring 결선으로 통신이중화 지원
+제품특징 
+Accura 2500M 
+분전반 통합모듈
+Accura 2500M 모듈은 AC/DC 분전반 인입단에 
+설치되어 분전반의 마스터 기능을 수행한다.
+Accura 2500M-PWM 모듈은 PWM 타입의 AC 
+전압을 계측하며, AAF(Anti-Aliasing Filter)를 통해 
+PWM 주파수 성분을 제거한다.
+
+=== PAGE 28 ===
+Smart Digital Power Meter/
+Power Measuring Module
+28
+1. Accura 2500M-PWM 모듈은 42 Hz 이하의 주파수 영역에서 계측 정밀도가 약 20 % 저하되며, 이때 정밀도는 ±0.6 % Reading 이다.
+2. 삼상3선 전압결선인 경우 선간전압으로 연산되며, 삼상4선 전압결선인 경우에는 상전압으로 연산된다.
+3. 잔류전압은 센싱된 삼상의 상전압을 합하여 연산된 전압이다.
+4. 삼상3선 결선에서 어느 한 상이 접지된 경우에는 지원되지 않는다.
+5. 누설전류 계측은 ZCT가 내장된 전력/누전 계측모듈과 외부 ZCT 연결 가능한 모듈에서 지원된다.
+6. Accura 2500/2550 전원/통신선 시뮬레이터를 사용하여 모듈 연결에 대하여 미리 점검하고, 만약 Accura 2500M의 공급전력이
+   부족한 경우에는 Accura 2550PS 모듈을 추가로 연결해야 한다. 모듈 연결에 대한 자세한 사항은 사용자 매뉴얼의  「Appendix B 모듈
+   연결」 을 참조한다.
+7. RSTP(Rapid Spanning Tree Protocol), IEEE 802.1D-2004.
+8. 통신속도 115,200 bps 에서는 600 m 거리 내에서 최대 16대까지 통신이 가능하다.
+상위 시스템과 외부 통신
+이더넷 통신 100 Mbps Modbus TCP 프로토콜로 상위 시스템과 통신
+다수의 Accura 2550으로부터 수집한 계측 데이터를 상위 시스템으로 전송
+2개의 포트를 이용한 이더넷 스위칭을 통해 Ring 결선으로 통신이중화 지원
+결선: 스타, 데이지체인, Ring 결선 (RSTP 7 지원)
+RS-485 통신 다수의 Accura 2550으로부터 수집한 계측 데이터를 상위 시스템으로 전송
+1,200 / 2,400 / 4,800 / 9,600 / 19,200 / 38,400 / 57,600 / 115,200 8 bps 
+Modbus RTU 프로토콜로 상위 시스템과 통신
+Accura 2500D  
+분전반 통합 HMI 모듈
+Accura 2500D는 분전반 전면에 설치되며, 
+통신으로 Accura 2500M의 정보와 Accura 
+2500M이 수집한 다수의 Accura 2550 모듈의 
+계측 및 상태 정보를 전면의 5"  TFT Color 
+LCD를 통하여 사용자에게 제공한다. 또한 
+Accura 2500M과 Accura 2550의 모든 기능을 
+터치기능이 있는 TFT Color LCD를 통하여 설정할 
+수 있다.
+Accura 2500M과의 연결
+결합 Accura 2500D 후면의 결합 커넥터를 통한 연결/분리
+통신선 연결 Accura 2500D 후면의 RJ45 통신선을 통한 연결
+Accura 2500M과 내부 통신
+전용 통신 자체 프로토콜을 통한 Accura 2500M과 데이터 송수신
+Accura 2500M의 정보와 다수의 Accura 2550의 계측 및 상태 정보 표시
+Accura 2500M과 다수의 Accura 2550 설정
+
+=== PAGE 29 ===
+29
+Accura 2550CM 
+삼상/단상 전력계측모듈
+1. Accura 2550CM-3P-5A 모듈은 외부에 CT (2차측 정격전류 : 5 A)를 설치하여 사용이 가능하다.
+2. Accura 2550CM-3P 모듈에만 해당된다.
+3. 변위 역률은 통신으로만 제공된다.
+4. Accura 2550 모듈의 계측 데이터에 대한 이벤트는 Accura 2500M 모듈에서 통합 관리된다.
+5. 외부에 설치된 전압형 ZCT를 ZCT 연결 단자에 연결하여 누설전류를 계측한다. 사용자는 ZCT 제조사로부터 ZCT를 별도로 구매해야 한다.
+6. 외부 ZCT 연결 가능한 Accura 2550CM-3P 모듈에서 지원된다.
+전력계측
+자체 센싱한 선로의 전류 샘플링 데이터와 Accura 2500M으로부터 수신된 인입단 전압 샘플링 정보로부터 
+각종 전력특성 계측 
+모델 기본전류
+CM-3P
+CM-3P-800A-210 800 A
+CM-3P-800A-210-ZCT 800 A (외부 ZCT 연결 가능 5)
+CM-3P-630A-145 630 A
+CM-3P-630A-145-ZCT 630 A (외부 ZCT 연결 가능 5)
+CM-3P-400A-140 400 A
+CM-3P-400A-140-ZCT 400 A (외부 ZCT 연결 가능 5)
+CM-3P-250A 250 A
+CM-3P-125A 125 A
+CM-3P-100A 100 A
+CM-3P-60A 60 A
+CM-3P-5A 1 5 A
+CM-3P-5A-ZCT 1 5 A (외부 ZCT 연결 가능 5)
+CM-1P
+CM-1P-250A 250 A
+CM-1P-125A 125 A
+CM-1P-100A 100 A
+CM-1P-60A 60 A
+AC 계측항목
+전류 RMS, 기본파, 고조파, THD, TDD, 벡터 다이어그램 (페이저)
+Crest factor, K-factor
+대칭좌표 성분 2, 대칭좌표 불평형률 2, 전류 불평형률 2
+잔류전류 (RMS, 기본파) 2
+누설전류 외부에 연결된 ZCT로 계측
+전력 유효전력, 무효전력, 피상전력
+전력량 수전/송전 유효전력량, 4-Quadrant 무효전력량, 피상전력량
+역률 역률, 변위 역률 3
+디맨드 전류/전력 디맨드, 전류/전력 피크 디맨드
+전류/전력 예측 디맨드
+Accura 2500M과 내부 통신
+전용 통신 Accura 2500M으로부터 인입단 전압 샘플링 정보 수신
+이벤트 4
+전류 이벤트 전류 계측값에 대한 상승(Over) 또는 하강(Under) 이벤트
+누설전류 이벤트 6
+누설전류 계측값에 대한 상승(Over) 이벤트
+
+=== PAGE 30 ===
+Smart Digital Power Meter/
+Power Measuring Module
+30
+Accura 2550CMZ
+삼상/삼상4선/단상 
+전력/누전 계측모듈
+1. Accura 2550CMZ-3P/3P4W 모듈에만 해당된다.
+2. 변위 역률은 통신으로만 제공된다.
+3. Accura 2550 모듈의 계측 데이터에 대한 이벤트는 Accura 2500M 모듈에서 통합 관리된다.
+전력 및 누설전류 계측
+자체 센싱한 선로의 전류 샘플링 데이터와 Accura 2500M으로부터 수신된 인입단 전압 샘플링 정보로부터 
+각종 전력특성 및 누설전류 계측 
+모델 기본전류
+CMZ-3P
+CMZ-3P-800A-220 800 A
+CMZ-3P-630A-155 630 A
+CMZ-3P-400A-155 400 A
+CMZ-3P-250A 250 A
+CMZ-3P-125A 125 A
+CMZ-3P-100A 100 A
+CMZ-3P-60A 60 A
+CMZ-3P4W
+CMZ-3P4W-250A-145 250 A
+CMZ-1P
+CMZ-1P-250A 250 A
+CMZ-1P-125A 125 A
+CMZ-1P-100A 100 A
+CMZ-1P-60A 60 A
+AC 계측항목
+전류 RMS, 기본파, 고조파, THD, TDD, 벡터 다이어그램 (페이저)
+Crest factor, K-factor
+대칭좌표 성분 1, 대칭좌표 불평형률 1, 전류 불평형률 1 
+잔류전류 (RMS, 기본파) 1 
+누설전류 내장된 ZCT로 직접 계측
+전력 유효전력, 무효전력, 피상전력
+전력량 수전/송전 유효전력량, 4-Quadrant 무효전력량, 피상전력량
+역률 역률, 변위 역률 2
+디맨드 전류/전력 디맨드, 전류/전력 피크 디맨드
+전류/전력 예측 디맨드
+Accura 2500M과 내부 통신
+전용 통신 Accura 2500M으로부터 인입단 전압 샘플링 정보 수신
+이벤트 3
+전류 이벤트 전류 계측값에 대한 상승(Over) 또는 하강(Under) 이벤트
+누설전류 이벤트 누설전류 계측값에 대한 상승(Over) 이벤트
+
+=== PAGE 31 ===
+31
+1. Accura 2550CMS-2P 모듈의 부하모드를 통해 계측하고자 하는 피더를 설정할 수 있다.
+2. Accura 2550CMS-2P 모듈의 부하모드를 삼상3선으로 설정한 경우에만 해당된다.
+3. 변위 역률은 통신으로만 제공된다.
+4. TEMP 옵션을 선택한 CMS-2P 모듈에서만 지원된다.
+5. Accura 2550 모듈의 계측 데이터에 대한 이벤트는 Accura 2500M 모듈에서 통합 관리된다.
+Accura 2550CMS-2P
+스플릿코어 2P
+전력계측모듈
+전력 계측 
+자체 센싱한 선로의 전류 샘플링 데이터와 Accura 2500M으로부터 수신된 인입단 전압 샘플링 정보로부터 
+각종 전력특성 계측 
+부하모드
+삼상3선 CMS-2P 모듈 하나로 삼상 부하 계측
+단상2선 CMS-2P 모듈 하나로 단상 부하 계측
+단상2피더 CMS-2P 모듈 하나로 2개의 단상 부하 계측
+모델 기본전류 상간거리 피더 1  
+CMS-2P-800A-70 800 A 70 mm 삼상3선/ 단상2선/ 단상2피더
+CMS-2P-630A-70 630 A 70 mm
+CMS-2P-630A-52 630 A 52 mm
+CMS-2P-630A-44 630 A 44 mm
+CMS-2P-400A-70 400 A 70 mm
+CMS-2P-400A-52 400 A 52 mm
+CMS-2P-400A-44 400 A 44 mm
+CMS-2P-250A-35 250 A 35 mm
+CMS-2P-125A-30 125 A 30 mm
+CMS-2P-60A-25 60 A 25 mm
+AC 계측항목
+전류 RMS, 기본파, 고조파, THD, TDD, 벡터 다이어그램 (페이저)
+Crest factor, K-factor
+대칭좌표 성분 2, 대칭좌표 불평형률 2, 전류 불평형률 2
+전력 유효전력, 무효전력, 피상전력
+전력량 수전/송전 유효전력량, 4-Quadrant 무효전력량, 피상전력량
+역률 역률, 변위 역률 3
+디맨드 전류/전력 디맨드, 전류/전력 피크 디맨드
+전류/전력 예측 디맨드
+온도 4 CMS-2P 모듈과 Accura ETM 모듈을 통해 버스바 온도 계측
+Accura 2500M과 내부 통신
+전용 통신 Accura 2500M으로부터 인입단 전압 샘플링 정보 수신
+이벤트 5
+전류 이벤트 전류 계측값에 대한 상승(Over) 또는 하강(Under) 이벤트
+
+=== PAGE 32 ===
+Smart Digital Power Meter/
+Power Measuring Module
+32
+1. Accura 2550ZM-3P4W 모듈 결선 시 정확한 누설전류 계측을 위하여 4개의 전력선을 모아 홀 중앙을 관통하도록 연결해야 한다.
+2. Accura 2550CMS-3P4W 모듈에만 해당된다.
+3. 변위 역률은 통신으로만 제공된다.
+4. Accura 2550 모듈의 계측 데이터에 대한 이벤트는 Accura 2500M 모듈에서 통합 관리된다.
+5. Accura 2550ZM-3P4W/1P3F/1P2F-60A-DI 모듈에서 지원된다.
+Accura 2550CMS/ZM
+스플릿코어 
+3P4W/1P3F/1P2F
+전력/누전 계측모듈
+전력계측 및 누설전류 계측
+자체 센싱한 선로의 전류 샘플링 데이터와 Accura 2500M으로부터 수신된 인입단 전압 샘플링 정보로부터 
+각종 전력특성 및 누설전류 계측 
+모델 기본전류 피더
+스플릿코어 3P4W
+전력/누전 계측모듈
+CMS-3P4W-60A 60 A 삼상4선
+ZM-3P4W-60A-DI 1
+스플릿코어 1P3F
+전력/누전 계측모듈
+CMS-1P3F-60A 60 A 단상3피더
+ZM-1P3F-60A-DI
+스플릿코어 1P2F
+전력/누전 계측모듈
+CMS-1P2F-60A 60 A 단상2피더
+ZM-1P2F-60A-DI
+AC 계측항목
+전류 RMS, 기본파, 고조파, THD, TDD, 벡터 다이어그램 (페이저)
+Crest factor, K-factor
+대칭좌표 성분 2, 대칭좌표 불평형률 2, 전류 불평형률 2
+잔류전류 (RMS, 기본파) 2
+누설전류 누전계측모듈에 내장된 ZCT로 직접 계측
+전력 유효전력, 무효전력, 피상전력
+전력량 수전/송전 유효전력량, 4-Quadrant 무효전력량, 피상전력량
+역률 역률, 변위 역률 3
+디맨드 전류/전력 디맨드, 전류/전력 피크 디맨드
+전류/전력 예측 디맨드
+Accura 2500M과 내부 통신
+전용 통신 Accura 2500M으로부터 인입단 전압 샘플링 정보 수신
+이벤트 4
+전류 이벤트 전류 계측값에 대한 상승(Over) 또는 하강(Under) 이벤트
+누설전류 이벤트 누설전류 계측값에 대한 상승(Over) 이벤트
+디지털 입력 5
+기능 MCCB 동작상태 입력 및 트립상태 입력
+ZM-3P4W-60A-DI 채널 2 채널 (채널간 비절연)
+단자명 DI1, DI2, DIG MCCB 연결
+ZM-1P3F-60A-DI 채널 6 채널 (채널간 비절연)
+단자명 DI1, DI2, DIG MCCB 1 연결
+DI3, DI4, DIG MCCB 2 연결
+DI5, DI6, DIG MCCB 3 연결
+ZM-1P2F-60A-DI 채널 4 채널 (채널간 비절연)
+단자명 DI1, DI2, DIG MCCB 1 연결
+DI3, DI4, DIG MCCB 2 연결
+
+=== PAGE 33 ===
+33
+Accura 2550CMM[Z]
+MCB용 
+삼상 계측모듈
+1.  Accura 2550CMMZ-3P-60A 모듈에만 해당된다.
+2. 변위 역률은 통신으로만 제공된다.
+3. Accura 2550 모듈의 계측 데이터에 대한 이벤트는 Accura 2500M 모듈에서 통합 관리된다.
+전력 계측
+자체 센싱한 선로의 전류 샘플링 데이터와 Accura 2500M으로부터 수신된 인입단 전압 샘플링 정보로부터 
+각종 전력특성 계측 
+모델 기본전류
+CMM-3P-60A 60 A
+CMMZ-3P-60A
+AC 계측항목
+전류 RMS, 기본파, 고조파, THD, TDD, 벡터 다이어그램 (페이저)
+Crest factor, K-factor
+대칭좌표 성분, 대칭좌표 불평형률, 전류 불평형률 
+잔류전류 (RMS, 기본파)
+누설전류 1 내장된 ZCT로 직접 계측 
+전력 유효전력, 무효전력, 피상전력
+전력량 수전/송전 유효전력량, 4-Quadrant 무효전력량, 피상전력량
+역률 역률, 변위 역률 2
+디맨드 전류/전력 디맨드, 전류/전력 피크 디맨드
+전류/전력 예측 디맨드
+Accura 2500M과 내부 통신
+전용 통신 Accura 2500M으로부터 인입단 전압 샘플링 정보 수신
+이벤트 3
+전류 이벤트 전류 계측값에 대한 상승(Over) 또는 하강(Under) 이벤트
+누설전류 이벤트 1 누설전류 계측값에 대한 상승 (Over) 이벤트
+디지털 입력 1
+기능 MCCB 동작상태 입력 및 트립상태 입력
+채널 2 채널 (채널간 비절연)
+단자명 DI1, DI2, DIG
+
+=== PAGE 34 ===
+Smart Digital Power Meter/
+Power Measuring Module
+34
+1. Accura 2550 모듈의 계측 데이터에 대한 이벤트는 Accura 2500M 모듈에서 통합 관리된다.
+Accura 2550CMD 
+DC 전력계측모듈
+전력계측
+자체 센싱한 선로의 전류 샘플링 데이터와 Accura 2500M으로부터 수신된 인입단 전압 샘플링 정보로부터 
+각종 전력특성 계측
+모델 기본전류 최대전류
+CMD-1P-1500A 1,500 Adc 2,200 Adc
+CMD-1P-750A 750 Adc 900 Adc
+CMD-1P-250A 250 Adc 300 Adc
+CMD-1P-125A 125 Adc 150 Adc
+CMD-1P-100A 100 Adc 120 Adc
+CMD-1P-60A 60 Adc 72 Adc
+DC 계측항목
+전류 DC 전류, RMS 전류, 파형
+전력 DC 전력, 실 전력
+전력량 수전/송전 DC 전력량, 수전/송전 실 전력량
+Accura 2500M과 내부 통신
+전용 통신 Accura 2500M으로부터 인입단 전압 샘플링 정보 수신
+이벤트 1
+전류 이벤트 전류 계측값에 대한 상승(Over) 또는 하강(Under) 이벤트
+모듈 타입 제품명 항목 설명 전력
+보조전원모듈 Accura 2550PS 1 입력 전원 AC 100 − 240 V 50/60 Hz,  DC 100 − 300 V 20 W
+츨력 전원 DC 5.0 − 5.4 V 15 W
+기능 연결되는 모듈의 개수가 Accura 2500M의 전원 공급 능력을 
+초과하는 경우 전원을 추가적으로 공급
+Accura 2550PS 
+보조전원모듈
+1. 전원 투입시 정상적인 기동을 위하여 Accura 2500M과 Accura 2550PS 모듈의 전원은 하나의 스위치로 동시에 인가되어야 한다.
+
+=== PAGE 35 ===
+35
+제품사양
+Accura 2500M
+분전반 통합모듈
+전원
+단자명 L+, N-,      (Ground)
+커넥터 타입 터미널블록 (M4/볼트머리 Ø7)
+전선규격 / 토크 0.75 − 6.0 mm2 (18 − 10 AWG), 구리 / 최대 1.2 Nm (12 kgf-cm, 10.6 lbf-in)
+소비전력 1 최대 20 W
+구분 Accura 2500M-AC220V/DC110V Accura 2500M-DC24V Accura 2500M-DC48V
+전압(Us) AC 100 − 240 V 50/60 Hz, 
+DC 100 − 300 V, CAT Ⅱ
+DC 24 V, CAT Ⅱ DC 48 V, CAT Ⅱ
+동작전압 범위 0.9 x Us − 1.1 x Us DC 20 − 30 V DC 36 − 63 V 
+돌입전류 2 Peak 31 A, duration 1 ms 이하 (AC 220 V) Peak 6 A, 
+duration 1 ms 이하
+Peak 23 A, 
+duration 0.5 ms 이하
+Peak 11 A, duration 0.2 ms 이하 (DC 110 V)
+전압입력
+커넥터 타입 터미널블록  (M4/볼트머리 Ø7)
+전선규격 / 토크 0.75 − 6.0 mm2 (18 − 10 AWG), 구리 / 최대 1.8 Nm (18.4 kgf-cm, 16 lbf-in)
+계측범주 Category Ⅲ 
+구분 Accura 2500M Accura 2500M-PWM Accura 2500M-VD 3, 4
+계측 주파수 범위 42 − 65 Hz 10 − 65 Hz 5 DC
+단자명 V1, V2, V3, VN +Vdc, COM, -Vdc
+임피던스 10 MΩ 20 MΩ
+Burden 0.01 VA/상 @AC 220 V 0.05 W @DC 1,000 V
+0.001 W @DC 100 V
+AC 전압계측
+전압결선 방식 삼상4선, 삼상3선, 단상3선, 단상2선
+샘플링 512 샘플/사이클 
+계측주기
+(gapless)
+기본계측 Frame: 0.2초 (12 cycles @60 Hz, 10 cycles @50 Hz)
+Dip/Swell 계측 1 cycle
+전압 계측범위
+(정밀도 보장)
+AC 35 − 347 V L-N (상전압)
+AC 60 − 600 V L-L (선간전압)
+정밀도 IEC 61557-12 Class 0.5 ±0.5 % Reading
+최소 계측 AC 5 V L-N (상전압)
+계측정보 상전압, 선간전압
+기본파, 고조파 (50차까지) 6
+벡터 다이어그램 (페이저), THD, 파형
+대칭좌표 성분 (정상분, 역상분, 영상분)
+대칭좌표 불평형률, NEMA 불평형률
+잔류전압 계측방식 삼상 상전압의 합 연산
+계측정보 RMS, 기본파
+정밀도/범위 ±0.5 %Un 7 / 최대 347 V L-N (상전압)
+AC 전력품질 (Power Quality)
+Dip/Swell 6 계측값/Threshold RMS 전압 (매 cycle 갱신) 사용자 설정
+PQ Curve 6 계측값/Threshold RMS 전압 (매 cycle 갱신) Dip/Swell: 90 % / 110 % of Vref
+Curve 종류 SEMI F47-0706, IEC 61000-4-11/34 Class 3, ITIC
+전압 고조파 6,
+THD
+고조파 차수 50차까지
+계측정보 조파별 크기, THD
+전압 불평형률 계측정보 NEMA 기준의 상전압/선간전압 불평형률
+대칭좌표 영상분, 역상분 전압 불평형률
+
+
+=== PAGE 36 ===
+Smart Digital Power Meter/
+Power Measuring Module
+36
+DC 전압계측  
+구분 Accura 2500M Accura 2500M-VD
+전압결선 방식 1DC 2선, 2DC 3선, 3DC 4선, 양전원 3선 1DC 2선, 양전원3선, 단전원 2선
+샘플링 주파수 25.60 kHz (샘플링 주기 39 us) @50 Hz mode
+30.72 kHz (샘플링 주기 33 us) @60 Hz mode
+계측주기
+(gapless)
+기본계측: Frame 0.2초
+Dip/Swell 계측: 1 subframe (20 ms @50 Hz mode, 16.7 ms @60 Hz mode)
+계측범위
+(정밀도 보장)
+최대 300 Vdc 1DC 2선, 양전원 3선: 최대 1,000 Vdc
+단전원 2선: 최대 2,000 Vdc
+최대 계측범위 최대 550 Vdc 1DC 2선, 양전원 3선: 최대 1,200 Vdc
+단전원 2선: 최대 2,400 Vdc
+정밀도 ±0.5 % Reading ± 0.05 %Un 8 ±0.5 % Reading ± 0.05 %Un 8
+최소 계측 5 Vdc 10 Vdc
+계측정보 DC 전압, RMS 전압, 파형 DC 전압, RMS 전압, 파형
+DC 전력품질 (Power Quality)
+Dip/Swell 계측값/Threshold DC 전압 (매 subframe 갱신) 사용자 설정
+내부 통신연결
+구분 Accura 2500D 통신 Accura 2550 통신
+포트 포트 1개 (DISPLAY) 그룹당 포트 2개, 2 그룹 포트 4개 (포트 기능 동일)  
+통신선 디스플레이용 내부통신선
+(Cat 5e 24 AWG FTP) 9
+내부통신선 10
+통신선 길이 최대 3 m 그룹 내의 결선 전체 최대 50 m (개별 통신선 최대 10 m)
+외부 통신연결
+구분 이더넷 통신 RS-485 통신
+프로토콜 Modbus TCP 프로토콜 Modbus RTU 프로토콜
+포트 포트 2개 (ETHERNET1, ETHERNET2) 11 포트 1개 / Ta(TRX+), Tb(TRX-)
+커넥터 타입 RJ45 커넥터 터미널블록: M4/볼트머리 Ø7 12
+통신선 이더넷 케이블 Cat 5e FTP, STP, SFTP 13 UL 2919 RS-485 1P/2P 24 AWG
+통신속도 100 Base-TX (100 Mbps/Full Duplex) 1,200 / 2,400 / 4,800 / 9,600 / 19,200 / 38,400 / 
+57,600 / 115,200 bps 14
+결선 스타, 데이지체인, Ring 결선 (RSTP 15 지원) Multidrop wiring
+통신선 길이 최대 100 m 최대 1,219 m (4,000 ft)
+1. 제품과 함께 기본으로 제공된다.
+Accura 2500D
+분전반 통합 HMI 모듈
+디스플레이 LCD
+LCD 특성 5"(108.0 x 64.8 mm) Color TFT LCD, 800 x 480 pixels 
+LED 백라이트 & 터치 패널 (LCD 전면 터치 가능)
+Accura 2500M과 내부 통신
+커넥터 타입 RJ45 커넥터 (통신선 결합의 경우)
+통신선 디스플레이용 내부통신선 (Cat 5e 24 AWG FTP) 1
+통신선 길이 최대 3 m
+9. 제품과 함께 기본으로 제공된다. 
+10. Accura 2550 모듈 종류에 따라 내부통신선의 제공 여부가 다르므로, 제공 여부를 사전에 확인해야 한다. 
+      링 구성을 위한 추가적인 내부통신선은 제품 주문 시 별매이다. 통신선의 도선은 최소 0.205 mm2
+         (24 AWG)가 되어야 하며, 노이즈가 많은 전력선과의 이격거리를 5 mm 이상으로 권장한다.
+11. 이더넷 스위치가 내장되어 있으므로, 별도의 외부 스위치 없이 Accura 2500M간 이더넷 연결이 가능하다.
+12. Barrier-type 단자의 터미널 스크류 토크는 최대 1.2 Nm(12 kgf-cm, 10.6 lbf-in)이다.
+13. FTP(Foiled Shielded Twisted Pairs), STP(Braided Shielded Twisted Pairs), SFTP(Braided Foiled 
+     Shielded Twisted Pairs)
+14. 통신속도 115,200 bps 에서는 600 m 거리 내에서 최대 16대까지 통신이 가능하다.
+15. RSTP(Rapid Spanning Tree Protocol), IEEE 802.1D-2004.
+1. Accura 2500D와 Accura 2550 연결 상태에서의 최대 소비전력을 의미한다.
+2. 전원 입력단에 퓨즈 설치 시 UL 인증을 받은 Class RK5 2A/500V 이상의 퓨즈 사용을 권장한다.
+3. DC 고전압 계측을 위해서는 Voltage Divider가 결합된 Accura 2500M-VD 모듈을 사용해야 한다.
+4. 정밀계측을 위하여 결합되는 VD 모듈의 P/N(제품 일련번호)은 Accura 2500M 제품의 P/N과 일치해야 한다.
+5. Accura 2500M-PWM 모듈은 42 Hz 이하의 주파수 영역에서 계측 정밀도가 약 20 % 저하되며, 
+    이때 정밀도는 ±0.6 % Reading 이다.
+6. 삼상3선 전압결선인 경우 선간전압으로 연산되며, 삼상4선 전압결선인 경우에는 상전압으로 연산된다.
+7. Un은 기본전압 277 V 이다.
+8. Un은 기본전압을 의미하며 277 Vdc 이다. 단, Accura 2500M-VD 모듈의 경우 560 Vdc 이다.
+
+=== PAGE 37 ===
+37
+전류입력
+커넥터 타입 관통형 (전선/버스바 이용)
+AC 계측
+주파수 50/60 Hz
+샘플링 256 샘플/사이클
+계측주기 
+(gapless)
+Frame 0.2초 (12 cycles @60 Hz, 10 cycles @50 Hz)
+전류 모델 기본전류 (Ib) 범위 (정밀도 보장) 최소 계측 관통치수
+CM-3P
+CM-3P-800A-210 800 A 16.0 A - 960 A 0.80 A 46.0 x 23.0 mm
+CM-3P-800A-210-ZCT 800 A 16.0 A - 960 A 0.80 A 46.0 x 23.0 mm
+CM-3P-630A-145 630 A 12.6 A - 756 A 0.63 A 32.0 x 22.4 mm
+CM-3P-630A-145-ZCT 630 A 12.6 A - 756 A 0.63 A 32.0 x 22.4 mm
+CM-3P-400A-140 400 A 8.0 A - 480 A 0.40 A 32.0 x 22.4 mm
+CM-3P-400A-140-ZCT 400 A 8.0 A - 480 A 0.40 A 32.0 x 22.4 mm
+CM-3P-250A 250 A 5.0 A - 300 A 0.25 A Ø 21.0 x 22.0 mm
+CM-3P-125A 125 A 2.5 A - 150 A 0.13 A Ø 16.5 x 20.5 mm
+CM-3P-100A 100 A 2.0 A - 120 A 0.10 A Ø 13.5 x 17.5 mm
+CM-3P-60A 60 A 1.2 A - 72 A 0.06 A Ø 13.5 x 17.5 mm
+CM-3P-5A 1 5 A 0.1 A - 6 A 0.01 A Ø 10.0 mm
+CM-3P-5A-ZCT 1 5 A 0.1 A - 6 A 0.01 A Ø 10.0 mm
+CM-1P
+CM-1P-250A 250 A 5.0 A - 300 A 0.25 A Ø 21.0 x 22.0 mm
+CM-1P-125A 125 A 2.5 A - 150 A 0.13 A Ø 16.5 x 20.5 mm
+CM-1P-100A 100 A 2.0 A - 120 A 0.10 A Ø 13.5 x 17.5 mm
+CM-1P-60A 60 A 1.2 A - 72 A 0.06 A Ø 13.5 x 17.5 mm
+정밀도 IEC 61557-12 Class 0.5 ±0.5 % Reading
+계측정보 RMS, 기본파, 고조파 (50차까지), 전류 페이저, THD, TDD, Crest factor, K-factor
+대칭좌표 성분 (정상분, 역상분, 영상분) 2, 대칭좌표 불평형률 2, NEMA 불평형률 2
+잔류전류 (RMS, 기본파) 2
+누설전류 3 계측방식 외부에 연결된 ZCT로 계측
+계측범위 10 mA − 2 A
+계측정보 RMS, 기본파
+정밀도 4 ±2 % Reading ± 2 mA
+전력 유효 정밀도 IEC 61557-12 Class 0.5
+무효 IEC 61557-12 Class 1
+피상 IEC 61557-12 Class 0.5
+계측정보 상별 전력, 합산 전력 2 
+전력량 유효 정밀도 IEC 62053-21 Class 0.5 수전/송전 유효전력량
+무효 IEC 62053-24 Class 1 4-Quadrant 무효전력량
+피상 IEC 61557-12 Class 0.5
+역률 (Power factor) 상별 역률, 합산 역률 2, 상별 변위 역률 5
+전류/전력 디맨드 피크 디맨드, 예측 디맨드 디맨드에 대한 서브인터벌과 개수로 디맨드시간 설정
+전류 불평형률 2 계측정보 NEMA 기준의 전류 불평형률
+대칭좌표 영상분, 역상분 전류 불평형률
+AC 전력품질 (Power Quality)
+전류 고조파
+THD, TDD
+고조파 차수 50차까지 
+계측정보 조파별 크기, THD, TDD
+Accura 2550CM
+삼상/단상 
+전력계측모듈
+1. Accura 2550CM-3P-5A 모듈은 외부에 CT (2차측 정격전류 : 5 A)를 설치하여 사용이 가능하다.
+2. Accura 2550CM-3P 모듈에만 해당된다.
+3. 외부 ZCT 연결 가능한 Accura 2550CM-3P 모듈에서만 지원된다. 
+4. 외부 ZCT 오차가 0인 경우의 정밀도이다.
+5. 변위 역률은 통신으로만 제공된다.
+
+=== PAGE 38 ===
+Smart Digital Power Meter/
+Power Measuring Module
+38
+Accura 2550CMZ 
+삼상/삼상4선/단상 
+전력/누전 계측모듈
+전류입력
+커넥터 타입 관통형 (전선/버스바 이용)
+AC 계측
+주파수 50/60 Hz
+샘플링 256 샘플/사이클
+계측주기 
+(gapless)
+Frame 0.2초 (12 cycles @60 Hz, 10 cycles @50 Hz)
+전류 모델 기본전류 (Ib) 범위 (정밀도 보장) 최소 계측 관통치수
+CMZ-3P
+CMZ-3P-800A-220 800 A 16.0 A - 960 A 0.80 A 46.0 x 22.9 mm
+CMZ-3P-630A-155 630 A 12.6 A - 756 A 0.63 A 35.0 x 25.4 mm
+CMZ-3P-400A-155 400 A 8.0 A - 480 A 0.40 A 35.0 x 25.4 mm
+CMZ-3P-250A 250 A 5.0 A - 300 A 0.25 A Ø 21.0 x 22.0 mm
+CMZ-3P-125A 125 A 2.5 A - 150 A 0.13 A Ø 16.5 x 20.5 mm
+CMZ-3P-100A 100 A 2.0 A - 120 A 0.10 A Ø 13.5 x 17.5 mm
+CMZ-3P-60A 60 A 1.2 A - 72 A 0.06 A Ø 13.5 x 17.5 mm
+CMZ-3P4W
+CMZ-3P4W-250A-145 250 A 5.0 A - 300 A 0.25 A Ø 21.0 x 22.0 mm
+CMZ-1P
+CMZ-1P-250A 250 A 5.0 A - 300 A 0.25 A Ø 21.0 x 22.0 mm
+CMZ-1P-125A 125 A 2.5 A - 150 A 0.13 A Ø 16.5 x 20.5 mm
+CMZ-1P-100A 100 A 2.0A - 120 A 0.10 A Ø 13.5 x 17.5 mm
+CMZ-1P-60A 60 A 1.2 A - 72 A 0.06 A Ø 13.5 x 17.5 mm
+정밀도 IEC 61557-12 Class 0.5 ±0.5 % Reading
+계측정보 RMS, 기본파, 고조파 (50차까지), 전류 페이저, THD, TDD, Crest factor, K-factor
+대칭좌표 성분 (정상분, 역상분, 영상분) 1, 대칭좌표 불평형률 1, NEMA 불평형률 1
+잔류전류(RMS, 기본파) 1
+누설전류 계측방식 내장된 ZCT로 직접 계측
+계측범위 1 mA − 2 A 
+계측정보 RMS, 기본파
+정밀도 2 CMZ-3P-800A ±0.5 % Reading ± 60 mA
+CMZ-3P-
+630A/ 400A/250A
+CMZ-1P-250A
+±0.5 % Reading ± 30 mA
+CMZ-3P/1P-
+125A/100A/60A
+±0.5 % Reading ± 20 mA
+CMZ-3P4W-
+250A-145
+±0.5 % Reading ± 30 mA
+동작범위 최대 상전류 120 %Ib
+전력 유효 정밀도 IEC 61557-12 Class 0.5
+무효 IEC 61557-12 Class 1
+피상 IEC 61557-12 Class 0.5
+계측정보 상별 전력, 합산 전력 1
+전력량 유효 정밀도 IEC 62053-21 Class 0.5 수전/송전 유효전력량
+무효 IEC 62053-24 Class 1 4-Quadrant 무효전력량
+피상 IEC 61557-12 Class 0.5
+역률 (Power factor) 상별 역률, 합산 역률 1, 상별 변위 역률 3
+전류/전력 디맨드 피크 디맨드, 예측 디맨드 디맨드에 대한 서브인터벌과 개수로 디맨드시간 설정
+전류 불평형률 1 계측정보 NEMA 기준의 전류 불평형률 1
+대칭좌표 영상분, 역상분 전류 불평형률 1
+AC 전력품질 (Power Quality)
+전류 고조파
+THD, TDD
+고조파 차수 50차까지 
+계측정보 조파별 크기, THD, TDD
+1.  Accura 2550CMZ-3P/3P4W 모듈에만 해당된다. 
+2. 누설전류의 기본파 성분에 대한 정밀도이다.
+3. 변위 역률은 통신으로만 제공된다.
+
+=== PAGE 39 ===
+39
+Accura 2550CMS-2P
+스플릿코어 2P
+전력계측모듈
+전류입력
+커넥터 타입 관통형 (전선/버스바 이용)
+AC 계측
+주파수 50/60 Hz
+샘플링 256 샘플/사이클
+계측주기 
+(gapless)
+Frame 0.2초 (12 cycles @60 Hz, 10 cycles @50 Hz)
+전류 모델 기본전류 (Ib) 범위 (정밀도 보장) 최소 계측 관통치수
+CMS-2P-800A-70 800 A 16.0 A - 960 A 0.80 A 57.5 x 54.2 mm
+CMS-2P-630A-70 630 A 12.6 A - 756 A 0.63 A 57.5 x 54.2 mm
+CMS-2P-630A-52 630 A 12.6 A - 756 A 0.63 A 41.5 x 50.6 mm
+CMS-2P-630A-44 630 A 12.6 A - 756 A 0.63 A 33.5 x 50.6 mm
+CMS-2P-400A-70 400 A 8.0 A - 480 A 0.40 A 57.5 x 54.2 mm
+CMS-2P-400A-52 400 A 8.0 A - 480 A 0.40 A 41.5 x 50.6 mm
+CMS-2P-400A-44 400 A 8.0 A - 480 A 0.40 A 33.5 x 50.6 mm
+CMS-2P-250A-35 250 A 5.0 A - 300 A 0.25 A 24.5 x 31.0 mm
+CMS-2P-125A-30 125 A 2.5 A - 150 A 0.13 A 19.5 x 26.1 mm
+CMS-2P-60A-25 60 A 1.2 A - 72 A 0.06 A 14.5 x 15.3 mm
+정밀도 IEC 61557-12 Class 0.5 ±0.5 % Reading
+계측정보 RMS, 기본파, 고조파 (50차까지), 전류 페이저, THD, TDD, Crest factor, K-factor
+대칭좌표 성분 (정상분, 역상분, 영상분) 1, 대칭좌표 불평형률 1, NEMA 불평형률 1
+전력 유효 정밀도 IEC 61557-12 Class 0.5
+무효 IEC 61557-12 Class 1
+피상 IEC 61557-12 Class 0.5
+계측정보 상별 전력, 합산 전력 1
+전력량 유효 정밀도 IEC 62053-21 Class 0.5 수전/송전 유효전력량
+무효 IEC 62053-24 Class 1  4-Quadrant 무효전력량
+피상 IEC 61557-12 Class 0.5
+역률 (Power factor) 상별 역률, 합산 역률 1, 상별 변위 역률 2
+전류/전력 디맨드 피크 디맨드, 예측 디맨드 디맨드에 대한 서브인터벌과 개수로 디맨드시간 설정
+전류 불평형률 1 계측정보 NEMA 기준의 전류 불평형률 1
+대칭좌표 영상분, 역상분 전류 불평형률 1
+온도 3 계측범위 -20 − 200 ℃
+AC 전력품질 (Power Quality)
+전류 고조파
+THD, TDD
+고조파 차수 50차까지 
+계측정보 조파별 크기, THD, TDD
+LED 상태 표시
+LED 색상 LED 동작 상태 설명 표시 우선순위
+Orange 점등 4 Accura 2500M과의 정상 통신 상태 4
+Green 점등 Accura 2500D에서 Accura 2550CMS-2P 모듈이 선택된 상태 3
+Red 점등 ID 중복 또는 Standby ID 5 (공장 출하 ID) 상태 2
+점멸 이벤트 발생 상태 1
+1.  Accura 2550CMS-2P 모듈의 부하모드를 삼상3선으로 설정한 경우에만 해당된다.
+2. 변위 역률은 통신으로만 제공된다.
+3. TEMP 옵션을 선택한 CMS-2P 모듈에서만 지원된다.
+4. 펌웨어 업데이트 시 Orange LED의 점멸을 통해 진행 상태를 표시한다.
+5. CMS-2P 모듈의 ID는 Accura 2500D 모듈의 「SETUP > 모듈 선택창 > Chain View」 에서 ID Setup 버튼으로 설정할 수 있다.
+
+=== PAGE 40 ===
+Smart Digital Power Meter/
+Power Measuring Module
+40
+Accura 2550CMS/ZM
+스플릿코어 
+3P4W/1P3F/1P2F
+전력/누전 계측모듈
+전류입력
+커넥터 타입 관통형 (전선/버스바 이용)
+AC 계측
+주파수 50/60 Hz
+샘플링 256 샘플/사이클
+계측주기 
+(gapless)
+Frame 0.2초 (12 cycles @60 Hz, 10 cycles @50 Hz)
+전류 모델 기본전류 (Ib) 범위 (정밀도 보장) 최소 계측 관통치수
+CMS-3P4W-60A 60 A 3.0 A - 72 A 0.24 A 10.4  x 20.3 mm
+CMS-1P3F-60A 60 A 3.0 A - 72 A 0.24 A 10.4  x 20.3 mm
+CMS-1P2F-60A 60 A 3.0 A - 72 A 0.24 A 10.4  x 20.3 mm
+정밀도 2 IEC 61557-12 Class 0.5 ±0.5 % Reading
+계측정보 RMS, 기본파, 고조파 (50차까지), 전류 페이저, THD, TDD, Crest factor, K-factor
+대칭좌표 성분 (정상분, 역상분, 영상분) 1, 대칭좌표 불평형률 1, NEMA 불평형률 1
+잔류전류 (RMS, 기본파) 1
+누설전류 3 계측방식 누전계측모듈에 내장된 ZCT로 직접 계측
+계측범위 1 mA − 2 A 
+계측정보 RMS, 기본파
+정밀도 4 ZM-3P4W-60A-DI 5 ±0.5 % Reading ± 10 mA 관통치수  70.0 x 20.5 mm
+ZM-1P3F-60A-DI ±0.5 % Reading ± 5 mA Ø 21.0 mm
+ZM-1P2F-60A-DI ±0.5 % Reading ± 5 mA Ø 21.0 mm
+동작범위 최대 상전류 120 %Ib
+전력 유효 정밀도 2 IEC 61557-12 Class 0.5
+무효 IEC 61557-12 Class 1
+피상 IEC 61557-12 Class 0.5
+계측정보 상별 전력, 합산 전력 1
+전력량 유효 정밀도 2 IEC 62053-21 Class 0.5 수전/송전 유효전력량
+무효 IEC 62053-24 Class 1  4-Quadrant 무효전력량
+피상 IEC 61557-12 Class 0.5
+역률 (Power factor) 상별 역률, 합산 역률 1, 상별 변위 역률 6
+전류/전력 디맨드 피크 디맨드, 예측 디맨드 디맨드에 대한 서브인터벌과 개수로 디맨드시간 설정
+전류 불평형률 1 계측정보 NEMA 기준의 전류 불평형률 1
+대칭좌표 영상분, 역상분 전류 불평형률 1
+AC 전력품질 (Power Quality)
+전류 고조파
+THD, TDD
+고조파 차수 50차까지 
+계측정보 조파별 크기, THD, TDD
+디지털 입력 3 
+커넥터 타입 SMW250-03D (2.50 mm pitch connector)
+연결선 길이 50 cm (제품과 함께 제공)
+입력방식 내부 DC 5 V 전원 (self-excitation), 채널간 비절연
+최소 펄스폭 100 ms
+1.  Accura 2550CMS-3P4W 모듈에만 해당된다.
+2. 스플릿코어 CMS 모듈은 전력선이 홀의 상단부 중앙을 관통하는 조건에서 교정되었으며, 관통하는 위치가 상단부 중앙에서 
+    벗어날수록 전류, 전력 및 전력량의 오차는 증가하며 최대 1 %까지 증가할 수 있다.
+3. Accura 2550ZM-3P4W/1P3F/1P2F-60A-DI 모듈에서 지원된다.
+4. 누설전류의 기본파 성분에 대한 정밀도이다.
+5. 삼상4선 누전계측모듈 결선 시 정확한 누설전류 계측을 위하여 4개의 전력선을 모아 홀 중앙을 관통하도록 연결해야 한다.
+6. 변위 역률은 통신으로만 제공된다.
+
+=== PAGE 41 ===
+41
+Accura 2550CMM[Z] 
+MCB용 
+삼상 계측모듈
+전류입력
+커넥터 타입 관통형 (전선/버스바 이용)
+AC 계측
+주파수 50/60 Hz
+샘플링 256 샘플/사이클
+계측주기 
+(gapless)
+Frame 0.2초 (12 cycles @60 Hz, 10 cycles @50 Hz)
+전류 모델 기본전류 (Ib) 범위 (정밀도 보장) 최소 계측 관통치수
+CMM-3P-60A 60 A 1.2 A - 72 A 0.06 A Ø 10.4 / Ø 5.9 mm
+CMMZ-3P-60A 60 A 1.2 A - 72 A 0.06 A Ø 10.5 mm
+정밀도 IEC 61557-12 Class 0.5 ±0.5 % Reading
+계측정보 RMS, 기본파, 고조파 (50차까지), 전류 페이저, THD, TDD, Crest factor, K-factor
+대칭좌표 성분 (정상분, 역상분, 영상분), 대칭좌표 불평형률, NEMA 불평형률
+잔류전류 (RMS, 기본파)
+누설전류 1 계측방식 내장된 ZCT로 직접 계측
+계측범위 1 mA − 2 A 
+계측정보 RMS, 기본파
+정밀도 2 CMMZ-3P-60A ±0.5 % Reading ± 10 mA
+동작범위 최대 상전류 120 %Ib
+전력 유효 정밀도 IEC 61557-12 Class 0.5
+무효 IEC 61557-12 Class 1
+피상 IEC 61557-12 Class 0.5
+계측정보 상별 전력, 합산 전력
+전력량 유효 정밀도 IEC 62053-21 Class 0.5 수전/송전 유효전력량
+무효 IEC 62053-24 Class 1 4-Quadrant 무효전력량
+피상 IEC 61557-12 Class 0.5
+역률 (Power factor) 상별 역률, 합산 역률, 상별 변위 역률 3
+전류/전력 디맨드 피크 디맨드, 예측 디맨드 디맨드에 대한 서브인터벌과 개수로 디맨드시간 설정
+전류 불평형률 계측정보 NEMA 기준의 전류 불평형률
+대칭좌표 영상분, 역상분 전류 불평형률
+AC 전력품질 (Power Quality)
+전류 고조파
+THD, TDD
+고조파 차수 50차까지 
+계측정보 조파별 크기, THD, TDD
+디지털 입력 1
+커넥터 타입 SMW250-03D (2.50 mm pitch connector)
+연결선 길이 50 cm (제품과 함께 제공)
+입력방식 내부 DC 5 V 전원 (self-excitation), 채널간 비절연
+최소 펄스폭 100 ms
+1. Accura 2550CMMZ-3P-60A 모듈에서 지원된다.
+2. 누설전류의 기본파 성분에 대한 정밀도이다.
+3. 변위 역률은 통신으로만 제공된다.
+
+=== PAGE 42 ===
+Smart Digital Power Meter/
+Power Measuring Module
+42
+전류입력
+커넥터 타입 관통형 (전선/버스바 이용)
+DC 계측
+샘플링 주파수 12.80 kHz (샘플링 주기 78 us) @50 Hz mode 
+15.36 kHz (샘플링 주기 65 us) @60 Hz mode
+계측주기 Frame 0.2초
+(gapless)
+전류 모델 기본전류 (Ib) 범위 (정밀도 보장) 최소 계측 관통치수
+CMD-1P-1500A 1,500 Adc 최대 2,200 Adc 1.50 Adc 버스바 제공
+CMD-1P-750A 750 Adc 최대 900 Adc 0.75 Adc 버스바 제공
+CMD-1P-250A 250 Adc 최대 300 Adc 0.25 Adc Ø 21.0 x 22.0 mm
+CMD-1P-125A 125 Adc 최대 150 Adc 0.13 Adc Ø 16.5 x 20.5 mm
+CMD-1P-100A 100 Adc 최대 120 Adc 0.10 Adc Ø 13.5 x 17.5 mm
+CMD-1P-60A 60 Adc 최대 72 Adc 0.06 Adc Ø 13.5 x 17.5 mm
+정밀도 ±1.0 % Reading ± 0.1 %Ib 2
+온도 drift 1 ±0.02 %Ib/℃ typical 주위온도 25 ℃ 교정 기준
+계측정보 DC 전류, RMS 전류, 파형
+전력 정밀도 ±1.5 % Reading ± 0.15 %Un*Ib 2, 3 
+계측정보 DC 전력, 실 전력
+전력량 정밀도 ±1.5 % Reading ± 0.15 %Un*Ib 2, 3
+계측정보 DC 전력 적산의 수전/송전 DC 전력량
+실 전력 적산의 수전/송전 실 전력량
+Accura 2550CMD
+DC 전력계측모듈
+1. 교정온도를 기준으로 온도가 변함에 따라 전류 계측값은 오차를 포함할 수 있다.
+2. Ib는 각 모델의 기본전류이다.
+3. Accura 2500M 모듈의 기본전압 Un은 277 Vdc 이다. 단, Accura 2500M-VD 모듈의 경우 560 Vdc 이다.
+Accura 2550PS 
+보조전원모듈
+전원 1
+입력 전원 단자명 L+, N-,      (Ground)
+커넥터 타입 스크류타입 터미널 (pluggable)
+전선규격 / 토크 2.1 − 3.5 mm2 (14 − 12 AWG), 구리 / 최대 0.6 Nm (6.1 kgf-cm, 5.3 lbf-in)
+전선온도 정격 70˚C 이상
+전압(Us) AC 100 − 240 V 50/60Hz, DC 100 − 300 V, CATⅡ
+동작전압 범위 0.9 x Us − 1.1 x Us
+소비 전력 최대 20 W (입력 기준)
+돌입 전류 Peak 31 A, duration 1 ms 이하 (AC 220 V)
+Peak 11 A, duration 0.2 ms 이하 (DC 110 V)
+외부 입력퓨즈 사양  2 2 A, 500 V
+출력 전원 포트명 RJ45A, RJ45B: Accura 2550 모듈 공급용
+Aux. Connector(+5V-): 스크류타입, 보조 출력단자
+출력 전압 DC 5.0 − 5.4 V
+공급 전력 최대 15 W (출력 기준)
+부하상태 표시 LED 
+부하 점등 LED 색상
+50 %  미만 파란색 
+50 − 80 % 미만 파란색, 노란색 
+80 − 100 % 파란색, 노란색, 빨간색
+1. 전원 투입시 정상적인 기동을 위하여 Accura 2500M과 Accura 2550PS 모듈의 전원은 하나의 스위치로 동시에 인가되어야 한다.
+2. 전원 입력단에 퓨즈 설치 시 UL 인증을 받은 Class RK5 2A/500V 이상의 퓨즈 사용을 권장한다.
+
+
+=== PAGE 43 ===
+43
+1. UL 61010-1 3rd edition 규격 만족
+환경조건
+설치위치 옥내용
+안전온도 -20 − 70 ℃ (-4 − 158 ℉)
+동작온도 1 -20 − 60 ℃ (-4 − 140 ℉)
+보관온도 -40 − 85 ℃ (-40 − 185 ℉)
+동작습도 5 − 95 % (무결로 상태)
+동작고도 최대 2,000 m 
+방진, 방수 IEC 60529 IP54 (Accura 2500D)
+보증기한
+2년
+계측 정밀도
+IEC 61557-12 Power metering and monitoring devices (PMD)
+IEC 62053-21 Static meters for AC active energy (classes 0.5, 1 and 2)
+IEC 62053-22 Static meters for AC active energy (classes 0.1S, 0.2S and 0.5S)
+IEC 62053-24 Static meters for fundamental reactive energy (classes 0.5S, 1S, 1, 2 and 3)
+전력품질
+IEC 61000-4-30 Power quality measurement methods
+안전성
+UL 61010-1 Safety requirements for electrical equipment for measurement, control and laboratory use
+EMC
+EN 55011 Conducted emissions
+EN 55011 Conducted emissions (asymmetric mode)
+EN 55011 Radiated emissions
+IEC 61000-3-2 Limits for harmonic current emissions
+IEC 61000-3-3 Limitation of voltage changes, voltage fluctuations and flicker in public low-voltage supply 
+systems.
+IEC 61000-4-2 Electrostatic discharge (ESD) immunity test
+IEC 61000-4-3 Radiated, radio-frequency, electromagnetic field immunity test
+IEC 61000-4-4 Electrical fast transient/burst immunity test
+IEC 61000-4-5 Surge immunity test
+IEC 61000-4-6 Immunity test to conducted disturbances, induced by radio-frequency fields
+IEC 61000-4-8 Power frequency magnetic field immunity test
+IEC 61000-4-11 Voltage dips, short interruptions and voltage variations immunity test
+인증
+UL UL 61010-1 3rd Edition, UL 61010-2-030 2nd Edition
+CE EN 55011:2016/A11:2020, EN IEC 61326-1:2021, EN IEC 61326-2-1:2021, 
+EN IEC 61000-3-2:2019/A1:2021, EN 61000-3-3:2013/A2:2021
+KC EN 55011:2016/A11:2020, EN IEC 61326-1:2021, EN IEC 61326-2-1:2021
+표준규격
+공통 및 일반 사양
+
+=== PAGE 44 ===
+Smart Digital Power Meter/
+Power Measuring Module
+44
+스마트 분전반 디지털 전력미터는 AC 또는 DC 
+분전반 전면에 설치되는 Accura 2500D, 분전반 
+내부 또는 Accura 2500D 후면에 설치되는 
+Accura 2500M, AC 또는 DC 분전반 인입선로/
+분기선로에 설치되는 Accura 2550CM[D/Z], 
+Accura 2550CMS-2P, Accura 2550CMS/ZM, 
+Accura 2550CMM[Z]과 전력계측 외 특화된 
+기능을 수행하는 Accura 2550 특수모듈과 
+디지털/아날로그 입출력 기능을 수행하는 Accura 
+2550IO 모듈로 구성된다.
+Accura 2500M 모듈은 내부통신선을 이용하여 
+다수의 Accura 2550 모듈로부터 데이터를 
+수신하고, 수신된 데이터를 Accura 2500D 
+모듈로 송신하여 표시한다.  Accura 2500M 
+모듈은 Accura 2500D 모듈과 결합이 가능한 
+구조이기 때문에, Accura 2500D 모듈의 
+후면에 결합설치가 가능하며, 또한 분리하여 
+단독으로 분전반 내에도 설치 가능하다.
+주문정보
+구분 모델 옵션 설명 무게
+분전반 통합모듈 Accura 2500M -AC220V/DC110V 전원 AC 100 − 240 V, DC 100 − 300 V 500 g
+-DC24V 전원 DC 20 − 30 V
+-DC48V 전원 DC 36 − 63 V
+  AC/DC 분전반 인입단 전압계측
+Accura 2550과 계측 정보 송수신
+Accura 2500D와 설정 및 계측값 송수신
+상위 시스템과 통신
+Accura 2500M-VD 1 -AC220V/DC110V 전원 AC 100 − 240 V, DC 100 − 300 V 620 g
+-DC24V 전원 DC 20 − 30 V
+-DC48V 전원 DC 36 − 63 V
+Accura 2500M에 Voltage Divider 결합
+DC 분전반 고전압 계측
+Accura 2500M-PWM -AC220V/DC110V 전원 AC 100 − 240 V, DC 100 − 300 V 500 g
+-DC24V 전원 DC 20 − 30 V
+-DC48V 전원 DC 36 − 63 V
+PWM 타입의 AC 전압 계측
+AAF 필터로 PWM 주파수 성분 제거
+10 − 65 Hz 영역까지 정밀 계측
+분전반 통합
+HMI 모듈 
+Accura 2500D 5" Color TFT LCD (터치 패널 장착) 400 g
+Accura 2500M과 설정 및 계측값 송수신
+LCD 화면에 계측값 표시 및 설정 기능
+삼상
+전력계측모듈
+Accura 2550CM-3P-800A-210 기본전류 800 A 1,500 g
+Accura 2550CM-3P-800A-210-ZCT 기본전류 800 A (외부 ZCT 연결 가능) 1,500 g
+Accura 2550CM-3P-630A-145 기본전류 630 A 1,000 g
+Accura 2550CM-3P-630A-145-ZCT 기본전류 630 A (외부 ZCT 연결 가능) 1,000 g
+Accura 2550CM-3P-400A-140 기본전류 400 A 1,000 g
+Accura 2550CM-3P-400A-140-ZCT 기본전류 400 A (외부 ZCT 연결 가능) 1,000 g
+Accura 2550CM-3P-250A 기본전류 250 A 140 g
+Accura 2550CM-3P-125A 기본전류 125 A 130 g
+Accura 2550CM-3P-100A 기본전류 100 A 115 g
+Accura 2550CM-3P-60A 2 기본전류 60 A 115 g
+Accura 2550CM-3P-5A 기본전류 5 A 155 g
+Accura 2550CM-3P-5A-ZCT 기본전류 5 A (외부 ZCT 연결 가능) 155 g
+단상
+전력계측모듈
+Accura 2550CM-1P-250A 기본전류 250 A 125 g
+Accura 2550CM-1P-125A 기본전류 125 A 85 g
+Accura 2550CM-1P-100A 기본전류 100 A 80 g
+Accura 2550CM-1P-60A 3 기본전류 60 A 80 g
+삼상 
+전력/누전
+계측모듈
+Accura 2550CMZ-3P-800A-220 기본전류 800 A 2,500 g
+Accura 2550CMZ-3P-630A-155 기본전류 630 A 1,500 g
+Accura 2550CMZ-3P-400A-155 기본전류 400 A 1,500 g
+Accura 2550CMZ-3P-250A 기본전류 250 A 300 g
+Accura 2550CMZ-3P-125A 기본전류 125 A 235 g
+Accura 2550CMZ-3P-100A 기본전류 100 A 175 g
+Accura 2550CMZ-3P-60A 4 기본전류 60 A 175 g
+삼상4선
+전력/누전
+계측모듈
+Accura 2550CMZ-3P4W-250A-145 기본전류 250A 330 g
+
+=== PAGE 45 ===
+45
+구분 모델 옵션 설명 무게
+단상 
+전력/누전  
+계측모듈
+Accura 2550CMZ-1P-250A 기본전류 250 A 270 g
+Accura 2550CMZ-1P-125A 기본전류 125 A 155 g
+Accura 2550CMZ-1P-100A 기본전류 100 A 125 g
+Accura 2550CMZ-1P-60A 5 기본전류 60 A 125 g
+스플릿코어 2P
+전력계측모듈
+Accura 2550CMS-2P-800A-70 -ZCT 6-TEMP(n)  7 기본전류 800 A 950 g
+Accura 2550CMS-2P-630A-70 -ZCT 6-TEMP(n)  7 기본전류 630 A 950 g
+Accura 2550CMS-2P-630A-52 -ZCT 6-TEMP(n)  7 기본전류 630 A 650 g
+Accura 2550CMS-2P-630A-44 -ZCT 6-TEMP(n)  7 기본전류 630 A 600 g
+Accura 2550CMS-2P-400A-70 -ZCT 6-TEMP(n)  7 기본전류 400 A 950 g
+Accura 2550CMS-2P-400A-52 -ZCT 6-TEMP(n)  7 기본전류 400 A 650 g
+Accura 2550CMS-2P-400A-44 -ZCT 6-TEMP(n)  7 기본전류 400 A 600 g
+Accura 2550CMS-2P-250A-35 -ZCT 6-TEMP(n)  7 기본전류 250 A 300 g
+Accura 2550CMS-2P-125A-30 -ZCT 6-TEMP(n)  7 기본전류 125 A 250 g
+Accura 2550CMS-2P-60A-25 -ZCT 6-TEMP(n)  7 기본전류 60 A 200 g
+스플릿코어 2P
+전력계측모듈용
+외부온도모듈 6
+Accura ETM70 상간거리 70 mm 10 g
+Accura ETM52 상간거리 52 mm 10 g
+Accura ETM44 상간거리 44 mm 10 g
+Accura ETM25-35 상간거리 25 mm − 35 mm 5 g
+스플릿코어 3P4W 
+전력/누전 계측모듈
+Accura 2550CMS-3P4W-60A 기본전류 60 A 430 g
+Accura 2550ZM-3P4W-60A-DI 기본전류 60 A 210 g
+스플릿코어 1P3F 
+전력/누전 계측모듈
+Accura 2550CMS-1P3F-60A 기본전류 60 A 430 g
+Accura 2550ZM-1P3F-60A-DI 기본전류 60 A 330 g
+스플릿코어 1P2F 
+전력/누전 계측모듈
+Accura 2550CMS-1P2F-60A 기본전류 60 A 350 g
+Accura 2550ZM-1P2F-60A-DI 기본전류 60 A 230 g
+MCB용 
+삼상 계측모듈
+Accura 2550CMM-3P-60A 기본전류 60 A 100 g
+Accura 2550CMMZ-3P-60A 기본전류 60 A 150 g
+DC 
+전력계측모듈
+Accura 2550CMD-1P-1500A 기본전류 1,500 Adc 3,000 g
+Accura 2550CMD-1P-750A 기본전류 750 Adc 850 g
+Accura 2550CMD-1P-250A 기본전류 250 Adc 125 g
+Accura 2550CMD-1P-125A 기본전류 125 Adc 85 g
+Accura 2550CMD-1P-100A 기본전류 100 Adc 80 g
+Accura 2550CMD-1P-60A 3 기본전류 60 Adc 80 g
+
+=== PAGE 46 ===
+Smart Digital Power Meter/
+Power Measuring Module
+46
+구분 모델 설명 무게
+CM용 
+삼상 단자대
+TM-CM-BC-3P-105 8 Accura 2550CM-3P-250A 단자대 335 g
+TM-CM-3P-105 Accura 2550CM-3P-250A 단자대 330 g
+TM-CM-3P-105-LB 9 Accura 2550CM-3P-250A LB용 단자대 360 g
+TM-CM-3P-90 Accura 2550CM-3P-125A 단자대 205 g
+TM-CM-3P-90-LB 9 Accura 2550CM-3P-125A LB용 단자대 220 g
+TM-CM-3P-75L 2 Accura 2550CM-3P-100A 단자대 195 g
+Accura 2550CM-3P-60A 단자대
+TM-CM-3P-75L-LB 2, 9 Accura 2550CM-3P-100A LB용 단자대 210 g
+Accura 2550CM-3P-60A LB용 단자대
+TM-CM-3P-75 2 Accura 2550CM-3P-60A 단자대 140 g
+TM-CM-3P-75-LB 2 Accura 2550CM-3P-60A LB용 단자대 155 g
+CM[D]용 
+단상 단자대
+TM-CM-1P-105 Accura 2550CM[D]-1P-250A 단자대 245 g
+TM-CM-1P-105-LB 9 Accura 2550CM[D]-1P-250A LB용 단자대 265 g
+TM-CM-1P-60 Accura 2550CM[D]-1P-125A 단자대 140 g
+TM-CM-1P-60-LB 9 Accura 2550CM[D]-1P-125A LB용 단자대 150 g
+TM-CM-1P-50L 3 Accura 2550CM[D]-1P-100A 단자대 130 g
+Accura 2550CM[D]-1P-60A 단자대
+TM-CM-1P-50L-LB 3, 9 Accura 2550CM[D]-1P-100A LB용 단자대 140 g
+Accura 2550CM[D]-1P-60A LB용 단자대
+TM-CM-1P-50 3 Accura 2550CM[D]-1P-60A 단자대 95 g 
+TM-CM-1P-50-LB 3, 9 Accura 2550CM[D]-1P-60A LB용 단자대 105 g 
+CMZ용 
+삼상 단자대
+TM-CMZ-BC-3P-105 8 Accura 2550CMZ-3P-250A 단자대 400 g
+TM-CMZ-3P-105 Accura 2550CMZ-3P-250A 단자대 395 g
+TM-CMZ-3P-105-LB 9 Accura 2550CMZ-3P-250A LB용 단자대 425 g
+TM-CMZ-3P-90 Accura 2550CMZ-3P-125A 단자대 230 g
+TM-CMZ-3P-90-LB 9 Accura 2550CMZ-3P-125A LB용 단자대 245 g
+TM-CMZ-3P-75L 4 Accura 2550CMZ-3P-100A 단자대 210 g
+Accura 2550CMZ-3P-60A 단자대
+TM-CMZ-3P-75L-LB 4 , 9 Accura 2550CMZ-3P-100A LB용 단자대 220 g
+Accura 2550CMZ-3P-60A LB용 단자대
+TM-CMZ-3P-75 4 Accura 2550CMZ-3P-60A 단자대 155 g
+TM-CMZ-3P-75-LB 4, 9 Accura 2550CMZ-3P-60A LB용 단자대 165 g
+CMZ용
+삼상4선 단자대
+TM-CMZ-BC-3P4W-140 8 Accura 2550CMZ-3P4W-250A 단자대 530 g
+CMZ용 
+단상 단자대
+TM-CMZ-1P-105 Accura 2550CMZ-1P-250A 단자대 290 g
+TM-CMZ-1P-105-LB 9 Accura 2550CMZ-1P-250A LB용 단자대 310 g
+TM-CMZ-1P-60 Accura 2550CMZ-1P-125A 단자대 150 g
+TM-CMZ-1P-60-LB 9 Accura 2550CMZ-1P-125A LB용 단자대 160 g
+TM-CMZ-1P-50L 5 Accura 2550CMZ-1P-100A 단자대 140 g
+Accura 2550CMZ-1P-60A 단자대
+TM-CMZ-1P-50L-LB 5, 9 Accura 2550CMZ-1P-100A LB용 단자대 145 g
+Accura 2550CMZ-1P-60A LB용 단자대
+TM-CMZ-1P-50 5 Accura 2550CMZ-1P-60A 단자대 105 g
+TM-CMZ-1P-50-LB 5, 9 Accura 2550CMZ-1P-60A LB용 단자대 110 g
+CMS-2P용 
+삼상 단자대
+TM-CMS-3P-105 Accura 2550CMS-2P-250A 단자대 410 g
+TM-CMS-3P-90 Accura 2550CMS-2P-125A 단자대 250 g
+TM-CMS-3P-75 Accura 2550CMS-2P-60A 단자대 180 g
+CMS-2P용 
+단상 단자대
+TM-CMS-1P-105 Accura 2550CMS-2P-250A 단자대 300 g
+TM-CMS-1P-60 Accura 2550CMS-2P-125A 단자대 170 g
+TM-CMS-1P-50 Accura 2550CMS-2P-60A 단자대 120 g
+
+=== PAGE 47 ===
+47
+1. 정밀계측을 위하여 결합되는 VD 모듈의 P/N (제품 일련번호)은 Accura 2500M 제품의 P/N과 일치해야 한다.
+2. Accura 2550CM-3P-60A 모듈 사용 시 MCCB 단자부 Hole 크기와 버스바의 길이에 따라 TM-CM-3P-75, TM-CM-3P-75L, TM-CM-3P-75-LB
+    또는 TM-CM-3P-75L-LB를 선택해야 한다.
+3. Accura 2550CM[D]-1P-60A 모듈 사용 시 MCCB 단자부 Hole 크기와 버스바의 길이에 따라 TM-CM-1P-50, TM-CM-1P-50L, TM-CM-1P-50-LB
+    또는 TM-CM-1P-50L-LB를 선택해야 한다.
+4. Accura 2550CMZ-3P-60A 모듈 사용 시 MCCB 단자부 Hole 크기와 버스바의 길이에 따라 TM-CMZ-3P-75, TM-CMZ-3P-75L, TM-CMZ-3P-75-LB
+    또는 TM-CMZ-3P-75L-LB를 선택해야 한다.
+5. Accura 2550CMZ-1P-60A 모듈 사용 시 MCCB 단자부 Hole 크기와 버스바의 길이에 따라 TM-CMZ-1P-50, TM-CMZ-1P-50L, TM-CMZ-1P-50-LB
+   또는 TM-CMZ-1P-50L-LB를 선택해야 한다.
+6. ZCT 및 Accura ETM 옵션 모듈은 차후 출시 예정이다.
+7. TEMP(n) 옵션은 Accura ETM 모듈의 추가 수량을 의미하며, 결선 방식에 따라 n=0(1P2W), n=1(3P3W) 또는 n=2(1P2F)로 선택할 수 있다.
+8. 배리어 설치 가능한 타입의 250A 단자대이다.
+9. LB: Long Busbar  
+10. 특수모듈과 IO 모듈의 상세설명은 개별 카탈로그를 참조한다.
+11. Accura 2550DCM-500V-80A 모듈은 UL 인증에서 제외되었다.
+구분 모델 설명 무게
+특수모듈 10
+Accura 2550DCM DC 전압 및  전류 계측  250 g
+-500V-80A 11
+기본전압 500 Vdc/기본전류 80 Adc
+-50V-80A 기본전압 50 Vdc/기본전류 80 Adc
+Accura 2550TEMP 설치면의 외부온도 계측 160 g
+Accura TSEN이 계측한 내부 온도 수집
+Accura THSEN이 계측한 내부 온도와 습도 수집
+Accura TSEN 분전반 내부 각 설치 지점의 온도 계측 50 g
+Accura THSEN 분전반 내부 각 설치 지점의 온도 및 습도 계측 50 g
+Accura 2550GW RS-485 통신 가능한 주변 장치의 데이터 수집 150 g
+Accura 2550GWM RS-485 포트 4개를 이용하여 주변 장치의 데이터 수집 200 g
+Accura 2550SAL 서지 어레스터 누설전류 계측 810 g
+Accura 2550VOL 복합전원 전압 계측 200 g
+IO 모듈 
+10 Accura 2550IO-DI1 디지털 입력 11 채널 200 g
+Accura 2550IO-DI2 디지털 입력 22 채널 280 g
+Accura 2550IO-DO1 디지털 출력 6 채널 200 g
+Accura 2550IO-DO2 디지털 출력 12 채널 280 g
+Accura 2550IO-DIO 디지털 입력 11 채널, 디지털 출력 6 채널 280 g
+Accura 2550IO-AI1 DC 4 − 20 mA 아날로그 입력 6 채널 200 g
+Accura 2550IO-AI2 DC 4 − 20 mA 아날로그 입력 12 채널 280 g
+Accura 2550IO-RTD1 온도센서 RTD 입력 4 채널 200 g
+Accura 2550IO-RTD2 온도센서 RTD 입력 8 채널 280 g
+보조전원모듈 Accura 2550PS 추가적인 전원 공급 250 g
+
+=== PAGE 48 ===
+Smart Digital Power Meter/
+Power Measuring Module
+48
+제품 이미지
+분전반 통합모듈
+ + 
+분전반 통합 HMI 모듈
+Accura 2500D/2500M *
+ Accura 2500D/2500M-VD
+분전반 통합모듈 
+Accura 2500M * 전면
+ Accura 2500M * 후면
+Accura 2500M-VD 전면
+ Accura 2500M-VD 후면
+분전반 통합 HMI 모듈 
+Accura 2500D 전면 Accura 2500D  후면
+NOTE
+정밀계측을 위하여 결합되는 VD 모듈의 
+P/N (제품 일련번호)은 Accura 2500M 
+제품의 P/N과 일치해야 한다.
+ * Accura 2500M-PWM 모듈의 외관은 Accura 2500M 모듈과 동일하다.
+
+=== PAGE 49 ===
+49
+삼상
+전력계측모듈
+Accura 2550CM 
+-3P-800A-210
+Accura 2550CM 
+-3P-800A-210-ZCT
+Accura 2550CM 
+-3P-630A-145
+Accura 2550CM 
+-3P-630A-145-ZCT
+Accura 2550CM
+-3P-400A-140
+Accura 2550CM
+-3P-400A-140-ZCT
+Accura 2550CM
+-3P-250A
+Accura 2550CM
+-3P-125A
+Accura 2550CM
+-3P-100A
+Accura 2550CM
+-3P-60A 2
+Accura 2550CM
+-3P-5A
+Accura 2550CM
+-3P-5A-ZCT
+CM용
+삼상 단자대 
+TM-CM-BC-3P-105 1 TM-CM-3P-105 TM-CM-3P-90 TM-CM-3P-75L 2 TM-CM-3P-75 2
+TM-CM-3P-105-LB 3 TM-CM-3P-90-LB 3 TM-CM-3P-75L-LB 2, 3 TM-CM-3P-75-LB 2, 3
+1. 배리어 타입 단자대
+2. Accura 2550CM-3P-60A 모듈 사용 시 MCCB 단자부 Hole 크기와 버스바의 길이에 따라 TM-CM-3P-75, 
+TM-CM-3P-75L, TM-CM-3P-75-LB 또는 TM-CM-3P-75L-LB를 선택해야 한다.
+3. LB: Long Busbar
+
+=== PAGE 50 ===
+Smart Digital Power Meter/
+Power Measuring Module
+50
+단상
+전력계측모듈
+Accura 2550CM
+-1P-250A
+Accura 2550CM
+-1P-125A
+Accura 2550CM
+-1P-100A
+Accura 2550CM
+-1P-60A 1
+CM[D]용 
+단상 단자대
+TM-CM-1P-105 TM-CM-1P-60 TM-CM-1P-50L 1 TM-CM-1P-50 1
+TM-CM-1P-105-LB 2 TM-CM-1P-60-LB 2 TM-CM-1P-50L-LB 1, 2 TM-CM-1P-50-LB 1, 2
+1. Accura 2550CM-1P-60A 모듈 사용 시 MCCB 단자부 Hole 크기와 버스바의 길이에 따라 TM-CM-1P-50, 
+TM-CM-1P-50L, TM-CM-1P-50-LB 또는 TM-CM-1P-50L-LB를 선택해야 한다.
+2. LB: Long  Busbar
+
+=== PAGE 51 ===
+51
+삼상
+전력/누전
+계측모듈
+Accura 2550CMZ-3P 
+-800A-220
+Accura 2550CMZ-3P 
+-630A-155
+Accura 2550CMZ-3P 
+-400A-155
+Accura 2550CMZ-3P-250A Accura 2550CMZ-3P-125A Accura 2550CMZ-3P-100A Accura 2550CMZ-3P-60A 2
+CMZ용 
+삼상 단자대
+TM-CMZ-BC-3P-105 1 TM-CMZ-3P-105 TM-CMZ-3P-90 TM-CMZ-3P-75L 2 TM-CMZ-3P-75 2
+TM-CMZ-3P-105-LB 3 TM-CMZ-3P-90-LB 3 TM-CMZ-3P-75L-LB 2, 3 TM-CMZ-3P-75-LB 2, 3
+1. 배리어 타입 단자대
+2. Accura 2550CMZ-3P-60A 모듈 사용 시 MCCB 단자부 Hole 크기와 버스바의 길이에 따라 TM-CMZ-3P-75, 
+TM-CMZ-3P-75L, TM-CMZ-3P-75-LB 또는 TM-CMZ-3P-75L-LB를 선택해야 한다.
+3. LB: Long Busbar 
+
+
+=== PAGE 52 ===
+Smart Digital Power Meter/
+Power Measuring Module
+52
+삼상4선
+전력/누전
+계측모듈
+Accura 2550CMZ-3P4W
+-250A-145
+CMZ용
+삼상4선
+단자대
+TM-CMZ-BC-3P4W-140 1
+단상
+전력/누전
+계측모듈
+Accura 2550CMZ-1P-250A Accura 2550CMZ-1P-125A Accura 2550CMZ-1P-100A Accura 2550CMZ-1P-60A 2
+CMZ용
+단상 단자대
+TM-CMZ-1P-105 TM-CMZ-1P-60 TM-CMZ-1P-50L 2 TM-CMZ-1P-50 2
+TM-CMZ-1P-105-LB 3 TM-CMZ-1P-60-LB 3 TM-CMZ-1P-50L-LB 2, 3 TM-CMZ-1P-50-LB 2, 3 
+1. 배리어 타입 단자대
+2. Accura 2550CMZ-1P-60A 모듈 사용 시 MCCB 단자부 Hole 크기와 버스바의 길이에 따라 TM-CMZ-1P-50, 
+TM-CMZ-1P-50L, TM-CMZ-1P-50-LB 또는 TM-CMZ-1P-50L-LB를 선택해야 한다.
+3. LB: Long Busbar 
+
+
+=== PAGE 53 ===
+53
+1. TEMP(n) 옵션은 Accura ETM 모듈의 추가 수량을 의미하며, 결선 방식에 따라 n=0(1P2W), n=1(3P3W) 또는 n=2(1P2F)로 선택할 수 있다.
+스플릿코어 2P
+전력계측모듈
+Accura 2550CMS-2P-
+800A-70
+Accura 2550CMS-2P-
+630A-70
+Accura 2550CMS-2P-
+630A-52
+Accura 2550CMS-2P-
+630A-44
+Accura 2550CMS-2P-
+400A-70
+Accura 2550CMS-2P-
+400A-52
+Accura 2550CMS-2P-
+400A-44
+Accura 2550CMS-2P-
+250A-35
+Accura 2550CMS-2P-
+125A-30
+Accura 2550CMS-2P-
+60A-25
+스플릿코어 2P
+전력계측모듈
+(온도 계측 가능 
+1
+)
+Accura 2550CMS-2P-
+800A-70-TEMP
+Accura 2550CMS-2P-
+630A-70-TEMP
+Accura 2550CMS-2P-
+630A-52-TEMP
+Accura 2550CMS-2P-
+630A-44-TEMP
+Accura 2550CMS-2P-
+400A-70-TEMP
+Accura 2550CMS-2P-
+400A-52-TEMP
+Accura 2550CMS-2P-
+400A-44-TEMP
+Accura 2550CMS-2P-
+250A-35-TEMP
+Accura 2550CMS-2P-
+125A-30-TEMP
+Accura 2550CMS-2P-
+60A-25-TEMP
+스플릿코어 2P
+전력계측모듈용
+외부온도모듈
+Accura ETM70 Accura ETM52 Accura ETM44 Accura ETM25-35
+
+
+=== PAGE 54 ===
+Smart Digital Power Meter/
+Power Measuring Module
+54
+CMS-2P용
+삼상 단자대
+TM-CMS-3P-105 TM-CMS-3P-90 TM-CMS-3P-75 
+CMS-2P용
+단상 단자대
+TM-CMS-1P-105 TM-CMS-1P-60 TM-CMS-1P-50 
+스플릿코어
+3P4W
+전력/누전
+계측모듈  
+Accura 2550CMS-3P4W-60A      Accura 2550ZM-3P4W-60A-DI
+스플릿코어
+1P3F
+전력/누전
+계측모듈
+Accura 2550CMS-1P3F-60A     Accura 2550ZM-1P3F-60A-DI
+스플릿코어
+1P2F
+전력/누전
+계측모듈
+Accura 2550CMS-1P2F-60A     Accura 2550ZM-1P2F-60A-DI
+MCB용
+삼상
+계측모듈
+Accura 2550CMM-3P-60A Accura 2550CMMZ-3P-60A
+
+
+=== PAGE 55 ===
+55
+DC 
+전력계측모듈
+Accura 2550CMD-1P-1500A Accura 2550CMD-1P-750A
+Accura 2550CMD-1P-250A Accura 2550CMD-1P-125A Accura 2550CMD-1P-100A Accura 2550CMD-1P-60A 1
+CM[D]용 
+단상 단자대
+TM-CM-1P-105 TM-CM-1P-60 TM-CM-1P-50L 1 TM-CM-1P-50 1
+TM-CM-1P-105-LB 2 TM-CM-1P-60-LB 2 TM-CM-1P-50L-LB 1, 2 TM-CM-1P-50-LB 1, 2
+1. Accura 2550CMD-1P-60A 모듈 사용 시 MCCB 단자부 Hole 크기와 버스바의 길이에 따라 TM-CM-1P-50, 
+TM-CM-1P-50L, TM-CM-1P-50-LB 또는 TM-CM-1P-50L-LB를 선택해야 한다.
+2. LB: Long Busbar
+
+=== PAGE 56 ===
+Smart Digital Power Meter/
+Power Measuring Module
+56
+특수모듈
+Accura 2550DCM-500V-80A Accura 2550DCM-50V-80A
+Accura 2550TEMP Accura TSEN Accura THSEN
+Accura 2550GW Accura 2550GWM Accura 2550VOL Accura 2550SAL
+
+
+=== PAGE 57 ===
+57
+IO 모듈
+Accura 2550IO-DI1 Accura 2550IO-DI2 Accura 2550IO-DO1 Accura 2550IO-DO2
+Accura 2550IO-DIO Accura 2550IO-AI1 Accura 2550IO-AI2
+Accura 2550IO-RTD1 Accura 2550IO-RTD2
+보조전원모듈
+Accura 2550PS
+
+
+=== PAGE 58 ===
+Smart Digital Power Meter/
+Power Measuring Module
+58
+➊
+➋
+➌
+➎➎
+➍➍
+➊
+➋
+➌
+90.0mm
+[3.54"]
+90.0mm
+[3.54"]
+Ø102.0mm
+[Ø4.02"]
+Ø5.0mm
+[Ø0.20"]
+제품설치
+Max 4.0mm
+NOTE
+고정용 휠은 손으로 돌려서 쉽게 고정할 수 있다. 
+별도의 공구를 사용하거나 과도한 힘을 가하면  
+Accura 2500D의 TFT LCD를 손상시킬 수 있다.
+Accura 2500D/2500M
+결합설치
+Accura 2500D 패널설치
+Accura 2500D/2500M
+분리설치
+NOTE
+1)  결합설치 시 분전반 패널의 두께는 최대 4mm 까지 가능하다.
+2) Accura 2500M-PWM 모듈의 설치 방법은 Accura 2500M 
+    모듈과 동일하다.
+
+=== PAGE 59 ===
+59
+➊
+➋➋
+➌➌
+165.0mm
+[6.50"]
+M4 Self Tap
+165.0mm
+[6.50"]
+50.0mm
+[1.97"]
+60.0mm
+[2.36"]
+➊
+➊ ➋➋
+➌➌
+70.0mm
+[2.76"]
+70.0mm
+[2.76"]
+M4 Self Tap
+➋➋
+➊
+Accura 2500M 패널설치
+Accura 2500M-VD 패널설치
+
+=== PAGE 60 ===
+Smart Digital Power Meter/
+Power Measuring Module
+60
+Accura 2550CM-3P
+Accura 2550CM-1P
+이더넷/전원선 연결
+50.0mm
+50.0mm
+20.0mm
+0.5mm 0.5mm
+MCCB
+MCCB
+Accura 2550CM-3P
+Accura 2550CM-1P
+TM-CM-3P
+TM-CM-1P
+0.5mm 0.5mm
+Accura 2500M 
+설치 이격거리 
+(이더넷/전원선 연결)
+Accura 2550CM
+전력계측모듈
+CM-3P 모듈은 삼상 전류를 센싱하여 삼상 피더의 
+전력을 계측한다.
+CM-1P 모듈은 단상 전류를 센싱하여 단상 피더의 
+전력을 계측한다. 
+
+=== PAGE 61 ===
+61
+MCCB
+ZCT
+Accura 2550CM-3P-800A/630A/400A-ZCT
+Accura 2550CM-3P-5A-ZCT *
+MCCB
+ZCT
+Accura 2550CM-3P-5A-ZCT
+Accura 2550CM
+전력계측모듈
+(외부 ZCT 연결 가능)
+외부 ZCT 연결 가능한 CM-3P 모듈은 외부에 
+설치된 전압형 ZCT를 ZCT 연결 단자에 연결하
+여 누설전류를 계측한다. 또한, CM-3P 모듈의 
+부하 방향(Load direction) 설정은 외부 ZCT의 
+누설전류 계측 방향에 영향을 미치지 않는다.
+NOTE
+사용자는 ZCT 제조사로부터 ZCT를 별도로 구매해야 한다.
+*
+Accura 2550CM-3P-5A 모듈은 외부에 CT (2차측 정격전류 :
+ 5 A)를 설치하여 사용이 가능하다.
+Accura 2550CM-3P-800A/630A/400A-ZCT
+
+=== PAGE 62 ===
+Smart Digital Power Meter/
+Power Measuring Module
+62
+0.5mm
+0.5mm
+0.5mm
+0.5mm
+Accura 2550CMZ-3P
+Accura 2550CMZ-1P
+Accura 2550CMZ-3P4W
+0.5mm 0.5mm
+MCCB
+MCCB
+Accura 2550CMZ-3P4W-250A-145
+TM-CMZ-BC-3P4W-140
+MCCB
+Accura 2550CMZ-3P
+Accura 2550CMZ-1P
+TM-CMZ-3P
+TM-CMZ-1P
+Accura 2550CMZ
+전력/누전 계측모듈
+CMZ-3P 모듈은 삼상 전류를 센싱하여 삼상 
+피더의 전력을 계측한다. 내장된 ZCT로 삼상 
+피더의 누설전류를 계측한다.
+CMZ-3P4W 모듈은 삼상 전류를 센싱하여 삼상 
+피더의 전력을 계측한다. 내장된 ZCT로 삼상4선 
+피더의 누설전류를 계측한다.
+CMZ-1P 모듈은 단상 전류를 센싱하여 단상 피더
+의 전력을 계측한다. 내장된 ZCT로 단상 피더의 
+누설전류를 계측한다.
+
+=== PAGE 63 ===
+63
+3P3W 결선
+1P2W 결선
+1P2F 결선
+Accura 2550CMS-2P
+스플릿코어 2P
+전력계측모듈
+스플릿코어 CMS-2P 모듈은 전류센서가 내장된 
+2개의 홀을 통해 전류를 센싱하며, 부하모드 설정
+에 따라 삼상3선(3P3W), 단상2선(1P2W), 단상 
+2피더(1P2F)의 전력을 계측한다. 
+MCCB
+MCCB
+MCCB
+Accura 2550CMS-2P
+Accura 2550CMS-2P
+Accura 2550CMS-2P
+TM-CMS-3P-75
+TM-CMS-1P-50
+TM-CMS-1P-50 2EA
+0.5mm 0.5mm
+0.5mm
+0.5mm
+0.5mm
+0.5mm
+Load
+Load
+Load
+Load
+NOTE
+CMS-2P 모듈의 부하모드가 삼상3선 결선인 경우, 
+관통 결선 시 세 개의 전력선 중 상단의 두 선에 
+설치되어야 한다.
+
+=== PAGE 64 ===
+Smart Digital Power Meter/
+Power Measuring Module
+64
+3P3W 결선
+1P2F 결선
+Accura 2550CMS-2P-TEMP
+스플릿코어 2P
+전력계측모듈
+(온도 계측 가능)
+스플릿코어 CMS-2P-TEMP 모듈은 버스바의 
+온도를 계측하며, 결선 방식에 따라 Accura 
+ETM 모듈을 추가로 연결할 수 있다.
+MCCB
+MCCB
+Accura 2550CMS-2P-TEMP(1)
+Accura 2550CMS-2P-TEMP(2)
+TM-CMS-3P-75
+TM-CMS-1P-50 2EA
+0.5mm 0.5mm
+0.5mm 0.5mm
+Load
+Load
+Load
+NOTE
+TEMP(n) 옵션은 Accura ETM 모듈의 추가 수량을 
+의미하며, 결선 방식에 따라 Accura ETM 모듈의 
+개수가 달라진다.
+
+=== PAGE 65 ===
+65
+NOTE
+CMS 모듈의 부하 방향(Load direction) 설정은 연결된 
+ZM 모듈의 누설전류 계측 방향에 영향을 미친다.
+MCCB Accura 2550ZM
+-3P4W-60A-DI
+Accura 2550CMS
+-3P4W-60A
+30.0mm 30.0mm
+스플릿코어 CMS-3P4W 모듈은 삼상 전류를 
+센싱하여 삼상 피더의 전력을 계측한다. CMS-
+3P4W 모듈과 통신선으로 연결된 ZM-3P4W 
+모듈은 내장된 ZCT로 삼상4선 피더의 누설전류
+를 계측하며, MCCB의 동작상태와 트립상태를 
+입력받기 위한 디지털 입력단자가 있다.
+스플릿코어 CMS-1P3F 모듈은 단상 3개 피더
+의 전류를 센싱하여 3개 피더의 전력을 각각 계
+측한다. CMS-1P3F 모듈과 통신선으로 연결된 
+ZM-1P3F 모듈은 내장된 3개의 ZCT로 단상 3
+개 피더의 누설전류를 각각 계측하며, 각 피더별 
+MCCB의 동작상태와 트립상태를 입력받기 위한 
+디지털 입력단자가 있다.
+스플릿코어 CMS-1P2F 모듈은 단상 2개 피더
+의 전류를 센싱하여 2개 피더의 전력을 각각 계
+측한다. CMS-1P2F 모듈과 통신선으로 연결된 
+ZM-1P2F 모듈은 내장된 2개의 ZCT로 단상 2
+개 피더의 누설전류를 각각 계측하며, 각 피더별 
+MCCB의 동작상태와 트립상태를 입력받기 위한 
+디지털 입력단자가 있다.
+Accura 2550CMS-3P4W
+Accura 2550ZM-3P4W
+Accura 2550CMS-1P3F
+Accura 2550ZM-1P3F
+Accura 2550CMS-1P2F
+Accura 2550ZM-1P2F
+Accura 2550CMS/ZM-3P4W
+스플릿코어 3P4W 
+전력/누전 계측모듈
+Accura 2550CMS/ZM-1P3F
+스플릿코어 1P3F 
+전력/누전 계측모듈
+Accura 2550CMS/ZM-1P2F
+스플릿코어 1P2F
+전력/누전 계측모듈 30.0mm
+MCCB Accura 2550ZM
+-1P2F-60A-DI
+Accura 2550CMS
+-1P2F-60A
+30.0mm
+30.0mm
+MCCB Accura 2550ZM
+-1P3F-60A-DI
+Accura 2550CMS
+-1P3F-60A
+30.0mm
+*
+ZM-3P4W 모듈 관통결선: 정확한 누설전류 계측을 위하여 4개의 
+전력선을 모아 홀 중앙을 관통하도록 연결해야 한다.
+Hole* 
+DI Status 
+
+=== PAGE 66 ===
+Smart Digital Power Meter/
+Power Measuring Module
+66
+MCB
+MCB
+Accura 2550CMM
+-3P-60A
+Accura 2550CMM
+-3P-60A
+DIN Rail 설치
+패널 설치
+MCB
+Accura 2550CMMZ
+3P-60A
+Accura 2550CMMZ-3P-60A
+Accura 2550CMM
+MCB용 삼상
+전력계측모듈
+MCB용 삼상 CMM-3P 모듈은 분전반의 삼상 선
+로에 설치되어 전류를 센싱하며, Accura 2500M
+으로부터 전달받은 인입단 전압정보를 바탕으로 
+해당 부하의 다양한 전력특성을 계측한다. 
+MCB용 삼상 CMMZ-3P 모듈은 분전반의 삼상 선
+로에 설치되어 전류를 센싱하며, Accura 2500M
+으로부터 전달받은 인입단 전압정보를 바탕으로 
+해당 부하의 다양한 전력특성을 계측한다. Accura 
+2550CMMZ-3P 모듈은 ZCT(Zero-sequence 
+Current Transformer)를 내장하고 있어 삼상3선 
+또는 삼상4선 부하의 누설전류를 직접 계측한다. 
+또한, MCCB의 동작상태와 트립상태를 입력받기 
+위한 디지털 입력단자가 있다.
+Accura 2550CMMZ
+MCB용 삼상
+전력/누전 계측모듈
+DI Status 
+
+=== PAGE 67 ===
+67
+Accura 2550CMD-1P
+MCCB
+MCCB
+Accura 2550CMD
+-1P-250A
+Accura 2550CMD
+-1P-125/100/60A
+TM-CM-1P-105
+TM-CM-1P-60/50L/50
+0.5mm
+0.5mm 0.5mm
+0.5mm
+Accura 2550CMD
+DC 전력계측모듈
+CMD 모듈은 DC 분전반의 전류를 센싱하여 
+다양한 DC 전력특성을 계측한다. 
+
+=== PAGE 68 ===
+Smart Digital Power Meter/
+Power Measuring Module
+68
+제품치수
+Accura 2500D 후면
+Ø99.6mm
+[Ø3.92"]
+18.2mm
+[0.72"]
+Accura 2500M * + 2500D
+148.6mm
+[5.85"]
+151.5mm
+[5.97"]
+126.8mm
+[4.99"]
+129.6mm
+[5.10"]
+Accura 2500M * 전면
+148.6mm
+[5.85"]
+126.8mm
+[4.99"]
+60.8mm
+[2.39"]
+Accura 2500D 전면
+151.5mm
+[5.97"]
+129.6mm
+[5.10"]
+14.4mm
+[0.57"]
+Accura 2500M 분전반 통합모듈/ Accura 2500D 통합 HMI 모듈
+Accura 2500M-VD 전면
+199.3mm
+[7.85"]
+47.4mm
+[1.87"]
+68.0mm
+[2.68"]
+126.8mm
+[4.99"]
+60.8mm
+[2.39"]
+ * Accura 2500M-PWM 모듈의 치수는 Accura 2500M 모듈과 동일하다.
+
+=== PAGE 69 ===
+69
+Accura 2550CM-3P 삼상 전력계측모듈
+Accura 2550CM-3P-800A-210
+35.0mm
+[1.38"]
+210.0mm
+[8.27"]
+70.0mm
+[2.76"]
+70.0mm
+[2.76"]
+23.0mm
+[0.90"]
+93.7mm
+[3.69"]
+45.0mm
+[1.77"]
+35.0mm
+[1.38"]
+25.1mm
+[0.99"]
+46.0mm
+[1.81"]
+Accura 2550CM-3P-630A-145
+46.5mm
+[1.83"]
+46.5mm
+[1.83"]
+22.4mm
+[0.88"]
+26.0mm
+[1.02"]
+26.0mm
+[1.02"]
+25.1mm
+[0.99"]
+32.0mm
+[1.26"]
+145.0mm
+[5.71"]
+93.7mm
+[3.69"]
+45.0mm
+[1.77"]
+Accura 2550CM-3P-400A-140
+26.0mm
+[1.02"]
+44.0mm
+[1.73"]
+44.0mm
+[1.73"]
+22.4mm
+[0.88"]
+26.0mm
+[1.02"]
+32.0mm
+[1.26"]
+140.0mm
+[5.51"]
+25.1mm
+[0.99"]
+93.7mm
+[3.69"]
+45.0mm
+[1.77"]
+Accura 2550CM-3P-800A-210-ZCT
+35.0mm
+[1.38"]
+210.0mm
+[8.27"]
+70.0mm
+[2.76"]
+70.0mm
+[2.76"]
+23.0mm
+[0.90"]
+93.7mm
+[3.69"]
+45.0mm
+[1.77"]
+35.0mm
+[1.38"]
+25.1mm
+[0.99"]
+46.0mm
+[1.81"]
+Accura 2550CM-3P-630A-145-ZCT
+46.5mm
+[1.83"]
+46.5mm
+[1.83"]
+22.4mm
+[0.88"]
+26.0mm
+[1.02"]
+26.0mm
+[1.02"]
+25.1mm
+[0.99"]
+32.0mm
+[1.26"]
+145.0mm
+[5.71"]
+93.7mm
+[3.69"]
+45.0mm
+[1.77"]
+Accura 2550CM-3P-400A-140-ZCT
+26.0mm
+[1.02"]
+44.0mm
+[1.73"]
+44.0mm
+[1.73"]
+22.4mm
+[0.88"]
+26.0mm
+[1.02"]
+32.0mm
+[1.26"]
+140.0mm
+[5.51"]
+25.1mm
+[0.99"]
+93.7mm
+[3.69"]
+45.0mm
+[1.77"]
+
+=== PAGE 70 ===
+Smart Digital Power Meter/
+Power Measuring Module
+70
+Accura 2550CM-3P-250A Accura 2550CM-3P-100A
+Accura 2550CM-3P-60A
+Accura 2550CM-3P-5A-ZCTAccura 2550CM-3P-5A
+Accura 2550CM-3P-125A
+90.0mm
+[3.54"]
+30.0mm
+[1.18"]
+30.0mm
+[1.18"]
+Ø16.5 x 20.5mm
+[Ø0.65 x 0.81"]
+25.0mm
+[0.98"]
+15.0mm
+[0.59"]
+15.0mm
+[0.59"]
+23.5mm
+[0.93"]
+12.5mm
+[0.49"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+75.0mm
+[2.95"]
+75.0mm
+[2.95"]
+Ø10.0mm
+[Ø0.39"]
+Ø10.0mm
+[Ø0.39"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+25.5mm
+[1.00"]
+25.5mm
+[1.00"]
+12.5mm
+[0.49"]
+12.5mm
+[0.49"]
+25.0mm
+[0.98"]
+12.5mm
+[0.49"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+Ø13.5 x 17.5mm
+[Ø0.53 x 0.69"]
+23.5mm
+[0.93"]
+12.5mm
+[0.49"]
+75.0mm
+[2.95"]
+61.7mm
+[2.43"]
+61.7mm
+[2.43"]
+61.7mm
+[2.43"]
+61.7mm
+[2.43"]
+12.5mm
+[0.49"]
+Accura 2550CM-3P 삼상 전력계측모듈
+17.5mm
+[0.69"]
+35.0mm
+[1.38"]
+105.0mm
+[4.13"]
+35.0mm
+[1.38"]
+Ø21.0 x 22.0mm
+[Ø0.83 x 0.87"]
+61.7mm
+[2.43"]
+25.0mm
+[0.98"]
+17.5mm
+[0.69"]
+25.0mm
+[0.98"]
+
+=== PAGE 71 ===
+71
+Accura 2550CM-1P 단상 전력계측모듈
+Accura 2550CM-1P-250A Accura 2550CM-1P-125A Accura 2550CM-1P-100A
+17.5mm
+[0.69"]
+35.0mm
+[1.38"]
+105.0mm
+[4.13"]
+35.0mm
+[1.38"]
+Ø21.0 x 22.0mm
+[Ø0.83 x 0.87"]
+25.0mm
+[0.98"]
+17.5mm
+[0.69"]
+25.0mm
+[0.98"]
+15.0mm
+[0.59"]
+30.0mm
+[1.18"]
+60.0mm
+[2.36"]
+Ø16.5 x 20.5mm
+[Ø0.65 x 0.81"]
+25.0mm
+[0.98"]
+23.5mm
+[0.93"]
+15.0mm
+[0.59"]
+25.0mm
+[0.98"]
+50.0mm
+[1.97"]
+Ø13.5 x 17.5mm
+[Ø0.53 x 0.69"]
+25.0mm
+[0.98"]
+23.5mm
+[0.93"]
+12.5mm
+[0.49"]
+12.5mm
+[0.49"]
+61.7mm
+[2.43"]
+61.7mm
+[2.43"] 61.7mm
+[2.43"]
+Accura 2550CM-1P-60A
+
+=== PAGE 72 ===
+Smart Digital Power Meter/
+Power Measuring Module
+72
+Accura 2550CMZ-3P 삼상 전력/누전 계측모듈
+Accura 2550CMZ-3P-800A-220
+39.8mm
+[1.57"]
+39.8mm
+[1.57"]
+70.0mm
+[2.76"]
+70.0mm
+[2.76"]
+70.0mm
+[2.76"]
+219.6mm
+[8.65"]
+22.9mm
+[0.90"]
+94.2mm
+[3.71"]
+80.0mm
+[3.15"]
+25.1mm
+[0.99"]
+46.0mm
+[1.81"]
+46.0mm
+[1.81"]
+46.0mm
+[1.81"]
+Accura 2550CMZ-3P-630A-155
+Accura 2550CMZ-3P-250A
+17.5mm
+[0.69"]
+35.0mm
+[1.38"]
+105.0mm
+[4.13"]
+35.0mm
+[1.38"]
+Ø21.0x22.0mm
+[Ø0.83x0.87"]
+45.0mm
+[1.77"]
+17.5mm
+[0.69"]
+25.0mm
+[0.98"]
+61.7mm
+[2.43"]
+Accura 2550CMZ-3P-125A
+90.0mm
+[3.54"]30.0mm
+[1.18"]
+30.0mm
+[1.18"]
+Ø16.5 x 20.5mm
+[Ø0.65 x 0.81"]
+40.0mm
+[1.57"]
+15.0mm
+[0.59"]
+15.0mm
+[0.59"]
+23.5mm
+[0.93"]
+61.7mm
+[2.43"]
+Accura 2550CMZ-3P-100A
+35.0mm
+[1.38"]
+12.5mm
+[0.49"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+75.0mm
+[2.95"]
+Ø13.5 x 17.5mm
+[Ø0.53 x 0.69"]
+23.5mm
+[0.93"]
+12.5mm
+[0.49"]
+61.7mm
+[2.43"]
+80.0mm
+[3.15"]
+32.1mm
+[1.26"]
+32.1mm
+[1.26"]
+45.3mm
+[1.78"]
+45.3mm
+[1.78"]
+46.5mm
+[1.83"]
+154.6mm
+[6.09"]
+25.4mm
+[1.00"]
+94.2mm
+[3.71"]
+22.6mm
+[0.89"]
+35.0mm
+[1.38"]
+35.0mm
+[1.38"]
+32.5mm
+[1.28"]
+Accura 2550CMZ-3P-60A
+Accura 2550CMZ-3P-400A-155
+
+=== PAGE 73 ===
+73
+45.0mm
+[1.77"]
+Accura 2550CMZ-3P4W-250A-145
+145.0mm
+[5.71"]
+Ø21.0 x 22.0mm
+[Ø0.83 x 0.87"]
+61.7mm
+[2.43"]
+25.0mm
+[0.98"]
+35.0mm
+[1.38"]
+35.0mm
+[1.38"]
+20.0mm
+[0.79"]
+20.0mm
+[0.79"]
+35.0mm
+[1.38"]
+Accura 2550CMZ-3P4W 삼상4선 전력/누전 계측모듈
+Accura 2550CMZ-1P 단상 전력/누전 계측모듈
+Accura 2550CMZ-1P-250A Accura 2550CMZ-1P-125A Accura 2550CMZ-1P-100A
+Accura 2550CMZ-1P-60A
+15.0mm
+[0.59"]
+30.0mm
+[1.18"]
+60.0mm
+[2.36"]
+Ø16.5 x 20.5mm
+[Ø0.65 x 0.81"]
+35.0mm
+[1.38"]
+23.5mm
+[0.93"]
+15.0mm
+[0.59"]
+25.0mm
+[0.98"]
+50.0mm
+[1.97"]
+Ø13.5 x 17.5mm
+[Ø0.53 x 0.69"]
+35.0mm
+[1.38"]
+23.5mm
+[0.93"]
+12.5mm
+[0.49"]
+12.5mm
+[0.49"]
+17.5mm
+[0.69"]
+35.0mm
+[1.38"]
+105.0mm
+[4.13"]
+35.0mm
+[1.38"]
+Ø21.0x22.0mm
+[Ø0.83x0.87"]
+45.0mm
+[1.77"]
+25.0mm
+[0.98"]
+61.7mm
+[2.43"]
+61.7mm
+[2.43"]
+61.7mm
+[2.43"]
+17.5mm
+[0.69"]
+
+=== PAGE 74 ===
+Smart Digital Power Meter/
+Power Measuring Module
+74
+Accura 2550CMS-2P 스플릿코어 2P 전력계측모듈
+Accura 2550CMS-2P-800A-70
+Accura 2550CMS-2P-630A-70
+Accura 2550CMS-2P-400A-70
+Accura 2550CMS-2P-630A-52
+Accura 2550CMS-2P-400A-52
+Accura 2550CMS-2P-250A-35 Accura 2550CMS-2P-125A-30 Accura 2550CMS-2P-60A-25
+Accura 2550CMS-2P-630A-44
+Accura 2550CMS-2P-400A-44
+73.0mm
+[2.87"]
+73.0mm
+[2.87"]
+73.0mm
+[2.87"]
+70.0mm
+[2.76"]
+52.0mm
+[2.05"] 44.0mm
+[1.73"]152.5mm
+[6.00"]
+114.5mm
+[4.51"] 98.5mm
+[3.88"]
+119.4mm
+[4.70"]
+111.8mm
+[4.40"]
+111.8mm
+[4.40"]
+54.2mm
+[2.13"]
+50.6mm
+[1.99"]
+50.6mm
+[1.99"]
+22.4mm
+[0.88"]
+20.4mm
+[0.80"]
+20.4mm
+[0.80"]
+57.5mm
+[2.26"] 41.5mm
+[1.63"] 33.5mm
+[1.32"]
+33.5mm
+[1.32"]
+57.5mm
+[2.26"]
+41.5mm
+[1.63"]
+53.0mm
+[2.09"]
+53.0mm
+[2.09"]
+53.0mm
+[2.09"]
+80.5mm
+[3.17"] 70.5mm
+[2.78"] 60.5mm
+[2.38"]
+87.8mm
+[3.46"] 82.9mm
+[3.26"] 72.1mm
+[2.84"]
+31.0mm
+[1.22"]
+26.1mm
+[1.03"] 15.3mm
+[0.60"]
+18.0mm
+[0.71"]
+18.0mm
+[0.71"] 18.0mm
+[0.71"]
+24.5mm
+[0.96"] 19.5mm
+[0.77"]
+14.5mm
+[0.57"]
+14.5mm
+[0.57"]
+19.5mm
+[0.77"]
+24.5mm
+[0.96"]
+35.0mm
+[1.38"] 30.0mm
+[1.18"] 25.0mm
+[0.98"]
+
+=== PAGE 75 ===
+75
+Accura 2550CMS/ZM-3P4W 스플릿코어 3P4W 전력/누전 계측모듈
+Accura 2550CMS/ZM-1P3F 스플릿코어 1P3F 전력/누전 계측모듈
+Accura 2550CMS-3P4W-60A
+100.0mm
+[3.94"]
+53.0mm
+[2.09"]
+19.2mm
+[0.76"]
+20.3mm
+[0.80"]
+10.4mm
+[0.41"]
+12.5mm
+[0.49"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+12.5mm
+[0.49"]
+85.0mm
+[3.35"]
+Accura 2550CMS-1P3F-60A
+100.0mm
+[3.94"]
+53.0mm
+[2.09"]
+19.2mm
+[0.76"]
+20.3mm
+[0.80"]
+10.4mm
+[0.41"]
+12.5mm
+[0.49"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+12.5mm
+[0.49"]
+85.0mm
+[3.35"]
+Accura 2550ZM-3P4W-60A-DI
+100.0mm
+[3.94"]
+25.5mm
+[1.00"]
+70.0mm
+[2.76"]
+20.5mm
+[0.81"]
+79.9mm
+[3.15"]
+49.9mm
+[1.97"]
+Accura 2550ZM-1P3F-60A-DI
+150.0mm
+[5.91"]
+25.5mm
+[1.00"]
+55.0mm
+[2.17"]
+55.0mm
+[2.17"]
+20.0mm
+[0.79"]
+20.0mm
+[0.79"]
+Ø21.0mm
+[Ø0.83"]64.9mm
+[2.56"]
+49.9mm
+[1.97"]
+
+=== PAGE 76 ===
+Smart Digital Power Meter/
+Power Measuring Module
+76
+Accura 2550CMM[Z] MCB용 삼상 계측모듈
+Accura 2550CMM-3P-60A
+(패널용 고정판 설치)
+9.4mm
+[0.37"]
+16.9mm
+[0.67"]
+16.9mm
+[0.67"]
+52.5mm
+[2.07"]
+25.0mm
+[0.98"]
+8.6mm
+[0.34"]
+12.5mm
+[0.49"]
+54.3mm
+[2.14"]
+9.4mm
+[0.37"]
+Accura 2550CMM-3P-60A
+(DIN Rail용 고정판 설치)
+52.5mm
+[2.07"]
+13.7mm
+[0.54"]
+59.4mm
+[2.34"]
+45.1mm
+[1.77"]
+Ø5.9mm
+[Ø0.23"]
+Ø10.4mm
+[Ø0.41"]
+Accura 2550CMMZ-3P-60A
+15.5mm
+[0.61"]
+13.0mm
+[0.51"]
+13.0mm
+[0.51"]
+57.0mm
+[2.24"]
+40.0mm
+[1.57"]
+26.1mm
+[1.03"]
+7.5mm
+[0.30"]
+15.5mm
+[0.61"]
+82.2mm
+[3.24"]
+15.0mm
+[0.59"]
+Ø10.5mm
+[Ø0.41"]
+Accura 2550CMS/ZM-1P2F 스플릿코어 1P2F 전력/누전 계측모듈
+Accura 2550CMS-1P2F-60A
+100.0mm
+[3.94"]
+53.0mm
+[2.09"]
+19.2mm
+[0.76"]
+20.3mm
+[0.80"]
+10.4mm
+[0.41"]
+12.5mm
+[0.49"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+12.5mm
+[0.49"]
+85.0mm
+[3.35"]
+Accura 2550ZM-1P2F-60A-DI
+100.0mm
+[3.94"]
+25.5mm
+[1.00"]
+55.0mm
+[2.17"]
+22.5mm
+[0.89"]
+22.5mm
+[0.89"]
+Ø21.0mm
+[Ø0.83"]64.9mm
+[2.56"]
+49.9mm
+[1.97"]
+
+=== PAGE 77 ===
+77
+Accura 2550CMD DC 전력계측모듈
+Accura 2550CMD-1P-750A
+105.0mm
+[4.13"]
+22.0mm
+[0.87"]
+61.7mm
+[2.43"]
+Ø21.0 x 22.0mm
+[Ø0.83 x 0.87"]
+25.0mm
+[0.98"]
+152.2mm
+[5.99"]
+6.0mm
+[0.24"]
+Ø14.0mm
+[Ø0.55"]
+Ø14.0mm
+[Ø0.55"]
+Accura 2550CMD-1P-1500A
+Ø14.0mm
+[Ø0.55"]
+R7.0mm
+[R0.28"]
+22.0mm
+[0.87"]
+8.0mm
+[0.31"]
+65.0mm
+[2.56"]
+10.0mm
+[0.39"]
+139.2mm
+[5.48"]
+110.0mm
+[4.33"]
+58.0mm
+[2.28"]
+108.6mm
+[4.28"]
+37.0mm
+[1.46"]
+45.0mm
+[1.77"]
+164.0mm
+[6.46"]
+180.0mm
+[7.09"]
+299.0mm
+[11.77"]
+41.0mm
+[1.61"] 87.0mm
+[3.43"]
+
+=== PAGE 78 ===
+Smart Digital Power Meter/
+Power Measuring Module78
+Accura 2550CMD DC 전력계측모듈
+Accura 2550CMD-1P-250A
+17.5mm
+[0.69"]
+35.0mm
+[1.38"]
+105.0mm
+[4.13"]
+35.0mm
+[1.38"]
+Ø21.0 x 22.0mm
+[Ø0.83 x 0.87"]
+25.0mm
+[0.98"]
+17.5mm
+[0.69"]
+25.0mm
+[0.98"]
+Accura 2550CMD-1P-125A
+15.0mm
+[0.59"]
+30.0mm
+[1.18"]
+60.0mm
+[2.36"]
+Ø16.5 x 20.5mm
+[Ø0.65 x 0.81"]
+25.0mm
+[0.98"]
+23.5mm
+[0.93"]
+15.0mm
+[0.59"]
+Accura 2550CMD-1P-100A
+Accura 2550CMD-1P-60A
+25.0mm
+[0.98"]
+50.0mm
+[1.97"]
+Ø13.5 x 17.5mm
+[Ø0.53 x 0.69"]
+25.0mm
+[0.98"]
+23.5mm
+[0.93"]
+12.5mm
+[0.49"]
+12.5mm
+[0.49"]
+61.7mm
+[2.43"]
+61.7mm
+[2.43"]
+61.7mm
+[2.43"]
+
+=== PAGE 79 ===
+79
+TM-CM-3P-105
+TM-CM-3P-90
+TM-CM-3P-105-LB
+TM-CM-3P-90-LB
+24.0mm
+[0.94"]
+24.0mm
+[0.94"]
+24.0mm
+[0.94"]
+23.0mm
+[0.91"]
+TM-CM-3P-105 Cover
+TM-CM-3P-90 Cover
+70.0mm
+[2.76"]
+M8x20
+6.5mm
+[0.26"]
+35.0mm
+[1.38"]
+35.0mm
+[1.38"]
+105.0mm
+[4.13"]
+25.0mm
+[0.98"]
+90.0mm
+[3.54"]
+57.5mm
+[2.26"]
+20.0mm
+[0.79"]
+20.0mm
+[0.79"]
+54.0mm
+[2.13"]
+54.0mm
+[2.13"]
+4.0mm
+[0.16"]
+4.0mm
+[0.16"]
+30.0mm
+[1.18"]
+30.0mm
+[1.18"]
+30.0mm
+[1.18"]
+64.0mm
+[2.52"]
+72.5mm
+[2.85"]
+90.0mm
+[3.54"]
+90.0mm
+[3.54"]
+TM-CM-BC-3P-105TM-CM-BC-3P-105 Cover
+35.0mm
+[1.38"]
+105.0mm
+[4.13"]
+57.5mm
+[2.26"]
+TM-CM-3P-105-LB Busbar
+TM-CM-3P-90-LB Busbar
+TM-CM-3P-90 Busbar
+Ø9.0mm
+[Ø0.35"]
+Ø9.0mm
+[Ø0.35"]
+단자대
+단자대
+MCCB
+MCCB
+54.0mm
+[2.13"]
+30.0mm
+[1.18"]
+8.0mm
+[0.31"]
+8.0mm
+[0.31"]
+8.8mm
+[0.35"]
+8.8mm
+[0.35"]
+46.0mm
+[1.81"]
+62.8mm
+[2.47"]
+71.3mm
+[2.81"]
+54.5mm
+[2.15"]
+TM-CM-3P CM용 삼상 단자대
+54.0mm
+[2.13"]
+54.0mm
+[2.13"]
+24.0mm
+[0.94"]
+24.0mm
+[0.94"]
+23.0mm
+[0.91"]
+23.0mm
+[0.91"]
+28.0mm
+[1.10"]
+105.0mm
+[4.13"]
+57.5mm
+[2.26"]
+70.0mm
+[2.76"]
+M8x20 M8x20
+6.5mm
+[0.26"]
+6.5mm
+[0.26"]
+35.0mm
+[1.38"]
+35.0mm
+[1.38"]
+35.0mm
+[1.38"]
+35.0mm
+[1.38"]
+105.0mm
+[4.13"]
+105.0mm
+[4.13"]
+78.5mm
+[3.09"]
+TM-CM-3P-105 Busbar
+TM-CM-3P-105 Busbar
+Ø9.0mm
+[Ø0.35"]
+Ø9.0mm
+[Ø0.35"]
+Ø9.0mm
+[Ø0.35"]
+49.0mm
+[1.93"]
+49.0mm
+[1.93"]
+57.5mm
+[2.26"]
+77.3mm
+[3.04"]
+10.5mm
+[0.41"]
+9.3mm
+[0.37"]
+10.5mm
+[0.41"]
+10.5mm
+[0.41"]
+9.3mm
+[0.37"]
+9.3mm
+[0.37"]
+19.0mm
+[0.75"]
+19.0mm
+[0.75"]
+19.0mm
+[0.75"]
+단자대
+단자대
+단자대
+MCCB
+MCCB
+MCCB
+68.8mm
+[2.71"]
+68.8mm
+[2.71"]
+M8x20 M8x20
+15.0mm
+[0.59"]
+15.0mm
+[0.59"]
+Ø4.0mm
+[Ø0.16"]
+2.0mm
+[0.08"]
+
+=== PAGE 80 ===
+Smart Digital Power Meter/
+Power Measuring Module
+80
+TM-CM-3P-75L
+TM-CM-3P-75
+TM-CM-3P-75L-LB
+TM-CM-3P-75-LB
+TM-CM-3P-75L Cover
+TM-CM-3P-75 Cover
+24.0mm
+[0.94"]
+24.0mm
+[0.94"]
+24.0mm
+[0.94"]
+24.0mm
+[0.94"]
+54.0mm
+[2.13"]
+54.0mm
+[2.13"]
+54.0mm
+[2.13"]
+54.0mm
+[2.13"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+4.5mm
+[0.18"]
+4.5mm
+[0.18"]
+4.5mm
+[0.18"]
+4.5mm
+[0.18"]
+63.7mm
+[2.51"] 72.2mm
+[2.84"]
+22.5mm
+[0.88"] 22.5mm
+[0.88"]
+75.0mm
+[2.95"]
+75.0mm
+[2.95"]
+75.0mm
+[2.95"]
+75.0mm
+[2.95"]
+75.0mm
+[2.95"]
+75.0mm
+[2.95"]
+57.5mm
+[2.26"]
+57.5mm
+[2.26"]
+27.5mm
+[1.08"]
+TM-CM-3P-75L-LB Busbar
+TM-CM-3P-75-LB Busbar
+TM-CM-3P-75L Busbar
+TM-CM-3P-75 Busbar
+Ø8.5mm
+[Ø0.33"]
+Ø8.5mm
+[Ø0.33"]
+단자대
+단자대
+단자대
+단자대
+MCCB
+MCCB
+MCCB
+MCCB
+12.8mm
+[0.50"]
+12.8mm
+[0.50"]
+12.8mm
+[0.50"]
+12.8mm
+[0.50"]
+7.7mm
+[0.30"]
+7.7mm
+[0.30"]
+7.7mm
+[0.30"]
+7.7mm
+[0.30"]
+9.8mm
+[0.39"]
+9.8mm
+[0.39"]
+45.0mm
+[1.77"]
+53.5mm
+[2.11"]
+62.5mm
+[2.46"]
+57.2mm
+[2.25"]
+71.0mm
+[2.80"]
+17.2mm
+[0.68"]
+17.2mm
+[0.68"]
+58.4mm
+[2.30"]
+66.9mm
+[2.63"]
+22.2mm
+[0.87"]
+Ø6.0mm
+[Ø0.24"]
+Ø6.0mm
+[Ø0.24"]
+6.3mm
+[0.25"]
+6.3mm
+[0.25"]
+43.2mm
+[1.70"]
+51.7mm
+[2.04"]
+65.7mm
+[2.59"]
+M8x20 M8x20
+M5x16 M5x16
+TM-CM-3P CM용 삼상 단자대
+
+=== PAGE 81 ===
+81
+TM-CM-1P CM[D]용 단상 단자대 
+TM-CM-1P-105
+TM-CM-1P-60
+TM-CM-1P-105-LB
+TM-CM-1P-60-LB
+TM-CM-1P-105 Cover
+TM-CM-1P-60 Cover
+TM-CM-1P-105-LB Busbar
+TM-CM-1P-60-LB Busbar
+54.0mm
+[2.13"]
+54.0mm
+[2.13"]
+54.0mm
+[2.13"]
+54.0mm
+[2.13"]
+24.0mm
+[0.94"]
+24.0mm
+[0.94"]
+24.0mm
+[0.94"]
+24.0mm
+[0.94"]
+23.0mm
+[0.91"]
+20.0mm
+[0.79"]
+20.0mm
+[0.79"]
+23.0mm
+[0.91"]
+28.0mm
+[1.10"]
+25.0mm
+[0.98"]
+105.0mm
+[4.13"]
+60.0mm
+[2.36"]
+57.5mm
+[2.26"]
+57.5mm
+[2.26"]
+70.0mm
+[2.76"]
+64.0mm
+[2.52"]
+72.5mm
+[2.85"]
+M8x20
+M8x20 M8x20
+M8x20
+6.5mm
+[0.26"]
+4.0mm
+[0.16"]
+4.0mm
+[0.16"]
+6.5mm
+[0.26"]
+70.0mm
+[2.76"]
+30.0mm
+[1.18"]
+30.0mm
+[1.18"]
+70.0mm
+[2.76"]105.0mm
+[4.13"]
+105.0mm
+[4.13"]
+78.5mm
+[3.09"]
+TM-CM-1P-105 Busbar
+TM-CM-1P-60 Busbar
+Ø9.0mm
+[Ø0.35"]
+Ø9.0mm
+[Ø0.35"]
+Ø9.0mm
+[Ø0.35"]
+Ø9.0mm
+[Ø0.35"]
+49.0mm
+[1.93"]
+46.0mm
+[1.81"]
+57.5mm
+[2.26"]
+54.5mm
+[2.15"]
+77.3mm
+[3.04"]
+71.3mm
+[2.81"]
+10.5mm
+[0.41"]
+8.0mm
+[0.31"]
+9.3mm
+[0.37"]
+8.8mm
+[0.35"]
+10.5mm
+[0.41"]
+8.0mm
+[0.31"]
+9.3mm
+[0.37"]
+8.8mm
+[0.35"]
+19.0mm
+[0.75"]
+15.0mm
+[0.59"]
+15.0mm
+[0.59"]
+19.0mm
+[0.75"]
+단자대
+단자대
+단자대
+단자대
+MCCB
+MCCB
+MCCB
+MCCB
+68.8mm
+[2.71"]
+62.8mm
+[2.47"]
+60.0mm
+[2.36"]
+60.0mm
+[2.36"]
+
+=== PAGE 82 ===
+Smart Digital Power Meter/
+Power Measuring Module
+82
+TM-CM-1P CM[D]용 단상 단자대 
+TM-CM-1P-50L
+TM-CM-1P-50
+TM-CM-1P-50L-LB
+TM-CM-1P-50-LB
+TM-CM-1P-50L Cover
+TM-CM-1P-50 Cover
+24.0mm
+[0.94"]
+24.0mm
+[0.94"]
+24.0mm
+[0.94"] 24.0mm
+[0.94"]
+54.0mm
+[2.13"]
+54.0mm
+[2.13"]
+54.0mm
+[2.13"] 54.0mm
+[2.13"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+4.5mm
+[0.18"]
+4.5mm
+[0.18"]
+4.5mm
+[0.18"]
+4.5mm
+[0.18"]
+63.7mm
+[2.51"]
+72.2mm
+[2.84"]
+22.5mm
+[0.88"]
+22.5mm
+[0.88"]
+50.0mm
+[1.97"]50.0mm
+[1.97"]
+50.0mm
+[1.97"]
+57.5mm
+[2.26"]
+57.5mm
+[2.26"]
+27.5mm
+[1.08"]
+TM-CM-1P-50L-LB Busbar
+TM-CM-1P-50-LB Busbar
+TM-CM-1P-50L Busbar
+TM-CM-1P-50 Busbar
+Ø8.5mm
+[Ø0.33"]
+Ø8.5mm
+[Ø0.33"]
+단자대
+단자대
+단자대
+단자대
+MCCB
+MCCB
+MCCB
+MCCB
+12.8mm
+[0.50"]
+12.8mm
+[0.50"]
+12.8mm
+[0.50"]
+12.8mm
+[0.50"]
+7.7mm
+[0.30"]
+7.7mm
+[0.30"]
+7.7mm
+[0.30"]
+7.7mm
+[0.30"]
+9.8mm
+[0.39"]
+9.8mm
+[0.39"]
+45.0mm
+[1.77"]
+53.5mm
+[2.11"]
+62.5mm
+[2.46"]
+57.2mm
+[2.25"]
+71.0mm
+[2.80"]
+17.2mm
+[0.68"] 17.2mm
+[0.68"]
+58.4mm
+[2.30"] 66.9mm
+[2.63"]
+22.2mm
+[0.87"]
+Ø6.0mm
+[Ø0.24"]
+Ø6.0mm
+[Ø0.24"]
+6.3mm
+[0.25"]
+6.3mm
+[0.25"]
+43.2mm
+[1.70"]
+51.7mm
+[2.04"]
+65.7mm
+[2.59"]
+M8x20 M8x20
+M5x16 M5x16
+50.0mm
+[1.97"]
+50.0mm
+[1.97"]
+50.0mm
+[1.97"]
+
+=== PAGE 83 ===
+83
+TM-CMZ-3P-105
+TM-CMZ-3P-90
+TM-CMZ-3P-105-LB
+TM-CMZ-3P-90-LB
+24.0mm
+[0.94"]
+24.0mm
+[0.94"]
+24.0mm
+[0.94"]
+23.0mm
+[0.91"]
+TM-CMZ-3P-105 Cover
+TM-CM-3P-90 Cover
+90.0mm
+[3.54"]
+M8x20
+6.5mm
+[0.26"]
+35.0mm
+[1.38"]
+35.0mm
+[1.38"]
+105.0mm
+[4.13"]
+25.0mm
+[0.98"]
+90.0mm
+[3.54"]
+57.5mm
+[2.26"]
+20.0mm
+[0.79"]
+20.0mm
+[0.79"]
+54.0mm
+[2.13"]
+4.0mm
+[0.16"]
+4.0mm
+[0.16"]
+30.0mm
+[1.18"]
+30.0mm
+[1.18"]
+30.0mm
+[1.18"]
+79.0mm
+[3.11"]
+87.5mm
+[3.44"]
+90.0mm
+[3.54"]
+90.0mm
+[3.54"]
+TM-CMZ-BC-3P-105TM-CMZ-BC-3P-105 Cover
+35.0mm
+[1.38"]
+105.0mm
+[4.13"]
+57.5mm
+[2.26"]
+TM-CMZ-3P-105-LB Busbar
+TM-CMZ-3P-90-LB Busbar
+TM-CMZ-3P-90 Busbar
+Ø9.0mm
+[Ø0.35"]
+Ø9.0mm
+[Ø0.35"]
+단자대
+단자대
+MCCB
+MCCB
+54.0mm
+[2.13"]
+30.0mm
+[1.18"]
+8.0mm
+[0.31"]
+8.0mm
+[0.31"]
+8.8mm
+[0.35"]
+8.8mm
+[0.35"]
+61.0mm
+[2.40"]
+77.8mm
+[3.06"]
+86.3mm
+[3.40"]
+69.5mm
+[2.74"]
+TM-CMZ-3P CMZ용 삼상 단자대
+54.0mm
+[2.13"]
+54.0mm
+[2.13"]
+24.0mm
+[0.94"]
+24.0mm
+[0.94"]
+23.0mm
+[0.91"]
+23.0mm
+[0.91"]
+28.0mm
+[1.10"]
+105.0mm
+[4.13"]
+57.5mm
+[2.26"]
+90.0mm
+[3.54"]
+M8x20 M8x20
+6.5mm
+[0.26"]
+6.5mm
+[0.26"]
+35.0mm
+[1.38"]
+35.0mm
+[1.38"]
+35.0mm
+[1.38"]
+35.0mm
+[1.38"]
+105.0mm
+[4.13"]
+105.0mm
+[4.13"]
+98.5mm
+[3.88"]
+TM-CMZ-3P-105 Busbar
+TM-CMZ-3P-105 Busbar
+Ø9.0mm
+[Ø0.35"]
+Ø9.0mm
+[Ø0.35"]
+Ø9.0mm
+[Ø0.35"]
+69.0mm
+[2.72"]
+69.0mm
+[2.72"]
+77.5mm
+[3.05"]
+97.3mm
+[3.83"]
+10.5mm
+[0.41"]
+9.3mm
+[0.37"]
+10.5mm
+[0.41"]
+10.5mm
+[0.41"]
+9.3mm
+[0.37"]
+9.3mm
+[0.37"]
+19.0mm
+[0.75"]
+19.0mm
+[0.75"]
+19.0mm
+[0.75"]
+단자대
+단자대
+단자대
+MCCB
+MCCB
+MCCB
+88.8mm
+[3.50"]
+88.8mm
+[3.50"]
+M8x20 M8x20
+15.0mm
+[0.59"]
+15.0mm
+[0.59"]
+54.0mm
+[2.13"]
+Ø4.0mm
+[Ø0.16"]
+2.0mm
+[0.08"]
+
+=== PAGE 84 ===
+Smart Digital Power Meter/
+Power Measuring Module
+84
+TM-CMZ-3P-75L
+TM-CMZ-3P-75
+TM-CMZ-3P-75L-LB
+TM-CMZ-3P-75-LB
+TM-CMZ-3P-75L Cover
+TM-CMZ-3P-75 Cover
+24.0mm
+[0.94"]
+24.0mm
+[0.94"]
+24.0mm
+[0.94"]
+24.0mm
+[0.94"]
+54.0mm
+[2.13"]
+54.0mm
+[2.13"]
+54.0mm
+[2.13"]
+54.0mm
+[2.13"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+4.5mm
+[0.18"]
+4.5mm
+[0.18"]
+4.5mm
+[0.18"]
+4.5mm
+[0.18"]
+73.7mm
+[2.90"]
+82.2mm
+[3.23"]
+22.5mm
+[0.88"] 22.5mm
+[0.88"]
+75.0mm
+[2.95"]
+75.0mm
+[2.95"]
+75.0mm
+[2.95"]
+75.0mm
+[2.95"]
+75.0mm
+[2.95"]
+75.0mm
+[2.95"]
+57.5mm
+[2.26"]
+57.5mm
+[2.26"]
+27.5mm
+[1.08"]
+TM-CMZ-3P-75L-LB Busbar
+TM-CMZ-3P-75-LB Busbar
+TM-CMZ-3P-75L Busbar
+TM-CMZ-3P-75 Busbar
+Ø8.5mm
+[Ø0.33"]
+Ø8.5mm
+[Ø0.33"]
+단자대
+단자대
+단자대
+단자대
+MCCB
+MCCB
+MCCB
+MCCB
+12.8mm
+[0.50"]
+12.8mm
+[0.50"]
+12.8mm
+[0.50"]
+12.8mm
+[0.50"]
+7.7mm
+[0.30"]
+7.7mm
+[0.30"]
+7.7mm
+[0.30"]
+7.7mm
+[0.30"]
+9.8mm
+[0.39"]
+9.8mm
+[0.39"]
+55.0mm
+[2.17"]
+63.5mm
+[2.50"]
+72.5mm
+[2.85"]
+67.2mm
+[2.65"]
+81.0mm
+[3.19"]
+17.2mm
+[0.68"]
+17.2mm
+[0.68"]
+68.4mm
+[2.69"]
+76.9mm
+[3.03"]
+22.2mm
+[0.87"]
+Ø6.0mm
+[Ø0.24"]
+Ø6.0mm
+[Ø0.24"]
+6.3mm
+[0.25"]
+6.3mm
+[0.25"]
+53.2mm
+[2.09"]
+61.7mm
+[2.43"]
+75.7mm
+[2.98"]
+M8x20 M8x20
+M5x16 M5x16
+TM-CMZ-3P4W CMZ용 삼상4선 단자대
+TM-CMZ-BC-3P4W-140 Cover TM-CMZ-BC-3P4W-140 TM-CMZ-BC-3P4W-140 Busbar
+35.0mm
+[1.38"]
+140.0mm
+[5.51"]
+57.5mm
+[2.26"]
+23.0mm
+[0.91"]
+Ø9.0mm
+[Ø0.35"]
+69.0mm
+[2.72"]
+10.5mm
+[0.41"]
+9.3mm
+[0.37"]
+19.0mm
+[0.75"]
+단자대MCCB
+88.8mm
+[3.50"]
+6.5mm
+[0.26"]
+35.0mm
+[1.38"]
+35.0mm
+[1.38"]
+35.0mm
+[1.38"]
+24.0mm
+[0.94"]
+90.0mm
+[3.54"]
+M8x20
+140.0mm
+[5.51"]
+54.0mm
+[2.13"]
+Ø4.0mm
+[Ø0.16"]
+2.0mm
+[0.08"]
+TM-CMZ-3P CMZ용 삼상 단자대
+
+=== PAGE 85 ===
+85
+TM-CMZ-1P CMZ용 단상 단자대 
+TM-CMZ-1P-105
+TM-CMZ-1P-60
+TM-CMZ-1P-105-LB
+TM-CMZ-1P-60-LB
+TM-CMZ-1P-105 Cover
+TM-CMZ-1P-60 Cover TM-CMZ-1P-60-LB Busbar
+54.0mm
+[2.13"]
+54.0mm
+[2.13"]
+54.0mm
+[2.13"]
+54.0mm
+[2.13"]
+24.0mm
+[0.94"]
+24.0mm
+[0.94"]
+24.0mm
+[0.94"]
+24.0mm
+[0.94"]
+23.0mm
+[0.91"]
+20.0mm
+[0.79"]
+20.0mm
+[0.79"]
+23.0mm
+[0.91"]
+28.0mm
+[1.10"]
+25.0mm
+[0.98"]
+105.0mm
+[4.13"]
+60.0mm
+[2.36"]
+57.5mm
+[2.26"]
+57.5mm
+[2.26"]
+90.0mm
+[3.54"]
+74.0mm
+[2.91"]
+82.5mm
+[3.25"]
+M8x20 M8x20
+M8x20 M8x20
+6.5mm
+[0.26"]
+4.0mm
+[0.16"]
+4.0mm
+[0.16"]
+6.5mm
+[0.26"]
+70.0mm
+[2.76"]
+30.0mm
+[1.18"]
+30.0mm
+[1.18"]
+70.0mm
+[2.76"]
+105.0mm
+[4.13"]
+105.0mm
+[4.13"]
+98.5mm
+[3.88"]
+TM-CMZ-1P-60 Busbar
+Ø9.0mm
+[Ø0.35"]
+Ø9.0mm
+[Ø0.35"]
+56.0mm
+[2.20"]
+64.5mm
+[2.54"]
+81.3mm
+[3.20"]
+8.0mm
+[0.31"]
+8.8mm
+[0.35"]
+8.0mm
+[0.31"]
+8.8mm
+[0.35"]
+15.0mm
+[0.59"]
+15.0mm
+[0.59"]
+단자대
+단자대
+MCCB
+MCCB
+72.8mm
+[2.87"]
+60.0mm
+[2.36"]
+60.0mm
+[2.36"]
+TM-CMZ-1P-105-LB Busbar
+TM-CMZ-1P-105 Busbar
+Ø9.0mm
+[Ø0.35"]
+Ø9.0mm
+[Ø0.35"]
+69.0mm
+[2.72"]
+77.5mm
+[3.05"]
+97.3mm
+[3.83"]
+10.5mm
+[0.41"]
+9.3mm
+[0.37"]
+10.5mm
+[0.41"]
+9.3mm
+[0.37"]
+19.0mm
+[0.75"]
+19.0mm
+[0.75"]
+단자대
+단자대
+MCCB
+MCCB
+88.8mm
+[3.50"]
+
+=== PAGE 86 ===
+Smart Digital Power Meter/
+Power Measuring Module
+86
+TM-CMZ-1P CMZ용 단상 단자대 
+TM-CMZ-1P-50L
+TM-CMZ-1P-50
+TM-CMZ-1P-50L-LB
+TM-CMZ-1P-50-LB
+TM-CMZ-1P-50L Cover
+TM-CMZ-1P-50 Cover
+24.0mm
+[0.94"]
+24.0mm
+[0.94"]
+24.0mm
+[0.94"] 24.0mm
+[0.94"]
+54.0mm
+[2.13"]
+54.0mm
+[2.13"]
+54.0mm
+[2.13"] 54.0mm
+[2.13"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+25.0mm
+[0.98"]
+4.5mm
+[0.18"]
+4.5mm
+[0.18"]
+4.5mm
+[0.18"]
+4.5mm
+[0.18"]
+73.7mm
+[2.90"]
+82.2mm
+[3.23"]
+22.5mm
+[0.88"]
+22.5mm
+[0.88"]
+50.0mm
+[1.97"]50.0mm
+[1.97"]
+50.0mm
+[1.97"]
+57.5mm
+[2.26"]
+57.5mm
+[2.26"]
+27.5mm
+[1.08"]
+TM-CMZ-1P-50L-LB Busbar
+TM-CMZ-1P-50-LB Busbar
+TM-CMZ-1P-50L Busbar
+TM-CMZ-1P-50 Busbar
+Ø8.5mm
+[Ø0.33"]
+Ø8.5mm
+[Ø0.33"]
+단자대
+단자대
+단자대
+단자대
+MCCB
+MCCB
+MCCB
+MCCB
+12.8mm
+[0.50"]
+12.0mm
+[0.47"]
+12.0mm
+[0.47"]
+12.8mm
+[0.50"]
+7.7mm
+[0.30"]
+7.7mm
+[0.30"]
+7.7mm
+[0.30"]
+7.7mm
+[0.30"]
+9.8mm
+[0.39"]
+9.8mm
+[0.39"]
+55.0mm
+[2.17"]
+63.5mm
+[2.50"]
+72.5mm
+[2.85"]
+67.2mm
+[2.65"]
+81.0mm
+[3.19"]
+17.2mm
+[0.68"] 17.2mm
+[0.68"]
+68.4mm
+[2.69"]
+76.9mm
+[3.03"]
+22.2mm
+[0.87"]
+Ø6.0mm
+[Ø0.24"]
+Ø6.0mm
+[Ø0.24"]
+6.3mm
+[0.25"]
+6.3mm
+[0.25"]
+53.2mm
+[2.09"]
+61.7mm
+[2.43"]
+75.7mm
+[2.98"]
+M8x20M8x20
+M5x16 M5x16
+50.0mm
+[1.97"]
+50.0mm
+[1.97"]
+50.0mm
+[1.97"]
+
+=== PAGE 87 ===
+87
+TM-CMS-3P CMS-2P용 삼상 단자대 
+TM-CMS-3P-105
+TM-CMS-3P-90
+TM-CMS-3P-75
+24.0mm
+[0.94"]
+24.0mm
+[0.94"]
+TM-CMS-3P-105 Cover
+TM-CMS-3P-90 Cover
+25.0mm
+[0.98"]
+90.0mm
+[3.54"]
+57.5mm
+[2.26"]
+20.0mm
+[0.79"]
+17.2mm
+[0.68"]
+54.0mm
+[2.13"]
+54.0mm
+[2.13"]
+4.0mm
+[0.16"]
+4.5mm
+[0.18"]
+30.0mm
+[1.18"]
+25.0mm
+[0.98"]
+92.0mm
+[3.62"]
+86.4mm
+[3.40"]
+90.0mm
+[3.54"]
+75.0mm
+[2.95"]
+TM-CMS-3P-105 Busbar
+TM-CMS-3P-90 Busbar
+TM-CMS-3P-75 Busbar
+Ø9.0mm
+[Ø0.35"]
+Ø6.0mm
+[Ø0.24"]
+단자대
+단자대
+MCCB
+MCCB
+30.0mm
+[1.18"]
+25.0mm
+[0.98"]
+8.0mm
+[0.31"]
+7.7mm
+[0.30"]
+8.8mm
+[0.35"]
+6.3mm
+[0.25"]
+90.8mm
+[3.57"]
+85.2mm
+[3.35"]
+74.0mm
+[2.91"]
+71.2mm
+[2.80"]
+54.0mm
+[2.13"]
+24.0mm
+[0.94"]
+23.0mm
+[0.91"]
+28.0mm
+[1.10"]
+105.0mm
+[4.13"]
+57.5mm
+[2.26"]
+M8x20
+6.5mm
+[0.26"]
+35.0mm
+[1.38"]
+35.0mm
+[1.38"]
+105.0mm
+[4.13"]
+98.0mm
+[3.86"]
+Ø9.0mm
+[Ø0.35"]
+77.0mm
+[3.04"]
+96.8mm
+[3.83"]
+10.5mm
+[0.41"]
+9.3mm
+[0.37"]
+19.0mm
+[0.75"]
+단자대MCCB
+M8x20
+M5x16
+15.0mm
+[0.59"]
+12.0mm
+[0.47"]
+TM-CMS-3P-75 Cover
+75.0mm
+[2.95"]
+57.5mm
+[2.26"]
+22.2mm
+[0.87"]
+
+=== PAGE 88 ===
+Smart Digital Power Meter/
+Power Measuring Module
+88
+TM-CMS-1P CMS-2P용 단상 단자대 
+TM-CMS-1P-50
+24.0mm
+[0.94"]
+17.2mm
+[0.68"]
+54.0mm
+[2.13"]
+4.5mm
+[0.18"]
+86.4mm
+[3.40"]
+50.0mm
+[1.97"]
+TM-CMS-1P-60 Busbar
+TM-CMS-1P-50 Busbar
+Ø6.0mm
+[Ø0.24"]
+ 단자대MCCB
+25.0mm
+[0.98"]
+7.7mm
+[0.30"]
+6.3mm
+[0.25"]
+85.2mm
+[3.35"]
+71.2mm
+[2.80"]
+Ø9.0mm
+[Ø0.35"]
+74.0mm
+[2.91"]
+90.8mm
+[3.57"]
+8.0mm
+[0.31"]
+8.8mm
+[0.35"]
+15.0mm
+[0.59"]
+단자대MCCB
+M5x16
+12.0mm
+[0.47"]
+TM-CMS-1P-60 Cover
+25.0mm
+[0.98"]
+60.0mm
+[2.36"]
+57.5mm
+[2.26"]
+TM-CMS-1P-60
+54.0mm
+[2.13"]
+24.0mm
+[0.94"]
+20.0mm
+[0.79"]
+90.8mm
+[3.57"]
+M8x20
+4.0mm
+[0.16"]
+30.0mm
+[1.18"]
+60.0mm
+[2.36"]
+TM-CMS-1P-105TM-CMS-1P-105 Cover TM-CMS-1P-105 Busbar
+54.0mm
+[2.13"]
+24.0mm
+[0.94"]
+23.0mm
+[0.91"]
+28.0mm
+[1.10"]
+105.0mm
+[4.13"]
+57.5mm
+[2.26"]
+M8x20
+6.5mm
+[0.26"]
+70.0mm
+[2.76"]
+105.0mm
+[4.13"]
+98.0mm
+[3.86"]
+Ø9.0mm
+[Ø0.35"]
+77.0mm
+[3.04"]
+96.8mm
+[3.83"]
+10.5mm
+[0.41"]
+9.3mm
+[0.37"]
+19.0mm
+[0.75"]
+단자대MCCB
+TM-CMS-1P-50 Cover
+57.5mm
+[2.26"]
+22.2mm
+[0.87"]
+50.0mm
+[1.97"]
+
+=== PAGE 89 ===
+Accura 2300/2350, Accura 2300S/2350, Accura 2300S/2350-1P3FSC, Accura 2500/2550, Accura 2700/2750, Accura 3000, Accura 3300E, 
+Accura 3500/3550/3500E, Accura 3700, Accura 5500, Accura 7300, Accura 7500은 루텍의 상표입니다. 제품 상세스펙 및 주문정보는 루텍으로 연락 주시기 
+바랍니다. 이 문서에 대한 정보는 사전 통보 없이 수정될 수 있습니다. CopyrightⓒRootech Inc. Printed In Korea
+경기도 수원시 영통구 신원로 88,
+102동 611호
+sales@rootech.com
+www.rootech.com
+Tel. 031. 695. 7350     
+Fax. 031. 695. 7399
+루텍은 전기에너지 Total Solution 을 제공하는 
+회사입니다. 정확한 전기에너지 정보계측에서 
+고객이 전기에너지를 쉽게 관리할 수 있는 
+고객중심 콘텐츠로 이어지는 전기 에너지관련
+Solution 을 갖추고 있습니다.
+루텍은 올바른 전기에너지 이해의 가치 위에서 
+사람과 자연의 행복추구라는 목표를 가지고 
+있습니다.

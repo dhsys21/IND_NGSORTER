@@ -1,0 +1,263 @@
+
+=== PAGE 1 ===
+- 0 -
+온도 연기 감지기
+TSD
+-V50
+Print V6.2 
+
+=== PAGE 2 ===
+- 1 -
+온도 & 연기 감지기 구성
+ 제품 규격
+□ 온도 & 연기 감지기 규격 
+. 서론 
+- 설정 온도에 따라 Event (AL1,2) 경보, 위험 발생 및 연기 감지 Event (AL3) 경보를 RS485를 통해 상위로 보고 
+I/O를 통해 외부제어가능 
+. 특성 및 성능 
+- 설정 온도에 따라 Event (AL1,2) 온도 경보, 온도위험 
+- 연기 감지 Event (AL3) 
+- RS485를 통해 상위로 보고.
+- 현재 온도 Display 기능 
+- 스위치를 통하여 설정 및 관련 정보 설정과 Display 가능 
+. 전압 소비 전류 
+- 전압 DC 24V 
+- 소비 전류 Max 100mA 이하 
+. 통신 사양 
+- 종류 : RS485 
+- 속도 : 115200bps 
+- 프로토콜 : 휴먼오토메이션 Protocol & Modbus RTU Protocol 
+- ID(Address) : #01 ~ #35 
+- 통신규약 : 8bit / No Parity / 1Stop 2Wire Half Duplex 
+
+
+=== PAGE 3 ===
+- 2 -
+온도 & 연기 감지기 구성
+ 기능 설명
+□ 온도 & 연기 감지기 기능 
+. 온도 설정 
+- 2가지의 온도 설정 가능 
+- Temperature Warning (Event AL1) 
+- Temperature Danger (Event AL2) 
+. 현재 온도 표시 
+- PV (현재 온도 표시)
+. Off Set 온도 설정 
+- 보정 온도 설정 
+. 연기 감지 기능 
+- 광전식 연기 감지 기능 
+- Smoke Alarm 을 출력합니다.
+. Address 설정 
+- 국번 설정 기기의 Address 설정 기능 
+. 규격 승인 
+- CE 승인 (승인 검사서 요청 시 별도 발송)      
+
+
+=== PAGE 4 ===
+- 3 -
+온도 & 연기 감지기 구성
+. IO INTERFACE 
+- 온도 & 연기 감지기에서 상태 정보를 외부 기기에 INTERFACE 가능.
+- Run(실행), Temperature Warning(온도경고), Temperature Danger(온도위험), Smoke Alarm(연기알람)을 출력합니다.
+. RS485 통신 내용 
+- 현재의 온도 데이터 송,수신 
+- 경보 상황 송,수신 
+- 파라메터 설정 
+. RS485 통신 조건 
+- 통신 방식 : RS485 
+- Baud rate : 115200 bps 
+- Data bit : 8 bit / Stop bit : 1 bit / Parity bit : None 
+. 제품의 활용 & 적용 
+- 전장 제어 판넬 사용. (온도 & 연기 감지기로 활용)
+- 자동차 배터리 에이징 장비에 활용 
+
+
+=== PAGE 5 ===
+- 4 -
+온도 & 연기 감지기 제품 설명
+No Name Function 
+1 메인 커넥터 DC 전원 
+RS485 통신 케이블 연결합니다.
+2 출력 커넥터 Run, Temperature Warning, Temperature Danger, Smoke  Alarm 을
+출력합니다.
+3 알람 경고등 연기 알람 시 적색, 온도 알람 시 노란색 표시합니다.
+평상시에는 꺼져 있습니다.
+4 연기 챔버 연기 감지하는 부분입니다. 
+적외선 발광, 수광 소자가 내장되어 있습니다.
+5 스위치 UP, DOWN, SET, MODE 스위치로 
+상태 표시, 진단, 알람, 파라미터를 조작합니다.
+6 로터리 스위치 RS485 통신 감지기 주소 설정합니다.
+7 표시부 4자릿수 7세그먼트 LED에 의해 감지기 상태를 
+표시합니다.
+①
+②
+③
+④
+⑤
+⑥
+⑤
+③
+⑦
+ 온도 & 연기 감지기 설명
+
+
+=== PAGE 6 ===
+- 5 -
+SYSTEM 구성 & 활용
+UP DOWN SET 
+중계기 
+PLC INPUT 
+CARD 
+(1) PLC ↔ 감지기 연결 구성도 
+온도 & 연기 감지기 
+온도 & 연기 감지기 최대 15개 연결 
+(2) PLC ↔ 중계기 ↔ 감지기 구성도 
+RS485 
+RS485 통신 
+RUN 
+WARNING 
+DANGER 
+SMOKE 
+(1) 현재 온도 및 상태를 실시간 모니터링이 가능합니다.
+(2) 경보/알람 온도설정, 알람 리셋, 기타 파라미터 설정은 RS485 통신으로 수행 할 수 있습니다.
+(3) 동작 상태(RUN), 알람 상태를 NPN 출력 신호로 전달 할 수 있습니다. 
+(1) 중계기는 최대 15개의 감지기의 정보를 수집하는 기능을 합니다.
+(2) 중계기 Display LCD 를 통해 감지기 정보를 확인 할 수 있습니다.
+(3) 중계기를 통해 감지기 파라미터 설정을 할 수 있습니다.
+PLC SERIAL 
+CARD 
+PLC SERIAL 
+CARD 
+
+
+=== PAGE 7 ===
+- 6 -
+온도 & 연기 감지기 최대 15개 연결 
+(3) PLC ↔ 감지기 구성도 
+RS485 
+(1) 최대 15개의 감지기의 정보를 수집하는 기능을 합니다.
+(2) 감지기 정보를 확인 할 수 있습니다.
+(3) RS-485를 통해 파라미터 설정을 할 수 있습니다.
+PLC SERIAL 
+CARD 
+산업용 PC 
+(4) PC ↔ 감지기 구성도 온도 & 연기 감지기 최대 N개 연결 
+RS485 
+(1) 최대 N개의 감지기 정보를 수집하는 기능을 수행 합니다.
+(2) 감지기 정보를 확인 할 수 있습니다.
+(3) RS-485를 통해 파라미터 설정을 할 수 있습니다.
+RS485 
+SYSTEM 구성 & 활용
+
+
+=== PAGE 8 ===
+- 7 -
+SYSTEM 구성 & 활용
+온도 & 연기 감지기 최대 35개 연결 (5) INDICATOR ↔ 감지기 구성도 
+(1) Indicator는 최대 35개의 감지기의 정보를 수집하는 기능을 합니다.
+(2) Indicator Display FND & LED 를 통해 감지기 정보를 확인 할 수 있습니다.
+(3) Indicator를 통해 감지기 Address 설정하여 감지기 상황을 Display할 수 있습니다.
+PANEL 
+INDICATOR 
+
+=== PAGE 9 ===
+- 8 -
+(5) PC ↔ SLAVE BOARD 와 감지기 결선 
+ADDR. #01 ADDR. #02 ADDR. #35 
+ADDR. #01 ADDR. #02 ADDR. #35 
+ADDR. #01 ADDR. #02 ADDR. #35 
+ADDR. #01 ADDR. #02 ADDR. #35 
+모듈 그룹1
+Slave #1 
+To Master Board & PC 
+Slave Board 1개당 TEMP. & SMOKE DETECTOR  (최대 140개 연결 가능)
+SYSTEM 구성 & 활용
+
+
+=== PAGE 10 ===
+- 9 -
+모듈그룹1
+Temp.& Smoke Detector Control MODULE #01 ~ #35 X 4 =140 
+Slave #1 
+모듈그룹2
+Slave #2 
+모듈그룹3
+Slave #3 
+모듈그룹4
+Slave #4 
+HUB 48port 
+Temp.& Smoke Detector Control MODULE #01 ~ #35 X 4 =140 
+Temp.& Smoke Detector Control MODULE #01 ~ #35 X 4 =140 
+Temp.& Smoke Detector Control MODULE #01 ~ #35 X 4 =140 
+Master #1 ~ #N 
+Master Board 1개당 Slave Board 4개 연결 가능.  Master Board #1~#n 확장 가능.
+Slave Board 1개당 TEMP. & SMOKE DETECTOR 최대 140개 연결 가능 
+140 x 4 = 최대 560 
+Shelf rack Server 
+Ethernet Ethernet 
+RS485 
+RS485 
+RS485 
+RS485 
+(6) PC ↔ MASTER & SLAVE BOARD 와 감지기 결선 
+SYSTEM 구성 & 활용
+
+
+=== PAGE 11 ===
+- 10 -
+SYSTEM 구성 & 활용
+배터리 전체 플랜트 조감도 
+
+
+=== PAGE 12 ===
+- 11 -
+SYSTEM 구성 & 활용
+- 화성 타워에 로봇을 이용 하여 차곡 차곡 쌓고 화성 에이징 프로화일에 의하여 길게는 10일 짧게는 
+3일 배터리 업체 마다 다름.
+- 에이징 시스템등 적용 
+화성 Formation 
+
+=== PAGE 13 ===
+- 12 -
+TSD-V50 
+기존 사용 방식 (연기감기기 + 온도컨트롤러 별도사용)두가지의 제어기를 하나로 
+SYSTEM 구성 & 활용
+□ TSD-V50 모듈 사용시 기대 효과 
+- Module 단위의 설계 및 품질등 제반 사항을 책임지고 수행하는 효과.
+- 최종 조립 인원 감소.   R&D, 생산, 물류 비용절감, 작업범위 축소 및 품질 향상으로 고정비용의 절감.
+- 비용절감 측면, 품질개선이라는 두가지 경쟁력 강화 요인을 얻고자 모듈화.
+- 부품의 통합, 기능은 공용화로 원가 절감의 추진.
+- 조립 시간의 단축과 제품의 신뢰성 확보 
+- 조립 시간 단축으로 원가절감되고, 생산성 및 품질이 개선되어 타 Maker와 경쟁력 확보 
+- 관리 cost및 고정비용 축소, 품질 업무 간소화 
+(7) 전장 제어반 감지기 활용 
+
+
+=== PAGE 14 ===
+- 13 -
+□ TSD-V50 모듈 사용시 장점 
+- 온도 + 연기 감지기를 하나로 
+- 공간의 축소 (기존 전장 제어반 설계시 온도 컨트롤러 + 연기 감지기를 별도로 사용)
+- 전장 작업 시간 단축과 하네스 비용 절감 
+- RS485인터페이스 가능. (여러 채널을 동시에 연결하여 사용 할 수 있고 각종 데이터를 상위 보고 할 수 있음.) 
+- I/O 출력 Run, Temperature Warning, Temperature Danger,  Smoke Alarm을 출력합니다.
+- 2개의 온도 설정 가능. 경보 온도 설정, 위험 온도 설정,(경보, 위험)
+- 연기 검출 알람 발생 
+- 지속적인 온도 정보를 상위에서 수집 가능 
+SYSTEM 구성 & 활용
+
+
+=== PAGE 15 ===
+- 14 -
+□ TSD-V50 Indicator + TSD-V50 
+SYSTEM 구성 & 활용
+(1) Indicator는 최대 35개의 감지기의 정보를 수집하는 기능을 합니다.
+(2) Indicator Display FND & LED 를 통해 감지기 정보를 확인 할 수 있습니다.
+(3) Indicator를 통해 감지기 Address 설정하여 감지기 상황을 Display할 수 있습니다.
+RS-485 
+TSD-V50 INDICATOR TSD-V50 
+(케이스 컬러는 이미지와 다름)
+
+=== PAGE 16 ===
+- 15 -
+감사합니다

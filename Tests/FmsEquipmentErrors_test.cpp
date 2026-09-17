@@ -16,6 +16,15 @@ int main() {
     assert(Encode(50,4294967295UL)==0);
     assert(Encode(50,FmsTrouble)==50307UL);
     assert(Encode(50,ManualSourceLoad)==50308UL);
+    assert(Encode(50,SourceBarcode)==50181UL);
+    assert(Encode(50,TargetBarcode)==50182UL);
+    assert(Encode(50,PowerMeterData)==50401UL);
+    assert(Encode(50,SmokeCommunication)==50411UL);
+    assert(Encode(50,SmokeProtocol)==50412UL);
+    assert(Encode(50,SmokeNotRunning)==50413UL);
+    assert(Encode(50,SmokeDetected)==50414UL);
+    assert(Encode(50,SmokeTempWarning)==50415UL);
+    assert(Encode(50,SmokeTempDanger)==50416UL);
     assert(Encode(10,1)==10001UL);
     assert(Encode(20,999)==20999UL);
     assert(Encode(20,1000)==201000UL);

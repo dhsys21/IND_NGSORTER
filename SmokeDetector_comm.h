@@ -7,6 +7,7 @@
 #include "CPort.hpp"
 #include <Vcl.ExtCtrls.hpp>
 #include <vector>
+#include "DetectorFmsAlarmState.h"
 //---------------------------------------------------------------------------
 class TSmokeDetector : public TDataModule
 {
@@ -42,6 +43,7 @@ private:	// User declarations
     bool m_tempWarning;
     bool m_tempDanger;
     bool m_running;
+    DetectorFmsAlarmState m_fmsAlarms;
 
     void __fastcall Reconnect(); // 재연결 전용 함수
 	// FMS EnvStatus forwarding entry point used by both detector protocols.
@@ -54,6 +56,7 @@ private:	// User declarations
     void __fastcall Parse_HumanAuto(unsigned char* rxBuf, int cnt);
 public:		// User declarations
 	__fastcall TSmokeDetector(TComponent* Owner);
+    void __fastcall PublishFmsAlarms(); // Called by MainForm's status timer.
     unsigned short __fastcall CalculateCRC(unsigned char *buf, int len);
     void __fastcall QueryTSD50(int slaveId);
     void __fastcall ParseTSD50Response(unsigned char *rcvBuf, int rcvLen);

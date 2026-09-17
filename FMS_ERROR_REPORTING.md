@@ -94,12 +94,54 @@ Only a successful read of that same alarm source can replace/clear it. Disconnec
 | 50307 | FMS-side Trouble.Status=true | Connected valid snapshot confirms false (Pause still requires acknowledgement) |
 | 50308 | Manual Source TrayLoad failure | Manual handshake including response reset completes, or explicit AUTO entry discards the manual session |
 | 50309 | Manual Target TrayLoad failure | Manual handshake including response reset completes, or explicit AUTO entry discards the manual session |
+| 50401 | PLC power-meter data stale/lost after the first complete D10100-D10117 response | Fresh complete PLC response within 1,000 ms |
+| 50411 | Configured detector port open/send failure, closed/lost port, or measurement timeout reaching reconnect | Valid measurement packet (not merely reopening the port) |
+| 50412 | Valid TSD-V50 Modbus exception response | Read exception clears on valid measurement; write exception clears on valid 06h response; both must clear |
+| 50413 | Valid detector measurement with Running bit OFF | Valid measurement reporting Running ON |
+| 50414 | TSD-V50 Modbus alarm bit 2 (smoke) ON | Valid Modbus measurement with bit 2 OFF |
+| 50415 | TSD-V50 Modbus alarm bit 0 (temperature warning) ON | Valid Modbus measurement with bit 0 OFF |
+| 50416 | TSD-V50 Modbus alarm bit 1 (temperature danger) ON | Valid Modbus measurement with bit 1 OFF |
 
 FMS failure kinds (timeout, rejected response, invalid data) share a per-transaction code; detailed reason, response value and phase remain in the FMS alarm window/log.
 FMS Close and Retry do not clear the registered failure. Eject/Insert Retry and popup Hide likewise do not imply successful recovery.
 Existing safety actions, input polarity, motion admission and restart interlocks are not changed by this reporting layer.
 Unused door #3 is not added. CP/MS contacts without a verified fault polarity are not newly interpreted as faults.
-Smoke/temperature information continues using the separate five EnvStatus tags.
+Smoke/temperature information continues using the separate five EnvStatus tags,
+and the peripheral codes above also enter the active equipment alarm registry.
+
+## Peripheral reporting (2026-09-17)
+
+Existing barcode codes remain **50181 / 50182**; no duplicate 4xx barcode codes
+are allocated. New peripheral internal codes are **401, 411-416** and are encoded
+with category 50. ErrorLevel remains the first complete active code, and Status
+is 4 for any active registered alarm, including temperature warning.
+
+50401 means unavailable **PLC meter data**, not a proven physical meter fault.
+The supplied PLC contract has only Voltage/Current/Power/Energy words, with no
+meter-health bit. Zero, constant, or low values are not treated as a fault. A lost
+PLC connection can report both 50152 and 50401. As with the existing PLC monitor,
+monitoring arms only after a first complete valid response. A meter fault while
+PLC data remains fresh needs a separately specified PLC health address.
+
+The main status timer publishes alarms from **MainForm->comSmoke[0]**, the actual
+configured detector, not the unused auto-created global instance. Empty-port
+configuration disables communication monitoring; an explicit close of a still
+configured port reports 50411. Connection loss and port reconfiguration retain
+previous device alarms. Only valid measurement data clears the transport/read
+fault; successful COM open alone does not. Consecutive polling timeouts use the
+existing three-failure reconnect threshold. Invalid/CRC-bad packets do not clear
+any alarm and eventually count as missing valid measurements.
+
+HumanAutomation acknowledges valid measurements to avoid a false timeout loop.
+It reports temperature/Running and can clear the read/communication fault, but
+has no independent alarm bits. It cannot generate smoke/warning/danger alarms or
+clear a previously confirmed Modbus physical alarm. To clear such an alarm,
+restore Modbus and verify its normal bits. Write errors are not cleared by an
+unrelated read response. The five EnvStatus tags retain their existing mapping.
+
+This adds reporting only, not new axis stop/restart commands or safety bypasses.
+The existing generic COM-port popup may also register 50205; acknowledging that
+popup does not clear the dedicated detector fault before valid recovery.
 
 ## Verification
 

@@ -1,0 +1,13 @@
+{
+  "local_count": 35,
+  "catalog_count": 158,
+  "group_counts": {
+    "10": 4,
+    "20": 68,
+    "30": 61,
+    "40": 25
+  },
+  "source_sha256": "b059b9fc6cfbc2c79e93aa053813d1cb499d23edcd8604ff2791b04a667c54d7",
+  "output_sha256": "0a3692749eb656590a160e9d62caf24666e9307d376d44e29584438d0be94375",
+  "result": "PASS"
+}

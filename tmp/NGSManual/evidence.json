@@ -1,0 +1,146 @@
+{
+  "reference": "D:\\Project\\2026\\03.Jeng(India)\\01.Document\\설비매뉴얼\\IROCV_96CH_India_Operation_Manual_KR_20260916 001.docx",
+  "sha256": "0aedb8aa162edb7371019f341d88511d9b2c2db669674d907f1defe72a5c8faf",
+  "parts": {
+    "[Content_Types].xml": {
+      "size": 2279,
+      "sha256": "5134a1aa3d2dc09cb2631efe0b048a88d944b55470218a4183cb59311ffe772e"
+    },
+    "_rels/.rels": {
+      "size": 590,
+      "sha256": "e19238d7a71fa7a2490776252686f70e2de6238c87cd509b5e3a3cc07c2ea4df"
+    },
+    "word/_rels/document.xml.rels": {
+      "size": 3222,
+      "sha256": "0813decc0666f2aad3482bc2ad47ef84899bc7fbd40831efae5f269a072349f9"
+    },
+    "word/document.xml": {
+      "size": 436173,
+      "sha256": "5012aaf2b7aa35133c37a4dbeb7834a57554f6ab8f60683c518796482b26e4ec"
+    },
+    "word/endnotes.xml": {
+      "size": 2706,
+      "sha256": "dcfa87036ddb5c70bb3263d0f1788ac7f69c43dcebbb7d6435e5f83269aa18de"
+    },
+    "word/footer1.xml": {
+      "size": 2901,
+      "sha256": "bfca1c74481212127d512411de9926d7da7e768202ba771a857530d74796c7ee"
+    },
+    "word/header1.xml": {
+      "size": 4351,
+      "sha256": "ae45f491d8f3233fb05b4251499befb2d6c47ca0af2c5658410864fa727414e4"
+    },
+    "word/_rels/header1.xml.rels": {
+      "size": 290,
+      "sha256": "237e7aa0972f981db3bf6b8d1dd0360e0fea5641db6b01287a0aacbbf0282b81"
+    },
+    "word/footnotes.xml": {
+      "size": 2712,
+      "sha256": "cabe5cc17f677978ed20b1174f4570920b832aa124a0290f27fb69c29c2211e1"
+    },
+    "word/media/image12.png": {
+      "size": 4532,
+      "sha256": "01fdbc85588b537319790b44cf6917fd28effb98a897008b31f6e4f2d959f707"
+    },
+    "word/media/image8.png": {
+      "size": 51289,
+      "sha256": "ff8fa875ed5e2a911fa3ae774c270262ece903571070f3b0e262edda9377ac1a"
+    },
+    "word/media/image7.png": {
+      "size": 37488,
+      "sha256": "402f3c43dc7a184f75ab9b0108a9548abfe44c5faee676c2e6202bb152f6b948"
+    },
+    "word/media/image6.png": {
+      "size": 39131,
+      "sha256": "1481c3a12ea7b106ddd0782ae2a892f93bc91263e815642e09b6f8771bbceb13"
+    },
+    "word/media/image10.png": {
+      "size": 76612,
+      "sha256": "cde7d11776c020d33a07eb58acb1bf9ba59f5bafe1d91f45f80f47267cf8dc94"
+    },
+    "word/media/image11.png": {
+      "size": 55968,
+      "sha256": "5dc371d136a20ed973d2768c30d0ca55c7803e6faa77d85e2a8fd89f242c3059"
+    },
+    "word/media/image9.png": {
+      "size": 98425,
+      "sha256": "8765605a2800e7c9fe8e906865307c17c935b65ae74b1890353b7ff6024253d6"
+    },
+    "word/media/image4.png": {
+      "size": 119901,
+      "sha256": "11e632b706dd2860459fac94a3fdb31e22fe80173c5ce0e64c4bad91d0154e10"
+    },
+    "word/media/image3.png": {
+      "size": 61259,
+      "sha256": "8f405c040be0cdedc5dfd0db002b803e4ede54d63e8fe57be894f795e69c53d8"
+    },
+    "word/theme/theme1.xml": {
+      "size": 7744,
+      "sha256": "258ac32bc3b9bc82bf4884dc8a489a81a8a2752435d05a460ff50cf9ea6b0237"
+    },
+    "word/media/image5.png": {
+      "size": 36423,
+      "sha256": "6f2fccd8a930954a2c8c2af3d00438754868ff8c276aafe0ba0611ef0d20d062"
+    },
+    "word/media/image2.png": {
+      "size": 104421,
+      "sha256": "d4b25bda6f8c99d6f74111cfd4f968147c9d6130ec74b419e1dfb8271ebac230"
+    },
+    "word/media/image1.png": {
+      "size": 68196,
+      "sha256": "3a034be46c8c7c31124f5273b215e9ec894fd79d5aa73ce4bb19f06788c2dd21"
+    },
+    "word/settings.xml": {
+      "size": 28212,
+      "sha256": "a75d8d39112fd7136b0ed463092c704073a19cf68902dc433d7922aa992f1d0a"
+    },
+    "customXml/itemProps1.xml": {
+      "size": 330,
+      "sha256": "b9af1def6fd47a1f29927c6fc49d738eabc58847374c8fc672522374cb2fa213"
+    },
+    "customXml/itemProps2.xml": {
+      "size": 341,
+      "sha256": "03e93b547f658e55a3677ccced2418584539ee65e3c4df7fa66736318faf5eda"
+    },
+    "customXml/item2.xml": {
+      "size": 270,
+      "sha256": "c8092edbb672f8c93f1d5ef66539a6f169462ba8738b785b59cc5d96f4aca59a"
+    },
+    "customXml/_rels/item2.xml.rels": {
+      "size": 296,
+      "sha256": "2a6aee4c8a9714223a3568077411a0c82d11b484b1c9ab93a19d50b99c57baa5"
+    },
+    "customXml/_rels/item1.xml.rels": {
+      "size": 296,
+      "sha256": "80482f86e196171d66001e0e74d1900408a3aaf2463e54005d251b5f2db9a0b0"
+    },
+    "customXml/item1.xml": {
+      "size": 209,
+      "sha256": "f71e069f63638f2d3137e34aba6e5dfc58a47187cffcfeea9df545ee26061c85"
+    },
+    "docProps/core.xml": {
+      "size": 950,
+      "sha256": "db5a7074a170fdf44564278f8a4718c6638310ec5df46315d0458098545dc7f9"
+    },
+    "word/numbering.xml": {
+      "size": 126288,
+      "sha256": "cda853bce3afd99158c6b3da65d430ee2d9b904243410fd53ce16e7166bbc633"
+    },
+    "word/styles.xml": {
+      "size": 81726,
+      "sha256": "a6f20f42d666c9a45231f9e036fb76925bf36e19c8aaae020b8fd5b7cd0c2479"
+    },
+    "word/webSettings.xml": {
+      "size": 97284,
+      "sha256": "b71cd6185ca7eba6b050f80b817264f3bcb7bc4cb5a27ad212c072e30a28b2dd"
+    },
+    "word/fontTable.xml": {
+      "size": 2812,
+      "sha256": "55f3a1bd5b0b4f5e73a66e11a51454186e19dc44bc30e081f534336cf642ac8f"
+    },
+    "docProps/app.xml": {
+      "size": 1056,
+      "sha256": "c53d0270512632a059d12b512599c37bc6551d4373ca7d4b4d885de216b76a2d"
+    }
+  }
+}
