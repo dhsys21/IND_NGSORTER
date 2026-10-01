@@ -9,6 +9,7 @@
 #include "FormBase.h"
 //* DRY RUN : Dedicated inspection form is isolated from the production sequence.
 #include "FormDryRun.h"
+#include "FormTpmLoss.h"
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.dfm"
@@ -57,6 +58,11 @@ static AnsiString RobotSequenceText(int value)
 __fastcall TMainForm::TMainForm(TComponent* Owner)
 	: TForm(Owner)
 {
+	tpmSelectionActive = false;
+	tpmReasonActive = false;
+	// TPM LOSS: the DFM sample is designer-only, not a real downtime record.
+	lblTpmLoss->Caption = "";
+	lblTpmLoss->Hint = "";
 	traySavePending[0] = traySavePending[1] = false;
 	cellRecoveryReportAccepted = false;
 	//* max speed mode - need remove
@@ -1219,6 +1225,9 @@ void __fastcall TMainForm::setBarcode(int pos, AnsiString strBcr)
 
 void __fastcall TMainForm::EnableButton_auto(bool benable)
 {
+	// TPM LOSS: an old downtime reason must not remain active after a mode change.
+	tpmReasonActive = false;
+	UpdateTpmLossDisplay();
 	// Controls enabled during automatic operation.
 	playBtn->Enabled = benable;
 	stopBtn->Enabled = benable;
@@ -2554,6 +2563,20 @@ void __fastcall TMainForm::autoBtnClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::manualBtnClick(TObject *Sender)
 {
+	if(tpmSelectionActive) return;
+	if(!BaseForm->config.tpmUnused){
+		if(SelectTpmManualReason()){
+			EnterManualMode();
+			tpmReasonActive = true;
+			UpdateTpmLossDisplay();
+		}
+		else{
+			// Cancel never resumes motion or changes the operating mode.
+			autoBtn->Down = equipMode != modeManual;
+			manualBtn->Down = equipMode == modeManual;
+		}
+		return;
+	}
 	if(autoBtn->Down == true){
 		if(robostar->IsSafetyDoorOpen(1) || robostar->IsSafetyDoorOpen(2) || robostar->IsEmergencyStopActive())
 		{
@@ -2590,6 +2613,100 @@ void __fastcall TMainForm::manualBtnClick(TObject *Sender)
 	}else{
 		manualBtn->Down = true;
 	}
+}
+//---------------------------------------------------------------------------
+
+bool __fastcall TMainForm::SelectTpmManualReason()
+{
+	TTpmLossRecord pending;
+	pending.unit = "NGSORTER";
+	pending.requestedAt = Now();
+	pending.previousMode = (int)equipMode;
+	pending.sourceStep = step[0].step;
+	pending.targetStep = step[1].step;
+	pending.sourceTrayId = pTrayid_source->Caption;
+	pending.targetTrayId = pTrayid_target->Caption;
+	if(robostar != NULL){
+		pending.robotSequence = (int)(robostar->pauseStatus ? robostar->seq_save : robostar->seq);
+		pending.robotStep = robostar->InterruptedStep();
+	}
+	if(gripper != NULL){
+		pending.gripperSequence = (int)(gripper->pauseStatus ? gripper->seq_save : gripper->seq);
+		pending.gripperStep = gripper->step.step;
+		pending.sourceChannel = gripper->tool[0].source_ch;
+		pending.targetChannel = gripper->tool[0].target_ch;
+	}
+	// TPM LOSS: freeze physical work before ShowModal pumps timer messages.
+	// FMS suspension remains in EnterManualMode, just as in the existing manual path.
+	if(gripper != NULL) gripper->req_Pause(true);
+	if(robostar != NULL) robostar->req_Pause(true);
+	int reason = -1;
+	TTpmLossForm *dialog = NULL;
+	tpmSelectionActive = true;
+	try{
+		dialog = new TTpmLossForm(this);
+		reason = dialog->SelectReason(BaseForm->LangDict);
+	}__finally{
+		delete dialog;
+		tpmSelectionActive = false;
+	}
+	if(reason < 0 || reason >= TpmLossReasonCount){
+		memoMainLineAdd("[TPM] Selection cancelled; Pause retained. No loss code recorded.");
+		return false;
+	}
+	pending.code = TpmLossReasons[reason].code;
+	pending.index = BaseForm->GetLangStr(TpmLossReasons[reason].indexKey);
+	pending.description = BaseForm->GetLangStr(TpmLossReasons[reason].descriptionKey);
+	pending.selectedAt = Now();
+	pending.valid = true;
+	lastTpmLoss = pending;
+	// TPM LOSS: future FMS reporting can consume this snapshot after schema agreement.
+	// Do not fabricate tags or send/replay these records to the Gateway now.
+	memoMainLineAdd("[TPM] Code=" + AnsiString(pending.code) +
+		" / Unit=" + AnsiString(pending.unit) + " / Index=" + AnsiString(pending.index) +
+		" / Reason=" + AnsiString(pending.description) +
+		" / Requested=" + AnsiString(FormatDateTime("yyyy-mm-dd hh:nn:ss.zzz", pending.requestedAt)) +
+		" / Selected=" + AnsiString(FormatDateTime("yyyy-mm-dd hh:nn:ss.zzz", pending.selectedAt)) +
+		" / PreviousMode=" + IntToStr(pending.previousMode) +
+		" / Robot=" + IntToStr(pending.robotSequence) + ":" + IntToStr(pending.robotStep) +
+		" / Gripper=" + IntToStr(pending.gripperSequence) + ":" + IntToStr(pending.gripperStep) +
+		" / SourceStep=" + IntToStr(pending.sourceStep) + " / TargetStep=" + IntToStr(pending.targetStep) +
+		" / Source=" + AnsiString(pending.sourceTrayId) + ":" + AnsiString(pending.sourceChannel) +
+		" / Target=" + AnsiString(pending.targetTrayId) + ":" + AnsiString(pending.targetChannel) +
+		" / FMS=not configured (local only)");
+	return true;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::UpdateTpmLossDisplay()
+{
+	UnicodeString caption;
+	if(tpmReasonActive && equipMode == modeManual && lastTpmLoss.valid){
+		UnicodeString description = lastTpmLoss.description;
+		if(BaseForm != NULL && BaseForm->LangDict != NULL){
+			UnicodeString key = "TPM_DESC_" + lastTpmLoss.code;
+			int pos = BaseForm->LangDict->IndexOfName(key);
+			if(pos >= 0 && !BaseForm->LangDict->ValueFromIndex[pos].IsEmpty())
+				description = BaseForm->LangDict->ValueFromIndex[pos];
+		}
+		caption = "[TPM] " + lastTpmLoss.code + " : " + description;
+	}
+	if(lblTpmLoss->Caption != caption){
+		lblTpmLoss->Caption = caption;
+		lblTpmLoss->Hint = caption;
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::EnterManualMode()
+{
+	if(gripper != NULL) gripper->req_Pause(true);
+	if(robostar != NULL) robostar->req_Pause(true);
+	if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(false);
+	equipMode = modeManual;
+	nowLampMode = LampManual;
+	SuspendAutomaticFmsSequence();
+	autoBtn->Down = false;
+	manualBtn->Down = true;
+	EnableButton_auto(false);
 }
 //---------------------------------------------------------------------------
 
@@ -3406,6 +3523,8 @@ void __fastcall TMainForm::UpdateFmsEquipmentStatus()
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 {
+	// TPM LOSS: refresh translated display only; never alter or transmit the record.
+	UpdateTpmLossDisplay();
 	//* 비상정지후 취출/삽입 계속작업.
 	if(gripper != NULL){
 		gripper->ObserveEmergency();

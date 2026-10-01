@@ -1,5 +1,34 @@
-__history  
-__recovery
+__history/
+__recovery/
+
+# Local scratch work and generated document deliverables.
+/tmp/
+/temp/
+/outputs/
+/node_modules/
+/.codex-finalizer/
+__pycache__/
+*.pyc
+*.log
+*.tmp
+*.$$$
+~$*
+
+# Office/PDF documents are maintained separately from the application.
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.ppt
+*.pptx
+*.pdf
+
+# Root-level review reports and exported error-code documentation.
+/*.md
+!/README.md
+!/AGENTS.md
+/NGSORTER_Error_Codes_*.txt
+
 # IDE-local state, compiled resources and Debug output (keep local copies).
 *.local
 *.stat
@@ -16,4 +45,9 @@ ManualCellCompletion.ini.pending
 *.ilf
 *.ild
 *.ilc
-*.#00
+*.#[0-9][0-9]
+
+# Release build output. Preserve the existing vendor runtime dependencies.
+/Win32/Release/*
+!/Win32/Release/mc2xxstd_wow64.dll
+!/Win32/Release/mdfunc32.dll

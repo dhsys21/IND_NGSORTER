@@ -28,6 +28,7 @@
 
 //---------------------------------------------------------------------------
 #include "DEFINE.h"
+#include "TpmLoss.h"
 #include "Barcode_comm.h"
 #include "Mod_SRX100W.h"
 #include "SmokeDetector_comm.h"
@@ -320,6 +321,7 @@ __published:	// IDE-managed Components
 	TMemo *memoLog;
 	TAdvSmoothPanel *pnlLogTitle;
 	TLabel *lblLogTitle;
+	TLabel *lblTpmLoss;
 	TPanel *pnlProcessFlow;
 	TPanel *pnlProcessStep01;
 	TPanel *pnlProcessStep02;
@@ -377,6 +379,12 @@ __published:	// IDE-managed Components
 	void __fastcall btnDryRunClick(TObject *Sender);
 	void __fastcall btnTrayStepInitClick(TObject *Sender);
 private:	// User declarations
+	bool tpmSelectionActive;
+	bool tpmReasonActive; // TPM LOSS: Select sets; AUTO or a new Manual entry clears.
+	void __fastcall UpdateTpmLossDisplay();
+	TTpmLossRecord lastTpmLoss;
+	bool __fastcall SelectTpmManualReason();
+	void __fastcall EnterManualMode();
 //------------ 폼 관련 -------------------//
 
 	bool __fastcall CheckServoAutoReady(bool showError);
@@ -591,6 +599,8 @@ private:	// User declarations
 	int ioOutputCount;
 
 public:		// User declarations
+	// TPM LOSS: read-only integration point; no FMS tag/protocol is defined yet.
+	const TTpmLossRecord &LastTpmLoss() const { return lastTpmLoss; }
 	//* 비상정지후 취출/삽입 계속작업.
 	bool CheckEmergencyRecoveryReady(bool showError);
 	bool HandleEmergencyFmsAcknowledgement();

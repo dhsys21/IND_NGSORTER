@@ -4,7 +4,7 @@ object ConfigForm: TConfigForm
   BorderIcons = []
   BorderStyle = bsSingle
   Caption = 'CONFIGURATION'
-  ClientHeight = 516
+  ClientHeight = 546
   ClientWidth = 900
   Color = clWhite
   Font.Charset = DEFAULT_CHARSET
@@ -630,6 +630,14 @@ object ConfigForm: TConfigForm
     Height = 22
     Caption = 'Emergency automatic restart'
     TabOrder = 13
+  end
+  object chkTpmUnused: TCheckBox
+    Left = 500
+    Top = 518
+    Width = 390
+    Height = 22
+    Caption = 'TPM unused'
+    TabOrder = 14
   end
   object AdvSmoothButton2: TAdvSmoothButton
     Left = 686

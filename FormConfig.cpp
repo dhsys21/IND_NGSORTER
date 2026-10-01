@@ -13,11 +13,12 @@ __fastcall TConfigForm::TConfigForm(TComponent* Owner)
 	: TForm(Owner)
 {
 	this->Width = 920;
-	this->Height = 550;
+	this->Height = 580;
 }
 //---------------------------------------------------------------------------
 void __fastcall TConfigForm::ApplyConfig()
 {
+	BaseForm->config.tpmUnused = chkTpmUnused->Checked;
 	//* 비상정지후 취출/삽입 계속작업.
 	BaseForm->config.emergencyAutoRestart = chkEmergencyAutoRestart->Checked;
 	int unloadCount = editTargetUnloadCount->Text.ToIntDef(BaseForm->config.targetTrayUnloadCount);
@@ -283,6 +284,7 @@ void __fastcall TConfigForm::WriteSystemInfo(AnsiString type)
 	ini->WriteInteger("TARGET_TRAY", "UNLOAD_CELL_COUNT", BaseForm->config.targetTrayUnloadCount);
 	//* 비상정지후 취출/삽입 계속작업.
 	ini->WriteBool("RECOVERY", "EMERGENCY_AUTO_RESTART", BaseForm->config.emergencyAutoRestart);
+	ini->WriteBool("TPM", "UNUSED", BaseForm->config.tpmUnused);
 
 	delete ini;
 
@@ -290,6 +292,7 @@ void __fastcall TConfigForm::WriteSystemInfo(AnsiString type)
 //---------------------------------------------------------------------------
 bool __fastcall TConfigForm::ReadSystemInfo()
 {
+	chkTpmUnused->Checked = BaseForm->config.tpmUnused;
 	TIniFile *ini;
 
 	AnsiString file;
@@ -325,6 +328,7 @@ bool __fastcall TConfigForm::ReadSystemInfo()
 	editTargetUnloadCount->Text = IntToStr(unloadCount);
 	//* 비상정지후 취출/삽입 계속작업.
 	chkEmergencyAutoRestart->Checked = ini->ReadBool("RECOVERY", "EMERGENCY_AUTO_RESTART", false);
+	chkTpmUnused->Checked = ini->ReadBool("TPM", "UNUSED", false);
 
     // Stage Info
 	pcEdit->Text = ini->ReadString("INFO", "PC", "H1DIF01A");

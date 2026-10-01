@@ -16,6 +16,7 @@ USEFORM("SmokeDetector_comm.cpp", SmokeDetector); /* TDataModule: File Type */
 USEFORM("ModRobostar.cpp", robostar); /* TDataModule: File Type */
 USEFORM("ModPLC_Bin.cpp", PlcBin); /* TDataModule: File Type */
 USEFORM("Mod_SRX100W.cpp", Mod_Bcr); /* TDataModule: File Type */
+USEFORM("FormServoAlarmList.cpp", ServoAlarmListForm);
 USEFORM("FormAlarm_TrayInfo.cpp", trayinfoForm);
 USEFORM("FormAlarm_LoadFactor.cpp", loadfactor_AlarmForm);
 USEFORM("FormBase.cpp", BaseForm);
@@ -28,14 +29,14 @@ USEFORM("FormDryRun.cpp", DryRunForm);
 USEFORM("FormInterface.cpp", InterfaceForm);
 USEFORM("FormError_mes.cpp", ErrorForm_mes);
 USEFORM("FormLoadFactor.cpp", loadfactorForm);
-USEFORM("FormServoAlarmList.cpp", ServoAlarmListForm);
+USEFORM("FormManualComplete.cpp", ManualCompleteForm);
 USEFORM("FormMain.cpp", MainForm);
 USEFORM("FormError_bcr.cpp", ErrorForm_bcr);
 USEFORM("FormError.cpp", ErrorForm);
 USEFORM("FormError_eject.cpp", ErrorForm_eject);
 USEFORM("FormError_limit.cpp", ErrorForm_limit);
 USEFORM("FormError_insert.cpp", ErrorForm_insert);
-USEFORM("FormManualComplete.cpp", ManualCompleteForm);
+USEFORM("FormTpmLoss.cpp", TpmLossForm);
 //---------------------------------------------------------------------------
 int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 {
@@ -80,6 +81,7 @@ int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 		Application->CreateForm(__classid(TInterfaceForm), &InterfaceForm);
 		Application->CreateForm(__classid(TAlarmForm_fms), &AlarmForm_fms);
 		Application->CreateForm(__classid(TManualCompleteForm), &ManualCompleteForm);
+		// TPM LOSS: created only when the operator requests reason selection.
 		Application->Run();
 	}
 	catch (Exception &exception)

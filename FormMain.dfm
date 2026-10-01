@@ -4922,6 +4922,26 @@ object MainForm: TMainForm
       Padding.Right = 3
       Padding.Bottom = 3
       TMSStyle = 0
+      object lblTpmLoss: TLabel
+        Left = 190
+        Top = 3
+        Width = 765
+        Height = 24
+        Anchors = [akLeft, akTop, akRight]
+        AutoSize = False
+        Caption = '[TPM] 0300 : Breakdown maintenance'
+        EllipsisPosition = epEndEllipsis
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = 19379
+        Font.Height = -18
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ParentFont = False
+        ParentShowHint = False
+        ShowHint = True
+        Transparent = True
+        Layout = tlCenter
+      end
       object lblLogTitle: TLabel
         Left = 1
         Top = 1
