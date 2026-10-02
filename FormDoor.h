@@ -16,6 +16,8 @@
 class TdoorForm : public TForm
 {
 __published:	// IDE-managed Components
+    TButton *btnUser;
+    void __fastcall btnUserClick(TObject *Sender);
 	TAdvSmoothPanel *AdvSmoothPanel1;
 	TAdvSmoothPanel *AdvSmoothPanel2;
 	TLabel *Label3;

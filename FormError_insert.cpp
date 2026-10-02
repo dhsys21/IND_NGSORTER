@@ -48,6 +48,7 @@ void __fastcall TErrorForm_insert::ShowError(AnsiString str1, AnsiString str2, i
 //---------------------------------------------------------------------------
 void __fastcall TErrorForm_insert::AdvSmoothButton1Click(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TErrorForm_insert.AdvSmoothButton1Click")) return;
     if(this->Height < 240) this->Height = 650;
     else this->Height = 234;
 
@@ -57,6 +58,7 @@ void __fastcall TErrorForm_insert::AdvSmoothButton1Click(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TErrorForm_insert::retryBtnClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alOperator, "TErrorForm_insert.retryBtnClick")) return;
 	if(ManualCompleteForm->IsBlocking()){ManualCompleteForm->OpenRecovery(toolNum+1);return;}
 	int targetChannel = ptarget_ch1->Caption.ToIntDef(0);
 	if(targetChannel < 1 || targetChannel > MainForm->tray_target.SLOT_COUNT){
@@ -88,6 +90,7 @@ void __fastcall TErrorForm_insert::retryBtnClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TErrorForm_insert::ignoreBtnClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TErrorForm_insert.ignoreBtnClick")) return;
 	if(ManualCompleteForm->IsBlocking()){ManualCompleteForm->OpenRecovery(toolNum+1);return;}
 	MainForm->memoMainLineAdd("Insert complete");
 	if(!robostar->req_InsertComplete(toolNum + 1)){
@@ -110,6 +113,7 @@ void __fastcall TErrorForm_insert::AdvSmoothButton5Click(TObject *Sender)
 
 void __fastcall TErrorForm_insert::btnMoveSourceClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TErrorForm_insert.btnMoveSourceClick")) return;
 	if(ManualCompleteForm->IsBlocking()){ManualCompleteForm->OpenRecovery(toolNum+1);return;}
 	int map = 0;
 
@@ -120,6 +124,7 @@ void __fastcall TErrorForm_insert::btnMoveSourceClick(TObject *Sender)
 
 void __fastcall TErrorForm_insert::btnMoveTargetClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TErrorForm_insert.btnMoveTargetClick")) return;
 	if(ManualCompleteForm->IsBlocking()){ManualCompleteForm->OpenRecovery(toolNum+1);return;}
 	robostar->req_AutoMove(2, toolNum+1, ptarget_ch1->Caption.ToInt(), 96);
 }
@@ -127,6 +132,7 @@ void __fastcall TErrorForm_insert::btnMoveTargetClick(TObject *Sender)
 
 void __fastcall TErrorForm_insert::btnOpenClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TErrorForm_insert.btnOpenClick")) return;
 	if(ManualCompleteForm->IsBlocking()){ManualCompleteForm->OpenRecovery(toolNum+1);return;}
 	TAdvSmoothButton *btn;
 	btn = (TAdvSmoothButton*)Sender;
@@ -137,6 +143,7 @@ void __fastcall TErrorForm_insert::btnOpenClick(TObject *Sender)
 
 void __fastcall TErrorForm_insert::btnCloseClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TErrorForm_insert.btnCloseClick")) return;
 	if(ManualCompleteForm->IsBlocking()){ManualCompleteForm->OpenRecovery(toolNum+1);return;}
 	TAdvSmoothButton *btn;
 	btn = (TAdvSmoothButton*)Sender;
@@ -147,6 +154,7 @@ void __fastcall TErrorForm_insert::btnCloseClick(TObject *Sender)
 
 void __fastcall TErrorForm_insert::btnUpClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TErrorForm_insert.btnUpClick")) return;
 	if(ManualCompleteForm->IsBlocking()){ManualCompleteForm->OpenRecovery(toolNum+1);return;}
 	if(robostar->seq == seqIdle || robostar->seq == seqPause)
 		robostar->req_zUp();
@@ -157,6 +165,7 @@ void __fastcall TErrorForm_insert::btnUpClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TErrorForm_insert::btnDownClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TErrorForm_insert.btnDownClick")) return;
 	if(ManualCompleteForm->IsBlocking()){ManualCompleteForm->OpenRecovery(toolNum+1);return;}
 	if(robostar->move.pallet == 1 && robostar->getGripperChuckStatus()){
 		MessageBox(Handle,
@@ -179,6 +188,7 @@ void __fastcall TErrorForm_insert::FormHide(TObject *Sender)
 }
 void __fastcall TErrorForm_insert::btnManualCompleteClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TErrorForm_insert.btnManualCompleteClick")) return;
 	ManualCompleteForm->OpenRecovery(toolNum+1);
 }
 //---------------------------------------------------------------------------

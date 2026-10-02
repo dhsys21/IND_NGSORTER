@@ -20,6 +20,9 @@ object BaseForm: TBaseForm
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnShow = FormShow
+  DesignSize = (
+    1920
+    1046)
   PixelsPerInch = 96
   TextHeight = 13
   object Image12: TImage
@@ -476,24 +479,65 @@ object BaseForm: TBaseForm
     Top = 52
     Width = 100
     Height = 13
-    Caption = 'Ver. 2026-10-01 002'
+    Caption = 'Ver. 2026-10-02 001'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clBlack
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+  end
+  object lblAccessUser: TLabel
+    Left = 515
+    Top = 10
+    Width = 521
+    Height = 22
+    Anchors = [akTop, akRight]
+    AutoSize = False
+    Caption = 'User: Guest | Guest'
+    EllipsisPosition = epEndEllipsis
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWhite
+    Font.Height = -15
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+    ParentShowHint = False
+    ShowHint = True
+    Transparent = True
+  end
+  object lblAccessTime: TLabel
+    Left = 515
+    Top = 37
+    Width = 521
+    Height = 22
+    Anchors = [akTop, akRight]
+    AutoSize = False
+    Caption = 'Login: -'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWhite
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+    Transparent = True
   end
   object pims: TAdvSmoothPanel
-    Left = 1522
+    Left = 1642
     Top = 37
-    Width = 100
+    Width = 78
     Height = 25
     Cursor = crDefault
-    Caption.Text = 'MES'
+    Caption.Text = 'FMS'
     Caption.Location = plBottomCenter
     Caption.HTMLFont.Charset = DEFAULT_CHARSET
     Caption.HTMLFont.Color = clWindowText
-    Caption.HTMLFont.Height = -11
+    Caption.HTMLFont.Height = -13
     Caption.HTMLFont.Name = 'Tahoma'
     Caption.HTMLFont.Style = []
     Caption.Font.Charset = DEFAULT_CHARSET
     Caption.Font.Color = clWindowText
-    Caption.Font.Height = -17
+    Caption.Font.Height = -13
     Caption.Font.Name = 'Tahoma'
     Caption.Font.Style = [fsBold]
     Caption.ColorStart = clWhite
@@ -512,25 +556,26 @@ object BaseForm: TBaseForm
     Fill.ShadowOffset = 0
     Fill.Glow = gmNone
     Version = '1.5.2.1'
+    Anchors = [akTop, akRight]
     TabOrder = 0
     TMSStyle = 0
   end
   object psmokedetector: TAdvSmoothPanel
-    Left = 1522
+    Left = 1642
     Top = 6
-    Width = 100
+    Width = 78
     Height = 25
     Cursor = crDefault
     Caption.Text = 'SMOKE'
     Caption.Location = plBottomCenter
     Caption.HTMLFont.Charset = DEFAULT_CHARSET
     Caption.HTMLFont.Color = clWindowText
-    Caption.HTMLFont.Height = -11
+    Caption.HTMLFont.Height = -13
     Caption.HTMLFont.Name = 'Tahoma'
     Caption.HTMLFont.Style = []
     Caption.Font.Charset = DEFAULT_CHARSET
     Caption.Font.Color = clWindowText
-    Caption.Font.Height = -17
+    Caption.Font.Height = -13
     Caption.Font.Name = 'Tahoma'
     Caption.Font.Style = [fsBold]
     Caption.ColorStart = clWhite
@@ -549,8 +594,9 @@ object BaseForm: TBaseForm
     Fill.ShadowOffset = 0
     Fill.Glow = gmNone
     Version = '1.5.2.1'
+    Anchors = [akTop, akRight]
     OnClick = psmokedetectorClick
-    TabOrder = 17
+    TabOrder = 16
     TMSStyle = 0
   end
   object pon: TPanel
@@ -576,13 +622,14 @@ object BaseForm: TBaseForm
     Visible = False
   end
   object Button1: TAdvSmoothButton
-    Left = 1341
+    Left = 1454
     Top = 6
-    Width = 175
+    Width = 90
     Height = 56
+    Anchors = [akTop, akRight]
     Appearance.Font.Charset = DEFAULT_CHARSET
     Appearance.Font.Color = clWindowText
-    Appearance.Font.Height = -16
+    Appearance.Font.Height = -13
     Appearance.Font.Name = 'Tahoma'
     Appearance.Font.Style = [fsBold]
     Appearance.Spacing = 0
@@ -600,11 +647,11 @@ object BaseForm: TBaseForm
     Status.Appearance.Fill.Glow = gmNone
     Status.Appearance.Font.Charset = DEFAULT_CHARSET
     Status.Appearance.Font.Color = clWhite
-    Status.Appearance.Font.Height = -11
+    Status.Appearance.Font.Height = -13
     Status.Appearance.Font.Name = 'Tahoma'
     Status.Appearance.Font.Style = []
     BevelColor = clMedGray
-    Caption = 'CONFIGURATION'
+    Caption = 'CONFIG'
     Color = clWhite
     ParentFont = False
     TabOrder = 3
@@ -613,22 +660,22 @@ object BaseForm: TBaseForm
     TMSStyle = 8
   end
   object pplc: TAdvSmoothPanel
-    Left = 1628
+    Left = 1724
     Top = 6
-    Width = 100
+    Width = 78
     Height = 25
     Cursor = crDefault
     Caption.Text = 'PLC'
     Caption.Location = plBottomCenter
     Caption.HTMLFont.Charset = DEFAULT_CHARSET
     Caption.HTMLFont.Color = clWindowText
-    Caption.HTMLFont.Height = -11
+    Caption.HTMLFont.Height = -13
     Caption.HTMLFont.Name = 'Tahoma'
     Caption.HTMLFont.Style = []
     Caption.HTMLURLColor = clBlack
     Caption.Font.Charset = DEFAULT_CHARSET
     Caption.Font.Color = clWindowText
-    Caption.Font.Height = -17
+    Caption.Font.Height = -13
     Caption.Font.Name = 'Tahoma'
     Caption.Font.Style = [fsBold]
     Caption.ColorStart = clWhite
@@ -647,26 +694,27 @@ object BaseForm: TBaseForm
     Fill.ShadowOffset = 0
     Fill.Glow = gmNone
     Version = '1.5.2.1'
+    Anchors = [akTop, akRight]
     TabOrder = 4
     TMSStyle = 0
   end
   object pcclink: TAdvSmoothPanel
-    Left = 1628
+    Left = 1724
     Top = 37
-    Width = 100
+    Width = 78
     Height = 25
     Cursor = crDefault
     Caption.Text = 'CCLINK'
     Caption.Location = plBottomCenter
     Caption.HTMLFont.Charset = DEFAULT_CHARSET
     Caption.HTMLFont.Color = clWindowText
-    Caption.HTMLFont.Height = -11
+    Caption.HTMLFont.Height = -13
     Caption.HTMLFont.Name = 'Tahoma'
     Caption.HTMLFont.Style = []
     Caption.HTMLURLColor = clBlack
     Caption.Font.Charset = DEFAULT_CHARSET
     Caption.Font.Color = clWindowText
-    Caption.Font.Height = -17
+    Caption.Font.Height = -13
     Caption.Font.Name = 'Tahoma'
     Caption.Font.Style = [fsBold]
     Caption.ColorStart = clWhite
@@ -685,26 +733,27 @@ object BaseForm: TBaseForm
     Fill.ShadowOffset = 0
     Fill.Glow = gmNone
     Version = '1.5.2.1'
+    Anchors = [akTop, akRight]
     TabOrder = 5
     TMSStyle = 0
   end
   object pbcr1: TAdvSmoothPanel
-    Left = 1734
+    Left = 1806
     Top = 37
-    Width = 120
+    Width = 78
     Height = 25
     Cursor = crDefault
-    Caption.Text = 'Source BCR'
+    Caption.Text = 'S BCR'
     Caption.Location = plBottomCenter
     Caption.HTMLFont.Charset = DEFAULT_CHARSET
     Caption.HTMLFont.Color = clWindowText
-    Caption.HTMLFont.Height = -11
+    Caption.HTMLFont.Height = -13
     Caption.HTMLFont.Name = 'Tahoma'
     Caption.HTMLFont.Style = []
     Caption.HTMLURLColor = clBlack
     Caption.Font.Charset = DEFAULT_CHARSET
     Caption.Font.Color = clWindowText
-    Caption.Font.Height = -15
+    Caption.Font.Height = -13
     Caption.Font.Name = 'Tahoma'
     Caption.Font.Style = [fsBold]
     Caption.ColorStart = clWhite
@@ -724,28 +773,29 @@ object BaseForm: TBaseForm
     Fill.ShadowOffset = 0
     Fill.Glow = gmNone
     Version = '1.5.2.1'
+    Anchors = [akTop, akRight]
     OnClick = pbcrClick
     TabOrder = 6
     TMSStyle = 0
   end
   object pbcr2: TAdvSmoothPanel
     Tag = 1
-    Left = 1734
+    Left = 1806
     Top = 6
-    Width = 120
+    Width = 78
     Height = 25
     Cursor = crDefault
-    Caption.Text = 'Target BCR'
+    Caption.Text = 'T BCR'
     Caption.Location = plBottomCenter
     Caption.HTMLFont.Charset = DEFAULT_CHARSET
     Caption.HTMLFont.Color = clWindowText
-    Caption.HTMLFont.Height = -11
+    Caption.HTMLFont.Height = -13
     Caption.HTMLFont.Name = 'Tahoma'
     Caption.HTMLFont.Style = []
     Caption.HTMLURLColor = clBlack
     Caption.Font.Charset = DEFAULT_CHARSET
     Caption.Font.Color = clWindowText
-    Caption.Font.Height = -15
+    Caption.Font.Height = -13
     Caption.Font.Name = 'Tahoma'
     Caption.Font.Style = [fsBold]
     Caption.ColorStart = clWhite
@@ -765,6 +815,7 @@ object BaseForm: TBaseForm
     Fill.ShadowOffset = 0
     Fill.Glow = gmNone
     Version = '1.5.2.1'
+    Anchors = [akTop, akRight]
     OnClick = pbcrClick
     TabOrder = 7
     TMSStyle = 0
@@ -781,10 +832,11 @@ object BaseForm: TBaseForm
     Visible = False
   end
   object AdvSmoothButton2: TAdvSmoothButton
-    Left = 1863
-    Top = 4
+    Left = 1888
+    Top = 37
     Width = 24
     Height = 25
+    Anchors = [akTop, akRight]
     Appearance.Font.Charset = DEFAULT_CHARSET
     Appearance.Font.Color = clWindowText
     Appearance.Font.Height = -20
@@ -818,10 +870,11 @@ object BaseForm: TBaseForm
     TMSStyle = 8
   end
   object AdvSmoothButton1: TAdvSmoothButton
-    Left = 1889
-    Top = 4
+    Left = 1888
+    Top = 6
     Width = 24
     Height = 25
+    Anchors = [akTop, akRight]
     Appearance.Font.Charset = DEFAULT_CHARSET
     Appearance.Font.Color = clWindowText
     Appearance.Font.Height = -11
@@ -936,48 +989,12 @@ object BaseForm: TBaseForm
       OnClick = RadioButton1Click
     end
   end
-  object AdvSmoothButton3: TAdvSmoothButton
-    Left = 1165
-    Top = 6
-    Width = 175
-    Height = 56
-    Appearance.Font.Charset = DEFAULT_CHARSET
-    Appearance.Font.Color = clWindowText
-    Appearance.Font.Height = -16
-    Appearance.Font.Name = 'Tahoma'
-    Appearance.Font.Style = [fsBold]
-    Appearance.Spacing = 0
-    Appearance.Rounding = 3
-    Appearance.WordWrapping = False
-    Status.Caption = '0'
-    Status.Appearance.Fill.Color = clRed
-    Status.Appearance.Fill.ColorMirror = clNone
-    Status.Appearance.Fill.ColorMirrorTo = clNone
-    Status.Appearance.Fill.GradientType = gtSolid
-    Status.Appearance.Fill.GradientMirrorType = gtSolid
-    Status.Appearance.Fill.BorderColor = clGray
-    Status.Appearance.Fill.Rounding = 0
-    Status.Appearance.Fill.ShadowOffset = 0
-    Status.Appearance.Fill.Glow = gmNone
-    Status.Appearance.Font.Charset = DEFAULT_CHARSET
-    Status.Appearance.Font.Color = clWhite
-    Status.Appearance.Font.Height = -11
-    Status.Appearance.Font.Name = 'Tahoma'
-    Status.Appearance.Font.Style = []
-    BevelColor = clMedGray
-    Caption = 'SERVO Alarm List'
-    Color = clWhite
-    ParentFont = False
-    TabOrder = 13
-    Version = '2.1.1.5'
-    OnClick = AdvSmoothButton3Click
-    TMSStyle = 8
-  end
   object btnBypassOn: TAdvSmoothButton
-    Left = 651
-    Top = 1
-    Width = 212
+    Left = 1044
+    Top = 2
+    Width = 107
     Height = 28
+    Anchors = [akTop, akRight]
     Appearance.GlowPercentage = 50
     Appearance.PictureAlignment = taCenter
     Appearance.Font.Charset = DEFAULT_CHARSET
@@ -1000,7 +1017,7 @@ object BaseForm: TBaseForm
     Status.Appearance.Fill.Glow = gmNone
     Status.Appearance.Font.Charset = DEFAULT_CHARSET
     Status.Appearance.Font.Color = clWhite
-    Status.Appearance.Font.Height = -11
+    Status.Appearance.Font.Height = -13
     Status.Appearance.Font.Name = 'Tahoma'
     Status.Appearance.Font.Style = []
     BevelColor = clBlack
@@ -1013,15 +1030,16 @@ object BaseForm: TBaseForm
     TMSStyle = 8
   end
   object btnKeyLock: TAdvSmoothButton
-    Left = 760
+    Left = 1155
     Top = 32
-    Width = 103
+    Width = 107
     Height = 30
+    Anchors = [akTop, akRight]
     Appearance.GlowPercentage = 50
     Appearance.PictureAlignment = taCenter
     Appearance.Font.Charset = DEFAULT_CHARSET
     Appearance.Font.Color = clBlack
-    Appearance.Font.Height = -13
+    Appearance.Font.Height = -11
     Appearance.Font.Name = 'Tahoma'
     Appearance.Font.Style = [fsBold]
     Appearance.Spacing = 0
@@ -1046,21 +1064,22 @@ object BaseForm: TBaseForm
     Caption = #53412#46973' '#49444#51221
     Color = clWhite
     ParentFont = False
-    TabOrder = 18
+    TabOrder = 17
     Version = '2.1.1.5'
     OnClick = btnKeyLockClick
     TMSStyle = 8
   end
   object btnKeyUnLock: TAdvSmoothButton
-    Left = 651
+    Left = 1044
     Top = 32
-    Width = 103
+    Width = 107
     Height = 30
+    Anchors = [akTop, akRight]
     Appearance.GlowPercentage = 50
     Appearance.PictureAlignment = taCenter
     Appearance.Font.Charset = DEFAULT_CHARSET
     Appearance.Font.Color = clBlack
-    Appearance.Font.Height = -13
+    Appearance.Font.Height = -11
     Appearance.Font.Name = 'Tahoma'
     Appearance.Font.Style = [fsBold]
     Appearance.Spacing = 0
@@ -1085,21 +1104,22 @@ object BaseForm: TBaseForm
     Caption = #53412#46973' '#54644#51228
     Color = clWhite
     ParentFont = False
-    TabOrder = 19
+    TabOrder = 18
     Version = '2.1.1.5'
     OnClick = btnKeyUnLockClick
     TMSStyle = 8
   end
   object btnSafetyReset: TAdvSmoothButton
-    Left = 871
-    Top = 12
-    Width = 110
-    Height = 44
+    Left = 1155
+    Top = 2
+    Width = 107
+    Height = 28
+    Anchors = [akTop, akRight]
     Appearance.GlowPercentage = 50
     Appearance.PictureAlignment = taCenter
     Appearance.Font.Charset = DEFAULT_CHARSET
     Appearance.Font.Color = clBlack
-    Appearance.Font.Height = -13
+    Appearance.Font.Height = -11
     Appearance.Font.Name = 'Tahoma'
     Appearance.Font.Style = [fsBold]
     Appearance.Spacing = 0
@@ -1124,20 +1144,21 @@ object BaseForm: TBaseForm
     Caption = 'SAFETY RESET'
     Color = clWhite
     ParentFont = False
-    TabOrder = 20
+    TabOrder = 19
     Enabled = False
     Version = '2.1.1.5'
     OnClick = btnSafetyResetClick
     TMSStyle = 8
   end
   object AdvSmoothButton4: TAdvSmoothButton
-    Left = 989
+    Left = 1548
     Top = 6
-    Width = 175
+    Width = 90
     Height = 56
+    Anchors = [akTop, akRight]
     Appearance.Font.Charset = DEFAULT_CHARSET
     Appearance.Font.Color = clWindowText
-    Appearance.Font.Height = -16
+    Appearance.Font.Height = -13
     Appearance.Font.Name = 'Tahoma'
     Appearance.Font.Style = [fsBold]
     Appearance.Spacing = 0
@@ -1155,14 +1176,14 @@ object BaseForm: TBaseForm
     Status.Appearance.Fill.Glow = gmNone
     Status.Appearance.Font.Charset = DEFAULT_CHARSET
     Status.Appearance.Font.Color = clWhite
-    Status.Appearance.Font.Height = -11
+    Status.Appearance.Font.Height = -13
     Status.Appearance.Font.Name = 'Tahoma'
     Status.Appearance.Font.Style = []
     BevelColor = clMedGray
-    Caption = 'PLC / MES'
+    Caption = 'PLC/FMS'
     Color = clWhite
     ParentFont = False
-    TabOrder = 16
+    TabOrder = 15
     Version = '2.1.1.5'
     OnClick = AdvSmoothButton4Click
     TMSStyle = 8
@@ -1197,7 +1218,7 @@ object BaseForm: TBaseForm
     Fill.Glow = gmNone
     Version = '1.5.2.1'
     Visible = False
-    TabOrder = 14
+    TabOrder = 13
     TMSStyle = 0
     object lblManualOperation: TLabel
       Left = 10
@@ -1932,7 +1953,7 @@ object BaseForm: TBaseForm
     Fill.Glow = gmNone
     Version = '1.5.2.1'
     Visible = False
-    TabOrder = 15
+    TabOrder = 14
     TMSStyle = 0
     object Label9: TLabel
       Left = 10
@@ -2048,6 +2069,38 @@ object BaseForm: TBaseForm
         TMSStyle = 8
       end
     end
+  end
+  object btnProduction: TButton
+    Left = 1266
+    Top = 6
+    Width = 90
+    Height = 56
+    Anchors = [akTop, akRight]
+    Caption = 'Production'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clBlack
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 20
+    OnClick = btnProductionClick
+  end
+  object btnUser: TButton
+    Left = 1360
+    Top = 6
+    Width = 90
+    Height = 56
+    Anchors = [akTop, akRight]
+    Caption = 'USER'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clBlack
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 22
+    OnClick = btnUserClick
   end
   object ClockTimer: TTimer
     Interval = 500

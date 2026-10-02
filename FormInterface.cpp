@@ -154,6 +154,7 @@ void __fastcall TInterfaceForm::btnPlcWriteValueClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TInterfaceForm::WritePcValue()
 {
+    if(!AccessControl().Require(alAdmin, "Write PLC value")) return;
     int address = cbAddress->Text.ToIntDef(10152) - PC_D_INTERFACE_START_DEV_NUM;
     int value = editPcValue->Text.ToIntDef(1);
     // PLC SAFETY ADDRESS: D10157-D10159 are no longer PC output signals.
@@ -464,6 +465,7 @@ UnicodeString __fastcall TInterfaceForm::BuildJsonValue(
 //---------------------------------------------------------------------------
 void __fastcall TInterfaceForm::WriteMesValue()
 {
+    if(!AccessControl().Require(alAdmin, "Write FMS tag")) return;
 	if (Mod_Fms == NULL || cbMesTag->Text.Trim().IsEmpty())
 		return;
 
@@ -487,6 +489,7 @@ void __fastcall TInterfaceForm::WriteMesValue()
 //---------------------------------------------------------------------------
 bool __fastcall TInterfaceForm::CanRunMesTest()
 {
+    if(!AccessControl().Require(alAdmin, "FMS test command")) return false;
 	if (MainForm == NULL || MesOpc == NULL || Mod_Fms == NULL)
 		return false;
 

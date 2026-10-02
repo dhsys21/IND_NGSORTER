@@ -4,10 +4,49 @@
 #pragma hdrstop
 
 #include "FormBase.h"
+#include "ProductionHistory.h"
+#include "FormAccess.h"
+#include "FormProduction.h"
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.dfm"
 TBaseForm *BaseForm;
+//---------------------------------------------------------------------------
+static void ReportAccessSession(const UnicodeString &Account, TAccessLevel Level, bool LoggedIn)
+{
+    // Local audit only. FMS login tags have not been agreed; never send credentials.
+    AccessControl().Audit("FMS_LOGIN_REPORT_PENDING", "Account=" + Account +
+        " Level=" + TAccessControl::LevelName(Level) + " LoggedIn=" + (LoggedIn ? "true" : "false"), Account);
+}
+//---------------------------------------------------------------------------
+void __fastcall TBaseForm::btnUserClick(TObject *Sender)
+{
+    if(!AccessControl().LoadError().IsEmpty()){
+        ShowMessage(AccessControl().LoadError());
+        return;
+    }
+    TAccessForm *dialog = new TAccessForm(this);
+    try{
+        SetAccessLanguage(LangDict);
+        AccessControl().OnSessionChanged = ReportAccessSession;
+        dialog->Prepare();
+        dialog->FormStyle = fsStayOnTop;
+        dialog->ShowModal();
+    }__finally{
+        delete dialog;
+        UpdateAccessDisplay();
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TBaseForm::btnProductionClick(TObject *Sender)
+{
+    // Read-only/modeless: history never blocks machine controls.
+    if(ProductionForm == NULL) ProductionForm = new TProductionForm(this);
+    SetAccessLanguage(LangDict);
+    ProductionForm->Prepare();
+    ProductionForm->Show();
+    ProductionForm->BringToFront();
+}
 //---------------------------------------------------------------------------
 __fastcall TBaseForm::TBaseForm(TComponent* Owner)
 	: TForm(Owner)
@@ -46,11 +85,17 @@ __fastcall TBaseForm::TBaseForm(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::FormCreate(TObject *Sender)
 {
+    ProductionHistory().Initialize(UnicodeString(APP_PATH) + "Production\\");
     ReadLanguage("EN");
 }
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::FormShow(TObject *Sender)
 {
+    if(!AccessControl().Initialized())
+        AccessControl().Initialize(UnicodeString(BIN) + "AccessUsers.json",
+            UnicodeString(LOG) + "access_log\\");
+    UpdateAccessDisplay();
+    if(!AccessControl().LoadError().IsEmpty()) ShowMessage(AccessControl().LoadError());
  	if(config.file_exists == false){		// test
 		ConfigForm->Visible = true;
 	}
@@ -67,6 +112,8 @@ void __fastcall TBaseForm::FormShow(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::FormClose(TObject *Sender, TCloseAction &Action)
 {
+    AccessControl().Logout();
+    ProductionHistory().FlushPending();
 	// Stop the OPC UA/Indy worker threads while MainForm is still valid.
 	// This prevents late socket callbacks and shortens application shutdown.
 	ClockTimer->Enabled = false;
@@ -221,16 +268,9 @@ void __fastcall TBaseForm::AdvSmoothButton1Click(TObject *Sender)
     this->Close();
 }
 //---------------------------------------------------------------------------
-void __fastcall TBaseForm::AdvSmoothButton3Click(TObject *Sender)
-{
-	ServoAlarmListForm->Left = AdvSmoothButton3->Left;
-	ServoAlarmListForm->Top = AdvSmoothButton3->Top + 80;
-	ServoAlarmListForm->BringToFront();
-	ServoAlarmListForm->Show();
-}
-//---------------------------------------------------------------------------
 void __fastcall TBaseForm::btnKeyLockClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TBaseForm.btnKeyLockClick")) return;
 	if(MainForm->equipMode != modeManual)
 	{
         ShowMessage(GetLangStr("MSG_UNLOCK_KEY"));
@@ -263,6 +303,7 @@ double __fastcall TBaseForm::StringToDouble(UnicodeString str, double def)
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::btnKeyUnLockClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TBaseForm.btnKeyUnLockClick")) return;
 	if(MainForm->equipMode != modeManual)
 	{
         ShowMessage(GetLangStr("MSG_UNLOCK_KEY"));
@@ -275,6 +316,7 @@ void __fastcall TBaseForm::btnKeyUnLockClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::btnBypassOnClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TBaseForm.btnBypassOnClick")) return;
 	// Y003C ON is permitted only after KEYLOCK set is fully confirmed.
 	if(!robostar->CanEnableBypassSol())
 	{
@@ -292,6 +334,7 @@ void __fastcall TBaseForm::btnBypassOnClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::btnSafetyResetClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TBaseForm.btnSafetyResetClick")) return;
 	if(!robostar->RequestSafetyResetPulse())
 		ShowMessage(GetLangStr("MSG_CCLINK_NOT_CONNECTED"));
 }
@@ -331,6 +374,7 @@ void __fastcall TBaseForm::ReadLanguage(AnsiString newLang)
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::ChangeLanguage()
 {
+    UpdateAccessDisplay();
     //* Main Form
 	MainForm->lblTitle->Caption = GetLangStr("CAP_TITLE");
 	MainForm->autoBtn->Caption = GetLangStr("CAP_AUTO");
@@ -494,8 +538,10 @@ void __fastcall TBaseForm::ChangeLanguage()
 	}
 
 	//* Base / Door / Config Forms
-	Button1->Caption = GetLangStr("CAP_CONFIGURATION");
-	AdvSmoothButton3->Caption = GetLangStr("CAP_SERVO_ALARM_LIST");
+	Button1->Caption = "CONFIG";
+	AdvSmoothButton4->Caption = "PLC/FMS";
+	pbcr1->Caption->Text = "S BCR";
+	pbcr2->Caption->Text = "T BCR";
 	btnSafetyReset->Caption = GetLangStr("CAP_SAFETY_RESET");
 	lblManualOperation->Caption = GetLangStr("CAP_SMOKE_DETECTOR");
 	Label3->Caption = GetLangStr("CAP_CURRENT_VALUES");
@@ -733,6 +779,7 @@ void __fastcall TBaseForm::psmokedetectorClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::btnSetValueClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alAdmin, "TBaseForm.btnSetValueClick")) return;
 	if(MainForm->comSmoke[0] == NULL)
 		return;
 
@@ -755,6 +802,7 @@ void __fastcall TBaseForm::btnSetValueClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::rbAlarmClearClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TBaseForm.rbAlarmClearClick")) return;
 	if(MainForm->comSmoke[0] != NULL)
 		MainForm->comSmoke[0]->ClearAlarm();
 }
@@ -773,6 +821,7 @@ void __fastcall TBaseForm::pnlTempOffsetClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::btnTriggerOnClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alOperator, "TBaseForm.btnTriggerOnClick")) return;
 	AnsiString readerName = (SelectedBcrIndex == 0) ? "Source Tray BCR" : "Target Tray BCR";
 	if(memoBcr != NULL) memoBcr->Lines->Add(readerName + " Trigger ON");
 	if(MainForm->comBcr[SelectedBcrIndex] != NULL)

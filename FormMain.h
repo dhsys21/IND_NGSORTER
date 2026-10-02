@@ -380,6 +380,12 @@ __published:	// IDE-managed Components
 	void __fastcall btnTrayStepInitClick(TObject *Sender);
 private:	// User declarations
 	bool tpmSelectionActive;
+    bool productionSourceArmed, productionSourceCaptured, productionTestCycle;
+    int productionSourceCells, productionSourceNg;
+    AnsiString productionSourceTrayId;
+    void __fastcall BeginProductionSourceCycle();
+    void __fastcall CaptureProductionSource();
+    void __fastcall CompleteProductionSource();
 	bool tpmReasonActive; // TPM LOSS: Select sets; AUTO or a new Manual entry clears.
 	void __fastcall UpdateTpmLossDisplay();
 	TTpmLossRecord lastTpmLoss;

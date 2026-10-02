@@ -1476,6 +1476,15 @@ object doorForm: TdoorForm
       end
     end
   end
+  object btnUser: TButton
+    Left = 1760
+    Top = 5
+    Width = 125
+    Height = 30
+    Caption = 'USER'
+    TabOrder = 3
+    OnClick = btnUserClick
+  end
   object errTimer: TTimer
     Enabled = False
     Interval = 500

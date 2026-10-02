@@ -114,6 +114,7 @@ void __fastcall TConfigForm::FormCreate(TObject *Sender)
 
 	if(ReadSystemInfo()){
 		ApplyConfig();
+        AuditControlValues(this, "Apply configuration");
 		BaseForm->config.file_exists = true;
 	}
 	else{
@@ -398,6 +399,7 @@ void __fastcall TConfigForm::FormShow(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TConfigForm::btnConMesClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alAdmin, "TConfigForm.btnConMesClick")) return;
 	ApplyConfig();
 	if(Mod_Fms != NULL)
 		Mod_Fms->Start();
@@ -406,12 +408,14 @@ void __fastcall TConfigForm::btnConMesClick(TObject *Sender)
 
 void __fastcall TConfigForm::btnDisconMesClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alAdmin, "TConfigForm.btnDisconMesClick")) return;
 	if(Mod_Fms != NULL)
 		Mod_Fms->Stop();
 }
 //---------------------------------------------------------------------------
 void __fastcall TConfigForm::btnPlcConnClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alAdmin, "TConfigForm.btnPlcConnClick")) return;
 	UpdateCommunicationConfigFromEdits();
 	if(PlcBin != NULL)
 		PlcBin->Connect(BaseForm->config.plcIp,
@@ -420,12 +424,14 @@ void __fastcall TConfigForm::btnPlcConnClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TConfigForm::btnPlcDisconnClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alAdmin, "TConfigForm.btnPlcDisconnClick")) return;
 	if(PlcBin != NULL)
 		PlcBin->DisConnect();
 }
 //---------------------------------------------------------------------------
 void __fastcall TConfigForm::btnBcrSourceConnClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alAdmin, "TConfigForm.btnBcrSourceConnClick")) return;
 	UpdateCommunicationConfigFromEdits();
 	if(MainForm->comBcr[0] == NULL){
 		MainForm->comBcr[0] = new TMod_Bcr(MainForm);
@@ -436,12 +442,14 @@ void __fastcall TConfigForm::btnBcrSourceConnClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TConfigForm::btnBcrSourceDisconnClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alAdmin, "TConfigForm.btnBcrSourceDisconnClick")) return;
 	if(MainForm->comBcr[0] != NULL)
 		MainForm->comBcr[0]->Disconnect();
 }
 //---------------------------------------------------------------------------
 void __fastcall TConfigForm::btnBcrTargetConnClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alAdmin, "TConfigForm.btnBcrTargetConnClick")) return;
 	UpdateCommunicationConfigFromEdits();
 	if(MainForm->comBcr[1] == NULL){
 		MainForm->comBcr[1] = new TMod_Bcr(MainForm);
@@ -452,12 +460,14 @@ void __fastcall TConfigForm::btnBcrTargetConnClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TConfigForm::btnBcrTargetDisconnClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alAdmin, "TConfigForm.btnBcrTargetDisconnClick")) return;
 	if(MainForm->comBcr[1] != NULL)
 		MainForm->comBcr[1]->Disconnect();
 }
 //---------------------------------------------------------------------------
 void __fastcall TConfigForm::btnSmokeConnClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alAdmin, "TConfigForm.btnSmokeConnClick")) return;
 	UpdateCommunicationConfigFromEdits();
 	if(MainForm->comSmoke[0] == NULL)
 		MainForm->comSmoke[0] = new TSmokeDetector(MainForm);
@@ -469,6 +479,7 @@ void __fastcall TConfigForm::btnSmokeConnClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TConfigForm::btnSmokeDisconnClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alAdmin, "TConfigForm.btnSmokeDisconnClick")) return;
 	if(MainForm->comSmoke[0] != NULL)
 		MainForm->comSmoke[0]->CommClose();
 }
@@ -476,6 +487,7 @@ void __fastcall TConfigForm::btnSmokeDisconnClick(TObject *Sender)
 
 void __fastcall TConfigForm::AdvSmoothButton2Click(TObject *Sender)
 {
+    if(!AccessControl().Require(alAdmin, "TConfigForm.AdvSmoothButton2Click")) return;
 	int unloadCount = -1;
 	if(!TryStrToInt(editTargetUnloadCount->Text.Trim(), unloadCount) || unloadCount < 0 || unloadCount > 96){
 		ShowMessage(BaseForm->GetLangStr("MSG_TARGET_UNLOAD_RANGE"));

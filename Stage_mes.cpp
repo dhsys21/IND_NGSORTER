@@ -542,6 +542,7 @@ void __fastcall TMainForm::DisplayOpcTrayLoad(bool sourceTray)
 	if (sourceTray)
 	{
 		BeginSourceTrayResult(pTrayid_source->Caption);
+        CaptureProductionSource();
 		ProcessStepLog(2, "Location1.TrayLoadResponse=1 / Source tray data displayed");
 		memoMainLineAdd("[FMS OPC UA] Source TrayLoadResponse=1; tray data displayed. Waiting Response=0.");
 		pBYPASS->Caption = loadedTray->PASS;

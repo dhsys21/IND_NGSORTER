@@ -759,6 +759,7 @@ bool __fastcall TMainForm::WriteSourceTrayResultSummary()
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::CaptureSourceTrayInTime()
 {
+    BeginProductionSourceCycle();
 	sourceTrayResultActive = false;
 	sourceTrayResultId = "";
 	sourceTrayResultFileName = "";

@@ -247,6 +247,7 @@ void TManualCompleteForm::SendRequest()
 }
 void __fastcall TManualCompleteForm::btnReportClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TManualCompleteForm.btnReportClick")) return;
     if(IsBlocking() || !chkInserted->Checked) return;
     targetNo = editChannel->Text.ToIntDef(0);
     if(!ContextMatches() || !MainForm->CanStartManualCellCompletion()){
@@ -272,6 +273,7 @@ void __fastcall TManualCompleteForm::btnReportClick(TObject *Sender)
 }
 void __fastcall TManualCompleteForm::btnRetryClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TManualCompleteForm.btnRetryClick")) return;
     if(restored || phase == mcIdle) return;
     if(phase >= mcReady){
         if(SaveJournal()) RefreshControls();
@@ -373,6 +375,7 @@ void __fastcall TManualCompleteForm::pollTimerTimer(TObject *Sender)
 }
 void __fastcall TManualCompleteForm::btnResumeClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TManualCompleteForm.btnResumeClick")) return;
     if((phase != mcReady && phase != mcMoving) || restored || !journalOkay) return;
     if(!ContextMatches() || !robostar->PrepareCellRecovery(false)){
         Fail(RecoveryText("MSG_RECOVERY_INTERLOCK"));return;

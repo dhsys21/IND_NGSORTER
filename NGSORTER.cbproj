@@ -120,6 +120,24 @@
         <AppEnableHighDPI>true</AppEnableHighDPI>
     </PropertyGroup>
     <ItemGroup>
+        <CppCompile Include="AccessControl.cpp">
+            <BuildOrder>46</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="ProductionHistory.cpp">
+            <BuildOrder>47</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="Stage_access.cpp">
+            <BuildOrder>48</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="Stage_production.cpp">
+            <BuildOrder>49</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="FormAccessGuide.cpp">
+            <Form>AccessGuideForm</Form>
+            <FormType>dfm</FormType>
+            <DependentOn>FormAccessGuide.h</DependentOn>
+            <BuildOrder>50</BuildOrder>
+        </CppCompile>
         <CppCompile Include="Barcode_comm.cpp">
             <Form>Barcode</Form>
             <FormType>dfm</FormType>
@@ -134,6 +152,12 @@
             <BuildOrder>26</BuildOrder>
             <IgnorePath>true</IgnorePath>
         </LibFiles>
+        <CppCompile Include="FormAccess.cpp">
+            <Form>AccessForm</Form>
+            <FormType>dfm</FormType>
+            <DependentOn>FormAccess.h</DependentOn>
+            <BuildOrder>43</BuildOrder>
+        </CppCompile>
         <CppCompile Include="FormAlarm.cpp">
             <Form>AlarmForm</Form>
             <FormType>dfm</FormType>
@@ -242,6 +266,12 @@
             <DependentOn>FormManualComplete.h</DependentOn>
             <BuildOrder>42</BuildOrder>
         </CppCompile>
+        <CppCompile Include="FormProduction.cpp">
+            <Form>ProductionForm</Form>
+            <FormType>dfm</FormType>
+            <DependentOn>FormProduction.h</DependentOn>
+            <BuildOrder>44</BuildOrder>
+        </CppCompile>
         <CppCompile Include="FormServoAlarmList.cpp">
             <Form>ServoAlarmListForm</Form>
             <FormType>dfm</FormType>
@@ -258,7 +288,7 @@
             <Form>TpmLossForm</Form>
             <FormType>dfm</FormType>
             <DependentOn>FormTpmLoss.h</DependentOn>
-            <BuildOrder>43</BuildOrder>
+            <BuildOrder>45</BuildOrder>
         </CppCompile>
         <None Include="Lang_En.ini"/>
         <None Include="Lang_Hi.ini"/>
@@ -355,31 +385,34 @@
         <FormResources Include="ModMes_Gateway.dfm"/>
         <FormResources Include="Modmes.dfm"/>
         <FormResources Include="FormTeaching.dfm"/>
-        <FormResources Include="ModMes_OPCUA.dfm"/>
         <FormResources Include="SmokeDetector_comm.dfm"/>
-        <FormResources Include="ModRobostar.dfm"/>
         <FormResources Include="ModPLC_Bin.dfm"/>
+        <FormResources Include="ModMes_OPCUA.dfm"/>
+        <FormResources Include="ModRobostar.dfm"/>
         <FormResources Include="Mod_SRX100W.dfm"/>
-        <FormResources Include="FormServoAlarmList.dfm"/>
-        <FormResources Include="FormAlarm_TrayInfo.dfm"/>
-        <FormResources Include="FormAlarm_LoadFactor.dfm"/>
         <FormResources Include="FormBase.dfm"/>
-        <FormResources Include="FormDoor.dfm"/>
+        <FormResources Include="FormAlarm_TrayInfo.dfm"/>
         <FormResources Include="FormConfig.dfm"/>
+        <FormResources Include="FormDryRun.dfm"/>
+        <FormResources Include="FormDoor.dfm"/>
+        <FormResources Include="FormAlarm_LoadFactor.dfm"/>
         <FormResources Include="Barcode_comm.dfm"/>
         <FormResources Include="FormAlarm_fms.dfm"/>
         <FormResources Include="FormAlarm.dfm"/>
-        <FormResources Include="FormDryRun.dfm"/>
-        <FormResources Include="FormInterface.dfm"/>
-        <FormResources Include="FormError_mes.dfm"/>
         <FormResources Include="FormLoadFactor.dfm"/>
-        <FormResources Include="FormManualComplete.dfm"/>
+        <FormResources Include="FormInterface.dfm"/>
         <FormResources Include="FormMain.dfm"/>
+        <FormResources Include="FormServoAlarmList.dfm"/>
+        <FormResources Include="FormManualComplete.dfm"/>
+        <FormResources Include="FormError_mes.dfm"/>
         <FormResources Include="FormError_bcr.dfm"/>
         <FormResources Include="FormError.dfm"/>
         <FormResources Include="FormError_eject.dfm"/>
         <FormResources Include="FormError_limit.dfm"/>
         <FormResources Include="FormError_insert.dfm"/>
+        <FormResources Include="FormAccess.dfm"/>
+        <FormResources Include="FormAccessGuide.dfm"/>
+        <FormResources Include="FormProduction.dfm"/>
         <FormResources Include="FormTpmLoss.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
@@ -568,12 +601,27 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployClass Name="ProjectiOSDeviceResourceRules">
+                <DeployClass Name="DependencyModule">
+                    <Platform Name="Win32">
+                        <Operation>0</Operation>
+                        <Extensions>.dll;.bpl</Extensions>
+                    </Platform>
                     <Platform Name="iOSDevice64">
                         <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
+                    </Platform>
+                    <Platform Name="OSX32">
+                        <RemoteDir>Contents\MacOS</RemoteDir>
+                        <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
                     </Platform>
                     <Platform Name="iOSDevice32">
                         <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
+                    </Platform>
+                    <Platform Name="iOSSimulator">
+                        <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
                     </Platform>
                 </DeployClass>
                 <DeployClass Name="ProjectOSXResource">
@@ -952,27 +1000,12 @@
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
-                <DeployClass Name="DependencyModule">
-                    <Platform Name="Win32">
-                        <Operation>0</Operation>
-                        <Extensions>.dll;.bpl</Extensions>
-                    </Platform>
+                <DeployClass Name="ProjectiOSDeviceResourceRules">
                     <Platform Name="iOSDevice64">
                         <Operation>1</Operation>
-                        <Extensions>.dylib</Extensions>
-                    </Platform>
-                    <Platform Name="OSX32">
-                        <RemoteDir>Contents\MacOS</RemoteDir>
-                        <Operation>1</Operation>
-                        <Extensions>.dylib</Extensions>
                     </Platform>
                     <Platform Name="iOSDevice32">
                         <Operation>1</Operation>
-                        <Extensions>.dylib</Extensions>
-                    </Platform>
-                    <Platform Name="iOSSimulator">
-                        <Operation>1</Operation>
-                        <Extensions>.dylib</Extensions>
                     </Platform>
                 </DeployClass>
                 <ProjectRoot Platform="iOSDevice64" Name="$(PROJECTNAME).app"/>

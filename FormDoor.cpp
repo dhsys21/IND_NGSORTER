@@ -241,6 +241,7 @@ void __fastcall TdoorForm::errTimerTimer(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TdoorForm::okBtnClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "Door recovery / key lock")) return;
 	// Keep the recovery form open if either door-open input blocks KEYLOCK setting.
 	if(!robostar->CanSetKeyLock()){
 		ShowMessage(BaseForm->GetLangStr("MSG_CLOSE_DOORS_FOR_KEYLOCK"));
@@ -257,10 +258,16 @@ void __fastcall TdoorForm::okBtnClick(TObject *Sender)
 	flag = false;
 }
 //---------------------------------------------------------------------------
+void __fastcall TdoorForm::btnUserClick(TObject *Sender)
+{
+    // Login remains reachable while the full-screen safety popup is visible.
+    BaseForm->btnUserClick(Sender);
+}
 
 
 void __fastcall TdoorForm::btnSetKEYLOCKClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TdoorForm.btnSetKEYLOCKClick")) return;
 	// X0026/X0027 ON means Door #1/#2 is open. KEYLOCK setting is prohibited.
 	if(!robostar->CanSetKeyLock()){
 		ShowMessage(BaseForm->GetLangStr("MSG_CLOSE_DOORS_FOR_KEYLOCK"));
@@ -272,6 +279,7 @@ void __fastcall TdoorForm::btnSetKEYLOCKClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TdoorForm::btnSetBypassClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TdoorForm.btnSetBypassClick")) return;
 	if(!robostar->CanEnableBypassSol())
 	{
 		bool keyLockSet = robostar->gripper.DOOR_LEFT_CLOSE
@@ -289,6 +297,7 @@ void __fastcall TdoorForm::btnSetBypassClick(TObject *Sender)
 
 void __fastcall TdoorForm::btnServoOpenClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TdoorForm.btnServoOpenClick")) return;
 	robostar->req_Init();
 	if(gripper->seq == 4) gripper->step.step = 0;   //  seqPause
 }
@@ -313,6 +322,7 @@ void __fastcall TdoorForm::btnGripper1OpenMouseUp(TObject *Sender, TMouseButton 
 void __fastcall TdoorForm::btnGripper1OpenMouseDown(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y)
 {
+    if(!AccessControl().Require(alEngineer, "TdoorForm.btnGripper1OpenMouseDown")) return;
 	TAdvSmoothButton *btn;
 	btn = (TAdvSmoothButton*)Sender;
 
@@ -342,6 +352,7 @@ void __fastcall TdoorForm::btnGripper1OpenMouseDown(TObject *Sender, TMouseButto
 void __fastcall TdoorForm::btnGripper2OpenMouseDown(TObject *Sender, TMouseButton Button,
 		  TShiftState Shift, int X, int Y)
 {
+    if(!AccessControl().Require(alEngineer, "TdoorForm.btnGripper2OpenMouseDown")) return;
     TAdvSmoothButton *btn;
 	btn = (TAdvSmoothButton*)Sender;
 
@@ -370,12 +381,14 @@ void __fastcall TdoorForm::btnGripper2OpenMouseDown(TObject *Sender, TMouseButto
 
 void __fastcall TdoorForm::btnKeyUnlockClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TdoorForm.btnKeyUnlockClick")) return;
 	if(!robostar->KeyLock(false))
 		ShowMessage(BaseForm->GetLangStr("MSG_KEYLOCK_RELEASE_REQUIREMENTS"));
 }
 //---------------------------------------------------------------------------
 void __fastcall TdoorForm::btnSafetyResetDoorClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TdoorForm.btnSafetyResetDoorClick")) return;
 	if(!robostar->RequestSafetyResetPulse())
 		ShowMessage(BaseForm->GetLangStr("MSG_CCLINK_NOT_CONNECTED"));
 }//---------------------------------------------------------------------------

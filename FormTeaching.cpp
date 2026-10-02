@@ -168,6 +168,7 @@ void __fastcall TteachForm::MakePanel()
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::sClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TteachForm.sClick")) return;
 	TAdvSmoothPanel *pnl = (TAdvSmoothPanel*)Sender;
 	UnicodeString str;
 	bool plcFresh = PlcBin != NULL && PlcBin->IsPlcStatusFresh(1000);
@@ -219,6 +220,7 @@ void __fastcall TteachForm::sClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::tClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TteachForm.tClick")) return;
 	TAdvSmoothPanel *pnl = (TAdvSmoothPanel*)Sender;
 	UnicodeString str;
 	bool plcFresh = PlcBin != NULL && PlcBin->IsPlcStatusFresh(1000);
@@ -285,12 +287,14 @@ void __fastcall TteachForm::tClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::openBtnClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TteachForm.openBtnClick")) return;
 	robostar->req_Init();
 	if(gripper->seq == 4) gripper->step.step = 0;   //  seqPause
 }
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::homeBtnClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TteachForm.homeBtnClick")) return;
     UnicodeString msg;
 	//* 2025 05 21
 	if(robostar->getCellDetectStatus())
@@ -306,6 +310,7 @@ void __fastcall TteachForm::homeBtnClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::AdvSmoothButton_ResetClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TteachForm.AdvSmoothButton_ResetClick")) return;
     if(MessageBox(Handle, BaseForm->GetLangStr("MSG_RESET_ALARM").c_str(),
         L"RESET", MB_YESNO|MB_ICONQUESTION) == ID_YES){
         MainForm->BuzzerOn(false);
@@ -316,6 +321,7 @@ void __fastcall TteachForm::AdvSmoothButton_ResetClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::AdvSmoothButton_ZupClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TteachForm.AdvSmoothButton_ZupClick")) return;
     //* 2025 05 21
     if(robostar->seq == seqIdle || robostar->seq == seqPause)
 		robostar->req_zUp();
@@ -323,6 +329,7 @@ void __fastcall TteachForm::AdvSmoothButton_ZupClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::btnZAxisDownClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TteachForm.btnZAxisDownClick")) return;
 	if(robostar->move.pallet == 1 && robostar->getGripperChuckStatus()){
 		MessageBox(Handle,
 			L"The gripper is CHUCK. Z DOWN is blocked at the Source Tray.",
@@ -339,6 +346,7 @@ void __fastcall TteachForm::btnZAxisDownClick(TObject *Sender)
 //* 대상트레이 Z축 하강 티칭높이 기준 구간별 속도 변경.
 void __fastcall TteachForm::btnJogSpeedClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TteachForm.btnJogSpeedClick")) return;
 	for(int axis = 1; axis <= servoCnt; ++axis){
 		if(robostar->mr2.running[axis]){
 			MessageBox(Handle, BaseForm->GetLangStr("MSG_STOP_BEFORE_SPEED_CHANGE").c_str(),
@@ -505,6 +513,7 @@ void __fastcall TteachForm::btnJogSpeedClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::AdvSmoothButton_ServoOnClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TteachForm.AdvSmoothButton_ServoOnClick")) return;
 	robostar->req_ServoOn();
 }
 //---------------------------------------------------------------------------
@@ -515,6 +524,7 @@ void __fastcall TteachForm::AdvSmoothButton_ServoOffClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::btnOpenGripperClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TteachForm.btnOpenGripperClick")) return;
 	//* delay 3초로 수정
     //* uncheck start
 //	TAdvSmoothButton *btn;
@@ -542,6 +552,7 @@ void __fastcall TteachForm::btnOpenGripperClick(TObject *Sender)
 void __fastcall TteachForm::btnOpenGripperMouseDown(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y)
 {
+    if(!AccessControl().Require(alEngineer, "TteachForm.btnOpenGripperMouseDown")) return;
     TAdvSmoothButton *btn;
 	btn = (TAdvSmoothButton*)Sender;
     nCurrentTag = btn->Tag;
@@ -592,6 +603,7 @@ void __fastcall TteachForm::unchuckTimerTimer(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::btnCloseGripperClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TteachForm.btnCloseGripperClick")) return;
 	TAdvSmoothButton *btn;
 	btn = (TAdvSmoothButton*)Sender;
 
@@ -601,12 +613,14 @@ void __fastcall TteachForm::btnCloseGripperClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::btnOpenAllGripperClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TteachForm.btnOpenAllGripperClick")) return;
     // delay 3초로 수정
 }
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::btnOpenAllGripperMouseDown(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y)
 {
+    if(!AccessControl().Require(alEngineer, "TteachForm.btnOpenAllGripperMouseDown")) return;
     downTime = Now();
     isButtonPressed = true;
     unchuckAllTimer->Enabled = true;
@@ -660,6 +674,7 @@ void __fastcall TteachForm::unchuckAllTimerTimer(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::btnCloseAllGripperClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TteachForm.btnCloseAllGripperClick")) return;
 	for(int i=1; i<=gripCnt; ++i)
 	{
 		if(!gripper->disable_gripper[i - 1])
@@ -672,6 +687,7 @@ void __fastcall TteachForm::speedEditKeyDown(TObject *Sender, WORD &Key,
 {
 	if(Key != VK_RETURN)
 		return;
+    if(!AccessControl().Require(alEngineer, "Change manual speed")) return;
 
 	int speed = speedEdit->Text.ToIntDef(0);
 	if(speed < TEACHING_SPEED_MIN || speed > TEACHING_SPEED_MAX){
@@ -703,6 +719,12 @@ void __fastcall TteachForm::speedEditKeyDown(TObject *Sender, WORD &Key,
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::disableChk1Click(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "Change gripper use")){
+        TCheckBox *check = dynamic_cast<TCheckBox*>(Sender);
+        if(check != NULL && check->Tag >= 1 && check->Tag <= gripCnt)
+            check->Checked = gripper->disable_gripper[check->Tag-1];
+        return;
+    }
 	TCheckBox *chk;
 	chk = (TCheckBox*)Sender;
 
@@ -711,6 +733,7 @@ void __fastcall TteachForm::disableChk1Click(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::waitBtnClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TteachForm.waitBtnClick")) return;
 	UnicodeString msg;
 	if(MainForm->psrcReady->Color != clLime)
 	{
@@ -783,6 +806,7 @@ void __fastcall TteachForm::teachingTimerTimer(TObject *Sender)
 void __fastcall TteachForm::Button1MouseDown(TObject *Sender, TMouseButton Button,
 		  TShiftState Shift, int X, int Y)
 {
+    if(!AccessControl().Require(alEngineer, "TteachForm.Button1MouseDown")) return;
 	TButton *btn;
 	btn = (TButton*)Sender;
 
@@ -859,17 +883,21 @@ void __fastcall TteachForm::btnCloseClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::btnApplyTeachingClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alAdmin, "TteachForm.btnApplyTeachingClick")) return;
+    AuditControlValues(this, "Apply teaching");
 	ApplyTeaching();
 }
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::btnCenteringReqClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TteachForm.btnCenteringReqClick")) return;
 	// D10154 Source Centering REQ via the binary PLC interface.
 	if(PlcBin != NULL)
 		PlcBin->CmdSourceCenteringRequest(true);
 }//---------------------------------------------------------------------------
 void __fastcall TteachForm::btnAutoCalculateSourceClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alAdmin, "TteachForm.btnAutoCalculateSourceClick")) return;
 	if(MessageBox(Handle,
 		L"Would you like to automatically calculate the Source tray using the default dimensions?",
 		L"Source Tray Auto Calculate", MB_YESNO | MB_ICONQUESTION) != ID_YES)
@@ -894,6 +922,7 @@ void __fastcall TteachForm::btnAutoCalculateSourceClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::btnAutoCalculateTargetClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alAdmin, "TteachForm.btnAutoCalculateTargetClick")) return;
 	if(MessageBox(Handle,
 		L"Would you like to automatically calculate the Target tray using the default dimensions?",
 		L"Target Tray Auto Calculate", MB_YESNO | MB_ICONQUESTION) != ID_YES)
@@ -919,6 +948,7 @@ void __fastcall TteachForm::btnAutoCalculateTargetClick(TObject *Sender)
 void __fastcall TteachForm::btnZAxisDownMouseDown(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y)
 {
+    if(!AccessControl().Require(alEngineer, "TteachForm.btnZAxisDownMouseDown")) return;
 	TButton *btn = (TButton*)Sender;
 
 	if(Button == mbLeft){
@@ -943,6 +973,7 @@ void __fastcall TteachForm::btnZAxisDownMouseUp(TObject *Sender, TMouseButton Bu
 void __fastcall TteachForm::btnZAxisUpMouseDown(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y)
 {
+    if(!AccessControl().Require(alEngineer, "TteachForm.btnZAxisUpMouseDown")) return;
     TButton *btn;
 	btn = (TButton*)Sender;
 
@@ -1404,6 +1435,7 @@ void __fastcall TteachForm::AdvSmoothButton1Click(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::btnKeyLockClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TteachForm.btnKeyLockClick")) return;
     ErrorForm_insert->ShowError("Gripper #1 has a cell.", "Eject step 1. Cell check error", 1, 20);
 }
 //---------------------------------------------------------------------------

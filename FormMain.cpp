@@ -59,6 +59,9 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
 	: TForm(Owner)
 {
 	tpmSelectionActive = false;
+    productionSourceArmed = true;
+    productionSourceCaptured = productionTestCycle = false;
+    productionSourceCells = productionSourceNg = 0;
 	tpmReasonActive = false;
 	// TPM LOSS: the DFM sample is designer-only, not a real downtime record.
 	lblTpmLoss->Caption = "";
@@ -749,6 +752,7 @@ void __fastcall TMainForm::StartTargetTrayExchangeUnload()
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::btnTargetTrayExchangeOutClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alOperator, "TMainForm.btnTargetTrayExchangeOutClick")) return;
 	if(targetTrayExchangeState != ttxWaitOperator || !CanUnloadTargetTray()){
 		memoMainLineAdd("[TARGET EXCHANGE] Unload blocked: wait for cell/FMS completion, stopped axes, Z up and live tray signals.");
 		return;
@@ -964,6 +968,7 @@ void __fastcall TMainForm::targetGridDrawCell(TObject *Sender, int ACol,
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::pause_startBtnClick(TObject *Sender)
 {
+    if(Sender != NULL && !AccessControl().Require(alOperator, "Restart work")) return;
 	//* 비상정지후 취출/삽입 계속작업.
 	if(gripper->EmergencyPending() && BaseForm->config.emergencyAutoRestart){
 		if(HandleEmergencyFmsAcknowledgement()) return;
@@ -1104,6 +1109,7 @@ void __fastcall TMainForm::teachingBtnClick(TObject *Sender)
 
 void __fastcall TMainForm::btnScanTargetTrayClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alOperator, "TMainForm.btnScanTargetTrayClick")) return;
 	// Existing designer names are opposite to their physical tray placement.
 	if(equipMode == modeManual){ StartManualTrayLoad(true); return; }
 	pTrayid_source->Caption = BaseForm->GetLangStr("MSG_SCANNING");
@@ -1112,6 +1118,7 @@ void __fastcall TMainForm::btnScanTargetTrayClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::btnScanSourceTrayClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alOperator, "TMainForm.btnScanSourceTrayClick")) return;
 	if(equipMode == modeManual){ StartManualTrayLoad(false); return; }
 	pTrayid_target->Caption = BaseForm->GetLangStr("MSG_SCANNING");
 	ReadTargetTrayBarcode();
@@ -2139,6 +2146,7 @@ void __fastcall TMainForm::opcMesTimerTimer(TObject *Sender)
 					opcProcessEndResponseOffError = false;
 					opcProcessEndResponseResult = 0;
 					if(result == 1){
+						CompleteProductionSource();
 						// One source cycle ends here: all NG cells processed -> ProcessEnd complete
 						// -> Source Tray Out. Clear the old source readiness before Tray Out so
 						// TryStartOpcProcess() cannot mistake it for the next source tray.
@@ -2524,6 +2532,11 @@ bool __fastcall TMainForm::CheckServoAutoReady(bool showError)
 
 void __fastcall TMainForm::autoBtnClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "Auto mode")){
+        autoBtn->Down = equipMode != modeManual;
+        manualBtn->Down = equipMode == modeManual;
+        return;
+    }
 	//* FMS START 2026-09-09: FMS Trouble does not prohibit selecting AUTO.
 	// START/Restart acknowledges the current incident separately; never fake its OFF tag.
 	// AUTO entry always validates the real servo/CC-Link/gripper interlocks.
@@ -2563,6 +2576,13 @@ void __fastcall TMainForm::autoBtnClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::manualBtnClick(TObject *Sender)
 {
+    // Safety-triggered MANUAL is not an operator permission request or TPM event.
+    if(Sender == doorForm){ EnterManualMode(); return; }
+    if(!AccessControl().Require(alEngineer, "Manual mode")){
+        autoBtn->Down = equipMode != modeManual;
+        manualBtn->Down = equipMode == modeManual;
+        return;
+    }
 	if(tpmSelectionActive) return;
 	if(!BaseForm->config.tpmUnused){
 		if(SelectTpmManualReason()){
@@ -2712,6 +2732,11 @@ void __fastcall TMainForm::EnterManualMode()
 
 void __fastcall TMainForm::playBtnClick(TObject *Sender)
 {
+    // NULL is the existing internal recovery path; its confirmation is guarded separately.
+    if(Sender != NULL && !AccessControl().Require(alOperator, "Start work")){
+        playBtn->Down = false;
+        return;
+    }
 	//* 비상정지후 취출/삽입 계속작업.
 	if(gripper->EmergencyPending() && BaseForm->config.emergencyAutoRestart){
 		if(HandleEmergencyFmsAcknowledgement()) return;
@@ -2782,6 +2807,7 @@ void __fastcall TMainForm::target_idEditKeyDown(TObject *Sender, WORD &Key,
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::pTrayid_sourceDblClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alOperator, "TMainForm.pTrayid_sourceDblClick")) return;
 	src_idEdit->Text = pTrayid_source->Caption;
 	src_idEdit->Visible = true;
 	src_idEdit->SetFocus();
@@ -2808,6 +2834,7 @@ void __fastcall TMainForm::src_idEditKeyDown(TObject *Sender, WORD &Key,
 
 void __fastcall TMainForm::pTrayid_targetDblClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alOperator, "TMainForm.pTrayid_targetDblClick")) return;
 	target_idEdit->Text = pTrayid_target->Caption;
 	target_idEdit->Visible = true;
 	target_idEdit->SetFocus();
@@ -2822,12 +2849,14 @@ void __fastcall TMainForm::buzzerBtnClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::openBtnClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TMainForm.openBtnClick")) return;
 	robostar->req_Init();
 	if(gripper->seq == 4) gripper->step.step = 0;   //  seqPause
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::trayout_srcBtnClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alOperator, "TMainForm.trayout_srcBtnClick")) return;
 	if(IsSourceTrayInSignal()){
 		if(MessageBox(Handle, BaseForm->GetLangStr("MSG_EJECT_SOURCETRAY").c_str(), L"Tray Out", MB_YESNO|MB_ICONQUESTION) == ID_YES){
             if(PlcBin != NULL) PlcBin->CmdSourceCenteringRequest(false);
@@ -2838,6 +2867,7 @@ void __fastcall TMainForm::trayout_srcBtnClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::trayout_targetBtnClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alOperator, "TMainForm.trayout_targetBtnClick")) return;
 	if(IsTargetTrayExchangeActive()){
 		btnTargetTrayExchangeOutClick(Sender);
 		return;
@@ -3219,12 +3249,22 @@ void __fastcall TMainForm::stepTimerTimer(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::chkBypassClick(TObject *Sender)
 {
+    if(!AccessControl().Can(alEngineer)){
+        TNotifyEvent handler = chkBypass->OnClick;
+        chkBypass->OnClick = NULL;
+        chkBypass->Checked = !chkBypass->Checked;
+        chkBypass->OnClick = handler;
+        AccessControl().Require(alEngineer, "Change bypass option");
+        return;
+    }
+    AccessControl().Audit("SETTING_CHANGE", UnicodeString("BYPASS=") + (chkBypass->Checked ? "true" : "false"));
 	// State only. The automatic sequence evaluates BYPASS after D10103 Tray In.
 }
 //---------------------------------------------------------------------------
 
 void __fastcall TMainForm::resetBtnClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TMainForm.resetBtnClick")) return;
 	BuzzerOn(false);
 	MainForm->LampModeChange(MainForm->beforeLampMode);
 	robostar->req_Reset();
@@ -3446,6 +3486,7 @@ void __fastcall TMainForm::btnIOMonitoringClick(TObject *Sender)
 // ============================================================================
 void __fastcall TMainForm::btnDryRunClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TMainForm.btnDryRunClick")) return;
 	memoMainLineAdd("[DRY RUN] DRY RUN button click event entered.");
 	//* DRY RUN : Inspection motion is MANUAL-only. In AUTO, an asserted Tray In
 	//* can advance the production sequence at the same time.
@@ -3523,6 +3564,8 @@ void __fastcall TMainForm::UpdateFmsEquipmentStatus()
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 {
+    if(productionSourceCaptured && (cbCycle->Checked || chkBypass->Checked ||
+        BaseForm->config.useFatTestBarcodes)) productionTestCycle = true;
 	// TPM LOSS: refresh translated display only; never alter or transmit the record.
 	UpdateTpmLossDisplay();
 	//* 비상정지후 취출/삽입 계속작업.
@@ -3901,6 +3944,7 @@ void __fastcall TMainForm::senTimerTimer(TObject *Sender)
 
 		// D10103 OFF completes D10155.
 		if(PlcBin->IsPlcStatusFresh(1000) && !sourceTrayIn){
+            productionSourceArmed = true;
 			SetTrayLoadBypassDisplay(true, 0);
 			sourceTrayCycleAdmitted = false;
 			sourceCenteringCompleted = false;
@@ -3948,6 +3992,7 @@ void __fastcall TMainForm::LampModeChange(LampMode mode)
 
 void __fastcall TMainForm::btnApplyNgLimitCountClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TMainForm.btnApplyNgLimitCountClick")) return;
 	try{
 		stage.limitCnt = limitEdit->Text.ToInt();
 		MessageBox(Handle, BaseForm->GetLangStr("MSG_NGLIMIT_SET").c_str(), L"NG limt", MB_OK|MB_ICONINFORMATION);
@@ -4157,6 +4202,7 @@ void __fastcall TMainForm::memoRobostarLineAdd(AnsiString msg)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::AdvSmoothToggleButton_InitWorkClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TMainForm.AdvSmoothToggleButton_InitWorkClick")) return;
 	if(IsManualTrayLoadBusy()){
 		ShowCommonError("Init Work blocked", "Finish or Retry the manual TrayLoad transaction first.");
 		return;
@@ -4299,6 +4345,7 @@ void __fastcall TMainForm::lblTitleClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::btnTrayStepInitClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "TMainForm.btnTrayStepInitClick")) return;
 	// ========================================================================
 	//* TRAY STEP INIT 2026-09-11: force-reset BOTH tray sequences from WAIT position.
 	// WAIT X/Y/Z and all-axis stop are the ONLY conditions. Mode, cell, tray,

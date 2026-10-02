@@ -4,6 +4,7 @@
 #define FormBaseH
 //---------------------------------------------------------------------------
 #include <Classes.hpp>
+#include "AccessControl.h"
 #include <Controls.hpp>
 #include <StdCtrls.hpp>
 #include <Forms.hpp>
@@ -87,6 +88,10 @@ typedef struct{
 class TBaseForm : public TForm
 {
 __published:	// IDE-managed Components
+    TButton *btnUser;
+    TButton *btnProduction;
+    TLabel *lblAccessUser;
+    TLabel *lblAccessTime;
 	TTimer *ClockTimer;
 	TTimer *FileDeleteTimer;
 	TImage *Image12;
@@ -146,13 +151,14 @@ __published:	// IDE-managed Components
 	TRadioButton *RadioButton1;
 	TRadioButton *RadioButton2;
 	TRadioButton *RadioButton3;
-	TAdvSmoothButton *AdvSmoothButton3;
 	TLabel *Label2;
 	TAdvSmoothButton *btnKeyLock;
 	TAdvSmoothButton *btnKeyUnLock;
 	TAdvSmoothButton *btnBypassOn;
 	TAdvSmoothButton *btnSafetyReset;
 	TAdvSmoothButton *AdvSmoothButton4;
+    void __fastcall btnUserClick(TObject *Sender);
+    void __fastcall btnProductionClick(TObject *Sender);
 	void __fastcall FormShow(TObject *Sender);
 	void __fastcall ClockTimerTimer(TObject *Sender);
 	void __fastcall FileDeleteTimerTimer(TObject *Sender);
@@ -162,7 +168,6 @@ __published:	// IDE-managed Components
 	void __fastcall AdvSmoothButton2Click(TObject *Sender);
 	void __fastcall AdvSmoothButton1Click(TObject *Sender);
 	void __fastcall RadioButton1Click(TObject *Sender);
-	void __fastcall AdvSmoothButton3Click(TObject *Sender);
 	void __fastcall btnKeyLockClick(TObject *Sender);
 	void __fastcall btnKeyUnLockClick(TObject *Sender);
 	void __fastcall btnBypassOnClick(TObject *Sender);
@@ -190,6 +195,7 @@ private:	// User declarations
 	unsigned long PID;
     HANDLE hProcess;
 public:		// User declarations
+    void __fastcall UpdateAccessDisplay();
 
 	void __fastcall setColor(TAdvSmoothPanel *pnl, bool bon);
 	MAIN_CONFIG config;

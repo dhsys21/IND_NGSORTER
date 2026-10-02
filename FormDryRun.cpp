@@ -387,6 +387,7 @@ void __fastcall TDryRunForm::CompleteDryRun(const AnsiString &message)
 //---------------------------------------------------------------------------
 void __fastcall TDryRunForm::btnStartClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "Start dry run")) return;
 	if(MainForm != NULL && MainForm->IsFmsTroubleBlocking()){
 		ShowMessage(L"FMS Trouble: clear the FMS alarm and acknowledge with Main Restart first.");
 		return;
@@ -456,6 +457,7 @@ void __fastcall TDryRunForm::btnStopClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TDryRunForm::btnWaitPositionClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alEngineer, "Dry run standby move")) return;
 	//* DRY RUN : Manual recovery command after an immediate STOP. It raises Z,
 	//* opens the empty gripper, then moves X/Y to the configured wait position.
 	if(running) return;

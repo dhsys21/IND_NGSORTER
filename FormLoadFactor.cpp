@@ -62,6 +62,8 @@ void __fastcall TloadfactorForm::LoadInfo()
 //---------------------------------------------------------------------------
 void __fastcall TloadfactorForm::AdvSmoothButton_SaveClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alAdmin, "Save load factor limit")) return;
+    AuditControlValues(this, "Load factor limit");
     SaveInfo();
 	this->Close();
 }

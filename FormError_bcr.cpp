@@ -50,6 +50,7 @@ void __fastcall TErrorForm_bcr::ShowError(AnsiString str,  bool bsuccess)
 //---------------------------------------------------------------------------
 void __fastcall TErrorForm_bcr::ignoreBtnClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alOperator, "TErrorForm_bcr.ignoreBtnClick")) return;
 	MainForm->memoMainLineAdd("Normal progress");
 	if(ignoreBtn->Color == clRed){
 		MainForm->CmdTrayOut(this->Tag);
@@ -64,6 +65,7 @@ void __fastcall TErrorForm_bcr::ignoreBtnClick(TObject *Sender)
 
 void __fastcall TErrorForm_bcr::btnScanClick(TObject *Sender)
 {
+    if(!AccessControl().Require(alOperator, "TErrorForm_bcr.btnScanClick")) return;
 	switch(Tag){
 		case 0:
 			errMsg1->Caption = BaseForm->GetLangStr("MSG_SOURCETRAY_SCAN") + "..";
