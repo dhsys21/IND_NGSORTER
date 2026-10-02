@@ -428,7 +428,9 @@ private:	// User declarations
     void __fastcall MakePanel();
 	void __fastcall ApplyTeaching();
 	void __fastcall SetDefaultTrayTeaching(bool sourceTray, int baseX, int baseY);
-    bool __fastcall SaveTeaching(const UnicodeString &filePath);
+    bool __fastcall SaveTeaching(const UnicodeString &filePath, bool forced, const UnicodeString &deviations);
+    UnicodeString __fastcall GetTeachingXYDeviations();
+    bool __fastcall ConfirmTeachingDeviation(const UnicodeString &deviations);
 	bool __fastcall LoadTeaching(const UnicodeString &filePath);
     void __fastcall SetTrayMaxPosition();
 

@@ -1,0 +1,158 @@
+#include <vcl.h>
+#pragma hdrstop
+#include <Vcl.Imaging.jpeg.hpp>
+#include <Vcl.Imaging.pngimage.hpp>
+#include "AdvSmoothButton.hpp"
+#include "AdvSmoothLabel.hpp"
+#include "TeachingReview.h"
+#include <stdio.h>
+#include <limits.h>
+
+static FILE *testLog;
+static void Check(bool value, const char *name) {
+    if(!value) throw Exception(name);
+    fprintf(testLog,"PASS: %s\n",name);
+}
+static UnicodeString ReadText(const UnicodeString &path) {
+    std::auto_ptr<TStringList> text(new TStringList());
+    text->LoadFromFile(path,TEncoding::UTF8); return text->Text;
+}
+static void WriteText(const UnicodeString &path,const UnicodeString &value) {
+    std::auto_ptr<TStringList> text(new TStringList()); text->Text=value;
+    text->SaveToFile(path,TEncoding::UTF8);
+}
+static void Capture(TForm *form,const UnicodeString &path) {
+    form->Update();
+    std::auto_ptr<Graphics::TBitmap> bitmap(form->GetFormImage());
+    std::auto_ptr<TPngImage> png(new TPngImage()); png->Assign(bitmap.get()); png->SaveToFile(path);
+}
+struct FakeBase {
+    struct { double teachingXYToleranceMm; } config;
+    std::auto_ptr<TMemIniFile> language;
+    UnicodeString section;
+    UnicodeString GetLangStr(const UnicodeString &key){return language->ReadString(section,key,key);}
+    void SetLanguage(const UnicodeString &name){section=name; language.reset(new TMemIniFile("Lang_"+(name=="KO"?UnicodeString("Ko"):UnicodeString("En"))+".ini",TEncoding::UTF8));}
+} fakeBase, *BaseForm=&fakeBase;
+enum TrayAxisEdit {asSourceX,asSourceY,asTargetX,asTargetY};
+static const int TraySlotCount=96, TrayTeachingGroupSize=12;
+static UnicodeString TeachingChannelKey(int channel,const UnicodeString &axis){return "CH"+(channel<10?UnicodeString("0"):UnicodeString(""))+IntToStr(channel)+"_"+axis;}
+class TteachForm: public TForm {
+public:
+    int values[4][8];
+    __fastcall TteachForm():TForm(NULL,0){}
+    int GetTrayPosValue(int channel,TrayAxisEdit axis){return values[axis][(channel-1)/12];}
+    UnicodeString __fastcall GetTeachingXYDeviations();
+    bool __fastcall ConfirmTeachingDeviation(const UnicodeString &deviations);
+};
+// REVIEW_METHODS
+class DialogCloser {
+public:
+    TTimer *timer;
+    int result;
+    UnicodeString image;
+    void __fastcall Tick(TObject*) {
+        for(int f=0;f<Screen->FormCount;++f){
+            TForm *form=Screen->Forms[f];
+            if(form->Caption!=BaseForm->GetLangStr("CAP_TEACHING_XY_WARNING")) continue;
+            timer->Enabled=false;
+            bool cancelDefault=false;
+            for(int c=0;c<form->ComponentCount;++c){
+                TButton *b=dynamic_cast<TButton*>(form->Components[c]);
+                if(b && b->ModalResult==mrCancel) cancelDefault=b->Default && b->Cancel;
+            }
+            Check(cancelDefault,"warning defaults to Cancel and supports Esc");
+            Capture(form,image);form->ModalResult=result;return;
+        }
+    }
+};
+int WINAPI wWinMain(HINSTANCE,HINSTANCE,LPWSTR,int){
+    testLog=fopen("tmp/TeachingReview20261002/test-result.txt","w");
+    try{
+        Application->Initialize();
+        Check(!ValidTeachingTolerance(0) && !ValidTeachingTolerance(-1) && ValidTeachingTolerance(0.5),"positive configurable tolerance");
+        Check(!TeachingOutsideTolerance(9999,0,10) && TeachingOutsideTolerance(10000,0,10) &&
+            TeachingOutsideTolerance(-10000,0,10),"9.999 mm passes; +/-10.000 mm warns");
+        Check(TeachingOutsideTolerance(500,0,0.5),"fractional configurable tolerance");
+        Check(DefaultTeachingCoordinate(100,1,true)==100 && DefaultTeachingCoordinate(100,13,false)==590100 &&
+            DefaultTeachingCoordinate(100,25,true)==230100 && DefaultTeachingCoordinate(100,49,true)==490100 &&
+            DefaultTeachingCoordinate(100,73,true)==720100 && DefaultTeachingCoordinate(100,96,false)==1085100,
+            "drawing offsets and 45 mm pitch match auto-calculation");
+        Check(DefaultTeachingCoordinate(INT_MAX,73,true)>(__int64)INT_MAX &&
+            TeachingOutsideTolerance(INT_MIN,INT_MAX,10),"large coordinate arithmetic does not wrap");
+        BaseForm->config.teachingXYToleranceMm=10;
+        BaseForm->SetLanguage("EN");
+        std::auto_ptr<TteachForm> formOwner(new TteachForm());
+        TteachForm &form=*formOwner;
+        for(int axis=0;axis<4;++axis)for(int group=0;group<8;++group)
+            form.values[axis][group]=(int)DefaultTeachingCoordinate(100000*(axis+1),group*12+1,axis%2==0);
+        Check(form.GetTeachingXYDeviations().IsEmpty(),"independent Source/Target CH01 origins pass");
+        form.values[asSourceX][1]+=9999;
+        Check(form.GetTeachingXYDeviations().IsEmpty(),"actual review method below threshold");
+        form.values[asSourceX][1]+=1; form.values[asTargetY][7]-=10000;
+        UnicodeString warnings=form.GetTeachingXYDeviations();
+        Check(warnings.Pos("Source CH13_X") && warnings.Pos("Target CH85_Y"),"both trays, either axis, inclusive threshold");
+        BaseForm->config.teachingXYToleranceMm=11;
+        Check(form.GetTeachingXYDeviations().IsEmpty(),"review uses updated Config threshold");
+        BaseForm->config.teachingXYToleranceMm=10;
+        DialogCloser closer;
+        std::auto_ptr<TTimer> timer(new TTimer(NULL));closer.timer=timer.get();timer->Enabled=false;
+        timer->Interval=100; timer->OnTimer=closer.Tick;
+        closer.result=mrCancel; closer.image="tmp/TeachingReview20261002/warning-en.png"; timer->Enabled=true;
+        Check(!form.ConfirmTeachingDeviation(warnings),"Cancel rejects reviewed save");
+        BaseForm->SetLanguage("KO");
+        closer.result=mrYes; closer.image="tmp/TeachingReview20261002/warning-ko.png";timer->Enabled=true;
+        Check(form.ConfirmTeachingDeviation(warnings),"Save anyway explicitly approves reviewed save");
+
+        UnicodeString root="tmp\\TeachingReview20261002\\files_"+IntToStr((int)GetTickCount())+"\\";
+        ForceDirectories(root);
+        UnicodeString file=root+"TrayTeaching96.ini", temp=file+".tmp", logDir=root+"Log\\";
+        TDateTime stamp=EncodeDate(2026,10,2)+EncodeTime(12,0,0,123);
+        UnicodeString previous="[Source]\r\nCH01_X=100000\r\nCH13_X=100000\r\n[Target]\r\nCH01_Y=200000\r\n[Motion]\r\nSourceZ=90000\r\n";
+        UnicodeString next="[Source]\r\nCH01_X=100000\r\nCH13_X=110000\r\n[Target]\r\nCH01_Y=190000\r\n[Motion]\r\nSourceZ=99000\r\n";
+        WriteText(file,previous); WriteText(temp,next);
+        UnicodeString completion;
+        UnicodeString backup=CommitReviewedTeachingFile(file,temp,logDir,stamp,"admin",true,10,warnings,completion);
+        Check(completion.IsEmpty() && ReadText(file)==next && ReadText(backup)==previous,"forced save backs up exact old file and commits new file");
+        Check(backup.Pos("20261002_120000_123")>0,"backup filename includes date/time/milliseconds");
+        UnicodeString audit=ReadText(logDir+"TEACHING_20261002.log");
+        Check(audit.Pos("Forced=YES") && audit.Pos("User=admin") && audit.Pos("SAVE_COMPLETED") &&
+            audit.Pos("CH13_X Previous=100000 New=110000 Difference=10000") &&
+            audit.Pos("CH01_Y Previous=200000 New=190000 Difference=-10000") &&
+            audit.Pos("SourceZ Previous=90000 New=99000 Difference=9000"),"audit includes forced flag, actor, previous/new/signed difference and Z");
+        WriteText(temp,previous);
+        UnicodeString second=CommitReviewedTeachingFile(file,temp,logDir,stamp,"admin",false,10,"",completion);
+        Check(second!=backup && ReadText(backup)==previous && ReadText(second)==next,"same-time saves never overwrite backups");
+
+        UnicodeString fresh=root+"Fresh.ini";WriteText(fresh+".tmp",next);
+        Check(CommitReviewedTeachingFile(fresh,fresh+".tmp",logDir,stamp,"admin",false,10,"",completion).IsEmpty(),"first save succeeds without fictional previous backup");
+        UnicodeString blocked=root+"Blocked\\";ForceDirectories(blocked);WriteText(blocked+"TeachingBackup","not a folder");
+        WriteText(blocked+"Tray.ini",previous);WriteText(blocked+"Tray.ini.tmp",next);
+        bool failed=false;
+        try{CommitReviewedTeachingFile(blocked+"Tray.ini",blocked+"Tray.ini.tmp",logDir,stamp,"admin",false,10,"",completion);}catch(Exception&){failed=true;}
+        Check(failed && ReadText(blocked+"Tray.ini")==previous,"backup failure preserves previous live teaching");
+        WriteText(root+"BlockedLog","not a folder");WriteText(temp,next);failed=false;
+        try{CommitReviewedTeachingFile(file,temp,root+"BlockedLog",stamp,"admin",false,10,"",completion);}catch(Exception&){failed=true;}
+        Check(failed && ReadText(file)==previous,"audit failure prevents live file replacement");
+        HANDLE held=CreateFileW(file.c_str(),GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,0,NULL);
+        Check(held!=INVALID_HANDLE_VALUE,"lock original for replacement-failure test");failed=false;
+        try{CommitReviewedTeachingFile(file,temp,logDir,stamp,"admin",false,10,"",completion);}catch(Exception&){failed=true;}
+        CloseHandle(held);
+        Check(failed && ReadText(file)==previous && ReadText(logDir+"TEACHING_20261002.log").Pos("SAVE_FAILED"),"replace failure preserves original and logs failure");
+
+        RegisterClass(__classid(TAdvSmoothButton));RegisterClass(__classid(TAdvSmoothLabel));
+        RegisterClass(__classid(TImage));RegisterClass(__classid(TPanel));RegisterClass(__classid(TLabel));
+        RegisterClass(__classid(TGroupBox));RegisterClass(__classid(TEdit));RegisterClass(__classid(TButton));
+        RegisterClass(__classid(TCheckBox));
+        std::auto_ptr<TForm> preview(new TForm(NULL,0));
+        std::auto_ptr<TMemoryStream> text(new TMemoryStream()), binary(new TMemoryStream());
+        text->LoadFromFile("tmp/TeachingReview20261002/config.dfm");ObjectTextToBinary(text.get(),binary.get());
+        binary->Position=0;binary->ReadComponent(preview.get());preview->Show();
+        TEdit *edit=dynamic_cast<TEdit*>(preview->FindComponent("editTeachingXYTolerance"));
+        Check(edit && edit->Text=="10" && edit->Top+edit->Height<=preview->ClientHeight,"Config preview includes visible default 10 mm input");
+        Capture(preview.get(),"tmp/TeachingReview20261002/config-en.png");
+        TLabel *label=dynamic_cast<TLabel*>(preview->FindComponent("lblTeachingXYTolerance"));
+        label->Caption=BaseForm->GetLangStr("CAP_TEACHING_XY_TOLERANCE");
+        Capture(preview.get(),"tmp/TeachingReview20261002/config-ko.png");
+        fprintf(testLog,"ALL TESTS PASSED\n");fclose(testLog);return 0;
+    }catch(Exception &e){fprintf(testLog,"FAIL: %s\n",AnsiString(e.Message).c_str());fclose(testLog);return 1;}
+}

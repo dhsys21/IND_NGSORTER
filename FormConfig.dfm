@@ -713,6 +713,34 @@ object ConfigForm: TConfigForm
     OnClick = AdvSmoothButton3Click
     TMSStyle = 8
   end
+  object lblTeachingXYTolerance: TLabel
+    Left = 18
+    Top = 510
+    Width = 316
+    Height = 22
+    AutoSize = False
+    Caption = 'Teaching XY tolerance (mm)'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+  end
+  object editTeachingXYTolerance: TEdit
+    Left = 346
+    Top = 505
+    Width = 122
+    Height = 29
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -17
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 15
+    Text = '10'
+  end
   object GroupBox5: TGroupBox
     Left = 8
     Top = 563

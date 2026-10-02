@@ -479,7 +479,7 @@ object BaseForm: TBaseForm
     Top = 52
     Width = 100
     Height = 13
-    Caption = 'Ver. 2026-10-02 001'
+    Caption = 'Ver. 2026-10-02 002'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -11

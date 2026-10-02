@@ -4,6 +4,7 @@
 #pragma hdrstop
 
 #include "FormBase.h"
+#include "TeachingReview.h"
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.dfm"
@@ -18,6 +19,9 @@ __fastcall TConfigForm::TConfigForm(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall TConfigForm::ApplyConfig()
 {
+	double tolerance = 0;
+	if(TryStrToFloat(editTeachingXYTolerance->Text.Trim(), tolerance) && ValidTeachingTolerance(tolerance))
+		BaseForm->config.teachingXYToleranceMm = tolerance;
 	BaseForm->config.tpmUnused = chkTpmUnused->Checked;
 	//* 비상정지후 취출/삽입 계속작업.
 	BaseForm->config.emergencyAutoRestart = chkEmergencyAutoRestart->Checked;
@@ -283,6 +287,7 @@ void __fastcall TConfigForm::WriteSystemInfo(AnsiString type)
 	ini->WriteString("FAT_TEST", "TARGET_BCR",
 		editFatTargetBcr->Text.Trim());
 	ini->WriteInteger("TARGET_TRAY", "UNLOAD_CELL_COUNT", BaseForm->config.targetTrayUnloadCount);
+	ini->WriteFloat("TEACHING", "XY_TOLERANCE_MM", BaseForm->config.teachingXYToleranceMm);
 	//* 비상정지후 취출/삽입 계속작업.
 	ini->WriteBool("RECOVERY", "EMERGENCY_AUTO_RESTART", BaseForm->config.emergencyAutoRestart);
 	ini->WriteBool("TPM", "UNUSED", BaseForm->config.tpmUnused);
@@ -293,6 +298,7 @@ void __fastcall TConfigForm::WriteSystemInfo(AnsiString type)
 //---------------------------------------------------------------------------
 bool __fastcall TConfigForm::ReadSystemInfo()
 {
+	editTeachingXYTolerance->Text = FloatToStr(BaseForm->config.teachingXYToleranceMm);
 	chkTpmUnused->Checked = BaseForm->config.tpmUnused;
 	TIniFile *ini;
 
@@ -327,6 +333,10 @@ bool __fastcall TConfigForm::ReadSystemInfo()
 	int unloadCount = ini->ReadInteger("TARGET_TRAY", "UNLOAD_CELL_COUNT", 0);
 	if(unloadCount < 0 || unloadCount > 96) unloadCount = 0;
 	editTargetUnloadCount->Text = IntToStr(unloadCount);
+	double tolerance = 10.0;
+	if(!TryStrToFloat(ini->ReadString("TEACHING", "XY_TOLERANCE_MM", "10"), tolerance) ||
+		!ValidTeachingTolerance(tolerance)) tolerance = 10.0;
+	editTeachingXYTolerance->Text = FloatToStr(tolerance);
 	//* 비상정지후 취출/삽입 계속작업.
 	chkEmergencyAutoRestart->Checked = ini->ReadBool("RECOVERY", "EMERGENCY_AUTO_RESTART", false);
 	chkTpmUnused->Checked = ini->ReadBool("TPM", "UNUSED", false);
@@ -488,6 +498,12 @@ void __fastcall TConfigForm::btnSmokeDisconnClick(TObject *Sender)
 void __fastcall TConfigForm::AdvSmoothButton2Click(TObject *Sender)
 {
     if(!AccessControl().Require(alAdmin, "TConfigForm.AdvSmoothButton2Click")) return;
+	double tolerance = 0;
+	if(!TryStrToFloat(editTeachingXYTolerance->Text.Trim(), tolerance) || !ValidTeachingTolerance(tolerance)){
+		ShowMessage(BaseForm->GetLangStr("MSG_TEACHING_XY_TOLERANCE"));
+		editTeachingXYTolerance->SetFocus();
+		return;
+	}
 	int unloadCount = -1;
 	if(!TryStrToInt(editTargetUnloadCount->Text.Trim(), unloadCount) || unloadCount < 0 || unloadCount > 96){
 		ShowMessage(BaseForm->GetLangStr("MSG_TARGET_UNLOAD_RANGE"));
@@ -497,6 +513,7 @@ void __fastcall TConfigForm::AdvSmoothButton2Click(TObject *Sender)
 	if(MessageBox(Handle, BaseForm->GetLangStr("MSG_APPLY").c_str(), L"APPLY", MB_YESNO|MB_ICONQUESTION) == ID_YES){
 		ApplyConfig();
 		this->WriteSystemInfo();
+		AccessControl().Audit("SETTING_CHANGE", "TeachingXYToleranceMm=" + FloatToStr(tolerance));
 		this->Visible = false;
 	}
 }

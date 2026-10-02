@@ -5,6 +5,7 @@
 #pragma hdrstop
 
 #include "FormBase.h"
+#include "TeachingReview.h"
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.dfm"
@@ -1038,24 +1039,85 @@ bool __fastcall TteachForm::CheckPositionDown(int gripperIndex)
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::SetDefaultTrayTeaching(bool sourceTray, int baseX, int baseY)
 {
-	//* DEFAULT TRAY DIMENSION: Servo teaching values use 1,000 pulses per mm.
-	static const int ColumnOffset[4] = {0, 230000, 490000, 720000};
-	static const int SecondRowOffset = 590000; // CH01->CH12: 11 x 45 mm, CH12->CH13: 95 mm.
-
 	TrayAxisEdit xEditType = sourceTray ? asSourceX : asTargetX;
 	TrayAxisEdit yEditType = sourceTray ? asSourceY : asTargetY;
 	for(int group = 0; group < TraySlotCount / TrayTeachingGroupSize; ++group){
 		int channel = group * TrayTeachingGroupSize + 1;
-		int column = group / 2;
-		bool secondRow = (group % 2) != 0;
 		TEdit *xEdit = GetTrayEdit(channel, xEditType);
 		TEdit *yEdit = GetTrayEdit(channel, yEditType);
 
 		if(xEdit != NULL)
-			xEdit->Text = IntToStr(baseX + ColumnOffset[column]);
+			xEdit->Text = IntToStr(DefaultTeachingCoordinate(baseX, channel, true));
 		if(yEdit != NULL)
-			yEdit->Text = IntToStr(baseY + (secondRow ? SecondRowOffset : 0));
+			yEdit->Text = IntToStr(DefaultTeachingCoordinate(baseY, channel, false));
 	}
+}
+//---------------------------------------------------------------------------
+UnicodeString __fastcall TteachForm::GetTeachingXYDeviations()
+{
+    double tolerance = BaseForm->config.teachingXYToleranceMm;
+    if(!ValidTeachingTolerance(tolerance)) throw Exception("Invalid teaching XY tolerance.");
+    UnicodeString result;
+    for(int tray = 0; tray < 2; ++tray){
+        for(int axis = 0; axis < 2; ++axis){
+            TrayAxisEdit type = tray == 0 ? (axis == 0 ? asSourceX : asSourceY) :
+                (axis == 0 ? asTargetX : asTargetY);
+            int origin = GetTrayPosValue(1, type);
+            // CH01 is the operator-approved origin. Z is intentionally not compared.
+            for(int channel = 13; channel <= TraySlotCount; channel += TrayTeachingGroupSize){
+                int actual = GetTrayPosValue(channel, type);
+                __int64 expected = DefaultTeachingCoordinate(origin, channel, axis == 0);
+                if(!TeachingOutsideTolerance(actual, expected, tolerance)) continue;
+                result += UnicodeString(tray == 0 ? "Source " : "Target ") +
+                    TeachingChannelKey(channel, axis == 0 ? "X" : "Y") + " : " +
+                    FormatFloat("0.000", expected / 1000.0) + " / " +
+                    FormatFloat("0.000", actual / 1000.0) + " / " +
+                    FormatFloat("+0.000;-0.000;0.000", TeachingDifferenceMm(actual, expected)) + "\r\n";
+            }
+        }
+    }
+    return result;
+}
+//---------------------------------------------------------------------------
+bool __fastcall TteachForm::ConfirmTeachingDeviation(const UnicodeString &deviations)
+{
+    std::unique_ptr<TForm> dialog(new TForm(this, 0));
+    dialog->Caption = BaseForm->GetLangStr("CAP_TEACHING_XY_WARNING");
+    dialog->BorderStyle = bsDialog;
+    dialog->Position = poScreenCenter;
+    dialog->FormStyle = fsStayOnTop;
+    dialog->ClientWidth = 660;
+    dialog->ClientHeight = 410;
+    dialog->Font->Name = "Tahoma";
+    dialog->Font->Size = 10;
+    TLabel *heading = new TLabel(dialog.get());
+    heading->Parent = dialog.get();
+    heading->SetBounds(16, 12, 628, 54);
+    heading->AutoSize = false;
+    heading->WordWrap = true;
+    heading->Caption = BaseForm->GetLangStr("MSG_TEACHING_XY_WARNING") + " (" +
+        FloatToStr(BaseForm->config.teachingXYToleranceMm) + " mm)\r\n" +
+        BaseForm->GetLangStr("CAP_TEACHING_XY_COLUMNS");
+    TMemo *details = new TMemo(dialog.get());
+    details->Parent = dialog.get();
+    details->SetBounds(16, 74, 628, 270);
+    details->ReadOnly = true;
+    details->ScrollBars = ssVertical;
+    details->Text = deviations;
+    TButton *save = new TButton(dialog.get());
+    save->Parent = dialog.get();
+    save->SetBounds(356, 362, 140, 32);
+    save->Caption = BaseForm->GetLangStr("CAP_TEACHING_SAVE_ANYWAY");
+    save->ModalResult = mrYes;
+    TButton *cancel = new TButton(dialog.get());
+    cancel->Parent = dialog.get();
+    cancel->SetBounds(504, 362, 140, 32);
+    cancel->Caption = BaseForm->GetLangStr("CAP_CANCEL");
+    cancel->ModalResult = mrCancel;
+    cancel->Default = true;
+    cancel->Cancel = true;
+    dialog->ActiveControl = cancel;
+    return dialog->ShowModal() == mrYes;
 }
 //---------------------------------------------------------------------------
 void __fastcall TteachForm::ApplyTeaching()
@@ -1141,8 +1203,12 @@ void __fastcall TteachForm::ApplyTeaching()
 			return;
 		}
 		ShowTeachingSpeedDanger(Handle, speed);
-		if(MessageBox(Handle, BaseForm->GetLangStr("MSG_APPLY").c_str(), L"SAVE", MB_YESNO|MB_ICONWARNING) == ID_YES){
-			if(SaveTeaching(teachingFilePath)){
+		UnicodeString deviations = GetTeachingXYDeviations();
+		bool forced = !deviations.IsEmpty();
+		bool confirmed = forced ? ConfirmTeachingDeviation(deviations) :
+			MessageBox(Handle, BaseForm->GetLangStr("MSG_APPLY").c_str(), L"SAVE", MB_YESNO|MB_ICONWARNING|MB_DEFBUTTON2) == ID_YES;
+		if(confirmed){
+			if(SaveTeaching(teachingFilePath, forced, deviations)){
 				// Reload the saved values into live controls, then refresh the motion data.
 				if(!LoadTeaching(teachingFilePath)){
 					MessageBox(Handle, L"Teaching was saved but could not be applied.",
@@ -1160,7 +1226,7 @@ void __fastcall TteachForm::ApplyTeaching()
 	}
 }
 //---------------------------------------------------------------------------
-bool __fastcall TteachForm::SaveTeaching(const UnicodeString &filePath)
+bool __fastcall TteachForm::SaveTeaching(const UnicodeString &filePath, bool forced, const UnicodeString &deviations)
 {
 	UnicodeString temporaryPath = filePath + ".tmp";
 	try{
@@ -1194,16 +1260,17 @@ bool __fastcall TteachForm::SaveTeaching(const UnicodeString &filePath)
 		}
 
 		lines->SaveToFile(temporaryPath);
-		if(!MoveFileExW(temporaryPath.c_str(), filePath.c_str(),
-			MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
-		{
-			int errorCode = GetLastError();
-			DeleteFile(temporaryPath);
-			throw Exception("Teaching file replacement failed: " + SysErrorMessage(errorCode));
-		}
+		UnicodeString completionLogWarning;
+		UnicodeString backup = CommitReviewedTeachingFile(filePath, temporaryPath,
+			UnicodeString(LOG) + "TEACHING_LOG\\", Now(), AccessControl().UserId(), forced,
+			BaseForm->config.teachingXYToleranceMm, deviations, completionLogWarning);
 
-		MainForm->memoRobostarLineAdd("[ROBOT] Teaching saved: " + filePath);
+		MainForm->memoRobostarLineAdd("[TEACHING] Saved: " + filePath +
+			" Forced=" + (forced ? "YES" : "NO") + " User=" + AccessControl().UserId() + " Backup=" + backup);
 		teachingFileLoaded = true;
+		if(!completionLogWarning.IsEmpty())
+			MessageBox(Handle, ("Teaching was saved; the full change log was written, but the completion marker failed: " +
+				completionLogWarning).c_str(), L"Teaching log", MB_OK|MB_ICONWARNING);
 		return true;
 	}
 	catch(Exception &exception){

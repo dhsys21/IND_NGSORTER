@@ -86,6 +86,8 @@ __published:	// IDE-managed Components
 	TEdit *editSmokeBaud;
 	TButton *btnSmokeConn;
 	TButton *btnSmokeDisconn;
+	TLabel *lblTeachingXYTolerance;
+	TEdit *editTeachingXYTolerance;
 	void __fastcall FormShow(TObject *Sender);
 	void __fastcall FormCreate(TObject *Sender);
 	void __fastcall btnConMesClick(TObject *Sender);

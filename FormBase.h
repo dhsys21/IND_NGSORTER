@@ -54,6 +54,7 @@ typedef struct{
 	AnsiString fmsIp;
 	int gatewayPort;
 	int targetTrayUnloadCount; // 0: full trays only; otherwise checked at Source completion.
+	double teachingXYToleranceMm; // CH01-based drawing comparison; Z is excluded.
 	bool tpmUnused; // TPM LOSS: true skips reason selection on operator MANUAL.
 	//* 비상정지후 취출/삽입 계속작업.
 	bool emergencyAutoRestart; // Opt-in, memory-only EMG checkpoint recovery.

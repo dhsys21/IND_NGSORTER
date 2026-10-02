@@ -58,6 +58,7 @@ __fastcall TBaseForm::TBaseForm(TComponent* Owner)
 	// the normal production sequence and the physical barcode readers.
 	config.maximumSpeedMode = false;
 	config.targetTrayUnloadCount = 0;
+	config.teachingXYToleranceMm = 10.0;
 	config.tpmUnused = false;
 	//* 비상정지후 취출/삽입 계속작업.
 	config.emergencyAutoRestart = false;
@@ -602,6 +603,7 @@ void __fastcall TBaseForm::ChangeLanguage()
 	ConfigForm->GroupBox2->Caption = GetLangStr("CAP_Z_UP_ON_MOVE");
 	ConfigForm->chkZAxisUp->Caption = GetLangStr("CAP_Z_UP");
 	ConfigForm->GroupBoxTargetUnload->Caption = GetLangStr("CAP_TARGET_UNLOAD_SETTING");
+	ConfigForm->lblTeachingXYTolerance->Caption = GetLangStr("CAP_TEACHING_XY_TOLERANCE");
 	ConfigForm->chkTpmUnused->Caption = GetLangStr("CAP_TPM_UNUSED");
 	//* 비상정지후 취출/삽입 계속작업.
 	ConfigForm->chkEmergencyAutoRestart->Caption = GetLangStr("CAP_EMG_AUTO_RESTART");
