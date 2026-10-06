@@ -11,28 +11,12 @@ object ManualCompleteForm: TManualCompleteForm
   Font.Height = -16
   Font.Name = 'Tahoma'
   Font.Style = []
+  OldCreateOrder = True
   Position = poMainFormCenter
   Scaled = False
   OnCloseQuery = FormCloseQuery
   PixelsPerInch = 96
   TextHeight = 19
-  object pnlTitle: TPanel
-    Left = 0
-    Top = 0
-    Width = 660
-    Height = 48
-    Align = alTop
-    BevelOuter = bvNone
-    Caption = 'Manual work complete'
-    Color = clGray
-    Font.Color = clWhite
-    Font.Height = -20
-    Font.Name = 'Tahoma'
-    Font.Style = [fsBold]
-    ParentBackground = False
-    ParentFont = False
-    TabOrder = 0
-  end
   object lblSource: TLabel
     Left = 20
     Top = 66
@@ -49,13 +33,13 @@ object ManualCompleteForm: TManualCompleteForm
     AutoSize = False
     Caption = 'Target Tray'
   end
-  object lblCell: TLabel
+  object lblSourceChannel: TLabel
     Left = 20
     Top = 146
     Width = 170
     Height = 26
     AutoSize = False
-    Caption = 'Cell ID'
+    Caption = 'Source Channel'
   end
   object lblChannel: TLabel
     Left = 20
@@ -88,6 +72,24 @@ object ManualCompleteForm: TManualCompleteForm
     AutoSize = False
     WordWrap = True
   end
+  object pnlTitle: TPanel
+    Left = 0
+    Top = 0
+    Width = 660
+    Height = 48
+    Align = alTop
+    BevelOuter = bvNone
+    Caption = 'Manual work complete'
+    Color = clGray
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWhite
+    Font.Height = -20
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentBackground = False
+    ParentFont = False
+    TabOrder = 0
+  end
   object editSource: TEdit
     Left = 200
     Top = 62
@@ -96,6 +98,17 @@ object ManualCompleteForm: TManualCompleteForm
     ReadOnly = True
     TabOrder = 1
   end
+  object editSourceChannel: TEdit
+    Left = 200
+    Top = 142
+    Width = 100
+    Height = 27
+    MaxLength = 2
+    NumbersOnly = True
+    ReadOnly = True
+    TabOrder = 3
+    TextHint = 'CH 1-96'
+  end
   object editTarget: TEdit
     Left = 200
     Top = 102
@@ -103,14 +116,6 @@ object ManualCompleteForm: TManualCompleteForm
     Height = 27
     ReadOnly = True
     TabOrder = 2
-  end
-  object editCell: TEdit
-    Left = 200
-    Top = 142
-    Width = 440
-    Height = 27
-    ReadOnly = True
-    TabOrder = 3
   end
   object editChannel: TEdit
     Left = 200
@@ -126,9 +131,11 @@ object ManualCompleteForm: TManualCompleteForm
     Top = 226
     Width = 620
     Height = 48
-    Caption = 'I confirmed the cell is inserted at this Target channel and the gripper is empty.'
-    WordWrap = True
+    Caption = 
+      'I confirmed the cell is inserted at this Target channel and the ' +
+      'gripper is empty.'
     TabOrder = 5
+    WordWrap = True
   end
   object btnReport: TButton
     Left = 20

@@ -614,6 +614,7 @@ public:		// User declarations
 	bool __fastcall IsFmsTroubleBlocking() const;
 	bool __fastcall IsManualTrayLoadBusy() const;
 	bool CanStartManualCellCompletion() const;
+    bool CanStartManualCellReport() const;
 	void ResumeAfterManualCellCompletion();
 
 	TMod_Bcr *comBcr[2];

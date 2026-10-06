@@ -1,0 +1,119 @@
+#include <vcl.h>
+#include <fstream>
+#pragma hdrstop
+
+enum TManualCellPhase { mcIdle, mcPrepared, mcClearForSend, mcWaitResult, mcAccepted, mcReady, mcMoving };
+const int gripCnt = 1;
+struct Tool { AnsiString source_ch, target_ch; };
+struct FakeGripper { Tool tool[1]; int pauses; void req_Pause(bool) { ++pauses; } } grip;
+FakeGripper *gripper = &grip;
+struct FakeRobot { int pauses; void req_Pause(bool) { ++pauses; } } robot;
+FakeRobot *robostar = &robot;
+struct Tray { int SLOT_COUNT; };
+struct FakeMain {
+    bool ready, canDirectReport; int stops; Tray tray_source, tray_target; TPanel *pTrayid_source, *pTrayid_target;
+    bool CanStartManualCellCompletion() { return ready; }
+    bool CanStartManualCellReport() { return canDirectReport; }
+    void stopBtnClick(TObject*) { ++stops; }
+} mainState;
+FakeMain *MainForm = &mainState;
+struct FakeMes {
+    bool approved;
+    bool ReadApprovedSource(int, AnsiString &cell, AnsiString &lot, AnsiString &ng, AnsiString &grade, bool &work)
+    { if(!approved) return false; cell="CELL3";lot="LOT1";ng="NG1";grade="NG";work=true;return true; }
+} mesState;
+FakeMes *MesOpc = &mesState;
+struct FakeGateway { bool connected; bool IsGatewayConnected() { return connected; } } gateway;
+FakeGateway *Mod_Fms = &gateway;
+int confirmResult = IDNO, confirmCount = 0;
+int MockMessageBox(HWND, const wchar_t*, const wchar_t*, unsigned int) { ++confirmCount; return confirmResult; }
+#undef MessageBox
+#define MessageBox MockMessageBox
+UnicodeString RecoveryText(const char *key) { return key; }
+
+class TManualCompleteForm : public TForm {
+public:
+    TManualCellPhase phase;
+    int toolNo, sourceNo, targetNo, reservedNo, shown;
+    AnsiString sourceId, targetId, cellId, lotId, ngCode, grade;
+    bool polling, restored, workFlag, journalOkay, contextReady, manualEntry;
+    TEdit *editSource,*editTarget,*editChannel,*editSourceChannel;
+    TCheckBox *chkInserted;
+    TButton *btnReport,*btnRetry,*btnResume,*btnClose,*btnSourceReturn;
+    TLabel *lblStatus;
+    __fastcall TManualCompleteForm() : TForm((TComponent*)NULL,0) {
+        phase=mcIdle; shown=0; journalOkay=true;contextReady=false;polling=restored=manualEntry=false;
+        toolNo=sourceNo=targetNo=reservedNo=0;
+        editSource=new TEdit(this);editTarget=new TEdit(this);editChannel=new TEdit(this);
+        editSourceChannel=new TEdit(this);btnSourceReturn=new TButton(this);
+        chkInserted=new TCheckBox(this);btnReport=new TButton(this);btnRetry=new TButton(this);
+        btnResume=new TButton(this);btnClose=new TButton(this);lblStatus=new TLabel(this);
+    }
+    bool IsBlocking() const { return phase != mcIdle || !journalOkay; }
+    void ApplyLanguage() {}
+    void RefreshFmsWaitLabel() {}
+    virtual int __fastcall ShowModal() { ++shown; return mrCancel; }
+    void RefreshControls();
+    void OpenManualEntry();
+    void OpenRecovery(int ToolNo);
+    bool ReadManualEntry();
+};
+// EXTRACTED_METHODS
+void Check(bool ok) { if(!ok) throw Exception("Manual completion opening regression"); }
+int WINAPI wWinMain(HINSTANCE,HINSTANCE,LPWSTR,int) {
+    int exitCode=0;
+    std::ofstream out("tmp/manual-complete-open/result.txt");
+    Application->Initialize();
+    TManualCompleteForm *f=new TManualCompleteForm();
+    mainState.pTrayid_source=new TPanel(f); mainState.pTrayid_target=new TPanel(f);
+    mainState.tray_source.SLOT_COUNT=mainState.tray_target.SLOT_COUNT=96;
+    try {
+        mainState.ready=false;
+        mainState.pTrayid_source->Caption="SRC";mainState.pTrayid_target->Caption="NG";
+        f->OpenRecovery(1);
+        Check(f->shown==1 && f->btnReport->Enabled && f->chkInserted->Enabled && f->contextReady && f->manualEntry);
+        Check(f->editSource->ReadOnly && !f->editSourceChannel->ReadOnly &&
+            f->editTarget->ReadOnly && !f->btnResume->Enabled);
+        Check(f->editSource->Text=="SRC" && f->editTarget->Text=="NG");
+        Check(grip.pauses==0 && robot.pauses==0 && mainState.stops==0);
+        out<<"PASS current tray IDs read-only; only channels editable; no Cell ID input\n";
+        mainState.canDirectReport=true;gateway.connected=true;
+        Check(!f->ReadManualEntry() && confirmCount==0);
+        f->editSourceChannel->Text="0";f->editChannel->Text="7";
+        Check(!f->ReadManualEntry());
+        f->editSourceChannel->Text="97";
+        Check(!f->ReadManualEntry());
+        f->editSourceChannel->Text="3";mainState.pTrayid_target->Caption="NEW_TRAY";
+        Check(!f->ReadManualEntry());
+        mainState.pTrayid_target->Caption="NG";mainState.canDirectReport=false;
+        Check(!f->ReadManualEntry());
+        mainState.canDirectReport=true;gateway.connected=false;
+        Check(!f->ReadManualEntry());
+        gateway.connected=true;
+        mesState.approved=false;
+        Check(!f->ReadManualEntry() && confirmCount==0 && f->cellId.IsEmpty());
+        mesState.approved=true;
+        Check(!f->ReadManualEntry() && confirmCount==1);
+        confirmResult=IDYES;
+        Check(f->ReadManualEntry() && confirmCount==2 && f->sourceNo==3 && f->targetNo==7 && f->cellId=="CELL3");
+        f->RefreshControls();
+        Check(f->editSource->Text=="SRC" && f->editTarget->Text=="NG");
+        out<<"PASS validation: range/tray replacement/busy/connection/Source lookup/cancel/confirm\n";
+        mainState.ready=true;grip.tool[0].source_ch="3";grip.tool[0].target_ch="7";
+        mainState.pTrayid_source->Caption="SRC";mainState.pTrayid_target->Caption="NG";
+        mesState.approved=false;f->OpenRecovery(1);
+        Check(f->shown==2 && f->cellId.IsEmpty() && f->manualEntry);
+        mesState.approved=true;f->OpenRecovery(1);
+        Check(f->shown==3 && f->contextReady && !f->manualEntry && f->btnReport->Enabled && !f->chkInserted->Checked);
+        Check(f->editSource->ReadOnly && f->editTarget->ReadOnly && f->editSourceChannel->ReadOnly);
+        Check(f->sourceNo==3 && f->targetNo==7 && grip.pauses==1 && robot.pauses==1 && mainState.stops==1);
+        out<<"PASS valid work retains original pause and confirmation flow\n";
+        mainState.ready=false;f->OpenRecovery(1);
+        Check(f->shown==4 && f->cellId.IsEmpty() && f->editChannel->Text.IsEmpty() && f->manualEntry);
+        f->phase=mcAccepted;f->cellId="PENDING";f->sourceNo=3;f->targetNo=7;
+        f->OpenRecovery(0);
+        Check(f->shown==5 && f->cellId=="PENDING" && f->phase==mcAccepted);
+        out<<"PASS stale idle context cleared; pending journal preserved\n";
+    }catch(Exception &e){out<<AnsiString(e.Message).c_str()<<"\n";exitCode=1;}
+    delete f;return exitCode;
+}

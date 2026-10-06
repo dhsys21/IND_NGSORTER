@@ -159,6 +159,7 @@ __published:	// IDE-managed Components
 	TAdvSmoothButton *btnSafetyReset;
 	TAdvSmoothButton *AdvSmoothButton4;
     void __fastcall btnUserClick(TObject *Sender);
+    void __fastcall Panel5Click(TObject *Sender);
     void __fastcall btnProductionClick(TObject *Sender);
 	void __fastcall FormShow(TObject *Sender);
 	void __fastcall ClockTimerTimer(TObject *Sender);
@@ -185,6 +186,9 @@ __published:	// IDE-managed Components
 	void __fastcall btnTriggerOffClick(TObject *Sender);
 
 private:	// User declarations
+    void __fastcall RecoveryManualClick(TObject *Sender);
+    void __fastcall RecoveryCompleteClick(TObject *Sender);
+    void __fastcall RecoveryRefresh(TObject *Sender);
 
 	int FormCnt;
 	int DeleteDay;

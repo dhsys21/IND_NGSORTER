@@ -924,6 +924,7 @@ object BaseForm: TBaseForm
     ParentBackground = False
     ParentFont = False
     TabOrder = 11
+    OnClick = Panel5Click
   end
   object pstepInfo1: TPanel
     Left = 317

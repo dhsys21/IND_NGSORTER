@@ -976,6 +976,19 @@ bool TMainForm::CanStartManualCellCompletion() const
 		fmsAlarmTransaction == fmsAlarmNone && !IsTargetTrayExchangeActive();
 }
 //---------------------------------------------------------------------------
+bool TMainForm::CanStartManualCellReport() const
+{
+    // Direct entry is a data-only report, not an override for an active cycle.
+    return equipMode == modeManual && gripper != NULL && robostar != NULL &&
+        !opcProcessStarted && !gripper->IsSortingWorkActive() &&
+        !gripper->HasPendingCompletion() && !cellRecoveryReportAccepted &&
+        !opcCellTrackOutPending && !opcProcessStartPending && !opcProcessEndPending &&
+        !opcTargetUnloadPending && !opcTrayLoadPending[0] && !opcTrayLoadPending[1] &&
+        !sourceTrayOutPending && !IsManualTrayLoadBusy() &&
+        fmsAlarmTransaction == fmsAlarmNone && !IsTargetTrayExchangeActive() &&
+        (robostar->seq == seqIdle || (robostar->pauseStatus && robostar->seq_save == seqIdle));
+}
+//---------------------------------------------------------------------------
 void TMainForm::ResumeAfterManualCellCompletion()
 {
 	// Called only after the operator requested standby-and-resume and the

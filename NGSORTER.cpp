@@ -8,42 +8,38 @@
 #include "FormAlarm_fms.h"
 //---------------------------------------------------------------------------
 USEFORM("ModGripper.cpp", gripper); /* TDataModule: File Type */
-USEFORM("ModMes_Gateway.cpp", Mod_Fms); /* TDataModule: File Type */
-USEFORM("Modmes.cpp", mes); /* TDataModule: File Type */
+USEFORM("FormServoAlarmList.cpp", ServoAlarmListForm);
+USEFORM("FormProduction.cpp", ProductionForm);
+USEFORM("FormManualComplete.cpp", ManualCompleteForm);
+USEFORM("FormTpmLoss.cpp", TpmLossForm);
 USEFORM("FormTeaching.cpp", teachForm);
+USEFORM("Modmes.cpp", mes); /* TDataModule: File Type */
 USEFORM("SmokeDetector_comm.cpp", SmokeDetector); /* TDataModule: File Type */
 USEFORM("ModPLC_Bin.cpp", PlcBin); /* TDataModule: File Type */
 USEFORM("ModMes_OPCUA.cpp", MesOpc); /* TDataModule: File Type */
-USEFORM("ModRobostar.cpp", robostar); /* TDataModule: File Type */
+USEFORM("ModMes_Gateway.cpp", Mod_Fms); /* TDataModule: File Type */
 USEFORM("Mod_SRX100W.cpp", Mod_Bcr); /* TDataModule: File Type */
-USEFORM("FormBase.cpp", BaseForm);
-USEFORM("FormAlarm_TrayInfo.cpp", trayinfoForm);
-USEFORM("FormConfig.cpp", ConfigForm);
-USEFORM("FormDryRun.cpp", DryRunForm);
-USEFORM("FormDoor.cpp", doorForm);
+USEFORM("ModRobostar.cpp", robostar); /* TDataModule: File Type */
+USEFORM("FormMain.cpp", MainForm);
+USEFORM("FormAccess.cpp", AccessForm);
 USEFORM("FormAlarm_LoadFactor.cpp", loadfactor_AlarmForm);
-USEFORM("Barcode_comm.cpp", Barcode); /* TDataModule: File Type */
 USEFORM("FormAlarm_fms.cpp", AlarmForm_fms);
 USEFORM("FormAlarm.cpp", AlarmForm);
-USEFORM("FormLoadFactor.cpp", loadfactorForm);
-USEFORM("FormInterface.cpp", InterfaceForm);
-USEFORM("FormMain.cpp", MainForm);
-USEFORM("FormServoAlarmList.cpp", ServoAlarmListForm);
-USEFORM("FormManualComplete.cpp", ManualCompleteForm);
-USEFORM("FormError_mes.cpp", ErrorForm_mes);
-USEFORM("FormError_bcr.cpp", ErrorForm_bcr);
-USEFORM("FormError.cpp", ErrorForm);
-USEFORM("FormError_eject.cpp", ErrorForm_eject);
+USEFORM("Barcode_comm.cpp", Barcode); /* TDataModule: File Type */
+USEFORM("FormAccessGuide.cpp", AccessGuideForm);
+USEFORM("FormAlarm_TrayInfo.cpp", trayinfoForm);
 USEFORM("FormError_limit.cpp", ErrorForm_limit);
 USEFORM("FormError_insert.cpp", ErrorForm_insert);
-USEFORM("FormAccess.cpp", AccessForm);
-USEFORM("FormAccessGuide.cpp", AccessGuideForm);
-USEFORM("FormProduction.cpp", ProductionForm);
-USEFORM("FormTpmLoss.cpp", TpmLossForm);
-USEUNIT("AccessControl.cpp");
-USEUNIT("ProductionHistory.cpp");
-USEUNIT("Stage_access.cpp");
-USEUNIT("Stage_production.cpp");
+USEFORM("FormError_eject.cpp", ErrorForm_eject);
+USEFORM("FormLoadFactor.cpp", loadfactorForm);
+USEFORM("FormInterface.cpp", InterfaceForm);
+USEFORM("FormError_mes.cpp", ErrorForm_mes);
+USEFORM("FormDoor.cpp", doorForm);
+USEFORM("FormConfig.cpp", ConfigForm);
+USEFORM("FormBase.cpp", BaseForm);
+USEFORM("FormError_bcr.cpp", ErrorForm_bcr);
+USEFORM("FormError.cpp", ErrorForm);
+USEFORM("FormDryRun.cpp", DryRunForm);
 //---------------------------------------------------------------------------
 int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 {
@@ -88,7 +84,6 @@ int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 		Application->CreateForm(__classid(TInterfaceForm), &InterfaceForm);
 		Application->CreateForm(__classid(TAlarmForm_fms), &AlarmForm_fms);
 		Application->CreateForm(__classid(TManualCompleteForm), &ManualCompleteForm);
-		// Access, production, and TPM dialogs are created on demand.
 		Application->Run();
 	}
 	catch (Exception &exception)

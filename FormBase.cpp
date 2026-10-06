@@ -7,6 +7,7 @@
 #include "ProductionHistory.h"
 #include "FormAccess.h"
 #include "FormProduction.h"
+#include "RecoveryPreview.h"
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.dfm"
@@ -17,6 +18,81 @@ static void ReportAccessSession(const UnicodeString &Account, TAccessLevel Level
     // Local audit only. FMS login tags have not been agreed; never send credentials.
     AccessControl().Audit("FMS_LOGIN_REPORT_PENDING", "Account=" + Account +
         " Level=" + TAccessControl::LevelName(Level) + " LoggedIn=" + (LoggedIn ? "true" : "false"), Account);
+}
+//---------------------------------------------------------------------------
+void __fastcall TBaseForm::Panel5Click(TObject *Sender)
+{
+    // Opening the modeless window never changes Pause, mode or machine data.
+    for(int i = 0; i < ComponentCount; ++i){
+        TRecoveryPreviewForm *preview = dynamic_cast<TRecoveryPreviewForm*>(Components[i]);
+        if(preview != NULL){
+            preview->RefreshState();
+            preview->Show();
+            preview->BringToFront();
+            return;
+        }
+    }
+    TRecoveryPreviewForm *preview = new TRecoveryPreviewForm(this, RadioButton1->Checked);
+    preview->OnRestartAction = MainForm->pause_startBtnClick;
+    preview->OnManualAction = RecoveryManualClick;
+    preview->OnCompleteAction = RecoveryCompleteClick;
+    preview->OnRefreshState = RecoveryRefresh;
+    preview->RefreshState();
+    preview->Show();
+}
+//---------------------------------------------------------------------------
+void __fastcall TBaseForm::RecoveryManualClick(TObject *Sender)
+{
+    // Reuse operator MANUAL, including TPM selection/cancel and permissions.
+    if(MainForm->equipMode != modeManual) MainForm->manualBtnClick(Sender);
+    else if(!AccessControl().Require(alEngineer, "Manual correction")) return;
+    if(MainForm->equipMode == modeManual) MainForm->teachingBtnClick(Sender);
+}
+//---------------------------------------------------------------------------
+void __fastcall TBaseForm::RecoveryCompleteClick(TObject *Sender)
+{
+    // Open the existing confirmation/report flow; never report on this click.
+    if(!AccessControl().Require(alEngineer, "Manual insert complete")) return;
+    ManualCompleteForm->OpenRecovery(1);
+}
+//---------------------------------------------------------------------------
+void __fastcall TBaseForm::RecoveryRefresh(TObject *Sender)
+{
+    TRecoveryPreviewForm *window = dynamic_cast<TRecoveryPreviewForm*>(Sender);
+    if(window == NULL || MainForm == NULL || gripper == NULL || robostar == NULL) return;
+    const bool ko = RadioButton1->Checked;
+    UnicodeString mode = MainForm->equipMode == modeManual ? L"MANUAL" :
+        (MainForm->equipMode == modeAuto ? L"AUTO" : L"AUTO STOP");
+    UnicodeString state = mode + L"  |  Robot Pause=" +
+        IntToStr((int)robostar->pauseStatus) + L" / Gripper Pause=" +
+        IntToStr((int)gripper->pauseStatus);
+    UnicodeString detail = L"Robot Seq=" + IntToStr((int)(robostar->pauseStatus ?
+        robostar->seq_save : robostar->seq)) + L" Step=" +
+        IntToStr(robostar->InterruptedStep()) +
+        L" / Gripper Seq=" + IntToStr((int)(gripper->pauseStatus ?
+        gripper->seq_save : gripper->seq)) + L" Step=" + IntToStr(gripper->step.step);
+    int from = gripper->tool[0].source_ch.ToIntDef(0);
+    int to = gripper->tool[0].target_ch.ToIntDef(0);
+    bool valid = from >= 1 && from <= MainForm->tray_source.SLOT_COUNT &&
+        to >= 1 && to <= MainForm->tray_target.SLOT_COUNT;
+    UnicodeString trays = L"SOURCE  " + UnicodeString(MainForm->pTrayid_source->Caption) +
+        L" / CH" + IntToStr(from) + L"\r\nTARGET  " +
+        UnicodeString(MainForm->pTrayid_target->Caption) + L" / CH" + IntToStr(to);
+    UnicodeString cell = valid ? L"CELL ID  " + UnicodeString(MainForm->tray_source.SLOT_ID[from-1]) :
+        (ko ? UnicodeString(L"\ud604\uc7ac \uc791\uc5c5 \ucc44\ub110 \uc815\ubcf4\uac00 \uc5c6\uc2b5\ub2c8\ub2e4.") : UnicodeString(L"No current work channel."));
+    UnicodeString sensors = ko ? L"\uc13c\uc11c \uc0c1\ud0dc: \ud1b5\uc2e0 \ubbf8\ud655\uc778" : L"Sensors: communication unavailable";
+    if(robostar->IsCcLinkReady()){
+        sensors = (ko ? UnicodeString(L"\uc13c\uc11c \uc0c1\ud0dc: \uc140 \uac10\uc9c0=") : UnicodeString(L"Sensors: cell detected=")) +
+            IntToStr((int)robostar->getCellDetectStatus()) + L" / CHUCK=" +
+            IntToStr((int)robostar->input.GRIPPER1_CHUCK) + L" / OPEN=" +
+            IntToStr((int)robostar->input.GRIPPER1_UNCHUCK);
+    }
+    UnicodeString records = (ko ? UnicodeString(L"\uc791\uc5c5 \uae30\ub85d: \ucde8\ucd9c \uc644\ub8cc=") : UnicodeString(L"Work record: picked=")) +
+        (valid ? IntToStr((int)gripper->tool[0].eject_end) : UnicodeString(L"-")) +
+        (ko ? UnicodeString(L" / \uc0bd\uc785 \uc644\ub8cc=") : UnicodeString(L" / inserted=")) +
+        (valid ? IntToStr((int)gripper->tool[0].insert_end) : UnicodeString(L"-")) +
+        L" / Completion pending=" + IntToStr((int)gripper->HasPendingCompletion());
+    window->SetWorkState(state, detail, trays, cell, sensors, records);
 }
 //---------------------------------------------------------------------------
 void __fastcall TBaseForm::btnUserClick(TObject *Sender)
